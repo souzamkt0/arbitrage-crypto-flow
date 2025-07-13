@@ -8,7 +8,6 @@ import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
-import NFTs from "./pages/NFTs";
 import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import NotFound from "./pages/NotFound";
@@ -66,16 +65,6 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Settings />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/nfts"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <NFTs />
                 </Layout>
               </ProtectedRoute>
             }

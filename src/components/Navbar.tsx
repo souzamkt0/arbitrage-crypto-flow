@@ -26,7 +26,6 @@ const Navbar = () => {
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/history", label: "Histórico", icon: History },
     { path: "/simulation", label: "Simulação", icon: Play },
-    { path: "/nfts", label: "NFTs", icon: Image },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
 
