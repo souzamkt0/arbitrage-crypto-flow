@@ -23,6 +23,7 @@ const Navbar = () => {
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
+    { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/history", label: "Histórico", icon: History },
     { path: "/simulation", label: "Simulação", icon: Play },
     { path: "/nfts", label: "NFTs", icon: Image },

@@ -10,6 +10,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import NFTs from "./pages/NFTs";
 import Simulation from "./pages/Simulation";
+import Market from "./pages/Market";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 
@@ -75,6 +76,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <NFTs />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/market"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Market />
                 </Layout>
               </ProtectedRoute>
             }
