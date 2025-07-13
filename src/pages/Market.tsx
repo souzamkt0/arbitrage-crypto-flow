@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, Search, RefreshCw, DollarSign, ArrowUpDown, Zap } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import coinMarketCapService, { CryptoData, ArbitrageOpportunity } from "@/services/coinMarketCapService";
+import binanceArbitrageService, { BinancePair, BinanceArbitrageData } from "@/services/coinMarketCapService";
 
 const getCoinIcon = (symbol: string) => {
   const icons: { [key: string]: string } = {
@@ -31,8 +30,8 @@ const getCoinIcon = (symbol: string) => {
 
 const Market = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [marketData, setMarketData] = useState<CryptoData[]>([]);
-  const [arbitrageOpportunities, setArbitrageOpportunities] = useState<ArbitrageOpportunity[]>([]);
+  const [marketData, setMarketData] = useState<BinancePair[]>([]);
+  const [arbitrageOpportunities, setArbitrageOpportunities] = useState<BinanceArbitrageData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const { toast } = useToast();
@@ -40,12 +39,12 @@ const Market = () => {
   const fetchMarketData = async () => {
     try {
       setIsLoading(true);
-      const [cryptos, opportunities] = await Promise.all([
-        coinMarketCapService.getTopCryptos(50),
-        coinMarketCapService.getArbitrageOpportunities()
+      const [pairs, opportunities] = await Promise.all([
+        binanceArbitrageService.getBinancePairs(),
+        binanceArbitrageService.analyzeBinanceArbitrage()
       ]);
       
-      setMarketData(cryptos);
+      setMarketData(pairs);
       setArbitrageOpportunities(opportunities);
       setLastUpdate(new Date());
       

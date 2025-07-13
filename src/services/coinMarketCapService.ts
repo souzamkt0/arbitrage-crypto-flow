@@ -1,125 +1,107 @@
-const CMC_API_KEY = "0f376f16-1d3f-4a3d-83fb-7b3731b1db3c";
-const CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1";
-
-export interface CryptoData {
-  id: number;
-  name: string;
-  symbol: string;
-  quote: {
-    USD: {
-      price: number;
-      percent_change_24h: number;
-      volume_24h: number;
-      market_cap: number;
-    };
-  };
-}
-
-export interface ArbitrageOpportunity {
+// Simulação de dados da Binance para arbitragem
+export interface BinanceArbitrageData {
   symbol: string;
   name: string;
-  exchange1: string;
-  exchange2: string;
-  price1: number;
-  price2: number;
+  spotPrice: number;
+  futuresPrice: number;
+  volume24h: number;
   profitPercent: number;
-  volume: number;
+  minOrderSize: number;
+  maxOrderSize: number;
+  lastAnalyzed: Date;
 }
 
-export const coinMarketCapService = {
-  async getTopCryptos(limit = 50): Promise<CryptoData[]> {
-    try {
-      const response = await fetch(
-        `${CMC_BASE_URL}/cryptocurrency/listings/latest?start=1&limit=${limit}&convert=USD`,
-        {
-          headers: {
-            'X-CMC_PRO_API_KEY': CMC_API_KEY,
-            'Accept': 'application/json',
-          },
-        }
-      );
+export interface BinancePair {
+  symbol: string;
+  name: string;
+  price: number;
+  change24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+}
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+export const binanceArbitrageService = {
+  // Simula dados reais da Binance API
+  async getBinancePairs(): Promise<BinancePair[]> {
+    // Simula dados da Binance com flutuações realistas
+    const basePairs = [
+      { symbol: "BTCUSDT", name: "Bitcoin", basePrice: 43250, volatility: 0.02 },
+      { symbol: "ETHUSDT", name: "Ethereum", basePrice: 2680, volatility: 0.025 },
+      { symbol: "BNBUSDT", name: "BNB", basePrice: 325, volatility: 0.03 },
+      { symbol: "ADAUSDT", name: "Cardano", basePrice: 0.452, volatility: 0.035 },
+      { symbol: "SOLUSDT", name: "Solana", basePrice: 98.75, volatility: 0.04 },
+      { symbol: "XRPUSDT", name: "XRP", basePrice: 0.615, volatility: 0.03 },
+      { symbol: "DOTUSDT", name: "Polkadot", basePrice: 7.25, volatility: 0.035 },
+      { symbol: "MATICUSDT", name: "Polygon", basePrice: 0.895, volatility: 0.04 },
+      { symbol: "AVAXUSDT", name: "Avalanche", basePrice: 38.20, volatility: 0.045 },
+      { symbol: "LINKUSDT", name: "Chainlink", basePrice: 15.60, volatility: 0.035 },
+      { symbol: "LTCUSDT", name: "Litecoin", basePrice: 74.50, volatility: 0.03 },
+      { symbol: "UNIUSDT", name: "Uniswap", basePrice: 6.85, volatility: 0.05 },
+      { symbol: "ATOMUSDT", name: "Cosmos", basePrice: 10.45, volatility: 0.04 },
+      { symbol: "FILUSDT", name: "Filecoin", basePrice: 4.25, volatility: 0.06 },
+      { symbol: "TRXUSDT", name: "TRON", basePrice: 0.105, volatility: 0.03 },
+    ];
 
-      const data = await response.json();
-      return data.data;
-    } catch (error) {
-      console.error('Error fetching crypto data:', error);
-      // Return mock data if API fails
-      return getMockCryptoData();
-    }
+    return basePairs.map(pair => {
+      const priceVariation = (Math.random() - 0.5) * pair.volatility * 2;
+      const currentPrice = pair.basePrice * (1 + priceVariation);
+      const change24h = (Math.random() - 0.5) * 10; // -5% to +5%
+      
+      return {
+        symbol: pair.symbol,
+        name: pair.name,
+        price: currentPrice,
+        change24h,
+        volume24h: Math.random() * 1000000000 + 100000000, // 100M to 1B
+        high24h: currentPrice * (1 + Math.random() * 0.05),
+        low24h: currentPrice * (1 - Math.random() * 0.05),
+      };
+    });
   },
 
-  async getArbitrageOpportunities(): Promise<ArbitrageOpportunity[]> {
-    try {
-      const cryptos = await this.getTopCryptos(20);
+  async analyzeBinanceArbitrage(): Promise<BinanceArbitrageData[]> {
+    const pairs = await this.getBinancePairs();
+    const opportunities: BinanceArbitrageData[] = [];
+
+    pairs.forEach(pair => {
+      // Simula diferenças de preço entre Spot e Futures
+      const spotPrice = pair.price;
+      const futuresVariation = (Math.random() - 0.5) * 0.04; // até 2% de diferença
+      const futuresPrice = spotPrice * (1 + futuresVariation);
       
-      // Simulate arbitrage opportunities between exchanges
-      const opportunities: ArbitrageOpportunity[] = [];
+      const profitPercent = Math.abs((futuresPrice - spotPrice) / spotPrice * 100);
       
-      cryptos.forEach(crypto => {
-        const basePrice = crypto.quote.USD.price;
-        
-        // Simulate price differences between exchanges
-        const binancePrice = basePrice * (1 + (Math.random() - 0.5) * 0.02);
-        const futuresPrice = basePrice * (1 + (Math.random() - 0.5) * 0.025);
-        
-        const profitPercent = Math.abs((futuresPrice - binancePrice) / binancePrice * 100);
-        
-        if (profitPercent > 0.5) { // Only show opportunities > 0.5%
-          opportunities.push({
-            symbol: crypto.symbol,
-            name: crypto.name,
-            exchange1: "Binance Spot",
-            exchange2: "Binance Futures",
-            price1: binancePrice,
-            price2: futuresPrice,
-            profitPercent,
-            volume: crypto.quote.USD.volume_24h,
-          });
-        }
-      });
-      
-      return opportunities.sort((a, b) => b.profitPercent - a.profitPercent).slice(0, 10);
-    } catch (error) {
-      console.error('Error fetching arbitrage opportunities:', error);
-      return [];
-    }
+      // Só mostra oportunidades acima de 0.5%
+      if (profitPercent > 0.5) {
+        opportunities.push({
+          symbol: pair.symbol,
+          name: pair.name,
+          spotPrice,
+          futuresPrice,
+          volume24h: pair.volume24h,
+          profitPercent,
+          minOrderSize: pair.price > 100 ? 0.01 : 1,
+          maxOrderSize: pair.volume24h / 1000, // Baseado no volume
+          lastAnalyzed: new Date(),
+        });
+      }
+    });
+
+    // Ordena por maior lucro potencial
+    return opportunities.sort((a, b) => b.profitPercent - a.profitPercent);
+  },
+
+  async executeArbitrage(opportunity: BinanceArbitrageData, amount: number): Promise<boolean> {
+    // Simula execução da arbitragem
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // 90% de chance de sucesso
+        const success = Math.random() > 0.1;
+        resolve(success);
+      }, 2000);
+    });
   }
 };
 
-function getMockCryptoData(): CryptoData[] {
-  return [
-    {
-      id: 1,
-      name: "Bitcoin",
-      symbol: "BTC",
-      quote: {
-        USD: {
-          price: 43250.50,
-          percent_change_24h: 2.35,
-          volume_24h: 25000000000,
-          market_cap: 850000000000
-        }
-      }
-    },
-    {
-      id: 1027,
-      name: "Ethereum",
-      symbol: "ETH",
-      quote: {
-        USD: {
-          price: 2680.80,
-          percent_change_24h: -1.25,
-          volume_24h: 18000000000,
-          market_cap: 320000000000
-        }
-      }
-    },
-    // Add more mock data as needed
-  ];
-}
-
-export default coinMarketCapService;
+export default binanceArbitrageService;
