@@ -52,30 +52,30 @@ const PriceTicker = () => {
           {tickerItems.map((coin, index) => (
             <div
               key={`${coin.symbol}-${index}`}
-              className="ticker-item inline-flex items-center space-x-3 px-6 py-2 whitespace-nowrap"
+              className="ticker-item inline-flex items-center space-x-2 sm:space-x-3 px-3 sm:px-6 py-2 whitespace-nowrap"
             >
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-primary text-sm">{coin.symbol}</span>
-                <span className="text-card-foreground font-medium">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="font-bold text-primary text-xs sm:text-sm">{coin.symbol}</span>
+                <span className="text-card-foreground font-medium text-xs sm:text-sm">
                   {formatPrice(coin.price)}
                 </span>
                 <div className={`flex items-center space-x-1 ${
                   coin.change24h >= 0 ? 'text-trading-green' : 'text-trading-red'
                 }`}>
                   {coin.change24h >= 0 ? (
-                    <TrendingUp className="h-3 w-3" />
+                    <TrendingUp className="h-2 w-2 sm:h-3 sm:w-3" />
                   ) : (
-                    <TrendingDown className="h-3 w-3" />
+                    <TrendingDown className="h-2 w-2 sm:h-3 sm:w-3" />
                   )}
                   <span className="text-xs font-medium">
                     {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%
                   </span>
                 </div>
-                <span className="text-muted-foreground text-xs">
+                <span className="hidden sm:inline text-muted-foreground text-xs">
                   Vol: {formatVolume(coin.volume24h)}
                 </span>
               </div>
-              <div className="h-4 w-px bg-border" />
+              <div className="h-3 sm:h-4 w-px bg-border" />
             </div>
           ))}
         </div>

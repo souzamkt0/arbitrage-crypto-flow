@@ -163,21 +163,23 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center">
-              <Shield className="h-8 w-8 mr-3 text-primary" />
-              Painel Administrativo
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
+              <span className="hidden sm:inline">Painel Administrativo</span>
+              <span className="sm:hidden">Admin</span>
             </h1>
-            <p className="text-muted-foreground">Gerencie usuários e monitore atividades</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Gerencie usuários e monitore atividades</p>
           </div>
           
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
             <UserPlus className="h-4 w-4 mr-2" />
-            Novo Usuário
+            <span className="sm:inline">Novo Usuário</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
 
@@ -255,8 +257,8 @@ const Admin = () => {
         {/* Search and Filter */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Search className="h-5 w-5 mr-2 text-primary" />
+            <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
               Buscar Usuários
             </CardTitle>
           </CardHeader>
@@ -268,7 +270,7 @@ const Admin = () => {
                   placeholder="Buscar por nome ou email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -278,84 +280,95 @@ const Admin = () => {
         {/* Users Table */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Usuários ({filteredUsers.length})</CardTitle>
+            <CardTitle className="text-card-foreground text-sm sm:text-base">Usuários ({filteredUsers.length})</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Saldo</TableHead>
-                  <TableHead>Lucro</TableHead>
-                  <TableHead>API</TableHead>
-                  <TableHead>Último Login</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Usuário</TableHead>
+                  <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Role</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                  <TableHead className="hidden md:table-cell text-xs sm:text-sm">Saldo</TableHead>
+                  <TableHead className="hidden md:table-cell text-xs sm:text-sm">Lucro</TableHead>
+                  <TableHead className="hidden lg:table-cell text-xs sm:text-sm">API</TableHead>
+                  <TableHead className="hidden lg:table-cell text-xs sm:text-sm">Último Login</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell>
+                    <TableCell className="min-w-[120px]">
                       <div>
-                        <div className="font-medium">{user.name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                        <div className="font-medium text-xs sm:text-sm">{user.name}</div>
+                        <div className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-none">{user.email}</div>
+                        <div className="sm:hidden mt-1">
+                          <Badge variant={user.role === "admin" ? "default" : "secondary"} className="text-xs">
+                            {user.role}
+                          </Badge>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={user.role === "admin" ? "default" : "secondary"}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant={user.role === "admin" ? "default" : "secondary"} className="text-xs">
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
                         <Switch
                           checked={user.status === "active"}
                           onCheckedChange={() => handleToggleStatus(user.id)}
                         />
-                        <span className={user.status === "active" ? "text-trading-green" : "text-muted-foreground"}>
+                        <span className={`text-xs sm:text-sm ${user.status === "active" ? "text-trading-green" : "text-muted-foreground"}`}>
                           {user.status === "active" ? "Ativo" : "Inativo"}
                         </span>
                       </div>
+                      <div className="md:hidden mt-1 space-y-1">
+                        <div className="text-xs font-medium">${user.balance.toLocaleString()}</div>
+                        <div className="text-xs text-trading-green">+${user.totalProfit.toLocaleString()}</div>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="hidden md:table-cell font-medium text-xs sm:text-sm">
                       ${user.balance.toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-trading-green font-medium">
+                    <TableCell className="hidden md:table-cell text-trading-green font-medium text-xs sm:text-sm">
                       +${user.totalProfit.toLocaleString()}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={user.apiConnected ? "default" : "destructive"}>
+                    <TableCell className="hidden lg:table-cell">
+                      <Badge variant={user.apiConnected ? "default" : "destructive"} className="text-xs">
                         {user.apiConnected ? "Conectada" : "Desconectada"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
                       {new Date(user.lastLogin).toLocaleDateString("pt-BR")}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewUser(user)}
+                          className="h-8 w-8 p-0"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditUser(user)}
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteUser(user.id)}
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </TableCell>

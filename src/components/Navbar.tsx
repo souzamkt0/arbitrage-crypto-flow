@@ -51,9 +51,9 @@ const Navbar = () => {
           <div className="flex items-center">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <TrendingUp className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-primary">Alphabit</span>
-              <Badge variant="secondary" className="ml-2 text-xs">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <span className="text-lg sm:text-2xl font-bold text-primary">Alphabit</span>
+              <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs">
                 v1.0
               </Badge>
             </Link>

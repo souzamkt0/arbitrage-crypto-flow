@@ -80,27 +80,28 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Sistema de Arbitragem Alphabit</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Sistema de Arbitragem Alphabit</p>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-foreground">Bot Status:</span>
+              <span className="text-xs sm:text-sm font-medium text-foreground">Bot Status:</span>
               <Switch checked={botActive} onCheckedChange={toggleBot} />
-              <Badge variant={botActive ? "default" : "secondary"} className="ml-2">
+              <Badge variant={botActive ? "default" : "secondary"} className="ml-2 text-xs">
                 {botActive ? "ATIVO" : "PAUSADO"}
               </Badge>
             </div>
             
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto">
               <Settings className="h-4 w-4 mr-2" />
-              Configurações
+              <span className="hidden sm:inline">Configurações</span>
+              <span className="sm:hidden">Config</span>
             </Button>
           </div>
         </div>
@@ -250,33 +251,34 @@ const Dashboard = () => {
         {/* Crypto News */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Newspaper className="h-5 w-5 mr-2 text-primary" />
-              Notícias do Mercado Cripto
+            <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
+              <Newspaper className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
+              <span className="hidden sm:inline">Notícias do Mercado Cripto</span>
+              <span className="sm:hidden">Notícias</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {cryptoNews.map((news, index) => (
-                <div key={index} className="flex items-start justify-between p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-secondary-foreground text-sm mb-1">
+                <div key={index} className="flex items-start justify-between p-2 sm:p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-secondary-foreground text-xs sm:text-sm mb-1 line-clamp-2">
                       {news.title}
                     </h4>
-                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                      <span className="text-primary font-medium">{news.source}</span>
-                      <span>•</span>
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
+                      <span className="text-primary font-medium truncate">{news.source}</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>{news.time}</span>
                       <Badge 
                         variant={news.sentiment === "positive" ? "default" : news.sentiment === "negative" ? "destructive" : "secondary"}
                         className="text-xs"
                       >
-                        {news.sentiment === "positive" ? "Positiva" : news.sentiment === "negative" ? "Negativa" : "Neutra"}
+                        {news.sentiment === "positive" ? "+" : news.sentiment === "negative" ? "-" : "N"}
                       </Badge>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="ml-2 p-1 h-8 w-8">
-                    <ExternalLink className="h-3 w-3" />
+                  <Button variant="ghost" size="sm" className="ml-1 sm:ml-2 p-1 h-6 w-6 sm:h-8 sm:w-8">
+                    <ExternalLink className="h-2 w-2 sm:h-3 sm:w-3" />
                   </Button>
                 </div>
               ))}
@@ -293,18 +295,18 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {recentTrades.map((trade, index) => (
-                <div key={index} className="p-3 bg-secondary rounded-lg space-y-2">
+                <div key={index} className="p-2 sm:p-3 bg-secondary rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">{trade.time}</div>
                     <Badge variant={trade.type === "BUY" ? "default" : "secondary"} className="text-xs">
                       {trade.type}
                     </Badge>
                   </div>
-                  <div className="font-medium text-secondary-foreground">{trade.pair}</div>
+                  <div className="font-medium text-secondary-foreground text-sm sm:text-base">{trade.pair}</div>
                   <div className="flex items-center justify-between">
-                    <div className="font-bold text-trading-green">{trade.profit}</div>
+                    <div className="font-bold text-trading-green text-sm sm:text-base">{trade.profit}</div>
                     <Badge variant="outline" className="text-xs">
                       {trade.status}
                     </Badge>
@@ -321,11 +323,11 @@ const Dashboard = () => {
             <CardTitle className="text-card-foreground">Painel de Controle</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
                 <Button
                   onClick={toggleBot}
-                  className={`${
+                  className={`w-full sm:w-auto ${
                     botActive
                       ? "bg-destructive hover:bg-destructive/90"
                       : "bg-success hover:bg-success/90"
@@ -334,27 +336,31 @@ const Dashboard = () => {
                   {botActive ? (
                     <>
                       <Pause className="h-4 w-4 mr-2" />
-                      Pausar Bot
+                      <span className="hidden sm:inline">Pausar Bot</span>
+                      <span className="sm:hidden">Pausar</span>
                     </>
                   ) : (
                     <>
                       <Play className="h-4 w-4 mr-2" />
-                      Iniciar Bot
+                      <span className="hidden sm:inline">Iniciar Bot</span>
+                      <span className="sm:hidden">Iniciar</span>
                     </>
                   )}
                 </Button>
                 
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   Status: {botActive ? "Monitorando mercado..." : "Bot pausado"}
                 </div>
               </div>
               
-              <div className="flex space-x-2">
-                <Button variant="outline" className="border-primary text-primary">
-                  Histórico
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full lg:w-auto">
+                <Button variant="outline" className="border-primary text-primary w-full sm:w-auto">
+                  <span className="hidden sm:inline">Histórico</span>
+                  <span className="sm:hidden">Hist.</span>
                 </Button>
-                <Button variant="outline" className="border-primary text-primary">
-                  Relatórios
+                <Button variant="outline" className="border-primary text-primary w-full sm:w-auto">
+                  <span className="hidden sm:inline">Relatórios</span>
+                  <span className="sm:hidden">Rel.</span>
                 </Button>
               </div>
             </div>
