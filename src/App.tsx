@@ -12,6 +12,7 @@ import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
+import PriceTicker from "./components/PriceTicker";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen bg-background">
     <Navbar />
+    <PriceTicker />
     {children}
   </div>
 );
