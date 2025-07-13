@@ -10,6 +10,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -87,6 +88,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Simulation />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Admin />
                 </Layout>
               </ProtectedRoute>
             }

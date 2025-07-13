@@ -11,7 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  Play
+  Play,
+  Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,6 +27,7 @@ const Navbar = () => {
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/history", label: "Histórico", icon: History },
     { path: "/simulation", label: "Simulação", icon: Play },
+    { path: "/admin", label: "Admin", icon: Shield },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
 
