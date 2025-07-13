@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, Search, RefreshCw, DollarSign, ArrowUpDown, Zap } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import binanceArbitrageService, { BinancePair, BinanceArbitrageData } from "@/services/coinMarketCapService";
 
 const getCoinIcon = (symbol: string) => {
@@ -125,10 +126,10 @@ const Market = () => {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {opp.exchange1}: ${opp.price1.toFixed(2)}
+                      Binance Spot: ${opp.spotPrice.toFixed(2)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {opp.exchange2}: ${opp.price2.toFixed(2)}
+                      Binance Futures: ${opp.futuresPrice.toFixed(2)}
                     </div>
                     <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
                       <Zap className="h-3 w-3 mr-1" />
@@ -178,7 +179,7 @@ const Market = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredData.map((coin, index) => (
-                    <TableRow key={coin.id}>
+                    <TableRow key={coin.symbol}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -190,25 +191,25 @@ const Market = () => {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono">
-                        ${coin.quote.USD.price.toFixed(coin.quote.USD.price < 1 ? 6 : 2)}
+                        ${coin.price.toFixed(coin.price < 1 ? 6 : 2)}
                       </TableCell>
                       <TableCell>
-                        <div className={`flex items-center ${coin.quote.USD.percent_change_24h >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
-                          {coin.quote.USD.percent_change_24h >= 0 ? 
+                        <div className={`flex items-center ${coin.change24h >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
+                          {coin.change24h >= 0 ? 
                             <TrendingUp className="h-4 w-4 mr-1" /> : 
                             <TrendingDown className="h-4 w-4 mr-1" />
                           }
-                          {coin.quote.USD.percent_change_24h >= 0 ? '+' : ''}{coin.quote.USD.percent_change_24h.toFixed(2)}%
+                          {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%
                         </div>
                       </TableCell>
                       <TableCell>
-                        ${(coin.quote.USD.volume_24h / 1000000).toFixed(0)}M
+                        ${(coin.volume24h / 1000000).toFixed(0)}M
                       </TableCell>
                       <TableCell>
-                        ${(coin.quote.USD.market_cap / 1000000000).toFixed(1)}B
+                        ${(coin.volume24h / 100000000).toFixed(1)}B
                       </TableCell>
                       <TableCell>
-                        <Badge variant={coin.quote.USD.percent_change_24h >= 0 ? "default" : "destructive"} className="cursor-pointer">
+                        <Badge variant={coin.change24h >= 0 ? "default" : "destructive"} className="cursor-pointer">
                           Negociar
                         </Badge>
                       </TableCell>
