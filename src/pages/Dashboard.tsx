@@ -13,7 +13,9 @@ import {
   ArrowUpDown,
   Zap,
   BarChart3,
-  Settings
+  Settings,
+  Newspaper,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +31,37 @@ const Dashboard = () => {
     { pair: "BTC/USDT", exchange1: "Binance", exchange2: "Future", profit: 1.2, amount: 0.5 },
     { pair: "ETH/USDT", exchange1: "Spot", exchange2: "Future", profit: 0.8, amount: 2.1 },
     { pair: "BNB/USDT", exchange1: "Binance", exchange2: "Future", profit: 2.1, amount: 15.0 },
+  ]);
+
+  const [cryptoNews] = useState([
+    { 
+      title: "Bitcoin atinge novo recorde histórico", 
+      source: "@CoinDesk", 
+      time: "2h", 
+      sentiment: "positive",
+      url: "#"
+    },
+    { 
+      title: "Ethereum 2.0: Atualização traz melhorias significativas", 
+      source: "@VitalikButerin", 
+      time: "4h", 
+      sentiment: "positive",
+      url: "#"
+    },
+    { 
+      title: "Regulamentação cripto: Novas diretrizes do Fed", 
+      source: "@CoinTelegraph", 
+      time: "6h", 
+      sentiment: "neutral",
+      url: "#"
+    },
+    { 
+      title: "Binance anuncia novo produto DeFi", 
+      source: "@binance", 
+      time: "8h", 
+      sentiment: "positive",
+      url: "#"
+    },
   ]);
 
   const [recentTrades] = useState([
@@ -213,6 +246,43 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Crypto News */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center text-card-foreground">
+              <Newspaper className="h-5 w-5 mr-2 text-primary" />
+              Notícias do Mercado Cripto
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {cryptoNews.map((news, index) => (
+                <div key={index} className="flex items-start justify-between p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-secondary-foreground text-sm mb-1">
+                      {news.title}
+                    </h4>
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                      <span className="text-primary font-medium">{news.source}</span>
+                      <span>•</span>
+                      <span>{news.time}</span>
+                      <Badge 
+                        variant={news.sentiment === "positive" ? "default" : news.sentiment === "negative" ? "destructive" : "secondary"}
+                        className="text-xs"
+                      >
+                        {news.sentiment === "positive" ? "Positiva" : news.sentiment === "negative" ? "Negativa" : "Neutra"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" className="ml-2 p-1 h-8 w-8">
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Recent Trades */}
         <Card className="bg-card border-border">

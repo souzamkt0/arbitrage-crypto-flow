@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, Save, AlertTriangle, DollarSign, Percent, Volume2 } from "lucide-react";
+import { Settings as SettingsIcon, Save, AlertTriangle, DollarSign, Percent, Volume2, Key, Eye, EyeOff } from "lucide-react";
 
 const Settings = () => {
   const [minProfit, setMinProfit] = useState([1.5]);
@@ -16,9 +16,20 @@ const Settings = () => {
   const [soundNotifications, setSoundNotifications] = useState(true);
   const [autoExecute, setAutoExecute] = useState(true);
   const [riskLevel, setRiskLevel] = useState([3]);
+  const [binanceApiKey, setBinanceApiKey] = useState("");
+  const [binanceSecretKey, setBinanceSecretKey] = useState("");
+  const [showSecretKey, setShowSecretKey] = useState(false);
   const { toast } = useToast();
 
   const handleSave = () => {
+    // Salvar as chaves da API no localStorage
+    if (binanceApiKey) {
+      localStorage.setItem('binance_api_key', binanceApiKey);
+    }
+    if (binanceSecretKey) {
+      localStorage.setItem('binance_secret_key', binanceSecretKey);
+    }
+    
     toast({
       title: "Configurações salvas!",
       description: "Suas preferências foram atualizadas com sucesso.",
@@ -173,6 +184,69 @@ const Settings = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* API Binance Settings */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center text-card-foreground">
+              <Key className="h-5 w-5 mr-2 text-primary" />
+              Configuração API Binance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="api-key">API Key</Label>
+              <Input
+                id="api-key"
+                type="text"
+                placeholder="Insira sua API Key da Binance"
+                value={binanceApiKey}
+                onChange={(e) => setBinanceApiKey(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="secret-key">Secret Key</Label>
+              <div className="relative">
+                <Input
+                  id="secret-key"
+                  type={showSecretKey ? "text" : "password"}
+                  placeholder="Insira sua Secret Key da Binance"
+                  value={binanceSecretKey}
+                  onChange={(e) => setBinanceSecretKey(e.target.value)}
+                  className="w-full pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowSecretKey(!showSecretKey)}
+                >
+                  {showSecretKey ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-4 bg-info/10 border border-info/20 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <Key className="h-5 w-5 text-info mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-info">Segurança das Chaves</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Suas chaves são armazenadas localmente no navegador. Para máxima segurança,
+                    certifique-se de que as permissões da API estão configuradas apenas para trading spot.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Advanced Settings */}
         <Card className="bg-card border-border">
