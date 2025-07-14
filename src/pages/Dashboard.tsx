@@ -313,6 +313,66 @@ const Dashboard = () => {
                     </Badge>
                   </div>
                   
+                  {/* Gráfico de Oscilação do Mercado */}
+                  <div className="mb-4 p-3 bg-background/50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">BTC/USDT</span>
+                      <span className="text-xs font-medium text-trading-green">+2.34%</span>
+                    </div>
+                    
+                    <div className="relative h-16 w-full overflow-hidden">
+                      <svg className="w-full h-full" viewBox="0 0 200 60">
+                        {/* Linha de oscilação animada */}
+                        <path
+                          d="M0,30 Q20,20 40,25 T80,35 Q100,25 120,30 T160,40 Q180,35 200,30"
+                          fill="none"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth="2"
+                          className="animate-[marketOscillation_4s_ease-in-out_infinite]"
+                        />
+                        
+                        {/* Área de preenchimento */}
+                        <path
+                          d="M0,30 Q20,20 40,25 T80,35 Q100,25 120,30 T160,40 Q180,35 200,30 L200,60 L0,60 Z"
+                          fill="hsl(var(--primary))"
+                          fillOpacity="0.1"
+                          className="animate-[marketOscillation_4s_ease-in-out_infinite]"
+                        />
+                        
+                        {/* Pontos de negociação */}
+                        <circle cx="40" cy="25" r="2" fill="hsl(var(--trading-green))" className="animate-pulse">
+                          <animate attributeName="cy" values="25;20;25" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="120" cy="30" r="2" fill="hsl(var(--trading-green))" className="animate-pulse">
+                          <animate attributeName="cy" values="30;35;30" dur="3s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="160" cy="40" r="2" fill="hsl(var(--warning))" className="animate-pulse">
+                          <animate attributeName="cy" values="40;35;40" dur="2.5s" repeatCount="indefinite"/>
+                        </circle>
+                      </svg>
+                      
+                      {/* Indicadores de preço */}
+                      <div className="absolute top-0 right-0 text-xs">
+                        <div className="text-trading-green font-mono">$43,250</div>
+                      </div>
+                      <div className="absolute bottom-0 right-0 text-xs">
+                        <div className="text-muted-foreground font-mono">$42,890</div>
+                      </div>
+                    </div>
+                    
+                    {/* Indicadores de operação em tempo real */}
+                    <div className="flex items-center justify-between mt-2 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-1 h-1 bg-trading-green rounded-full animate-pulse"></div>
+                        <span className="text-muted-foreground">Compra: $42,980</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-1 h-1 bg-warning rounded-full animate-pulse"></div>
+                        <span className="text-muted-foreground">Venda: $43,120</span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Valor Investido:</span>

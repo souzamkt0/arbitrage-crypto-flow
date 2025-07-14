@@ -108,6 +108,24 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  @keyframes marketOscillation {
+    0% {
+      transform: translateY(0px);
+    }
+    25% {
+      transform: translateY(-2px);
+    }
+    50% {
+      transform: translateY(2px);
+    }
+    75% {
+      transform: translateY(-1px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
 }
 
 @layer base {
