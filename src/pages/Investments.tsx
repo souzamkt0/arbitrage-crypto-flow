@@ -67,58 +67,7 @@ interface UserInvestment {
 }
 
 const Investments = () => {
-  const [investments, setInvestments] = useState<Investment[]>([
-    {
-      id: "1",
-      name: "Alphabot Básico",
-      dailyRate: 0.3,
-      minimumAmount: 100,
-      maximumAmount: 1000,
-      duration: 30,
-      description: "Bot básico para iniciantes. Operações simples com baixo risco.",
-      status: "active"
-    },
-    {
-      id: "2", 
-      name: "Alphabot Intermediário",
-      dailyRate: 0.5,
-      minimumAmount: 500,
-      maximumAmount: 5000,
-      duration: 45,
-      description: "Bot intermediário com estratégias moderadas de arbitragem.",
-      status: "active"
-    },
-    {
-      id: "3",
-      name: "Alphabot Avançado",
-      dailyRate: 1.0,
-      minimumAmount: 1000,
-      maximumAmount: 10000,
-      duration: 60,
-      description: "Bot avançado com múltiplas estratégias de trading.",
-      status: "active"
-    },
-    {
-      id: "4",
-      name: "Alphabot Premium",
-      dailyRate: 1.6,
-      minimumAmount: 5000,
-      maximumAmount: 25000,
-      duration: 75,
-      description: "Bot premium com algoritmos otimizados para máximo retorno.",
-      status: "active"
-    },
-    {
-      id: "5",
-      name: "Alphabot VIP",
-      dailyRate: 2.0,
-      minimumAmount: 10000,
-      maximumAmount: 100000,
-      duration: 90,
-      description: "Bot VIP com as melhores estratégias disponíveis.",
-      status: "active"
-    }
-  ]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
 
   const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([
     {
@@ -181,7 +130,93 @@ const Investments = () => {
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
-  // Simular operações de arbitragem em tempo real
+  // Carregar planos do localStorage na inicialização
+  useEffect(() => {
+    const defaultPlans: Investment[] = [
+      {
+        id: "1",
+        name: "Alphabot Básico",
+        dailyRate: 0.3,
+        minimumAmount: 100,
+        maximumAmount: 1000,
+        duration: 30,
+        description: "Bot básico para iniciantes. Operações simples com baixo risco.",
+        status: "active"
+      },
+      {
+        id: "2",
+        name: "Alphabot Intermediário",
+        dailyRate: 0.5,
+        minimumAmount: 500,
+        maximumAmount: 5000,
+        duration: 45,
+        description: "Bot intermediário com estratégias moderadas de arbitragem.",
+        status: "active"
+      },
+      {
+        id: "3",
+        name: "Alphabot Avançado",
+        dailyRate: 1.0,
+        minimumAmount: 1000,
+        maximumAmount: 10000,
+        duration: 60,
+        description: "Bot avançado com múltiplas estratégias de trading.",
+        status: "active"
+      },
+      {
+        id: "4",
+        name: "Alphabot Premium",
+        dailyRate: 1.6,
+        minimumAmount: 5000,
+        maximumAmount: 25000,
+        duration: 75,
+        description: "Bot premium com algoritmos otimizados para máximo retorno.",
+        status: "active"
+      },
+      {
+        id: "5",
+        name: "Alphabot VIP",
+        dailyRate: 2.0,
+        minimumAmount: 10000,
+        maximumAmount: 100000,
+        duration: 90,
+        description: "Bot VIP com as melhores estratégias disponíveis.",
+        status: "active"
+      }
+    ];
+
+    const savedPlans = localStorage.getItem("alphabit_investment_plans");
+    if (savedPlans) {
+      try {
+        const parsedPlans = JSON.parse(savedPlans) as Investment[];
+        setInvestments(parsedPlans);
+      } catch (error) {
+        console.error("Erro ao carregar planos salvos:", error);
+        localStorage.setItem("alphabit_investment_plans", JSON.stringify(defaultPlans));
+        setInvestments(defaultPlans);
+      }
+    } else {
+      localStorage.setItem("alphabit_investment_plans", JSON.stringify(defaultPlans));
+      setInvestments(defaultPlans);
+    }
+  }, []);
+
+  // Escutar mudanças no localStorage (quando Admin alterar planos)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "alphabit_investment_plans" && e.newValue) {
+        try {
+          const updatedPlans = JSON.parse(e.newValue) as Investment[];
+          setInvestments(updatedPlans);
+        } catch (error) {
+          console.error("Erro ao sincronizar planos:", error);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
   useEffect(() => {
     const interval = setInterval(() => {
       setUserInvestments(prev => prev.map(investment => {

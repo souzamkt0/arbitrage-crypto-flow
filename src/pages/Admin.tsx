@@ -118,32 +118,52 @@ const Admin = () => {
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([
     {
       id: "1",
-      name: "Alphabot Basic",
-      dailyRate: 1.5,
+      name: "Alphabot Básico",
+      dailyRate: 0.3,
       minimumAmount: 100,
-      maximumAmount: 5000,
+      maximumAmount: 1000,
       duration: 30,
-      description: "Negociação automatizada em pares de crypto com bot Alphabot. Operações ativas quando você ativar.",
+      description: "Bot básico para iniciantes. Operações simples com baixo risco.",
       status: "active"
     },
     {
       id: "2",
-      name: "Alphabot Premium",
-      dailyRate: 2.0,
-      minimumAmount: 1000,
-      maximumAmount: 20000,
-      duration: 60,
-      description: "Bot avançado para pares crypto. Cronômetro de operações com velocidade moderada.",
+      name: "Alphabot Intermediário",
+      dailyRate: 0.5,
+      minimumAmount: 500,
+      maximumAmount: 5000,
+      duration: 45,
+      description: "Bot intermediário com estratégias moderadas de arbitragem.",
       status: "active"
     },
     {
       id: "3",
-      name: "Alphabot VIP",
-      dailyRate: 2.5,
+      name: "Alphabot Avançado",
+      dailyRate: 1.0,
+      minimumAmount: 1000,
+      maximumAmount: 10000,
+      duration: 60,
+      description: "Bot avançado com múltiplas estratégias de trading.",
+      status: "active"
+    },
+    {
+      id: "4",
+      name: "Alphabot Premium",
+      dailyRate: 1.6,
       minimumAmount: 5000,
+      maximumAmount: 25000,
+      duration: 75,
+      description: "Bot premium com algoritmos otimizados para máximo retorno.",
+      status: "active"
+    },
+    {
+      id: "5",
+      name: "Alphabot VIP",
+      dailyRate: 2.0,
+      minimumAmount: 10000,
       maximumAmount: 100000,
       duration: 90,
-      description: "Bot premium para pares crypto. Quanto maior o valor, mais rápido gira o cronômetro de operações.",
+      description: "Bot VIP com as melhores estratégias disponíveis.",
       status: "active"
     }
   ]);
@@ -239,7 +259,9 @@ const Admin = () => {
     if (selectedPlan) {
       if (isNewPlan) {
         const newId = (investmentPlans.length + 1).toString();
-        setInvestmentPlans(prev => [...prev, { ...selectedPlan, id: newId }]);
+        const newPlan = { ...selectedPlan, id: newId };
+        setInvestmentPlans(prev => [...prev, newPlan]);
+        
         toast({
           title: "Plano criado",
           description: "Novo plano de investimento foi criado com sucesso.",
@@ -250,6 +272,7 @@ const Admin = () => {
             plan.id === selectedPlan.id ? selectedPlan : plan
           )
         );
+        
         toast({
           title: "Plano atualizado",
           description: "Plano de investimento foi atualizado com sucesso.",
@@ -261,6 +284,7 @@ const Admin = () => {
 
   const handleDeletePlan = (planId: string) => {
     setInvestmentPlans(prev => prev.filter(plan => plan.id !== planId));
+    
     toast({
       title: "Plano removido",
       description: "Plano de investimento foi removido do sistema.",
@@ -275,11 +299,17 @@ const Admin = () => {
           : plan
       )
     );
+    
     toast({
       title: "Status atualizado",
       description: "Status do plano foi alterado com sucesso.",
     });
   };
+
+  // Salvar planos no localStorage quando houver mudanças
+  useEffect(() => {
+    localStorage.setItem("alphabit_investment_plans", JSON.stringify(investmentPlans));
+  }, [investmentPlans]);
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
