@@ -79,15 +79,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary flex items-center justify-center p-3 md:p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 md:mb-8">
           <div className="flex items-center justify-center mb-4">
-            <TrendingUp className="h-12 w-12 text-primary mr-2" />
-            <h1 className="text-4xl font-bold text-primary">Alphabit</h1>
+            <TrendingUp className="h-8 w-8 md:h-12 md:w-12 text-primary mr-2" />
+            <h1 className="text-3xl md:text-4xl font-bold text-primary">Alphabit</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Sistema de Arbitragem Automatizada
           </p>
         </div>
@@ -107,9 +107,9 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue={referralInfo ? "register" : "login"} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login" disabled={!!referralInfo}>Login</TabsTrigger>
-                <TabsTrigger value="register">Cadastro</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+                <TabsTrigger value="login" disabled={!!referralInfo} className="text-sm">Login</TabsTrigger>
+                <TabsTrigger value="register" className="text-sm">Cadastro</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">

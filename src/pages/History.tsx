@@ -95,8 +95,8 @@ const History = () => {
   const successRate = (trades.filter(t => t.status === "Completed").length / trades.length * 100).toFixed(1);
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -211,7 +211,7 @@ const History = () => {
         {/* Trades Table */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Operações</CardTitle>
+            <CardTitle className="text-lg md:text-xl text-card-foreground">Operações</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">

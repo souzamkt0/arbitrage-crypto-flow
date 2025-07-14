@@ -38,16 +38,16 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center">
-              <SettingsIcon className="h-8 w-8 mr-3 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center">
+              <SettingsIcon className="h-6 w-6 md:h-8 md:w-8 mr-3 text-primary" />
               Configurações do Bot
             </h1>
-            <p className="text-muted-foreground">Configure os parâmetros de arbitragem</p>
+            <p className="text-sm md:text-base text-muted-foreground">Configure os parâmetros de arbitragem</p>
           </div>
           
           <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">

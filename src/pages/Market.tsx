@@ -78,25 +78,25 @@ const Market = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center">
-              <DollarSign className="h-8 w-8 mr-3 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center">
+              <DollarSign className="h-6 w-6 md:h-8 md:w-8 mr-3 text-primary" />
               Mercado de Criptomoedas
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground">
               Dados da CoinMarketCap - Última atualização: {lastUpdate.toLocaleTimeString()}
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button onClick={fetchMarketData} disabled={isLoading} variant="outline">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
+            <Button onClick={fetchMarketData} disabled={isLoading} variant="outline" className="w-full sm:w-auto">
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               {isLoading ? 'Carregando...' : 'Atualizar'}
             </Button>
-            <Badge variant="outline" className="animate-pulse">
+            <Badge variant="outline" className="animate-pulse w-full sm:w-auto justify-center">
               <RefreshCw className="h-3 w-3 mr-1" />
               API Ativa
             </Badge>
@@ -113,7 +113,7 @@ const Market = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
                 {arbitrageOpportunities.slice(0, 6).map((opp, index) => (
                   <div key={index} className="p-4 bg-secondary rounded-lg space-y-2">
                     <div className="flex items-center justify-between">
@@ -145,9 +145,9 @@ const Market = () => {
         {/* Market Table */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <CardTitle className="text-card-foreground">Top 50 Criptomoedas</CardTitle>
-              <div className="relative w-64">
+              <div className="relative w-full md:w-64">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar moeda..."
