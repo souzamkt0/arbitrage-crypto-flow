@@ -42,6 +42,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register/:referralCode" element={<Login />} />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"

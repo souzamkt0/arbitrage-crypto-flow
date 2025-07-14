@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReferralSystem from "@/components/ReferralSystem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +54,18 @@ const Settings = () => {
             <Save className="h-4 w-4 mr-2" />
             Salvar Configurações
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* Referral System */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground">Sistema de Indicações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ReferralSystem />
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -36,7 +36,9 @@ import {
   Eye,
   Settings,
   Plus,
-  Bot
+  Bot,
+  Link,
+  Percent
 } from "lucide-react";
 
 interface User {
@@ -175,6 +177,10 @@ const Admin = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isNewPlan, setIsNewPlan] = useState(false);
+  const [adminSettings, setAdminSettings] = useState({
+    referralPercent: 5,
+    allowReferrals: true
+  });
   const { toast } = useToast();
 
   const filteredUsers = users.filter(user =>
@@ -310,6 +316,18 @@ const Admin = () => {
   useEffect(() => {
     localStorage.setItem("alphabit_investment_plans", JSON.stringify(investmentPlans));
   }, [investmentPlans]);
+
+  // Carregar e salvar configurações do admin
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("alphabit_admin_settings");
+    if (savedSettings) {
+      setAdminSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
+  }, [adminSettings]);
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -573,6 +591,84 @@ const Admin = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Referral System Settings */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground flex items-center">
+              <Link className="h-5 w-5 mr-2 text-primary" />
+              Sistema de Indicações
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="allowReferrals" className="text-sm font-medium">
+                    Permitir Sistema de Indicações
+                  </Label>
+                  <Switch
+                    id="allowReferrals"
+                    checked={adminSettings.allowReferrals}
+                    onCheckedChange={(checked) => 
+                      setAdminSettings(prev => ({ ...prev, allowReferrals: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="referralPercent" className="text-sm font-medium flex items-center">
+                    <Percent className="h-4 w-4 mr-1" />
+                    Percentual de Comissão (%)
+                  </Label>
+                  <Input
+                    id="referralPercent"
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.5"
+                    value={adminSettings.referralPercent}
+                    onChange={(e) => 
+                      setAdminSettings(prev => ({ 
+                        ...prev, 
+                        referralPercent: parseFloat(e.target.value) || 0 
+                      }))
+                    }
+                    className="max-w-32"
+                    disabled={!adminSettings.allowReferrals}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Percentual que o indicador recebe sobre investimentos dos indicados
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-secondary rounded-lg">
+                  <h4 className="text-sm font-medium mb-2 flex items-center">
+                    <Settings className="h-4 w-4 mr-1" />
+                    Como Funciona
+                  </h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Usuários podem gerar links de indicação únicos</li>
+                    <li>• Novos usuários se cadastram via link de indicação</li>
+                    <li>• Indicador recebe {adminSettings.referralPercent}% de comissão sobre investimentos</li>
+                    <li>• Sistema rastreia automaticamente as indicações</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <h4 className="text-sm font-medium mb-2 text-primary">
+                    Link de Exemplo:
+                  </h4>
+                  <p className="text-xs font-mono bg-background p-2 rounded border">
+                    {window.location.origin}/register/abc123xyz
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Investment Plans Management */}
         <Card className="bg-card border-border">
