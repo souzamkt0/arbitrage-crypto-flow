@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Gift,
   Crown,
-  MessageSquare
+  MessageSquare,
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,12 +37,13 @@ interface Post {
 interface User {
   id: string;
   name: string;
-  points: number;
+  earnings: number; // Mudou de points para earnings (em dólares)
   level: number;
   posts: number;
   likes: number;
   comments: number;
   badge: string;
+  monthlyEarnings: number; // Ganhos do mês atual
 }
 
 const Community = () => {
@@ -49,12 +51,20 @@ const Community = () => {
   const [currentUser, setCurrentUser] = useState<User>({
     id: "1",
     name: "João Silva",
-    points: 1250,
+    earnings: 12.45,
     level: 5,
     posts: 23,
     likes: 156,
     comments: 89,
-    badge: "Trader Expert"
+    badge: "Trader Expert",
+    monthlyEarnings: 8.32
+  });
+  const [gamificationSettings, setGamificationSettings] = useState({
+    postReward: 0.003,
+    likeReward: 0.001,
+    commentReward: 0.002,
+    monthlyLimit: 50,
+    spamWarning: "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
   });
   const [posts, setPosts] = useState<Post[]>([
     {
@@ -95,16 +105,41 @@ const Community = () => {
     }
   ]);
   const [leaderboard, setLeaderboard] = useState([
-    { name: "Carlos Oliveira", points: 2450, level: 8, change: "+1" },
-    { name: "Maria Santos", points: 2180, level: 7, change: "0" },
-    { name: "Ana Costa", points: 1890, level: 6, change: "+2" },
-    { name: "João Silva", points: 1250, level: 5, change: "-1" },
-    { name: "Pedro Lima", points: 980, level: 4, change: "+3" }
+    { name: "Carlos Oliveira", earnings: 24.50, level: 8, change: "+1" },
+    { name: "Maria Santos", earnings: 21.80, level: 7, change: "0" },
+    { name: "Ana Costa", earnings: 18.90, level: 6, change: "+2" },
+    { name: "João Silva", earnings: 12.45, level: 5, change: "-1" },
+    { name: "Pedro Lima", earnings: 9.80, level: 4, change: "+3" }
   ]);
   const { toast } = useToast();
 
+  // Carregar configurações de gamificação do admin
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("alphabit_admin_settings");
+    if (savedSettings) {
+      const adminSettings = JSON.parse(savedSettings);
+      setGamificationSettings({
+        postReward: adminSettings.postReward || 0.003,
+        likeReward: adminSettings.likeReward || 0.001,
+        commentReward: adminSettings.commentReward || 0.002,
+        monthlyLimit: adminSettings.monthlyLimit || 50,
+        spamWarning: adminSettings.spamWarning || "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
+      });
+    }
+  }, []);
+
   const handlePost = () => {
     if (newPost.trim()) {
+      // Verificar limite mensal
+      if (currentUser.monthlyEarnings >= gamificationSettings.monthlyLimit) {
+        toast({
+          title: "Limite atingido!",
+          description: `Você já atingiu o limite mensal de $${gamificationSettings.monthlyLimit}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       const post: Post = {
         id: Date.now().toString(),
         author: currentUser.name,
@@ -121,18 +156,35 @@ const Community = () => {
       setPosts([post, ...posts]);
       setNewPost("");
       
-      // Gamificação: +10 pontos por post
-      const newPoints = currentUser.points + 10;
-      setCurrentUser({ ...currentUser, points: newPoints, posts: currentUser.posts + 1 });
+      // Gamificação: +$0.003 por post (ou valor configurado)
+      const newEarnings = currentUser.earnings + gamificationSettings.postReward;
+      const newMonthlyEarnings = Math.min(currentUser.monthlyEarnings + gamificationSettings.postReward, gamificationSettings.monthlyLimit);
+      
+      setCurrentUser({ 
+        ...currentUser, 
+        earnings: newEarnings, 
+        posts: currentUser.posts + 1,
+        monthlyEarnings: newMonthlyEarnings
+      });
       
       toast({
         title: "Post publicado!",
-        description: "+10 pontos de gamificação",
+        description: `+$${gamificationSettings.postReward.toFixed(3)} adicionados à sua conta`,
       });
     }
   };
 
   const handleLike = (postId: string) => {
+    // Verificar limite mensal
+    if (currentUser.monthlyEarnings >= gamificationSettings.monthlyLimit) {
+      toast({
+        title: "Limite atingido!",
+        description: `Você já atingiu o limite mensal de $${gamificationSettings.monthlyLimit}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setPosts(posts.map(post => {
       if (post.id === postId) {
         const newLiked = !post.liked;
@@ -145,13 +197,20 @@ const Community = () => {
       return post;
     }));
     
-    // Gamificação: +5 pontos por like
-    const newPoints = currentUser.points + 5;
-    setCurrentUser({ ...currentUser, points: newPoints, likes: currentUser.likes + 1 });
+    // Gamificação: +$0.001 por like (ou valor configurado)
+    const newEarnings = currentUser.earnings + gamificationSettings.likeReward;
+    const newMonthlyEarnings = Math.min(currentUser.monthlyEarnings + gamificationSettings.likeReward, gamificationSettings.monthlyLimit);
+    
+    setCurrentUser({ 
+      ...currentUser, 
+      earnings: newEarnings, 
+      likes: currentUser.likes + 1,
+      monthlyEarnings: newMonthlyEarnings
+    });
     
     toast({
       title: "Curtida!",
-      description: "+5 pontos de gamificação",
+      description: `+$${gamificationSettings.likeReward.toFixed(3)} adicionados à sua conta`,
     });
   };
 
@@ -184,6 +243,20 @@ const Community = () => {
               <Users className="h-4 w-4 mr-2" />
               1,247 membros online
             </Badge>
+          </div>
+        </div>
+
+        {/* Aviso Anti-Spam */}
+        <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            <span className="font-medium text-warning">Importante!</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {gamificationSettings.spamWarning}
+          </p>
+          <div className="mt-2 text-xs text-muted-foreground">
+            <strong>Limite atual:</strong> ${currentUser.monthlyEarnings.toFixed(2)} de ${gamificationSettings.monthlyLimit} este mês
           </div>
         </div>
 
@@ -313,8 +386,12 @@ const Community = () => {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Pontos:</span>
-                    <span className="font-medium text-primary">{currentUser.points.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Ganhos Totais:</span>
+                    <span className="font-medium text-primary">${currentUser.earnings.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Este Mês:</span>
+                    <span className="font-medium text-trading-green">${currentUser.monthlyEarnings.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Posts:</span>
@@ -331,11 +408,16 @@ const Community = () => {
                 </div>
                 
                 <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                  <div className="text-xs text-muted-foreground mb-1">Progresso para Level {currentUser.level + 1}</div>
+                  <div className="text-xs text-muted-foreground mb-1">Progresso Mensal</div>
                   <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full w-3/4"></div>
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min((currentUser.monthlyEarnings / gamificationSettings.monthlyLimit) * 100, 100)}%` }}
+                    ></div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">750 pontos restantes</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    ${(gamificationSettings.monthlyLimit - currentUser.monthlyEarnings).toFixed(2)} restantes este mês
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -368,7 +450,7 @@ const Community = () => {
                               const LevelIcon = getLevelIcon(user.level);
                               return <LevelIcon className={`h-3 w-3 ${getLevelColor(user.level)}`} />;
                             })()}
-                            <span className="text-xs text-muted-foreground">{user.points} pts</span>
+                            <span className="text-xs text-muted-foreground">${user.earnings.toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
@@ -399,21 +481,21 @@ const Community = () => {
                     <Trophy className="h-4 w-4 text-trading-green" />
                     <div>
                       <div className="text-sm font-medium">Primeiro Post</div>
-                      <div className="text-xs text-muted-foreground">+50 pontos</div>
+                      <div className="text-xs text-muted-foreground">+$0.050</div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 p-2 bg-primary/10 rounded-lg">
                     <Heart className="h-4 w-4 text-primary" />
                     <div>
                       <div className="text-sm font-medium">100 Curtidas</div>
-                      <div className="text-xs text-muted-foreground">+100 pontos</div>
+                      <div className="text-xs text-muted-foreground">+$0.100</div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 p-2 bg-muted/50 rounded-lg opacity-50">
                     <Star className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <div className="text-sm font-medium">Trader do Mês</div>
-                      <div className="text-xs text-muted-foreground">+500 pontos</div>
+                      <div className="text-xs text-muted-foreground">+$5.000</div>
                     </div>
                   </div>
                 </div>

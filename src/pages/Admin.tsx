@@ -38,7 +38,12 @@ import {
   Plus,
   Bot,
   Link,
-  Percent
+  Percent,
+  Trophy,
+  MessageSquare,
+  Heart,
+  MessageCircle,
+  AlertTriangle
 } from "lucide-react";
 
 interface User {
@@ -181,7 +186,14 @@ const Admin = () => {
     referralPercent: 5,
     residualPercent: 10,
     allowReferrals: true,
-    allowResiduals: true
+    allowResiduals: true,
+    // Gamificação
+    allowGamification: true,
+    postReward: 0.003,
+    likeReward: 0.001,
+    commentReward: 0.002,
+    monthlyLimit: 50,
+    spamWarning: "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
   });
   const { toast } = useToast();
 
@@ -707,6 +719,199 @@ const Admin = () => {
                     <div><strong>Residual:</strong> Lucro diário $10 → Indicador ganha ${(10 * adminSettings.residualPercent / 100).toFixed(2)}/dia</div>
                     <div className="text-primary font-medium">Residual mensal: ${(10 * adminSettings.residualPercent / 100 * 30).toFixed(2)}</div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sistema de Gamificação */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground flex items-center">
+              <Trophy className="h-5 w-5 mr-2 text-primary" />
+              Sistema de Gamificação
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="allowGamification" className="text-sm font-medium">
+                    Permitir Sistema de Gamificação
+                  </Label>
+                  <Switch
+                    id="allowGamification"
+                    checked={adminSettings.allowGamification}
+                    onCheckedChange={(checked) => 
+                      setAdminSettings(prev => ({ ...prev, allowGamification: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="postReward" className="text-sm font-medium flex items-center">
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Recompensa por Post ($)
+                    </Label>
+                    <Input
+                      id="postReward"
+                      type="number"
+                      min="0"
+                      max="0.1"
+                      step="0.001"
+                      value={adminSettings.postReward}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          postReward: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowGamification}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Valor pago por cada publicação na comunidade
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="likeReward" className="text-sm font-medium flex items-center">
+                      <Heart className="h-4 w-4 mr-1" />
+                      Recompensa por Curtida ($)
+                    </Label>
+                    <Input
+                      id="likeReward"
+                      type="number"
+                      min="0"
+                      max="0.01"
+                      step="0.001"
+                      value={adminSettings.likeReward}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          likeReward: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowGamification}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Valor pago por cada curtida dada/recebida
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="commentReward" className="text-sm font-medium flex items-center">
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Recompensa por Comentário ($)
+                    </Label>
+                    <Input
+                      id="commentReward"
+                      type="number"
+                      min="0"
+                      max="0.05"
+                      step="0.001"
+                      value={adminSettings.commentReward}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          commentReward: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowGamification}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Valor pago por cada comentário publicado
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="monthlyLimit" className="text-sm font-medium flex items-center">
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      Limite Mensal ($)
+                    </Label>
+                    <Input
+                      id="monthlyLimit"
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={adminSettings.monthlyLimit}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          monthlyLimit: parseInt(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowGamification}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Valor máximo que um usuário pode ganhar por mês
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="spamWarning" className="text-sm font-medium flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Aviso Anti-Spam
+                  </Label>
+                  <Textarea
+                    id="spamWarning"
+                    value={adminSettings.spamWarning}
+                    onChange={(e) => 
+                      setAdminSettings(prev => ({ 
+                        ...prev, 
+                        spamWarning: e.target.value 
+                      }))
+                    }
+                    placeholder="Mensagem de aviso sobre spam..."
+                    rows={2}
+                    disabled={!adminSettings.allowGamification}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-secondary rounded-lg">
+                  <h4 className="text-sm font-medium mb-2 flex items-center">
+                    <Trophy className="h-4 w-4 mr-1" />
+                    Recompensas por Atividade
+                  </h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• <strong>Post:</strong> ${adminSettings.postReward.toFixed(3)} por publicação</li>
+                    <li>• <strong>Curtida:</strong> ${adminSettings.likeReward.toFixed(3)} por curtida</li>
+                    <li>• <strong>Comentário:</strong> ${adminSettings.commentReward.toFixed(3)} por comentário</li>
+                    <li>• <strong>Limite:</strong> Máximo ${adminSettings.monthlyLimit}/mês por usuário</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-primary/10 rounded-lg">
+                  <h4 className="text-sm font-medium mb-2 text-primary">
+                    Exemplo de Ganhos Mensais:
+                  </h4>
+                  <div className="text-xs space-y-1">
+                    <div><strong>10 posts/dia:</strong> ${(adminSettings.postReward * 10 * 30).toFixed(2)}/mês</div>
+                    <div><strong>20 curtidas/dia:</strong> ${(adminSettings.likeReward * 20 * 30).toFixed(2)}/mês</div>
+                    <div><strong>5 comentários/dia:</strong> ${(adminSettings.commentReward * 5 * 30).toFixed(2)}/mês</div>
+                    <div className="text-primary font-medium">
+                      Total potencial: ${((adminSettings.postReward * 10 + adminSettings.likeReward * 20 + adminSettings.commentReward * 5) * 30).toFixed(2)}/mês
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      (Limitado a ${adminSettings.monthlyLimit}/mês)
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+                  <h4 className="text-sm font-medium mb-2 text-warning flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Aviso Anti-Spam
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    {adminSettings.spamWarning}
+                  </p>
                 </div>
               </div>
             </div>
