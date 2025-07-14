@@ -12,7 +12,8 @@ import {
   MessageSquare,
   AlertTriangle,
   Search,
-  Sparkles
+  Sparkles,
+  CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -394,46 +395,39 @@ const Community = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto">
-        {/* Header estilo Twitter */}
-        <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border z-10">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-foreground">Início</h1>
-              <Badge variant="outline" className="text-primary border-primary">
-                <Users className="h-4 w-4 mr-2" />
-                1,247 online
-              </Badge>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm">
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Sparkles className="h-4 w-4" />
-              </Button>
+        {/* Header Mobile-First */}
+        <div className="sticky top-0 bg-background/90 backdrop-blur-md border-b border-border z-10">
+          <div className="flex items-center justify-between p-3 sm:p-4">
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">Comunidade</h1>
+            <Badge variant="outline" className="text-xs text-primary border-primary">
+              <Users className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">1,247 online</span>
+              <span className="sm:hidden">1.2k</span>
+            </Badge>
+          </div>
+        </div>
+
+        {/* Aviso Anti-Spam - Mobile Optimized */}
+        <div className="bg-warning/10 border-b border-warning/20 p-3 sm:p-4">
+          <div className="flex items-start space-x-2">
+            <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-sm font-medium text-warning block">Importante!</span>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                {gamificationSettings.spamWarning}
+              </p>
+              <div className="text-xs text-muted-foreground mt-2">
+                <strong>Limite:</strong> ${monthlyEarnings.toFixed(2)}/${gamificationSettings.monthlyLimit}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Aviso Anti-Spam */}
-        <div className="bg-warning/10 border-b border-warning/20 p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <AlertTriangle className="h-5 w-5 text-warning" />
-            <span className="font-medium text-warning">Importante!</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {gamificationSettings.spamWarning}
-          </p>
-          <div className="mt-2 text-xs text-muted-foreground">
-            <strong>Limite atual:</strong> ${monthlyEarnings.toFixed(2)} de ${gamificationSettings.monthlyLimit} este mês
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sidebar Esquerda - Perfil */}
-          <div className="lg:col-span-3 p-4">
-            <div className="sticky top-32 space-y-4">
+        {/* Layout Responsivo */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+          {/* Sidebar Esquerda - Hidden on Mobile */}
+          <div className="hidden lg:block lg:col-span-3 p-4">
+            <div className="sticky top-32">
               <UserProfile
                 user={currentUser}
                 isOwnProfile={true}
@@ -443,12 +437,33 @@ const Community = () => {
             </div>
           </div>
 
-          {/* Feed Principal */}
-          <div className="lg:col-span-6 border-x border-border">
-            {/* Criar Post */}
-            <div className="border-b border-border p-4">
+          {/* Feed Principal - Full Width on Mobile */}
+          <div className="lg:col-span-6 lg:border-x lg:border-border">
+            {/* Mobile Profile Summary */}
+            <div className="lg:hidden border-b border-border p-3">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={currentUser.avatar} />
+                  <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium text-sm">{currentUser.displayName}</span>
+                    {currentUser.verified && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
+                  </div>
+                  <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                    <span>{currentUser.followers} seguidores</span>
+                    <span>Level {currentUser.level}</span>
+                    <span>${currentUser.earnings.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Criar Post - Mobile Optimized */}
+            <div className="border-b border-border p-3 sm:p-4">
               <div className="flex space-x-3">
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                   <AvatarImage src={currentUser.avatar} />
                   <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
@@ -457,17 +472,17 @@ const Community = () => {
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                     placeholder="O que está acontecendo?"
-                    className="min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-xl placeholder:text-muted-foreground"
+                    className="min-h-[80px] sm:min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-xl placeholder:text-muted-foreground"
                     maxLength={280}
                   />
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="text-sm text-muted-foreground">
+                  <div className="flex justify-between items-center mt-3 sm:mt-4">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
                       {newPost.length}/280
                     </div>
                     <Button 
                       onClick={handlePost}
                       disabled={!newPost.trim()}
-                      className="bg-primary hover:bg-primary/90 rounded-full px-6"
+                      className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 text-sm"
                     >
                       Postar
                     </Button>
@@ -476,10 +491,10 @@ const Community = () => {
               </div>
             </div>
 
-            {/* Posts */}
+            {/* Posts - Mobile Optimized */}
             <div>
-              {posts.map((post) => (
-                <div key={post.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+              {posts.map((post, index) => (
+                <div key={post.id} className="border-b border-border hover:bg-secondary/30 transition-colors p-3 sm:p-4">
                   <TwitterPost
                     post={post}
                     onLike={handleLike}
@@ -493,94 +508,70 @@ const Community = () => {
             </div>
           </div>
 
-          {/* Sidebar Direita - Sugestões e Ranking */}
-          <div className="lg:col-span-3 p-4">
+          {/* Sidebar Direita - Hidden on Mobile */}
+          <div className="hidden lg:block lg:col-span-3 p-4">
             <div className="sticky top-32 space-y-4">
-              {/* Sugestões de Usuários */}
               <SuggestedUsers
                 users={suggestedUsers}
                 onFollow={handleFollow}
                 onUserClick={handleUserClick}
               />
 
-              {/* Ranking */}
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center text-card-foreground">
                     <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                    Ranking Semanal
+                    Ranking
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {leaderboard.map((user, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 hover:bg-secondary/50 rounded-lg transition-colors cursor-pointer">
+                    {leaderboard.slice(0, 3).map((user, index) => (
+                      <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                             index === 0 ? 'bg-yellow-500 text-white' :
                             index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-yellow-600 text-white' :
-                            'bg-muted text-muted-foreground'
+                            'bg-yellow-600 text-white'
                           }`}>
                             {index + 1}
                           </div>
-                          <div>
-                            <div className="font-medium text-sm">{user.name}</div>
-                            <div className="flex items-center space-x-1">
-                              <span className={`text-xs ${getLevelColor(user.level)}`}>
-                                Lv. {user.level}
-                              </span>
-                            </div>
-                          </div>
+                          <span className="text-sm font-medium">{user.name}</span>
                         </div>
-                        <div className="text-right">
-                          <div className="font-medium text-sm text-primary">
-                            ${user.earnings.toFixed(2)}
-                          </div>
-                          <div className={`text-xs ${
-                            user.change.startsWith('+') ? 'text-green-500' :
-                            user.change.startsWith('-') ? 'text-red-500' :
-                            'text-muted-foreground'
-                          }`}>
-                            {user.change !== '0' && user.change}
-                          </div>
-                        </div>
+                        <span className="text-xs text-primary">${user.earnings.toFixed(2)}</span>
                       </div>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Conquistas */}
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-card-foreground text-sm">
-                    <Trophy className="h-4 w-4 mr-2 text-primary" />
-                    Conquistas Recentes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 p-2 bg-yellow-500/10 rounded-lg">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
-                      <div>
-                        <div className="text-xs font-medium">Primeira Semana</div>
-                        <div className="text-xs text-muted-foreground">Completou 7 dias</div>
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border">
+          <div className="flex justify-around p-2">
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
+              <Users className="h-4 w-4 mb-1" />
+              <span className="text-xs">Seguindo</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
+              <TrendingUp className="h-4 w-4 mb-1" />
+              <span className="text-xs">Ranking</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
+              <Trophy className="h-4 w-4 mb-1" />
+              <span className="text-xs">Perfil</span>
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Dialog para perfil do usuário */}
+      {/* Dialog para perfil - Mobile Friendly */}
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Perfil do Usuário</DialogTitle>
+            <DialogTitle>Perfil</DialogTitle>
           </DialogHeader>
           {selectedUser && (
             <UserProfile
