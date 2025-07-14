@@ -48,6 +48,9 @@ interface UserInvestment {
   totalEarned: number;
   status: "active" | "completed";
   daysRemaining: number;
+  currentDayProgress: number; // 0-100 (% do dia atual)
+  todayEarnings: number; // ganhos do dia atual
+  dailyTarget: number; // meta de ganho diário
 }
 
 const Investments = () => {
@@ -95,7 +98,10 @@ const Investments = () => {
       endDate: "2024-07-31",
       totalEarned: 195.50,
       status: "active",
-      daysRemaining: 18
+      daysRemaining: 18,
+      currentDayProgress: 45,
+      todayEarnings: 6.75,
+      dailyTarget: 15.00
     },
     {
       id: "2",
@@ -107,7 +113,10 @@ const Investments = () => {
       endDate: "2024-08-14",
       totalEarned: 580.00,
       status: "active",
-      daysRemaining: 32
+      daysRemaining: 32,
+      currentDayProgress: 72,
+      todayEarnings: 72.00,
+      dailyTarget: 100.00
     }
   ]);
 
@@ -116,6 +125,42 @@ const Investments = () => {
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [userBalance] = useState(12543.89);
   const { toast } = useToast();
+
+  // Simular cronômetro em tempo real
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUserInvestments(prev => prev.map(investment => {
+        if (investment.status !== "active") return investment;
+        
+        const speedMultiplier = investment.amount >= 10000 ? 3 : investment.amount >= 5000 ? 2 : 1;
+        const progressIncrement = speedMultiplier * 0.5; // Incremento baseado no valor investido
+        
+        let newProgress = investment.currentDayProgress + progressIncrement;
+        let newTodayEarnings = investment.todayEarnings;
+        let newTotalEarned = investment.totalEarned;
+        
+        if (newProgress >= 100) {
+          // Completou o dia, reseta e adiciona ganho
+          newProgress = 0;
+          const remainingEarnings = investment.dailyTarget - investment.todayEarnings;
+          newTodayEarnings = 0;
+          newTotalEarned += remainingEarnings;
+        } else {
+          // Atualiza ganho proporcional ao progresso
+          newTodayEarnings = (investment.dailyTarget * newProgress) / 100;
+        }
+        
+        return {
+          ...investment,
+          currentDayProgress: Math.min(newProgress, 100),
+          todayEarnings: newTodayEarnings,
+          totalEarned: newTotalEarned
+        };
+      }));
+    }, 1000); // Atualiza a cada segundo
+
+    return () => clearInterval(interval);
+  }, []);
 
   const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.totalEarned, 0);
@@ -153,6 +198,8 @@ const Investments = () => {
       return;
     }
 
+    const dailyTarget = (amount * selectedInvestment.dailyRate) / 100;
+    
     const newInvestment: UserInvestment = {
       id: (userInvestments.length + 1).toString(),
       investmentId: selectedInvestment.id,
@@ -163,7 +210,10 @@ const Investments = () => {
       endDate: new Date(Date.now() + selectedInvestment.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       totalEarned: 0,
       status: "active",
-      daysRemaining: selectedInvestment.duration
+      daysRemaining: selectedInvestment.duration,
+      currentDayProgress: 0,
+      todayEarnings: 0,
+      dailyTarget: dailyTarget
     };
 
     setUserInvestments([...userInvestments, newInvestment]);
@@ -325,40 +375,96 @@ const Investments = () => {
           <CardContent>
             {userInvestments.length > 0 ? (
               <div className="space-y-4">
-                {userInvestments.map((investment) => (
-                  <Card key={investment.id} className="bg-secondary border-border">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-semibold text-secondary-foreground">{investment.investmentName}</h3>
-                            <Badge variant={investment.status === "active" ? "default" : "secondary"}>
-                              {investment.status === "active" ? "Ativo" : "Finalizado"}
-                            </Badge>
+                {userInvestments.map((investment) => {
+                  const speedText = investment.amount >= 10000 ? "Ultra Rápido" : 
+                                   investment.amount >= 5000 ? "Rápido" : "Normal";
+                  const progressHours = Math.floor((investment.currentDayProgress / 100) * 24);
+                  const progressMinutes = Math.floor(((investment.currentDayProgress / 100) * 24 * 60) % 60);
+                  const progressSeconds = Math.floor(((investment.currentDayProgress / 100) * 24 * 3600) % 60);
+                  
+                  return (
+                    <Card key={investment.id} className="bg-secondary border-border">
+                      <CardContent className="p-4">
+                        <div className="space-y-4">
+                          {/* Header */}
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <Bot className="h-4 w-4 text-primary" />
+                                <h3 className="font-semibold text-secondary-foreground">{investment.investmentName}</h3>
+                                <Badge variant={investment.status === "active" ? "default" : "secondary"}>
+                                  {investment.status === "active" ? "Ativo" : "Finalizado"}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Investido: ${investment.amount.toLocaleString()} • 
+                                Taxa: {investment.dailyRate}% / dia • 
+                                Ganho Total: +${investment.totalEarned.toFixed(2)}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              <Timer className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium text-primary">
+                                Velocidade: {speedText}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            Investido: ${investment.amount.toLocaleString()} • 
-                            Taxa: {investment.dailyRate}% / dia • 
-                            Ganho: +${investment.totalEarned.toFixed(2)}
+
+                          {/* Cronômetro e Progresso Diário */}
+                          {investment.status === "active" && (
+                            <div className="bg-primary/5 rounded-lg p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-xs text-muted-foreground mb-1">Cronômetro do Dia</div>
+                                  <div className="text-2xl font-mono font-bold text-primary">
+                                    {String(progressHours).padStart(2, '0')}:
+                                    {String(progressMinutes).padStart(2, '0')}:
+                                    {String(progressSeconds).padStart(2, '0')}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xs text-muted-foreground mb-1">Ganho Hoje</div>
+                                  <div className="text-lg font-bold text-trading-green">
+                                    +${investment.todayEarnings.toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Meta: ${investment.dailyTarget.toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>Progresso do Dia</span>
+                                  <span>{investment.currentDayProgress.toFixed(1)}%</span>
+                                </div>
+                                <Progress 
+                                  value={investment.currentDayProgress} 
+                                  className="h-2"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Info do Investimento */}
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">
+                                {investment.daysRemaining} dias restantes
+                              </span>
+                            </div>
+                            <Progress 
+                              value={((90 - investment.daysRemaining) / 90) * 100} 
+                              className="w-24 h-2"
+                            />
                           </div>
                         </div>
-                        
-                        <div className="text-right space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              {investment.daysRemaining} dias restantes
-                            </span>
-                          </div>
-                          <Progress 
-                            value={((90 - investment.daysRemaining) / 90) * 100} 
-                            className="w-32"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8">
