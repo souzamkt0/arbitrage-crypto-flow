@@ -23,7 +23,10 @@ import {
   Plus,
   Bot,
   Timer,
-  Play
+  Play,
+  ArrowUpDown,
+  Activity,
+  Zap
 } from "lucide-react";
 
 interface Investment {
@@ -51,6 +54,16 @@ interface UserInvestment {
   currentDayProgress: number; // 0-100 (% do dia atual)
   todayEarnings: number; // ganhos do dia atual
   dailyTarget: number; // meta de ganho diário
+  currentOperation?: {
+    pair: string;
+    buyPrice: number;
+    sellPrice: number;
+    profit: number;
+    progress: number; // 0-100
+    timeRemaining: number; // segundos
+  };
+  operationsCompleted: number;
+  totalOperations: number;
 }
 
 const Investments = () => {
@@ -101,7 +114,17 @@ const Investments = () => {
       daysRemaining: 18,
       currentDayProgress: 45,
       todayEarnings: 6.75,
-      dailyTarget: 15.00
+      dailyTarget: 15.00,
+      currentOperation: {
+        pair: "BTC/USDT",
+        buyPrice: 67420.50,
+        sellPrice: 67451.20,
+        profit: 0.85,
+        progress: 65,
+        timeRemaining: 35
+      },
+      operationsCompleted: 8,
+      totalOperations: 15
     },
     {
       id: "2",
@@ -116,7 +139,17 @@ const Investments = () => {
       daysRemaining: 32,
       currentDayProgress: 72,
       todayEarnings: 72.00,
-      dailyTarget: 100.00
+      dailyTarget: 100.00,
+      currentOperation: {
+        pair: "ETH/USDT",
+        buyPrice: 3842.15,
+        sellPrice: 3847.92,
+        profit: 2.45,
+        progress: 82,
+        timeRemaining: 18
+      },
+      operationsCompleted: 12,
+      totalOperations: 20
     }
   ]);
 
@@ -126,38 +159,75 @@ const Investments = () => {
   const [userBalance] = useState(12543.89);
   const { toast } = useToast();
 
-  // Simular cronômetro em tempo real
+  const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
+
+  // Simular cronômetro e operações em tempo real
   useEffect(() => {
     const interval = setInterval(() => {
       setUserInvestments(prev => prev.map(investment => {
         if (investment.status !== "active") return investment;
         
         const speedMultiplier = investment.amount >= 10000 ? 3 : investment.amount >= 5000 ? 2 : 1;
-        const progressIncrement = speedMultiplier * 0.5; // Incremento baseado no valor investido
+        const progressIncrement = speedMultiplier * 0.5;
         
         let newProgress = investment.currentDayProgress + progressIncrement;
         let newTodayEarnings = investment.todayEarnings;
         let newTotalEarned = investment.totalEarned;
+        let newOperationsCompleted = investment.operationsCompleted;
+        let newCurrentOperation = investment.currentOperation;
+
+        // Atualizar operação atual
+        if (newCurrentOperation) {
+          const newOperationProgress = Math.min(newCurrentOperation.progress + (speedMultiplier * 2), 100);
+          const newTimeRemaining = Math.max(newCurrentOperation.timeRemaining - 1, 0);
+
+          if (newOperationProgress >= 100 || newTimeRemaining === 0) {
+            // Operação completada
+            newTodayEarnings += newCurrentOperation.profit;
+            newTotalEarned += newCurrentOperation.profit;
+            newOperationsCompleted += 1;
+
+            // Nova operação
+            const randomPair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
+            const basePrice = Math.random() * 50000 + 1000;
+            const buyPrice = basePrice;
+            const sellPrice = buyPrice * (1 + (Math.random() * 0.002 + 0.001)); // 0.1% a 0.3% de lucro
+            const profit = (investment.dailyTarget / investment.totalOperations) * (0.8 + Math.random() * 0.4);
+
+            newCurrentOperation = {
+              pair: randomPair,
+              buyPrice: buyPrice,
+              sellPrice: sellPrice,
+              profit: profit,
+              progress: 0,
+              timeRemaining: Math.floor(Math.random() * 60 + 30) // 30-90 segundos
+            };
+          } else {
+            newCurrentOperation = {
+              ...newCurrentOperation,
+              progress: newOperationProgress,
+              timeRemaining: newTimeRemaining
+            };
+          }
+        }
         
         if (newProgress >= 100) {
-          // Completou o dia, reseta e adiciona ganho
+          // Completou o dia, reseta
           newProgress = 0;
-          const remainingEarnings = investment.dailyTarget - investment.todayEarnings;
           newTodayEarnings = 0;
-          newTotalEarned += remainingEarnings;
-        } else {
-          // Atualiza ganho proporcional ao progresso
-          newTodayEarnings = (investment.dailyTarget * newProgress) / 100;
+          newOperationsCompleted = 0;
         }
         
         return {
           ...investment,
           currentDayProgress: Math.min(newProgress, 100),
           todayEarnings: newTodayEarnings,
-          totalEarned: newTotalEarned
+          totalEarned: newTotalEarned,
+          currentOperation: newCurrentOperation,
+          operationsCompleted: newOperationsCompleted
         };
       }));
-    }, 1000); // Atualiza a cada segundo
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -199,6 +269,7 @@ const Investments = () => {
     }
 
     const dailyTarget = (amount * selectedInvestment.dailyRate) / 100;
+    const totalOps = selectedInvestment.dailyRate === 2.5 ? 30 : selectedInvestment.dailyRate === 2.0 ? 20 : 15;
     
     const newInvestment: UserInvestment = {
       id: (userInvestments.length + 1).toString(),
@@ -213,7 +284,17 @@ const Investments = () => {
       daysRemaining: selectedInvestment.duration,
       currentDayProgress: 0,
       todayEarnings: 0,
-      dailyTarget: dailyTarget
+      dailyTarget: dailyTarget,
+      currentOperation: {
+        pair: cryptoPairs[0],
+        buyPrice: 67420.50,
+        sellPrice: 67451.20,
+        profit: dailyTarget / totalOps,
+        progress: 0,
+        timeRemaining: 60
+      },
+      operationsCompleted: 0,
+      totalOperations: totalOps
     };
 
     setUserInvestments([...userInvestments, newInvestment]);
@@ -413,7 +494,7 @@ const Investments = () => {
 
                           {/* Cronômetro e Progresso Diário */}
                           {investment.status === "active" && (
-                            <div className="bg-primary/5 rounded-lg p-4 space-y-3">
+                            <div className="bg-primary/5 rounded-lg p-4 space-y-4">
                               <div className="flex items-center justify-between">
                                 <div>
                                   <div className="text-xs text-muted-foreground mb-1">Cronômetro do Dia</div>
@@ -443,6 +524,67 @@ const Investments = () => {
                                   value={investment.currentDayProgress} 
                                   className="h-2"
                                 />
+                              </div>
+
+                              {/* Operação de Arbitragem Atual */}
+                              {investment.currentOperation && (
+                                <div className="bg-secondary/50 rounded-lg p-3 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      <ArrowUpDown className="h-4 w-4 text-primary" />
+                                      <span className="text-sm font-medium text-foreground">
+                                        Arbitragem: {investment.currentOperation.pair}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <Activity className="h-3 w-3 text-trading-green" />
+                                      <span className="text-xs text-trading-green font-medium">
+                                        {investment.currentOperation.timeRemaining}s
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <span className="text-muted-foreground">Compra:</span>
+                                      <div className="font-mono text-trading-red">
+                                        ${investment.currentOperation.buyPrice.toFixed(2)}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Venda:</span>
+                                      <div className="font-mono text-trading-green">
+                                        ${investment.currentOperation.sellPrice.toFixed(2)}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Lucro Estimado:</span>
+                                      <span className="font-bold text-trading-green">
+                                        +${investment.currentOperation.profit.toFixed(2)}
+                                      </span>
+                                    </div>
+                                    <Progress 
+                                      value={investment.currentOperation.progress} 
+                                      className="h-1.5"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Estatísticas de Operações */}
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center space-x-2">
+                                  <Zap className="h-3 w-3 text-warning" />
+                                  <span className="text-muted-foreground">
+                                    Operações: {investment.operationsCompleted}/{investment.totalOperations}
+                                  </span>
+                                </div>
+                                <div className="text-muted-foreground">
+                                  Velocidade: {speedText}
+                                </div>
                               </div>
                             </div>
                           )}
