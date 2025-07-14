@@ -20,7 +20,10 @@ import {
   Target,
   Calendar,
   PiggyBank,
-  Plus
+  Plus,
+  Bot,
+  Timer,
+  Play
 } from "lucide-react";
 
 interface Investment {
@@ -51,32 +54,32 @@ const Investments = () => {
   const [investments, setInvestments] = useState<Investment[]>([
     {
       id: "1",
-      name: "Plano Básico",
+      name: "Alphabot Basic",
       dailyRate: 1.5,
       minimumAmount: 100,
       maximumAmount: 5000,
       duration: 30,
-      description: "Investimento seguro com retorno diário de 1.5%",
+      description: "Negociação automatizada em pares de crypto com bot Alphabot. Operações ativas quando você ativar.",
       status: "active"
     },
     {
       id: "2", 
-      name: "Plano Premium",
+      name: "Alphabot Premium",
       dailyRate: 2.0,
       minimumAmount: 1000,
       maximumAmount: 20000,
       duration: 60,
-      description: "Para investidores experientes com retorno de 2.0% ao dia",
+      description: "Bot avançado para pares crypto. Cronômetro de operações com velocidade moderada.",
       status: "active"
     },
     {
       id: "3",
-      name: "Plano VIP",
+      name: "Alphabot VIP",
       dailyRate: 2.5,
       minimumAmount: 5000,
       maximumAmount: 100000,
       duration: 90,
-      description: "Nosso melhor plano com retorno máximo de 2.5% diário",
+      description: "Bot premium para pares crypto. Quanto maior o valor, mais rápido gira o cronômetro de operações.",
       status: "active"
     }
   ]);
@@ -85,7 +88,7 @@ const Investments = () => {
     {
       id: "1",
       investmentId: "1",
-      investmentName: "Plano Básico",
+      investmentName: "Alphabot Basic",
       amount: 1000,
       dailyRate: 1.5,
       startDate: "2024-07-01",
@@ -97,7 +100,7 @@ const Investments = () => {
     {
       id: "2",
       investmentId: "2", 
-      investmentName: "Plano Premium",
+      investmentName: "Alphabot Premium",
       amount: 5000,
       dailyRate: 2.0,
       startDate: "2024-06-15",
@@ -186,10 +189,10 @@ const Investments = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
-              <PiggyBank className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
-              Investimentos
+              <Bot className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
+              Alphabot - Investimentos
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Faça seus investimentos crescerem diariamente</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Bots de negociação em pares crypto com rendimento automático</p>
           </div>
           
           <div className="text-right">
@@ -255,7 +258,10 @@ const Investments = () => {
         {/* Available Investments */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Planos Disponíveis</CardTitle>
+            <CardTitle className="text-card-foreground flex items-center">
+              <Timer className="h-5 w-5 mr-2 text-primary" />
+              Bots Alphabot Disponíveis
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -263,7 +269,10 @@ const Investments = () => {
                 <Card key={investment.id} className="bg-secondary border-border hover:bg-secondary/80 transition-colors">
                   <CardHeader>
                     <CardTitle className="text-lg text-secondary-foreground flex items-center justify-between">
-                      {investment.name}
+                      <div className="flex items-center">
+                        <Bot className="h-5 w-5 mr-2 text-primary" />
+                        {investment.name}
+                      </div>
                       <Badge variant="default" className="text-xs">
                         {investment.dailyRate}% / dia
                       </Badge>
@@ -271,6 +280,13 @@ const Investments = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">{investment.description}</p>
+                    
+                    <div className="flex items-center space-x-2 p-2 bg-primary/10 rounded-lg">
+                      <Timer className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-primary font-medium">
+                        Cronômetro: {investment.dailyRate === 2.5 ? "Ultra Rápido" : investment.dailyRate === 2.0 ? "Rápido" : "Normal"}
+                      </span>
+                    </div>
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
@@ -291,8 +307,8 @@ const Investments = () => {
                       onClick={() => openInvestModal(investment)}
                       className="w-full bg-primary hover:bg-primary/90"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Investir Agora
+                      <Play className="h-4 w-4 mr-2" />
+                      Ativar Bot
                     </Button>
                   </CardContent>
                 </Card>
