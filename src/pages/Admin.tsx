@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Users, 
   UserPlus, 
@@ -32,7 +33,10 @@ import {
   Activity,
   DollarSign,
   TrendingUp,
-  Eye
+  Eye,
+  Settings,
+  Plus,
+  Bot
 } from "lucide-react";
 
 interface User {
@@ -46,6 +50,17 @@ interface User {
   joinDate: string;
   lastLogin: string;
   apiConnected: boolean;
+}
+
+interface InvestmentPlan {
+  id: string;
+  name: string;
+  dailyRate: number;
+  minimumAmount: number;
+  maximumAmount: number;
+  duration: number;
+  description: string;
+  status: "active" | "inactive";
 }
 
 const Admin = () => {
@@ -100,10 +115,46 @@ const Admin = () => {
     }
   ]);
 
+  const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([
+    {
+      id: "1",
+      name: "Alphabot Basic",
+      dailyRate: 1.5,
+      minimumAmount: 100,
+      maximumAmount: 5000,
+      duration: 30,
+      description: "Negociação automatizada em pares de crypto com bot Alphabot. Operações ativas quando você ativar.",
+      status: "active"
+    },
+    {
+      id: "2",
+      name: "Alphabot Premium",
+      dailyRate: 2.0,
+      minimumAmount: 1000,
+      maximumAmount: 20000,
+      duration: 60,
+      description: "Bot avançado para pares crypto. Cronômetro de operações com velocidade moderada.",
+      status: "active"
+    },
+    {
+      id: "3",
+      name: "Alphabot VIP",
+      dailyRate: 2.5,
+      minimumAmount: 5000,
+      maximumAmount: 100000,
+      duration: 90,
+      description: "Bot premium para pares crypto. Quanto maior o valor, mais rápido gira o cronômetro de operações.",
+      status: "active"
+    }
+  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isNewPlan, setIsNewPlan] = useState(false);
   const { toast } = useToast();
 
   const filteredUsers = users.filter(user =>
@@ -161,6 +212,73 @@ const Admin = () => {
         description: "Dados do usuário foram atualizados com sucesso.",
       });
     }
+  };
+
+  const handleEditPlan = (plan: InvestmentPlan) => {
+    setSelectedPlan(plan);
+    setIsNewPlan(false);
+    setIsPlanModalOpen(true);
+  };
+
+  const handleNewPlan = () => {
+    setSelectedPlan({
+      id: "",
+      name: "",
+      dailyRate: 1.0,
+      minimumAmount: 100,
+      maximumAmount: 1000,
+      duration: 30,
+      description: "",
+      status: "active"
+    });
+    setIsNewPlan(true);
+    setIsPlanModalOpen(true);
+  };
+
+  const handleSavePlan = () => {
+    if (selectedPlan) {
+      if (isNewPlan) {
+        const newId = (investmentPlans.length + 1).toString();
+        setInvestmentPlans(prev => [...prev, { ...selectedPlan, id: newId }]);
+        toast({
+          title: "Plano criado",
+          description: "Novo plano de investimento foi criado com sucesso.",
+        });
+      } else {
+        setInvestmentPlans(prev =>
+          prev.map(plan =>
+            plan.id === selectedPlan.id ? selectedPlan : plan
+          )
+        );
+        toast({
+          title: "Plano atualizado",
+          description: "Plano de investimento foi atualizado com sucesso.",
+        });
+      }
+      setIsPlanModalOpen(false);
+    }
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    setInvestmentPlans(prev => prev.filter(plan => plan.id !== planId));
+    toast({
+      title: "Plano removido",
+      description: "Plano de investimento foi removido do sistema.",
+    });
+  };
+
+  const handleTogglePlanStatus = (planId: string) => {
+    setInvestmentPlans(prev =>
+      prev.map(plan =>
+        plan.id === planId
+          ? { ...plan, status: plan.status === "active" ? "inactive" : "active" }
+          : plan
+      )
+    );
+    toast({
+      title: "Status atualizado",
+      description: "Status do plano foi alterado com sucesso.",
+    });
   };
 
   return (
@@ -426,144 +544,243 @@ const Admin = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Investment Configuration */}
+        {/* Investment Plans Management */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Configuração de Investimentos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-card-foreground flex items-center">
+                <Bot className="h-5 w-5 mr-2 text-primary" />
+                Gerenciar Planos de Investimento
+              </CardTitle>
+              <Button onClick={handleNewPlan} className="bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Plano
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Investment Plans */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-secondary-foreground">Planos de Investimento</h3>
-                <div className="space-y-3">
-                  {[
-                    { name: "Plano Básico", rate: 1.5, min: 100, max: 5000, duration: 30 },
-                    { name: "Plano Premium", rate: 2.0, min: 1000, max: 20000, duration: 60 },
-                    { name: "Plano VIP", rate: 2.5, min: 5000, max: 100000, duration: 90 }
-                  ].map((plan, index) => (
-                    <div key={index} className="p-3 bg-secondary rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium text-sm">{plan.name}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            ${plan.min.toLocaleString()} - ${plan.max.toLocaleString()}
-                          </p>
+            <div className="space-y-4">
+              {investmentPlans.map((plan) => (
+                <Card key={plan.id} className="bg-secondary border-border">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-4 w-4 text-primary" />
+                          <h3 className="font-semibold text-secondary-foreground">{plan.name}</h3>
+                          <Badge variant={plan.status === "active" ? "default" : "destructive"}>
+                            {plan.status === "active" ? "Ativo" : "Inativo"}
+                          </Badge>
                         </div>
-                        <Badge variant="default" className="text-xs">
-                          {plan.rate}% / dia
-                        </Badge>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Taxa Diária:</span>
+                            <div className="font-medium text-primary">{plan.dailyRate}%</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Valor Mín:</span>
+                            <div className="font-medium">${plan.minimumAmount.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Valor Máx:</span>
+                            <div className="font-medium">${plan.maximumAmount.toLocaleString()}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Duração:</span>
+                            <div className="font-medium">{plan.duration} dias</div>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground">{plan.description}</p>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">{plan.duration} dias</span>
-                        <div className="flex space-x-1">
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Switch defaultChecked />
-                        </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={plan.status === "active"}
+                          onCheckedChange={() => handleTogglePlanStatus(plan.id)}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditPlan(plan)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePlan(plan.id)}
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Investment Stats */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-secondary-foreground">Estatísticas de Investimento</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">Total Investido</div>
-                    <div className="text-lg font-bold text-primary">$567,890</div>
-                  </div>
-                  <div className="p-3 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">Pagamentos Diários</div>
-                    <div className="text-lg font-bold text-trading-green">$12,345</div>
-                  </div>
-                  <div className="p-3 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">Investimentos Ativos</div>
-                    <div className="text-lg font-bold text-warning">156</div>
-                  </div>
-                  <div className="p-3 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">Taxa Média</div>
-                    <div className="text-lg font-bold text-primary">1.8%</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plano Básico</span>
-                    <span className="font-medium">45 investimentos</span>
-                  </div>
-                  <Progress value={45} className="h-2" />
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plano Premium</span>
-                    <span className="font-medium">78 investimentos</span>
-                  </div>
-                  <Progress value={78} className="h-2" />
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plano VIP</span>
-                    <span className="font-medium">33 investimentos</span>
-                  </div>
-                  <Progress value={33} className="h-2" />
-                </div>
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Edit Plan Modal */}
+        <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {isNewPlan ? "Criar Novo Plano" : "Editar Plano de Investimento"}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedPlan && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="planName">Nome do Plano</Label>
+                    <Input
+                      id="planName"
+                      value={selectedPlan.name}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, name: e.target.value})}
+                      placeholder="Ex: Alphabot Basic"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dailyRate">Taxa Diária (%)</Label>
+                    <Input
+                      id="dailyRate"
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      max="10"
+                      value={selectedPlan.dailyRate}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, dailyRate: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="minAmount">Valor Mínimo ($)</Label>
+                    <Input
+                      id="minAmount"
+                      type="number"
+                      min="1"
+                      value={selectedPlan.minimumAmount}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, minimumAmount: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxAmount">Valor Máximo ($)</Label>
+                    <Input
+                      id="maxAmount"
+                      type="number"
+                      min="1"
+                      value={selectedPlan.maximumAmount}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, maximumAmount: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Duração (dias)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={selectedPlan.duration}
+                    onChange={(e) => setSelectedPlan({...selectedPlan, duration: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    value={selectedPlan.description}
+                    onChange={(e) => setSelectedPlan({...selectedPlan, description: e.target.value})}
+                    placeholder="Descreva as características e benefícios do plano..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={selectedPlan.status === "active"}
+                    onCheckedChange={(checked) => setSelectedPlan({...selectedPlan, status: checked ? "active" : "inactive"})}
+                  />
+                  <Label>Plano Ativo</Label>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsPlanModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSavePlan}>
+                    {isNewPlan ? "Criar Plano" : "Salvar Alterações"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* View User Modal */}
         <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Detalhes do Usuário</DialogTitle>
             </DialogHeader>
             {selectedUser && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Nome</Label>
-                    <p className="text-lg font-medium">{selectedUser.name}</p>
+                    <Label className="text-sm font-medium">Nome</Label>
+                    <p className="text-sm text-muted-foreground">{selectedUser.name}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                    <p className="text-lg">{selectedUser.email}</p>
+                    <Label className="text-sm font-medium">Email</Label>
+                    <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Role</Label>
+                    <Label className="text-sm font-medium">Role</Label>
                     <Badge variant={selectedUser.role === "admin" ? "default" : "secondary"}>
                       {selectedUser.role}
                     </Badge>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                    <Label className="text-sm font-medium">Status</Label>
                     <Badge variant={selectedUser.status === "active" ? "default" : "destructive"}>
-                      {selectedUser.status}
+                      {selectedUser.status === "active" ? "Ativo" : "Inativo"}
                     </Badge>
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Saldo</Label>
-                    <p className="text-xl font-bold text-primary">${selectedUser.balance.toLocaleString()}</p>
+                    <Label className="text-sm font-medium">Saldo</Label>
+                    <p className="text-sm font-semibold text-trading-green">${selectedUser.balance.toLocaleString()}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Lucro Total</Label>
-                    <p className="text-xl font-bold text-trading-green">+${selectedUser.totalProfit.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Data de Cadastro</Label>
-                    <p className="text-lg">{new Date(selectedUser.joinDate).toLocaleDateString("pt-BR")}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Último Login</Label>
-                    <p className="text-lg">{new Date(selectedUser.lastLogin).toLocaleDateString("pt-BR")}</p>
+                    <Label className="text-sm font-medium">Lucro Total</Label>
+                    <p className="text-sm font-semibold text-primary">+${selectedUser.totalProfit.toLocaleString()}</p>
                   </div>
                 </div>
-                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Data de Cadastro</Label>
+                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.joinDate).toLocaleDateString("pt-BR")}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Último Login</Label>
+                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.lastLogin).toLocaleDateString("pt-BR")}</p>
+                  </div>
+                </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">API Connection</Label>
-                  <div className="mt-2">
+                  <Label className="text-sm font-medium">API Status</Label>
+                  <div className="mt-1">
                     <Badge variant={selectedUser.apiConnected ? "default" : "destructive"}>
                       {selectedUser.apiConnected ? "Conectada" : "Desconectada"}
                     </Badge>
