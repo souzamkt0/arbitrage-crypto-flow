@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
   TableBody,
@@ -26,6 +27,7 @@ import {
   Eye
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ResidualEarnings from "@/components/ResidualEarnings";
 
 interface ReferredUser {
   id: string;
@@ -115,6 +117,7 @@ const Referrals = () => {
     // Calcular estatísticas
     const totalCommission = mockReferredUsers.reduce((sum, user) => sum + user.commission, 0);
     const activeUsers = mockReferredUsers.filter(user => user.status === "active");
+    const totalResidualDaily = 22.15; // Simulando ganhos residuais diários
     
     setStats({
       totalReferrals: mockReferredUsers.length,
@@ -246,149 +249,163 @@ const Referrals = () => {
           </Card>
         </div>
 
-        {/* Referral Link */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground flex items-center">
-              <Link className="h-5 w-5 mr-2 text-primary" />
-              Seu Link de Indicação
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={referralLink}
-                readOnly
-                className="font-mono text-xs flex-1"
-              />
-              <Button
-                onClick={copyToClipboard}
-                className="bg-primary hover:bg-primary/90 whitespace-nowrap"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Link
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Compartilhe este link para ganhar comissão sobre os investimentos dos seus indicados
-            </p>
-          </CardContent>
-        </Card>
+        {/* Main Content with Tabs */}
+        <Tabs defaultValue="referrals" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="referrals">Indicações</TabsTrigger>
+            <TabsTrigger value="residuals">Residuais</TabsTrigger>
+          </TabsList>
 
-        {/* Filters and Search */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">
-              Usuários Indicados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome, email ou plano..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => setStatusFilter(value)}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Ativos</SelectItem>
-                  <SelectItem value="inactive">Inativos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Table */}
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead className="hidden md:table-cell">Email</TableHead>
-                    <TableHead className="hidden lg:table-cell">WhatsApp</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Investimento</TableHead>
-                    <TableHead>Comissão</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden xl:table-cell">Data Cadastro</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-xs text-muted-foreground md:hidden">
-                            {user.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm">
-                        {user.email}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="flex items-center text-sm">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {user.whatsapp}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {user.plan}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(user.investmentAmount)}
-                      </TableCell>
-                      <TableCell className="font-medium text-trading-green">
-                        {formatCurrency(user.commission)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={user.status === "active" ? "default" : "secondary"}
-                          className={user.status === "active" ? "bg-trading-green" : ""}
-                        >
-                          {user.status === "active" ? (
-                            <><UserCheck className="h-3 w-3 mr-1" />Ativo</>
-                          ) : (
-                            <><UserX className="h-3 w-3 mr-1" />Inativo</>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
-                        {formatDate(user.joinDate)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {filteredUsers.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Nenhuma indicação encontrada
-                </h3>
-                <p className="text-muted-foreground">
-                  {searchTerm || statusFilter !== "all" 
-                    ? "Tente ajustar os filtros de busca"
-                    : "Compartilhe seu link de indicação para começar"
-                  }
+          <TabsContent value="referrals" className="space-y-6">
+            {/* Referral Link */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-card-foreground flex items-center">
+                  <Link className="h-5 w-5 mr-2 text-primary" />
+                  Seu Link de Indicação
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    value={referralLink}
+                    readOnly
+                    className="font-mono text-xs flex-1"
+                  />
+                  <Button
+                    onClick={copyToClipboard}
+                    className="bg-primary hover:bg-primary/90 whitespace-nowrap"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar Link
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Compartilhe este link para ganhar comissão sobre os investimentos dos seus indicados
                 </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+
+            {/* Filters and Search */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-card-foreground">
+                  Usuários Indicados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nome, email ou plano..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => setStatusFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="active">Ativos</SelectItem>
+                      <SelectItem value="inactive">Inativos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Table */}
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="hidden lg:table-cell">WhatsApp</TableHead>
+                        <TableHead>Plano</TableHead>
+                        <TableHead>Investimento</TableHead>
+                        <TableHead>Comissão</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="hidden xl:table-cell">Data Cadastro</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">
+                            <div>
+                              <div className="font-medium">{user.name}</div>
+                              <div className="text-xs text-muted-foreground md:hidden">
+                                {user.email}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-sm">
+                            {user.email}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center text-sm">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {user.whatsapp}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {user.plan}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {formatCurrency(user.investmentAmount)}
+                          </TableCell>
+                          <TableCell className="font-medium text-trading-green">
+                            {formatCurrency(user.commission)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={user.status === "active" ? "default" : "secondary"}
+                              className={user.status === "active" ? "bg-trading-green" : ""}
+                            >
+                              {user.status === "active" ? (
+                                <><UserCheck className="h-3 w-3 mr-1" />Ativo</>
+                              ) : (
+                                <><UserX className="h-3 w-3 mr-1" />Inativo</>
+                              )}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
+                            {formatDate(user.joinDate)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {filteredUsers.length === 0 && (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      Nenhuma indicação encontrada
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {searchTerm || statusFilter !== "all" 
+                        ? "Tente ajustar os filtros de busca"
+                        : "Compartilhe seu link de indicação para começar"
+                      }
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="residuals">
+            <ResidualEarnings />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

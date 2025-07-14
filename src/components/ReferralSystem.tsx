@@ -249,15 +249,27 @@ const ReferralSystem = () => {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span>Indicado investe $1.000</span>
-                  <span className="font-medium">Você ganha ${(1000 * referralStats.referralPercent / 100).toFixed(2)}</span>
+                  <span className="font-medium">Comissão: ${(1000 * referralStats.referralPercent / 100).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Lucro diário: $10</span>
+                  <span className="font-medium">Residual: $1.00/dia</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Indicado investe $5.000</span>
-                  <span className="font-medium">Você ganha ${(5000 * referralStats.referralPercent / 100).toFixed(2)}</span>
+                  <span className="font-medium">Comissão: ${(5000 * referralStats.referralPercent / 100).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Lucro diário: $50</span>
+                  <span className="font-medium">Residual: $5.00/dia</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <span className="font-medium">Total possível:</span>
+                  <span className="font-medium">Comissão total:</span>
                   <span className="font-bold text-primary">${(6000 * referralStats.referralPercent / 100).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Residual mensal:</span>
+                  <span className="font-bold text-trading-green">$180.00</span>
                 </div>
               </div>
             </div>

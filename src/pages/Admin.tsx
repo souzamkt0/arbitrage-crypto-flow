@@ -179,7 +179,9 @@ const Admin = () => {
   const [isNewPlan, setIsNewPlan] = useState(false);
   const [adminSettings, setAdminSettings] = useState({
     referralPercent: 5,
-    allowReferrals: true
+    residualPercent: 10,
+    allowReferrals: true,
+    allowResiduals: true
   });
   const { toast } = useToast();
 
@@ -616,30 +618,69 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="referralPercent" className="text-sm font-medium flex items-center">
-                    <Percent className="h-4 w-4 mr-1" />
-                    Percentual de Comissão (%)
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="allowResiduals" className="text-sm font-medium">
+                    Permitir Bônus Residual
                   </Label>
-                  <Input
-                    id="referralPercent"
-                    type="number"
-                    min="0"
-                    max="50"
-                    step="0.5"
-                    value={adminSettings.referralPercent}
-                    onChange={(e) => 
-                      setAdminSettings(prev => ({ 
-                        ...prev, 
-                        referralPercent: parseFloat(e.target.value) || 0 
-                      }))
+                  <Switch
+                    id="allowResiduals"
+                    checked={adminSettings.allowResiduals}
+                    onCheckedChange={(checked) => 
+                      setAdminSettings(prev => ({ ...prev, allowResiduals: checked }))
                     }
-                    className="max-w-32"
-                    disabled={!adminSettings.allowReferrals}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Percentual que o indicador recebe sobre investimentos dos indicados
-                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="referralPercent" className="text-sm font-medium flex items-center">
+                      <Percent className="h-4 w-4 mr-1" />
+                      Comissão por Indicação (%)
+                    </Label>
+                    <Input
+                      id="referralPercent"
+                      type="number"
+                      min="0"
+                      max="50"
+                      step="0.5"
+                      value={adminSettings.referralPercent}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          referralPercent: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowReferrals}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Percentual único quando alguém se cadastra via indicação
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="residualPercent" className="text-sm font-medium flex items-center">
+                      <Percent className="h-4 w-4 mr-1" />
+                      Bônus Residual (%)
+                    </Label>
+                    <Input
+                      id="residualPercent"
+                      type="number"
+                      min="0"
+                      max="25"
+                      step="0.5"
+                      value={adminSettings.residualPercent}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          residualPercent: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      disabled={!adminSettings.allowResiduals}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Percentual dos lucros diários dos investimentos dos indicados
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -650,20 +691,22 @@ const Admin = () => {
                     Como Funciona
                   </h4>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Usuários podem gerar links de indicação únicos</li>
-                    <li>• Novos usuários se cadastram via link de indicação</li>
-                    <li>• Indicador recebe {adminSettings.referralPercent}% de comissão sobre investimentos</li>
-                    <li>• Sistema rastreia automaticamente as indicações</li>
+                    <li>• <strong>Indicação:</strong> Usuário ganha {adminSettings.referralPercent}% do valor investido (única vez)</li>
+                    <li>• <strong>Residual:</strong> Usuário ganha {adminSettings.residualPercent}% dos lucros diários (contínuo)</li>
+                    <li>• Residuais são creditados enquanto o investimento estiver ativo</li>
+                    <li>• Sistema rastreia automaticamente todas as transações</li>
                   </ul>
                 </div>
 
                 <div className="p-4 bg-primary/10 rounded-lg">
                   <h4 className="text-sm font-medium mb-2 text-primary">
-                    Link de Exemplo:
+                    Exemplo de Ganhos:
                   </h4>
-                  <p className="text-xs font-mono bg-background p-2 rounded border">
-                    {window.location.origin}/register/abc123xyz
-                  </p>
+                  <div className="text-xs space-y-1">
+                    <div><strong>Indicação:</strong> Indicado investe $1.000 → Indicador ganha ${(1000 * adminSettings.referralPercent / 100).toFixed(2)} (única vez)</div>
+                    <div><strong>Residual:</strong> Lucro diário $10 → Indicador ganha ${(10 * adminSettings.residualPercent / 100).toFixed(2)}/dia</div>
+                    <div className="text-primary font-medium">Residual mensal: ${(10 * adminSettings.residualPercent / 100 * 30).toFixed(2)}</div>
+                  </div>
                 </div>
               </div>
             </div>
