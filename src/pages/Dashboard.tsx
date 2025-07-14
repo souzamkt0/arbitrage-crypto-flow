@@ -116,23 +116,30 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-sm sm:text-base text-muted-foreground">Sistema de Arbitragem Alphabit</p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs sm:text-sm font-medium text-foreground">Bot Status:</span>
-              <Switch checked={botActive} onCheckedChange={toggleBot} />
-              <Badge variant={botActive ? "default" : "secondary"} className="ml-2 text-xs">
-                {botActive ? "ATIVO" : "PAUSADO"}
-              </Badge>
-            </div>
-            
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto">
-              <Settings className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Configurações</span>
-              <span className="sm:hidden">Config</span>
-            </Button>
-          </div>
         </div>
+
+        {/* Link de Indicação no Topo */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1 relative">
+                <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={referralLink}
+                  readOnly
+                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono bg-secondary border border-border rounded-md text-secondary-foreground"
+                />
+              </div>
+              <Button
+                onClick={copyReferralLink}
+                className="bg-primary hover:bg-primary/90 whitespace-nowrap"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Link
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
@@ -218,24 +225,6 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground">
                 Compartilhe seu link exclusivo e ganhe comissão sobre os investimentos dos seus indicados!
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 relative">
-                  <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <input
-                    value={referralLink}
-                    readOnly
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono bg-secondary border border-border rounded-md text-secondary-foreground"
-                  />
-                </div>
-                <Button
-                  onClick={copyReferralLink}
-                  className="bg-primary hover:bg-primary/90 whitespace-nowrap"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar Link
-                </Button>
-              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                 <div className="text-center p-3 bg-primary/10 rounded-lg">
