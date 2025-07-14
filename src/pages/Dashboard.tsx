@@ -255,39 +255,81 @@ const Dashboard = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Performance Diária - Apenas % das últimas 24h */}
+          {/* Performance 24h - Operação Única */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center text-card-foreground">
                 <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-                Performance 24h (%)
+                Performance 24h
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { time: "00:00", percentage: 2.3 },
-                  { time: "04:00", percentage: 4.1 },
-                  { time: "08:00", percentage: 7.8 },
-                  { time: "12:00", percentage: 3.2 },
-                  { time: "16:00", percentage: 9.1 },
-                  { time: "20:00", percentage: 6.5 },
-                ].map((data, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground w-12">{data.time}</div>
-                    <div className="flex-1 mx-4">
-                      <div className="w-full bg-secondary rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(data.percentage * 10, 100)}%` }}
-                        />
-                      </div>
+                {/* Métrica única da operação */}
+                <div className="text-center p-4 bg-trading-green/10 rounded-lg border border-trading-green/20">
+                  <div className="text-2xl font-bold text-trading-green">+7.8%</div>
+                  <div className="text-sm text-muted-foreground">Última operação</div>
+                  <div className="text-xs text-muted-foreground mt-1">ETH/USDT • 14:32</div>
+                </div>
+                
+                {/* Gráfico de mercado simulado */}
+                <div className="p-3 bg-background/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-muted-foreground">ETH/USDT</span>
+                    <span className="text-xs font-medium text-trading-green">+7.8%</span>
+                  </div>
+                  
+                  <div className="relative h-20 w-full overflow-hidden">
+                    <svg className="w-full h-full" viewBox="0 0 200 80">
+                      {/* Linha de oscilação do mercado */}
+                      <path
+                        d="M0,50 Q25,45 50,40 T100,35 Q125,30 150,35 T200,40"
+                        fill="none"
+                        stroke="hsl(var(--trading-green))"
+                        strokeWidth="2"
+                        className="animate-[marketOscillation_3s_ease-in-out_infinite]"
+                      />
+                      
+                      {/* Área de preenchimento */}
+                      <path
+                        d="M0,50 Q25,45 50,40 T100,35 Q125,30 150,35 T200,40 L200,80 L0,80 Z"
+                        fill="hsl(var(--trading-green))"
+                        fillOpacity="0.1"
+                        className="animate-[marketOscillation_3s_ease-in-out_infinite]"
+                      />
+                      
+                      {/* Ponto de entrada da operação */}
+                      <circle cx="50" cy="40" r="3" fill="hsl(var(--trading-green))" className="animate-pulse">
+                        <animate attributeName="cy" values="40;35;40" dur="2s" repeatCount="indefinite"/>
+                      </circle>
+                      
+                      {/* Ponto de saída da operação */}
+                      <circle cx="150" cy="35" r="3" fill="hsl(var(--primary))" className="animate-pulse">
+                        <animate attributeName="cy" values="35;30;35" dur="2.5s" repeatCount="indefinite"/>
+                      </circle>
+                    </svg>
+                    
+                    {/* Indicadores de preço */}
+                    <div className="absolute top-0 right-0 text-xs">
+                      <div className="text-trading-green font-mono">$2,485</div>
                     </div>
-                    <div className="text-sm font-medium text-trading-green w-16 text-right">
-                      +{data.percentage}%
+                    <div className="absolute bottom-0 left-0 text-xs">
+                      <div className="text-muted-foreground font-mono">$2,305</div>
                     </div>
                   </div>
-                ))}
+                  
+                  {/* Detalhes da operação */}
+                  <div className="flex items-center justify-between mt-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-1 h-1 bg-trading-green rounded-full"></div>
+                      <span className="text-muted-foreground">Entrada: $2,305</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-1 h-1 bg-primary rounded-full"></div>
+                      <span className="text-muted-foreground">Saída: $2,485</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
