@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Users,
   Copy,
-  Link
+  Link,
+  Bot
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -445,34 +446,107 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Arbitrage Opportunities */}
+          {/* Próximas Entradas do Bot */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center text-card-foreground">
-                <ArrowUpDown className="h-5 w-5 mr-2 text-primary" />
-                Oportunidades
+                <Bot className="h-5 w-5 mr-2 text-primary" />
+                Próximas Entradas do Bot
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {arbitrageOpportunities.slice(0, 4).map((opp, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-secondary rounded-lg">
-                    <div>
-                      <div className="font-medium text-secondary-foreground text-sm">{opp.pair}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {opp.exchange1} → {opp.exchange2}
-                      </div>
+              <div className="space-y-4">
+                {/* Próxima operação com gráfico */}
+                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium">BTC/USDT</span>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-trading-green text-sm">
-                        +{opp.profit}%
-                      </div>
-                      <Button size="sm" className="mt-1 h-6 px-2 text-xs bg-primary hover:bg-primary/90">
-                        <Zap className="h-3 w-3" />
-                      </Button>
+                    <Badge variant="outline" className="text-primary border-primary">
+                      Entrada em 2min
+                    </Badge>
+                  </div>
+                  
+                  {/* Gráfico de análise */}
+                  <div className="mb-3 p-2 bg-background/50 rounded-lg">
+                    <div className="relative h-16 w-full overflow-hidden">
+                      <svg className="w-full h-full" viewBox="0 0 200 60">
+                        {/* Linha de tendência */}
+                        <path
+                          d="M0,45 Q40,40 80,30 T160,25 Q180,20 200,18"
+                          fill="none"
+                          stroke="hsl(var(--trading-green))"
+                          strokeWidth="2"
+                          className="animate-[marketOscillation_2s_ease-in-out_infinite]"
+                        />
+                        
+                        {/* Área de preenchimento */}
+                        <path
+                          d="M0,45 Q40,40 80,30 T160,25 Q180,20 200,18 L200,60 L0,60 Z"
+                          fill="hsl(var(--trading-green))"
+                          fillOpacity="0.1"
+                        />
+                        
+                        {/* Ponto de entrada previsto */}
+                        <circle cx="180" cy="20" r="3" fill="hsl(var(--primary))" className="animate-pulse">
+                          <animate attributeName="r" values="3;5;3" dur="1s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        {/* Indicador de sinal */}
+                        <text x="150" y="15" fill="hsl(var(--primary))" fontSize="8" className="animate-pulse">
+                          COMPRA
+                        </text>
+                      </svg>
                     </div>
                   </div>
-                ))}
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-muted-foreground">Preço Entrada:</span>
+                      <div className="font-medium">$43,250</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Stop Loss:</span>
+                      <div className="font-medium text-destructive">$42,800</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Take Profit:</span>
+                      <div className="font-medium text-trading-green">$44,100</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Confiança:</span>
+                      <div className="font-medium text-primary">87%</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Operações em fila */}
+                <div className="space-y-2">
+                  <div className="text-xs text-muted-foreground mb-2">Próximas em análise:</div>
+                  {[
+                    { pair: "ETH/USDT", signal: "COMPRA", confidence: 75, time: "5min" },
+                    { pair: "SOL/USDT", signal: "VENDA", confidence: 68, time: "8min" },
+                    { pair: "ADA/USDT", signal: "COMPRA", confidence: 82, time: "12min" }
+                  ].map((entry, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-secondary rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full"></div>
+                        <span className="text-sm font-medium">{entry.pair}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={entry.signal === "COMPRA" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {entry.signal}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{entry.confidence}%</span>
+                        <span className="text-xs text-muted-foreground">{entry.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

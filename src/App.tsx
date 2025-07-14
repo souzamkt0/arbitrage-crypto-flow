@@ -13,6 +13,7 @@ import Market from "./pages/Market";
 import Admin from "./pages/Admin";
 import Investments from "./pages/Investments";
 import Referrals from "./pages/Referrals";
+import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -111,6 +112,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Referrals />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Community />
                 </Layout>
               </ProtectedRoute>
             }

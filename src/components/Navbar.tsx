@@ -14,7 +14,8 @@ import {
   X,
   Play,
   Shield,
-  PiggyBank
+  PiggyBank,
+  MessageSquare
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,6 +29,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
+    { path: "/community", label: "Comunidade", icon: MessageSquare },
     { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },
     { path: "/simulation", label: "Simulação", icon: Play },
