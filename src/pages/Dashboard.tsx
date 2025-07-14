@@ -204,12 +204,12 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Referral Link Section */}
+        {/* Painel de Controle */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center text-card-foreground">
               <Users className="h-5 w-5 mr-2 text-primary" />
-              Link de Indicação
+              Painel de Controle
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -255,23 +255,23 @@ const Dashboard = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Performance Chart */}
-          <Card className="bg-card border-border lg:col-span-2">
+          {/* Performance Diária - Apenas % das últimas 24h */}
+          <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center text-card-foreground">
                 <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-                Performance Diária
+                Performance 24h (%)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { time: "00:00", profit: 45.20, percentage: 30 },
-                  { time: "04:00", profit: 89.15, percentage: 60 },
-                  { time: "08:00", profit: 156.80, percentage: 100 },
-                  { time: "12:00", profit: 78.45, percentage: 50 },
-                  { time: "16:00", profit: 234.60, percentage: 150 },
-                  { time: "20:00", profit: 189.30, percentage: 120 },
+                  { time: "00:00", percentage: 2.3 },
+                  { time: "04:00", percentage: 4.1 },
+                  { time: "08:00", percentage: 7.8 },
+                  { time: "12:00", percentage: 3.2 },
+                  { time: "16:00", percentage: 9.1 },
+                  { time: "20:00", percentage: 6.5 },
                 ].map((data, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground w-12">{data.time}</div>
@@ -279,15 +279,66 @@ const Dashboard = () => {
                       <div className="w-full bg-secondary rounded-full h-2">
                         <div 
                           className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(data.percentage, 100)}%` }}
+                          style={{ width: `${Math.min(data.percentage * 10, 100)}%` }}
                         />
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-trading-green w-20 text-right">
-                      +${data.profit}
+                    <div className="text-sm font-medium text-trading-green w-16 text-right">
+                      +{data.percentage}%
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Investimento Ativo */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center text-card-foreground">
+                <Activity className="h-5 w-5 mr-2 text-primary" />
+                Investimento Ativo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-trading-green rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-foreground">ATIVO</span>
+                    </div>
+                    <Badge variant="outline" className="text-primary border-primary">
+                      Plano Pro
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Valor Investido:</span>
+                      <span className="text-sm font-bold text-foreground">$5,000.00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Lucro Atual:</span>
+                      <span className="text-sm font-bold text-trading-green">+$1,234.56</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">ROI:</span>
+                      <span className="text-sm font-bold text-primary">+24.69%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Tempo Ativo:</span>
+                      <span className="text-sm font-medium text-foreground">15 dias</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <div className="text-xs text-muted-foreground mb-1">Progresso do Mês</div>
+                    <div className="w-full bg-secondary rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -394,55 +445,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Control Panel */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">Painel de Controle</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
-                <Button
-                  onClick={toggleBot}
-                  className={`w-full sm:w-auto ${
-                    botActive
-                      ? "bg-destructive hover:bg-destructive/90"
-                      : "bg-success hover:bg-success/90"
-                  }`}
-                >
-                  {botActive ? (
-                    <>
-                      <Pause className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Pausar Bot</span>
-                      <span className="sm:hidden">Pausar</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Iniciar Bot</span>
-                      <span className="sm:hidden">Iniciar</span>
-                    </>
-                  )}
-                </Button>
-                
-                <div className="text-xs sm:text-sm text-muted-foreground">
-                  Status: {botActive ? "Monitorando mercado..." : "Bot pausado"}
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full lg:w-auto">
-                <Button variant="outline" className="border-primary text-primary w-full sm:w-auto">
-                  <span className="hidden sm:inline">Histórico</span>
-                  <span className="sm:hidden">Hist.</span>
-                </Button>
-                <Button variant="outline" className="border-primary text-primary w-full sm:w-auto">
-                  <span className="hidden sm:inline">Relatórios</span>
-                  <span className="sm:hidden">Rel.</span>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
