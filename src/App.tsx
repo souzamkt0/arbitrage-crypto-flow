@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import Admin from "./pages/Admin";
+import Investments from "./pages/Investments";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -88,6 +89,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Simulation />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/investments"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Investments />
                 </Layout>
               </ProtectedRoute>
             }

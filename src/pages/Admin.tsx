@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { 
   Dialog, 
   DialogContent, 
@@ -425,6 +426,94 @@ const Admin = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Investment Configuration */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground">Configuração de Investimentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Investment Plans */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-secondary-foreground">Planos de Investimento</h3>
+                <div className="space-y-3">
+                  {[
+                    { name: "Plano Básico", rate: 1.5, min: 100, max: 5000, duration: 30 },
+                    { name: "Plano Premium", rate: 2.0, min: 1000, max: 20000, duration: 60 },
+                    { name: "Plano VIP", rate: 2.5, min: 5000, max: 100000, duration: 90 }
+                  ].map((plan, index) => (
+                    <div key={index} className="p-3 bg-secondary rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-medium text-sm">{plan.name}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            ${plan.min.toLocaleString()} - ${plan.max.toLocaleString()}
+                          </p>
+                        </div>
+                        <Badge variant="default" className="text-xs">
+                          {plan.rate}% / dia
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{plan.duration} dias</span>
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Investment Stats */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-secondary-foreground">Estatísticas de Investimento</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <div className="text-sm text-muted-foreground">Total Investido</div>
+                    <div className="text-lg font-bold text-primary">$567,890</div>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <div className="text-sm text-muted-foreground">Pagamentos Diários</div>
+                    <div className="text-lg font-bold text-trading-green">$12,345</div>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <div className="text-sm text-muted-foreground">Investimentos Ativos</div>
+                    <div className="text-lg font-bold text-warning">156</div>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <div className="text-sm text-muted-foreground">Taxa Média</div>
+                    <div className="text-lg font-bold text-primary">1.8%</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Plano Básico</span>
+                    <span className="font-medium">45 investimentos</span>
+                  </div>
+                  <Progress value={45} className="h-2" />
+                  
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Plano Premium</span>
+                    <span className="font-medium">78 investimentos</span>
+                  </div>
+                  <Progress value={78} className="h-2" />
+                  
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Plano VIP</span>
+                    <span className="font-medium">33 investimentos</span>
+                  </div>
+                  <Progress value={33} className="h-2" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* View User Modal */}
         <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
           <DialogContent className="max-w-2xl">
@@ -456,27 +545,24 @@ const Admin = () => {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Saldo</Label>
-                    <p className="text-lg font-bold text-trading-green">
-                      ${selectedUser.balance.toLocaleString()}
-                    </p>
+                    <p className="text-xl font-bold text-primary">${selectedUser.balance.toLocaleString()}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Lucro Total</Label>
-                    <p className="text-lg font-bold text-primary">
-                      +${selectedUser.totalProfit.toLocaleString()}
-                    </p>
+                    <p className="text-xl font-bold text-trading-green">+${selectedUser.totalProfit.toLocaleString()}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Data de Entrada</Label>
-                    <p>{new Date(selectedUser.joinDate).toLocaleDateString("pt-BR")}</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Data de Cadastro</Label>
+                    <p className="text-lg">{new Date(selectedUser.joinDate).toLocaleDateString("pt-BR")}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Último Login</Label>
-                    <p>{new Date(selectedUser.lastLogin).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-lg">{new Date(selectedUser.lastLogin).toLocaleDateString("pt-BR")}</p>
                   </div>
                 </div>
+                
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">API Conectada</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">API Connection</Label>
                   <div className="mt-2">
                     <Badge variant={selectedUser.apiConnected ? "default" : "destructive"}>
                       {selectedUser.apiConnected ? "Conectada" : "Desconectada"}
