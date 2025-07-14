@@ -12,6 +12,7 @@ import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import Admin from "./pages/Admin";
 import Investments from "./pages/Investments";
+import Referrals from "./pages/Referrals";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -100,6 +101,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Investments />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/referrals"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Referrals />
                 </Layout>
               </ProtectedRoute>
             }

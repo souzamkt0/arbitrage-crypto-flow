@@ -15,7 +15,10 @@ import {
   BarChart3,
   Settings,
   Newspaper,
-  ExternalLink
+  ExternalLink,
+  Users,
+  Copy,
+  Link
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,6 +28,7 @@ const Dashboard = () => {
   const [dailyProfit, setDailyProfit] = useState(234.56);
   const [totalProfit, setTotalProfit] = useState(1875.34);
   const [activeOrders, setActiveOrders] = useState(3);
+  const [referralLink, setReferralLink] = useState("");
   const { toast } = useToast();
 
   const [arbitrageOpportunities] = useState([
@@ -71,12 +75,35 @@ const Dashboard = () => {
     { time: "14:22:03", pair: "ADA/USDT", type: "SELL", profit: "+$12.45", status: "Completed" },
   ]);
 
+  
+  useEffect(() => {
+    // Gerar link de indicação único
+    const userCode = Math.random().toString(36).substring(2, 15);
+    setReferralLink(`${window.location.origin}/register/${userCode}`);
+  }, []);
+
   const toggleBot = () => {
     setBotActive(!botActive);
     toast({
       title: botActive ? "Bot Pausado" : "Bot Ativado",
       description: botActive ? "Arbitragem automática pausada" : "Arbitragem automática iniciada",
     });
+  };
+
+  const copyReferralLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast({
+        title: "Link copiado!",
+        description: "O link de indicação foi copiado para a área de transferência.",
+      });
+    } catch (err) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o link.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -176,6 +203,56 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Referral Link Section */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center text-card-foreground">
+              <Users className="h-5 w-5 mr-2 text-primary" />
+              Link de Indicação
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Compartilhe seu link exclusivo e ganhe comissão sobre os investimentos dos seus indicados!
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1 relative">
+                  <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <input
+                    value={referralLink}
+                    readOnly
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono bg-secondary border border-border rounded-md text-secondary-foreground"
+                  />
+                </div>
+                <Button
+                  onClick={copyReferralLink}
+                  className="bg-primary hover:bg-primary/90 whitespace-nowrap"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Link
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                <div className="text-center p-3 bg-primary/10 rounded-lg">
+                  <div className="text-lg font-bold text-primary">5%</div>
+                  <div className="text-xs text-muted-foreground">Comissão por indicação</div>
+                </div>
+                <div className="text-center p-3 bg-trading-green/10 rounded-lg">
+                  <div className="text-lg font-bold text-trading-green">3</div>
+                  <div className="text-xs text-muted-foreground">Pessoas indicadas</div>
+                </div>
+                <div className="text-center p-3 bg-warning/10 rounded-lg">
+                  <div className="text-lg font-bold text-warning">$245.50</div>
+                  <div className="text-xs text-muted-foreground">Total em comissões</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Performance Chart */}

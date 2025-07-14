@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  TrendingUp, 
+  TrendingUp,
+  Users,
   BarChart3, 
   History, 
   Settings, 
@@ -27,6 +28,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
+    { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },
     { path: "/simulation", label: "Simulação", icon: Play },
     { path: "/admin", label: "Admin", icon: Shield },
