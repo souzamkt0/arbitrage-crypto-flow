@@ -161,17 +161,14 @@ const Investments = () => {
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
-  // Simular cronômetro e operações em tempo real
+  // Simular operações de arbitragem em tempo real
   useEffect(() => {
     const interval = setInterval(() => {
       setUserInvestments(prev => prev.map(investment => {
         if (investment.status !== "active") return investment;
         
         const speedMultiplier = investment.amount >= 10000 ? 3 : investment.amount >= 5000 ? 2 : 1;
-        const progressIncrement = speedMultiplier * 0.5;
         
-        let newProgress = investment.currentDayProgress + progressIncrement;
-        let newTodayEarnings = investment.todayEarnings;
         let newTotalEarned = investment.totalEarned;
         let newOperationsCompleted = investment.operationsCompleted;
         let newCurrentOperation = investment.currentOperation;
@@ -183,7 +180,6 @@ const Investments = () => {
 
           if (newOperationProgress >= 100 || newTimeRemaining === 0) {
             // Operação completada
-            newTodayEarnings += newCurrentOperation.profit;
             newTotalEarned += newCurrentOperation.profit;
             newOperationsCompleted += 1;
 
@@ -211,17 +207,8 @@ const Investments = () => {
           }
         }
         
-        if (newProgress >= 100) {
-          // Completou o dia, reseta
-          newProgress = 0;
-          newTodayEarnings = 0;
-          newOperationsCompleted = 0;
-        }
-        
         return {
           ...investment,
-          currentDayProgress: Math.min(newProgress, 100),
-          todayEarnings: newTodayEarnings,
           totalEarned: newTotalEarned,
           currentOperation: newCurrentOperation,
           operationsCompleted: newOperationsCompleted
@@ -396,54 +383,80 @@ const Investments = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {investments.filter(inv => inv.status === "active").map((investment) => (
-                <Card key={investment.id} className="bg-secondary border-border hover:bg-secondary/80 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-secondary-foreground flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Bot className="h-5 w-5 mr-2 text-primary" />
-                        {investment.name}
+              {investments.filter(inv => inv.status === "active").map((investment) => {
+                const randomPair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
+                const pnlValue = (Math.random() * 10000 + 1000).toFixed(2);
+                const roiPercentage = (investment.dailyRate + Math.random() * 2).toFixed(2);
+                const basePrice = Math.random() * 50000 + 1000;
+                const minInvestment = investment.minimumAmount;
+                
+                return (
+                  <Card key={investment.id} className="bg-muted/30 border-border hover:bg-muted/50 transition-colors">
+                    <CardContent className="p-4 space-y-3">
+                      {/* Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="text-lg font-bold text-foreground">{randomPair}</div>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs text-muted-foreground">↗ {Math.floor(Math.random() * 200 + 50)}</span>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => openInvestModal(investment)}
+                          className="bg-warning text-warning-foreground hover:bg-warning/90 px-4 py-1 text-sm font-medium"
+                        >
+                          Create
+                        </Button>
                       </div>
-                      <Badge variant="default" className="text-xs">
-                        {investment.dailyRate}% / dia
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{investment.description}</p>
-                    
-                    <div className="flex items-center space-x-2 p-2 bg-primary/10 rounded-lg">
-                      <Timer className="h-4 w-4 text-primary" />
-                      <span className="text-xs text-primary font-medium">
-                        Cronômetro: {investment.dailyRate === 2.5 ? "Ultra Rápido" : investment.dailyRate === 2.0 ? "Rápido" : "Normal"}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Mínimo:</span>
-                        <span className="font-medium">${investment.minimumAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Máximo:</span>
-                        <span className="font-medium">${investment.maximumAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Duração:</span>
-                        <span className="font-medium">{investment.duration} dias</span>
-                      </div>
-                    </div>
 
-                    <Button 
-                      onClick={() => openInvestModal(investment)}
-                      className="w-full bg-primary hover:bg-primary/90"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Ativar Bot
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      {/* PNL */}
+                      <div>
+                        <div className="text-xs text-muted-foreground">PNL (USD)</div>
+                        <div className="text-xl font-bold text-trading-green">${pnlValue}</div>
+                      </div>
+
+                      {/* Chart placeholder */}
+                      <div className="h-16 bg-background/50 rounded flex items-end justify-end space-x-1 p-2">
+                        {[...Array(12)].map((_, i) => (
+                          <div 
+                            key={i} 
+                            className="bg-trading-green/60 w-1" 
+                            style={{height: `${Math.random() * 100 + 20}%`}}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <div className="text-muted-foreground">ROI</div>
+                          <div className="font-semibold text-trading-green">{roiPercentage}%</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Tempo de execução</div>
+                          <div className="font-semibold">{Math.floor(Math.random() * 20 + 5)}d {Math.floor(Math.random() * 24)}h {Math.floor(Math.random() * 60)}m</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Investimento mínimo</div>
+                          <div className="font-semibold">{minInvestment}.{Math.floor(Math.random() * 100).toString().padStart(2, '0')} USDT</div>
+                        </div>
+                      </div>
+
+                      {/* Operations Stats */}
+                      <div className="grid grid-cols-2 gap-4 text-xs border-t border-border pt-3">
+                        <div>
+                          <div className="text-muted-foreground">24H Total Matched Trades</div>
+                          <div className="font-semibold">{Math.floor(Math.random() * 50 + 10)}/{Math.floor(Math.random() * 200 + 100)}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">7D MDD</div>
+                          <div className="font-semibold text-trading-red">{(Math.random() * 2).toFixed(2)}%</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -455,152 +468,91 @@ const Investments = () => {
           </CardHeader>
           <CardContent>
             {userInvestments.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userInvestments.map((investment) => {
-                  const speedText = investment.amount >= 10000 ? "Ultra Rápido" : 
-                                   investment.amount >= 5000 ? "Rápido" : "Normal";
-                  const progressHours = Math.floor((investment.currentDayProgress / 100) * 24);
-                  const progressMinutes = Math.floor(((investment.currentDayProgress / 100) * 24 * 60) % 60);
-                  const progressSeconds = Math.floor(((investment.currentDayProgress / 100) * 24 * 3600) % 60);
+                  const currentOperation = investment.currentOperation;
                   
                   return (
-                    <Card key={investment.id} className="bg-secondary border-border">
-                      <CardContent className="p-4">
-                        <div className="space-y-4">
-                          {/* Header */}
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <Bot className="h-4 w-4 text-primary" />
-                                <h3 className="font-semibold text-secondary-foreground">{investment.investmentName}</h3>
-                                <Badge variant={investment.status === "active" ? "default" : "secondary"}>
-                                  {investment.status === "active" ? "Ativo" : "Finalizado"}
-                                </Badge>
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                Investido: ${investment.amount.toLocaleString()} • 
-                                Taxa: {investment.dailyRate}% / dia • 
-                                Ganho Total: +${investment.totalEarned.toFixed(2)}
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <Timer className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-medium text-primary">
-                                Velocidade: {speedText}
-                              </span>
+                    <Card key={investment.id} className="bg-muted/30 border-border">
+                      <CardContent className="p-4 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="text-lg font-bold text-foreground">{currentOperation?.pair || "BTC/USDT"}</div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-xs text-muted-foreground">↗ {investment.operationsCompleted}</span>
                             </div>
                           </div>
+                          <Badge variant="outline" className="text-xs">Trading up</Badge>
+                        </div>
 
-                          {/* Cronômetro e Progresso Diário */}
-                          {investment.status === "active" && (
-                            <div className="bg-primary/5 rounded-lg p-4 space-y-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="text-xs text-muted-foreground mb-1">Cronômetro do Dia</div>
-                                  <div className="text-2xl font-mono font-bold text-primary">
-                                    {String(progressHours).padStart(2, '0')}:
-                                    {String(progressMinutes).padStart(2, '0')}:
-                                    {String(progressSeconds).padStart(2, '0')}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-xs text-muted-foreground mb-1">Ganho Hoje</div>
-                                  <div className="text-lg font-bold text-trading-green">
-                                    +${investment.todayEarnings.toFixed(2)}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Meta: ${investment.dailyTarget.toFixed(2)}
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>Progresso do Dia</span>
-                                  <span>{investment.currentDayProgress.toFixed(1)}%</span>
-                                </div>
-                                <Progress 
-                                  value={investment.currentDayProgress} 
-                                  className="h-2"
-                                />
-                              </div>
+                        {/* PNL */}
+                        <div>
+                          <div className="text-xs text-muted-foreground">PNL (USD)</div>
+                          <div className="text-xl font-bold text-trading-green">${investment.totalEarned.toFixed(2)}</div>
+                        </div>
 
-                              {/* Operação de Arbitragem Atual */}
-                              {investment.currentOperation && (
-                                <div className="bg-secondary/50 rounded-lg p-3 space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                      <ArrowUpDown className="h-4 w-4 text-primary" />
-                                      <span className="text-sm font-medium text-foreground">
-                                        Arbitragem: {investment.currentOperation.pair}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                      <Activity className="h-3 w-3 text-trading-green" />
-                                      <span className="text-xs text-trading-green font-medium">
-                                        {investment.currentOperation.timeRemaining}s
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-3 text-xs">
-                                    <div>
-                                      <span className="text-muted-foreground">Compra:</span>
-                                      <div className="font-mono text-trading-red">
-                                        ${investment.currentOperation.buyPrice.toFixed(2)}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <span className="text-muted-foreground">Venda:</span>
-                                      <div className="font-mono text-trading-green">
-                                        ${investment.currentOperation.sellPrice.toFixed(2)}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-xs">
-                                      <span className="text-muted-foreground">Lucro Estimado:</span>
-                                      <span className="font-bold text-trading-green">
-                                        +${investment.currentOperation.profit.toFixed(2)}
-                                      </span>
-                                    </div>
-                                    <Progress 
-                                      value={investment.currentOperation.progress} 
-                                      className="h-1.5"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Estatísticas de Operações */}
-                              <div className="flex items-center justify-between text-xs">
-                                <div className="flex items-center space-x-2">
-                                  <Zap className="h-3 w-3 text-warning" />
-                                  <span className="text-muted-foreground">
-                                    Operações: {investment.operationsCompleted}/{investment.totalOperations}
-                                  </span>
-                                </div>
-                                <div className="text-muted-foreground">
-                                  Velocidade: {speedText}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Info do Investimento */}
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">
-                                {investment.daysRemaining} dias restantes
-                              </span>
-                            </div>
-                            <Progress 
-                              value={((90 - investment.daysRemaining) / 90) * 100} 
-                              className="w-24 h-2"
+                        {/* Chart with current operation progress */}
+                        <div className="h-16 bg-background/50 rounded flex items-end justify-end space-x-1 p-2">
+                          {[...Array(12)].map((_, i) => (
+                            <div 
+                              key={i} 
+                              className={`w-1 ${i < Math.floor((currentOperation?.progress || 0) / 10) ? 'bg-trading-green' : 'bg-trading-green/30'}`}
+                              style={{height: `${Math.random() * 100 + 20}%`}}
                             />
+                          ))}
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <div className="text-muted-foreground">ROI</div>
+                            <div className="font-semibold text-trading-green">{((investment.totalEarned / investment.amount) * 100).toFixed(2)}%</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Tempo de execução</div>
+                            <div className="font-semibold">{investment.daysRemaining}d {Math.floor(Math.random() * 24)}h {Math.floor(Math.random() * 60)}m</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Investimento mínimo</div>
+                            <div className="font-semibold">{investment.amount.toFixed(2)} USDT</div>
+                          </div>
+                        </div>
+
+                        {/* Current Operation */}
+                        {currentOperation && (
+                          <div className="border-t border-border pt-3 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <div className="text-xs text-muted-foreground">Operação Atual</div>
+                              <div className="text-xs font-medium">{currentOperation.timeRemaining}s</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Compra:</span>
+                                <span className="font-medium text-trading-red">${currentOperation.buyPrice.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Venda:</span>
+                                <span className="font-medium text-trading-green">${currentOperation.sellPrice.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Lucro:</span>
+                                <span className="font-medium text-trading-green">+${currentOperation.profit.toFixed(2)}</span>
+                              </div>
+                            </div>
+                            <Progress value={currentOperation.progress} className="h-2" />
+                          </div>
+                        )}
+
+                        {/* Operations Stats */}
+                        <div className="grid grid-cols-2 gap-4 text-xs border-t border-border pt-3">
+                          <div>
+                            <div className="text-muted-foreground">24H Total Matched Trades</div>
+                            <div className="font-semibold">{investment.operationsCompleted}/{investment.totalOperations}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">7D MDD</div>
+                            <div className="font-semibold text-trading-red">{(Math.random() * 2).toFixed(2)}%</div>
                           </div>
                         </div>
                       </CardContent>
