@@ -164,6 +164,29 @@ const BotPage = () => {
     dataStreams: 847, // streams ativos
     lastUpdate: "2024-07-14 10:23:45"
   });
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [canRefresh, setCanRefresh] = useState(true);
+  const [timeUntilRefresh, setTimeUntilRefresh] = useState(0);
+
+  // Controlar o limite de 5h para atualização
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const timeDiff = now.getTime() - lastRefresh.getTime();
+      const fiveHoursInMs = 5 * 60 * 60 * 1000; // 5 horas em ms
+      
+      if (timeDiff >= fiveHoursInMs) {
+        setCanRefresh(true);
+        setTimeUntilRefresh(0);
+      } else {
+        setCanRefresh(false);
+        const remaining = fiveHoursInMs - timeDiff;
+        setTimeUntilRefresh(Math.ceil(remaining / (60 * 1000))); // em minutos
+      }
+    }, 60000); // atualiza a cada minuto
+
+    return () => clearInterval(interval);
+  }, [lastRefresh]);
   const { toast } = useToast();
 
   const handleBotToggle = () => {
@@ -181,6 +204,23 @@ const BotPage = () => {
     toast({
       title: "Operação Executada",
       description: `${opportunity.type} ${opportunity.pair} executada com sucesso`,
+    });
+  };
+
+  const handleRefreshOpportunities = () => {
+    if (!canRefresh) {
+      toast({
+        title: "Atualização Limitada",
+        description: `Próxima atualização disponível em ${Math.floor(timeUntilRefresh / 60)}h ${timeUntilRefresh % 60}min`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLastRefresh(new Date());
+    toast({
+      title: "Oportunidades Atualizadas",
+      description: "Próxima atualização disponível em 5 horas",
     });
   };
 
@@ -428,7 +468,7 @@ const BotPage = () => {
                     </svg>
                   </div>
                   
-                  {/* Indicadores técnicos */}
+                  {/* Indicadores técnicos com explicações */}
                   <div className="grid grid-cols-3 gap-4 mt-4 text-xs">
                     <div className="text-center">
                       <div className="text-trading-green font-medium">RSI: 68.5</div>
@@ -441,6 +481,16 @@ const BotPage = () => {
                     <div className="text-center">
                       <div className="text-warning font-medium">BB: Meio</div>
                       <div className="text-muted-foreground">Neutro</div>
+                    </div>
+                  </div>
+                  
+                  {/* Explicações dos Indicadores */}
+                  <div className="mt-4 p-3 bg-secondary/50 rounded-lg">
+                    <h4 className="text-xs font-medium mb-2">Indicadores Técnicos:</h4>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div><strong>RSI (68.5):</strong> Índice de Força Relativa. 0-30: Sobrevenda, 30-70: Neutro, 70-100: Sobrecompra</div>
+                      <div><strong>MACD (+0.23):</strong> Convergência/Divergência de Médias Móveis. Positivo: Tendência de alta, Negativo: Tendência de baixa</div>
+                      <div><strong>BB Meio:</strong> Bollinger Bands. Preço próximo à média móvel central, indicando movimento lateral</div>
                     </div>
                   </div>
                 </div>
@@ -566,9 +616,14 @@ const BotPage = () => {
                 <Badge variant="outline" className="text-primary border-primary animate-pulse">
                   Analisando Binance
                 </Badge>
-                <Button variant="outline" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Atualizar
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefreshOpportunities}
+                  disabled={!canRefresh}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${!canRefresh ? 'opacity-50' : ''}`} />
+                  {canRefresh ? 'Atualizar' : `${Math.floor(timeUntilRefresh / 60)}h ${timeUntilRefresh % 60}m`}
                 </Button>
               </div>
             </div>
@@ -581,7 +636,7 @@ const BotPage = () => {
                   {botStats.analysisSpeed} análises/s
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mb-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-trading-green rounded-full"></div>
                   <span>Análise de volatilidade</span>
@@ -594,6 +649,14 @@ const BotPage = () => {
                   <div className="w-2 h-2 bg-warning rounded-full"></div>
                   <span>Cálculo de risco/retorno</span>
                 </div>
+              </div>
+              <div className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded">
+                <strong>Limitação:</strong> As oportunidades são atualizadas a cada 5 horas para evitar overtrading e garantir análises mais precisas.
+                {!canRefresh && (
+                  <span className="text-warning ml-2">
+                    Próxima atualização em: {Math.floor(timeUntilRefresh / 60)}h {timeUntilRefresh % 60}min
+                  </span>
+                )}
               </div>
             </div>
             
@@ -675,6 +738,28 @@ const BotPage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Aviso de Risco */}
+        <Card className="bg-destructive/10 border-destructive/20">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-destructive mb-2">⚠️ AVISO DE RISCO IMPORTANTE</h3>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p><strong>Trading de criptomoedas envolve alto risco de perda financeira.</strong> Os preços podem ser extremamente voláteis.</p>
+                  <p><strong>Nunca invista mais do que você pode perder.</strong> Este bot não garante lucros e perdas podem ocorrer.</p>
+                  <p><strong>Resultados passados não garantem resultados futuros.</strong> Mercados podem mudar rapidamente.</p>
+                  <p><strong>Considere sua situação financeira</strong> antes de usar estratégias automatizadas de trading.</p>
+                </div>
+                <div className="mt-3 flex items-center space-x-2 text-xs">
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                  <span className="text-destructive font-medium">Você está ciente dos riscos ao usar este sistema</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
