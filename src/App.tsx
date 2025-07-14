@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
+import Bot from "./pages/Bot";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
@@ -52,6 +53,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bot"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Bot />
                 </Layout>
               </ProtectedRoute>
             }
