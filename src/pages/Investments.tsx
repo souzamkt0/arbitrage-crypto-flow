@@ -405,8 +405,6 @@ const Investments = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {investments.filter(inv => inv.status === "active").map((investment, index) => {
                 const pairs = ["ETH/USDT", "BTC/FDUSD", "BTC/USDT", "XRP/FDUSD", "XRP/USDC"];
-                const pnlValues = ["136,034.41", "6,714.00", "4,548.47", "3,214.47", "3,175.51"];
-                const roiValues = ["2.72", "3.82", "1.59", "2.45", "1.88"];
                 const indicators = [166, 16, 108, 0, 10];
                 
                 return (
@@ -428,10 +426,10 @@ const Investments = () => {
                         </Button>
                       </div>
 
-                      {/* PNL */}
+                      {/* PNL - agora mostra nome do plano e valores min/max */}
                       <div>
-                        <div className="text-xs text-muted-foreground">PNL (USD)</div>
-                        <div className="text-xl font-bold text-trading-green">${pnlValues[index] || "1,000.00"}</div>
+                        <div className="text-xs text-muted-foreground">{investment.name}</div>
+                        <div className="text-xl font-bold text-trading-green">${investment.minimumAmount} - ${investment.maximumAmount.toLocaleString()}</div>
                       </div>
 
                       {/* Chart placeholder */}
@@ -449,7 +447,7 @@ const Investments = () => {
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <div className="text-muted-foreground">ROI</div>
-                          <div className="font-semibold text-trading-green">{roiValues[index] || investment.dailyRate.toFixed(2)}%</div>
+                          <div className="font-semibold text-trading-green">{investment.dailyRate}%</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Tempo de execução</div>
