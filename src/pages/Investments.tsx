@@ -321,26 +321,28 @@ const Investments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
-              <Bot className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
-              Alphabot - Investimentos
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="w-full lg:w-auto">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 sm:mr-3 text-primary" />
+              <span className="truncate">Alphabot - Investimentos</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Bots de negociação em pares crypto com rendimento automático</p>
+            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
+              Bots de negociação em pares crypto com rendimento automático
+            </p>
           </div>
           
-          <div className="text-right">
-            <div className="text-lg font-semibold text-foreground">Saldo Disponível</div>
-            <div className="text-2xl font-bold text-primary">${userBalance.toLocaleString()}</div>
+          <div className="text-left lg:text-right w-full lg:w-auto">
+            <div className="text-sm sm:text-lg font-semibold text-foreground">Saldo Disponível</div>
+            <div className="text-xl sm:text-2xl font-bold text-primary">${userBalance.toLocaleString()}</div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-card-foreground">
@@ -349,7 +351,7 @@ const Investments = () => {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-xl sm:text-2xl font-bold text-primary">
                 ${totalInvested.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -366,7 +368,7 @@ const Investments = () => {
               <TrendingUp className="h-4 w-4 text-trading-green" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-trading-green">
+              <div className="text-xl sm:text-2xl font-bold text-trading-green">
                 +${totalEarnings.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -383,7 +385,7 @@ const Investments = () => {
               <Target className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">
+              <div className="text-xl sm:text-2xl font-bold text-warning">
                 {activeInvestments}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -402,25 +404,25 @@ const Investments = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {investments.filter(inv => inv.status === "active").map((investment, index) => {
                 const pairs = ["ETH/USDT", "BTC/FDUSD", "BTC/USDT", "XRP/FDUSD", "XRP/USDC"];
                 const indicators = [166, 16, 108, 0, 10];
                 
                 return (
                   <Card key={investment.id} className="bg-muted/30 border-border hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-4 space-y-3">
+                    <CardContent className="p-3 sm:p-4 space-y-3">
                       {/* Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <div className="text-lg font-bold text-foreground">{pairs[index] || "BTC/USDT"}</div>
+                          <div className="text-base sm:text-lg font-bold text-foreground">{pairs[index] || "BTC/USDT"}</div>
                           <div className="flex items-center space-x-1">
                             <span className="text-xs text-muted-foreground">↗ {indicators[index] || 50}</span>
                           </div>
                         </div>
                         <Button 
                           onClick={() => openInvestModal(investment)}
-                          className="bg-warning text-warning-foreground hover:bg-warning/90 px-4 py-1 text-sm font-medium"
+                          className="bg-warning text-warning-foreground hover:bg-warning/90 px-3 sm:px-4 py-1 text-xs sm:text-sm font-medium"
                         >
                           Create
                         </Button>
@@ -428,8 +430,10 @@ const Investments = () => {
 
                       {/* PNL - agora mostra nome do plano e valores min/max */}
                       <div>
-                        <div className="text-xs text-muted-foreground">{investment.name}</div>
-                        <div className="text-xl font-bold text-trading-green">${investment.minimumAmount} - ${investment.maximumAmount.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground truncate">{investment.name}</div>
+                        <div className="text-lg sm:text-xl font-bold text-trading-green">
+                          ${investment.minimumAmount.toLocaleString()} - ${investment.maximumAmount.toLocaleString()}
+                        </div>
                       </div>
 
                       {/* Chart placeholder */}
@@ -485,17 +489,17 @@ const Investments = () => {
           </CardHeader>
           <CardContent>
             {userInvestments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {userInvestments.map((investment) => {
                   const currentOperation = investment.currentOperation;
                   
                   return (
                     <Card key={investment.id} className="bg-muted/30 border-border">
-                      <CardContent className="p-4 space-y-3">
+                      <CardContent className="p-3 sm:p-4 space-y-3">
                         {/* Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <div className="text-lg font-bold text-foreground">{currentOperation?.pair || "BTC/USDT"}</div>
+                            <div className="text-base sm:text-lg font-bold text-foreground">{currentOperation?.pair || "BTC/USDT"}</div>
                             <div className="flex items-center space-x-1">
                               <span className="text-xs text-muted-foreground">↗ {investment.operationsCompleted}</span>
                             </div>
@@ -506,7 +510,7 @@ const Investments = () => {
                         {/* PNL */}
                         <div>
                           <div className="text-xs text-muted-foreground">PNL (USD)</div>
-                          <div className="text-xl font-bold text-trading-green">${investment.totalEarned.toFixed(2)}</div>
+                          <div className="text-lg sm:text-xl font-bold text-trading-green">${investment.totalEarned.toFixed(2)}</div>
                         </div>
 
                         {/* Chart with current operation progress */}
@@ -589,15 +593,15 @@ const Investments = () => {
 
         {/* Investment Modal */}
         <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md mx-4">
             <DialogHeader>
-              <DialogTitle>Realizar Investimento</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">Realizar Investimento</DialogTitle>
             </DialogHeader>
             {selectedInvestment && (
               <div className="space-y-4">
-                <div className="p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2">{selectedInvestment.name}</h3>
-                  <div className="space-y-1 text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">{selectedInvestment.name}</h3>
+                  <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
                     <p>Taxa diária: {selectedInvestment.dailyRate}%</p>
                     <p>Duração: {selectedInvestment.duration} dias</p>
                     <p>Limite: ${selectedInvestment.minimumAmount.toLocaleString()} - ${selectedInvestment.maximumAmount.toLocaleString()}</p>
@@ -605,7 +609,7 @@ const Investments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Valor do Investimento</Label>
+                  <Label htmlFor="amount" className="text-sm">Valor do Investimento</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -614,6 +618,7 @@ const Investments = () => {
                     onChange={(e) => setInvestmentAmount(e.target.value)}
                     min={selectedInvestment.minimumAmount}
                     max={selectedInvestment.maximumAmount}
+                    className="text-base" // Better touch target on mobile
                   />
                   <p className="text-xs text-muted-foreground">
                     Saldo disponível: ${userBalance.toLocaleString()}
@@ -634,11 +639,19 @@ const Investments = () => {
                   </div>
                 )}
 
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsInvestModalOpen(false)}>
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsInvestModalOpen(false)}
+                    className="w-full sm:w-auto"
+                  >
                     Cancelar
                   </Button>
-                  <Button onClick={handleInvest} disabled={!investmentAmount}>
+                  <Button 
+                    onClick={handleInvest} 
+                    disabled={!investmentAmount}
+                    className="w-full sm:w-auto"
+                  >
                     Confirmar Investimento
                   </Button>
                 </div>

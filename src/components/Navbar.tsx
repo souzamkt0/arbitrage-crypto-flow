@@ -48,13 +48,13 @@ const Navbar = () => {
 
   return (
     <nav className="bg-card border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between h-14 sm:h-16">
           <div className="flex items-center">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <span className="text-lg sm:text-2xl font-bold text-primary">Alphabit</span>
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
+              <span className="text-base sm:text-lg lg:text-2xl font-bold text-primary">Alphabit</span>
               <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs">
                 v1.0
               </Badge>
@@ -62,46 +62,48 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-2 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive(item.path)
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-card-foreground hover:bg-secondary"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </Link>
               );
             })}
           </div>
 
           {/* Right Side */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-4">
             <Button
               onClick={handleLogout}
               variant="ghost"
+              size="sm"
               className="text-muted-foreground hover:text-destructive"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sair
+              <span className="hidden xl:inline">Sair</span>
             </Button>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="lg:hidden flex items-center">
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => setIsOpen(!isOpen)}
               className="text-card-foreground"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -109,8 +111,8 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border">
+        <div className="lg:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border max-h-screen overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -118,7 +120,7 @@ const Navbar = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                  className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${
                     isActive(item.path)
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-card-foreground hover:bg-secondary"
@@ -129,17 +131,19 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <Button
-              onClick={() => {
-                handleLogout();
-                setIsOpen(false);
-              }}
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-destructive"
-            >
-              <LogOut className="h-5 w-5 mr-2" />
-              Sair
-            </Button>
+            <div className="border-t border-border pt-3 mt-3">
+              <Button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground hover:text-destructive px-3 py-3"
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       )}
