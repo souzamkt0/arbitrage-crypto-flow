@@ -335,7 +335,20 @@ const Admin = () => {
   useEffect(() => {
     const savedSettings = localStorage.getItem("alphabit_admin_settings");
     if (savedSettings) {
-      setAdminSettings(JSON.parse(savedSettings));
+      const loaded = JSON.parse(savedSettings);
+      setAdminSettings({
+        referralPercent: loaded.referralPercent || 5,
+        residualPercent: loaded.residualPercent || 10,
+        allowReferrals: loaded.allowReferrals !== undefined ? loaded.allowReferrals : true,
+        allowResiduals: loaded.allowResiduals !== undefined ? loaded.allowResiduals : true,
+        // Gamificação com valores padrão
+        allowGamification: loaded.allowGamification !== undefined ? loaded.allowGamification : true,
+        postReward: loaded.postReward || 0.003,
+        likeReward: loaded.likeReward || 0.001,
+        commentReward: loaded.commentReward || 0.002,
+        monthlyLimit: loaded.monthlyLimit || 50,
+        spamWarning: loaded.spamWarning || "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
+      });
     }
   }, []);
 
