@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReferralSystem from "@/components/ReferralSystem";
+import BinanceApiTester from "@/components/BinanceApiTester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -264,6 +265,19 @@ const Settings = () => {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Teste da API Binance */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center text-card-foreground">
+              <Key className="h-5 w-5 mr-2 text-primary" />
+              Teste da Integração API
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BinanceApiTester />
           </CardContent>
         </Card>
 
