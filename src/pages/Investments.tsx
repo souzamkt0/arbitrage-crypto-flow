@@ -403,12 +403,11 @@ const Investments = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {investments.filter(inv => inv.status === "active").map((investment) => {
-                const randomPair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
-                const pnlValue = (Math.random() * 10000 + 1000).toFixed(2);
-                const roiPercentage = (investment.dailyRate + Math.random() * 2).toFixed(2);
-                const basePrice = Math.random() * 50000 + 1000;
-                const minInvestment = investment.minimumAmount;
+              {investments.filter(inv => inv.status === "active").map((investment, index) => {
+                const pairs = ["ETH/USDT", "BTC/FDUSD", "BTC/USDT", "XRP/FDUSD", "XRP/USDC"];
+                const pnlValues = ["136,034.41", "6,714.00", "4,548.47", "3,214.47", "3,175.51"];
+                const roiValues = ["2.72", "3.82", "1.59", "2.45", "1.88"];
+                const indicators = [166, 16, 108, 0, 10];
                 
                 return (
                   <Card key={investment.id} className="bg-muted/30 border-border hover:bg-muted/50 transition-colors">
@@ -416,9 +415,9 @@ const Investments = () => {
                       {/* Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <div className="text-lg font-bold text-foreground">{randomPair}</div>
+                          <div className="text-lg font-bold text-foreground">{pairs[index] || "BTC/USDT"}</div>
                           <div className="flex items-center space-x-1">
-                            <span className="text-xs text-muted-foreground">↗ {Math.floor(Math.random() * 200 + 50)}</span>
+                            <span className="text-xs text-muted-foreground">↗ {indicators[index] || 50}</span>
                           </div>
                         </div>
                         <Button 
@@ -432,7 +431,7 @@ const Investments = () => {
                       {/* PNL */}
                       <div>
                         <div className="text-xs text-muted-foreground">PNL (USD)</div>
-                        <div className="text-xl font-bold text-trading-green">${pnlValue}</div>
+                        <div className="text-xl font-bold text-trading-green">${pnlValues[index] || "1,000.00"}</div>
                       </div>
 
                       {/* Chart placeholder */}
@@ -450,15 +449,15 @@ const Investments = () => {
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <div className="text-muted-foreground">ROI</div>
-                          <div className="font-semibold text-trading-green">{roiPercentage}%</div>
+                          <div className="font-semibold text-trading-green">{roiValues[index] || investment.dailyRate.toFixed(2)}%</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Tempo de execução</div>
-                          <div className="font-semibold">{Math.floor(Math.random() * 20 + 5)}d {Math.floor(Math.random() * 24)}h {Math.floor(Math.random() * 60)}m</div>
+                          <div className="font-semibold">3d 7h 34m</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Investimento mínimo</div>
-                          <div className="font-semibold">{minInvestment}.{Math.floor(Math.random() * 100).toString().padStart(2, '0')} USDT</div>
+                          <div className="font-semibold">{investment.minimumAmount}.74 USDT</div>
                         </div>
                       </div>
 
@@ -466,11 +465,11 @@ const Investments = () => {
                       <div className="grid grid-cols-2 gap-4 text-xs border-t border-border pt-3">
                         <div>
                           <div className="text-muted-foreground">24H Total Matched Trades</div>
-                          <div className="font-semibold">{Math.floor(Math.random() * 50 + 10)}/{Math.floor(Math.random() * 200 + 100)}</div>
+                          <div className="font-semibold">30/178</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">7D MDD</div>
-                          <div className="font-semibold text-trading-red">{(Math.random() * 2).toFixed(2)}%</div>
+                          <div className="font-semibold text-trading-red">1.15%</div>
                         </div>
                       </div>
                     </CardContent>
