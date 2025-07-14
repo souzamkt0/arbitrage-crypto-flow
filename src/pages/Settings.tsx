@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReferralSystem from "@/components/ReferralSystem";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,16 @@ const Settings = () => {
   const [soundNotifications, setSoundNotifications] = useState(true);
   const [autoExecute, setAutoExecute] = useState(true);
   const [riskLevel, setRiskLevel] = useState([3]);
-  const [binanceApiKey, setBinanceApiKey] = useState("");
-  const [binanceSecretKey, setBinanceSecretKey] = useState("");
+  const [binanceApiKey, setBinanceApiKey] = useState("B5xi6RvYu11sYxxvZPdYZ4pzTK0pii2CpOsawmVG45bXICkYhjzV9MkjH2y0XGqt");
+  const [binanceSecretKey, setBinanceSecretKey] = useState("WRS9svtgQAeb83LMpf54XjiCrfNz5U0Ie8B1dWn2gBY5P61layPLkYISl56zqUMq");
   const [showSecretKey, setShowSecretKey] = useState(false);
   const { toast } = useToast();
+
+  // Salvar as chaves automaticamente no localStorage na inicialização
+  useEffect(() => {
+    localStorage.setItem('binance_api_key', binanceApiKey);
+    localStorage.setItem('binance_secret_key', binanceSecretKey);
+  }, []);
 
   const handleSave = () => {
     // Salvar as chaves da API no localStorage

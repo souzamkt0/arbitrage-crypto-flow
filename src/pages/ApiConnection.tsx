@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Key, Shield, CheckCircle, AlertTriangle, TrendingUp } from "lucide-react";
 
 const ApiConnection = () => {
-  const [apiKey, setApiKey] = useState("");
-  const [secretKey, setSecretKey] = useState("");
+  const [apiKey, setApiKey] = useState("B5xi6RvYu11sYxxvZPdYZ4pzTK0pii2CpOsawmVG45bXICkYhjzV9MkjH2y0XGqt");
+  const [secretKey, setSecretKey] = useState("WRS9svtgQAeb83LMpf54XjiCrfNz5U0Ie8B1dWn2gBY5P61layPLkYISl56zqUMq");
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Salvar as chaves automaticamente no localStorage na inicialização
+  useEffect(() => {
+    localStorage.setItem('binance_api_key', apiKey);
+    localStorage.setItem('binance_secret_key', secretKey);
+  }, []);
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
