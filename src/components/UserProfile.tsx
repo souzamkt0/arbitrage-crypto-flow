@@ -149,21 +149,19 @@ const UserProfile = ({
             </div>
           </div>
           
-          {/* Trading Stats */}
-          <div className="mt-3 pt-3 border-t border-border">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="text-muted-foreground">Ganhos:</span>
-                <span className="font-medium text-primary ml-1">${user.earnings.toFixed(2)}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Level:</span>
-                <span className={`font-medium ml-1 ${getLevelColor(user.level)}`}>
-                  {user.level}
-                </span>
-              </div>
+          {/* Edit Profile Button */}
+          {isOwnProfile && (
+            <div className="mt-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.href = '/edit-profile'}
+                className="w-full rounded-full border-muted-foreground/20"
+              >
+                Editar perfil
+              </Button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

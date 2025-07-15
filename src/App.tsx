@@ -16,6 +16,7 @@ import Investments from "./pages/Investments";
 import Referrals from "./pages/Referrals";
 import Community from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -144,6 +145,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <UserProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <EditProfile />
                 </Layout>
               </ProtectedRoute>
             }

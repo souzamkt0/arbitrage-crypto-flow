@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReferralSystem from "@/components/ReferralSystem";
 import BinanceApiTester from "@/components/BinanceApiTester";
@@ -9,9 +10,21 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, Save, AlertTriangle, DollarSign, Percent, Volume2, Key, Eye, EyeOff } from "lucide-react";
+import { 
+  Settings as SettingsIcon, 
+  Save, 
+  AlertTriangle, 
+  DollarSign, 
+  Percent, 
+  Volume2, 
+  Key, 
+  Eye, 
+  EyeOff,
+  User
+} from "lucide-react";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [minProfit, setMinProfit] = useState([1.5]);
   const [maxAmount, setMaxAmount] = useState(1000);
   const [baseCurrency, setBaseCurrency] = useState("USDT");
@@ -151,7 +164,33 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* System Settings */}
+        {/* Profile Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Perfil
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Editar Perfil</p>
+                <p className="text-sm text-muted-foreground">
+                  Altere suas informações pessoais, foto e biografia
+                </p>
+              </div>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/edit-profile')}
+              >
+                Editar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* System Settings */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center text-card-foreground">

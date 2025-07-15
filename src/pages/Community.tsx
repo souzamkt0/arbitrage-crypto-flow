@@ -621,6 +621,7 @@ const Community = () => {
             variant="ghost" 
             size="sm" 
             className="flex-col h-auto py-2 text-muted-foreground"
+            onClick={() => navigate("/edit-profile")}
           >
             <Trophy className="h-4 w-4 mb-1" />
             <span className="text-xs">Perfil</span>
