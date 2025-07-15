@@ -18,14 +18,14 @@ const Login = () => {
   const [referralError, setReferralError] = useState("");
 
   const avatarOptions = [
-    "avatar1", // Homem moreno
-    "avatar2", // Mulher loira
-    "avatar3", // Homem asiático
-    "avatar4", // Mulher morena
-    "avatar5", // Homem ruivo
-    "avatar6", // Mulher asiática
-    "avatar7", // Homem negro
-    "avatar8"  // Mulher negra
+    "avatar1", // Homem Executivo 
+    "avatar2", // Mulher Executiva
+    "avatar3", // Homem Jovem Casual
+    "avatar4", // Mulher Jovem Casual
+    "avatar5", // Homem Maduro Barbudo
+    "avatar6", // Mulher Madura Elegante
+    "avatar7", // Homem Atlético
+    "avatar8"  // Mulher Artista
   ];
 
   const navigate = useNavigate();
