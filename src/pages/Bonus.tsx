@@ -39,10 +39,8 @@ const Bonus = () => {
       const depositAmount = savedDeposit ? parseFloat(savedDeposit) : 0;
       setLastDepositAmount(depositAmount);
       
-      if (depositAmount >= bonusSettings.minDepositForBonus) {
-        setCanOpenChests(true);
-        initializeChests();
-      }
+      // Sempre inicializar os baús para mostrar
+      initializeChests();
     };
 
     checkUserDeposit();
@@ -64,10 +62,20 @@ const Bonus = () => {
   };
 
   const openChest = async (chestId: number) => {
+    // Verificar se o usuário tem direito aos baús
+    if (lastDepositAmount < bonusSettings.minDepositForBonus) {
+      toast({
+        title: "Depósito necessário",
+        description: `Para abrir os baús, você precisa fazer um depósito de pelo menos $${bonusSettings.minDepositForBonus}. Vá para a página de Depósito!`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (chestsOpened >= bonusSettings.chestsPerDay) {
       toast({
         title: "Limite atingido",
-        description: "Você já abriu todos os baús disponíveis hoje!",
+        description: "Você já abriu todos os baús disponíveis para este depósito!",
         variant: "destructive"
       });
       return;
@@ -128,21 +136,21 @@ const Bonus = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Baús Abertos Hoje</CardTitle>
+            <CardTitle className="text-sm font-medium">Baús Abertos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
               {chestsOpened} / {bonusSettings.chestsPerDay}
             </div>
             <p className="text-xs text-muted-foreground">
-              Disponível diariamente
+              Por depósito qualificado
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Ganho Hoje</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Ganho</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -156,7 +164,7 @@ const Bonus = () => {
       </div>
 
       {/* Aviso se não pode abrir baús */}
-      {!canOpenChests && (
+      {lastDepositAmount < bonusSettings.minDepositForBonus && (
         <Alert className="mb-8">
           <Lock className="h-4 w-4" />
           <AlertDescription>
@@ -166,36 +174,40 @@ const Bonus = () => {
         </Alert>
       )}
 
-      {/* Baús de Tesouro */}
-      {canOpenChests && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-500" />
-              Seus Baús de Tesouro
-            </CardTitle>
-            <CardDescription>
-              Clique nos baús para abri-los e descobrir seus prêmios! Você pode abrir {bonusSettings.chestsPerDay} baús por dia.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {chests.map((chest) => (
-                <div key={chest.id} className="flex flex-col items-center">
-                  <Button
-                    onClick={() => openChest(chest.id)}
-                    disabled={chest.opened || chest.isOpening || chestsOpened >= bonusSettings.chestsPerDay}
-                    className={`
-                      w-32 h-32 rounded-xl text-6xl transition-all duration-300
-                      ${chest.opened 
-                        ? 'bg-green-100 text-green-600 border-2 border-green-300 hover:bg-green-100' 
-                        : chest.isOpening
-                        ? 'bg-yellow-100 text-yellow-600 border-2 border-yellow-300 animate-pulse'
-                        : 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white hover:from-yellow-500 hover:to-yellow-700 shadow-lg hover:shadow-xl'
-                      }
-                    `}
-                    variant={chest.opened ? "outline" : "default"}
-                  >
+      {/* Baús de Tesouro - Sempre visíveis */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-yellow-500" />
+            Seus Baús de Tesouro
+          </CardTitle>
+          <CardDescription>
+            {lastDepositAmount >= bonusSettings.minDepositForBonus 
+              ? `Clique nos baús para abri-los e descobrir seus prêmios! Você pode abrir ${bonusSettings.chestsPerDay} baús por depósito qualificado.`
+              : `Faça um depósito de $${bonusSettings.minDepositForBonus}+ para desbloquear os baús e ganhar prêmios incríveis!`
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {chests.map((chest) => (
+              <div key={chest.id} className="flex flex-col items-center">
+                <Button
+                  onClick={() => openChest(chest.id)}
+                  disabled={chest.opened || chest.isOpening || (lastDepositAmount >= bonusSettings.minDepositForBonus && chestsOpened >= bonusSettings.chestsPerDay)}
+                  className={`
+                    w-32 h-32 rounded-xl text-6xl transition-all duration-300
+                    ${chest.opened 
+                      ? 'bg-green-100 text-green-600 border-2 border-green-300 hover:bg-green-100' 
+                      : chest.isOpening
+                      ? 'bg-yellow-100 text-yellow-600 border-2 border-yellow-300 animate-pulse'
+                      : lastDepositAmount < bonusSettings.minDepositForBonus
+                      ? 'bg-gray-200 text-gray-400 border-2 border-gray-300 cursor-pointer hover:bg-gray-300'
+                      : 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white hover:from-yellow-500 hover:to-yellow-700 shadow-lg hover:shadow-xl'
+                    }
+                  `}
+                  variant={chest.opened ? "outline" : "default"}
+                >
                     {chest.isOpening ? (
                       <div className="animate-spin">⚡</div>
                     ) : chest.opened ? (
@@ -227,21 +239,22 @@ const Bonus = () => {
               ))}
             </div>
 
-            {chestsOpened >= bonusSettings.chestsPerDay && (
+            {chestsOpened >= bonusSettings.chestsPerDay && lastDepositAmount >= bonusSettings.minDepositForBonus && (
               <div className="mt-8 text-center">
                 <Alert>
                   <Calendar className="h-4 w-4" />
                   <AlertDescription>
-                    Você abriu todos os baús disponíveis hoje! Volte amanhã para mais prêmios.
+                    Você abriu todos os baús disponíveis para este depósito! 
                     <br />
-                    <strong>Total ganho hoje: ${totalEarned.toFixed(2)}</strong>
+                    Faça um novo depósito de ${bonusSettings.minDepositForBonus}+ para ganhar direito a mais baús.
+                    <br />
+                    <strong>Total ganho: ${totalEarned.toFixed(2)}</strong>
                   </AlertDescription>
                 </Alert>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
+        </CardContent>
+      </Card>
 
       {/* Regras */}
       <Card className="mt-8">
@@ -255,11 +268,11 @@ const Bonus = () => {
           </div>
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-blue-600" />
-            <span>Máximo de <strong>{bonusSettings.chestsPerDay} baús</strong> por dia</span>
+            <span>Direito a <strong>{bonusSettings.chestsPerDay} baús</strong> por depósito qualificado</span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-purple-600" />
-            <span>Os baús são renovados diariamente</span>
+            <span>Novos baús só após novo depósito de ${bonusSettings.minDepositForBonus}+</span>
           </div>
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-yellow-600" />
