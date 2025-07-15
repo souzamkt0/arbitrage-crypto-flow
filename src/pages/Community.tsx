@@ -16,6 +16,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import UserProfile, { UserProfileData } from "@/components/UserProfile";
 import SuggestedUsers from "@/components/SuggestedUsers";
@@ -29,6 +30,7 @@ interface LeaderboardUser {
 }
 
 const Community = () => {
+  const navigate = useNavigate();
   const [newPost, setNewPost] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [isAdmin] = useState(true); // Simular admin
@@ -357,7 +359,7 @@ const Community = () => {
   };
 
   const handleUserClick = (user: UserProfileData) => {
-    setSelectedUser(user);
+    navigate(`/community/user/${user.username}`);
   };
 
   const handleUserEdit = (userId: string, data: Partial<UserProfileData>) => {
