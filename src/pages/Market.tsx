@@ -1,81 +1,108 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Search, RefreshCw, DollarSign, ArrowUpDown, Zap } from "lucide-react";
+import { RefreshCw, DollarSign, ArrowUpDown, Zap, TrendingUp, TrendingDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import binanceArbitrageService, { BinancePair, BinanceArbitrageData } from "@/services/coinMarketCapService";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import binanceArbitrageService, { BinanceArbitrageData } from "@/services/coinMarketCapService";
 
-const getCoinIcon = (symbol: string) => {
-  const icons: { [key: string]: string } = {
-    'BTC': '₿',
-    'ETH': 'Ξ',
-    'BNB': '🟡',
-    'ADA': '₳',
-    'SOL': '◎',
-    'XRP': '⚡',
-    'DOT': '●',
-    'MATIC': '🔷',
-    'AVAX': '🔺',
-    'LINK': '⛓️',
-    'LTC': 'Ł',
-    'UNI': '🦄',
-    'ATOM': '⚛️',
-    'FIL': '📁',
-    'TRX': '🔴',
-  };
-  return icons[symbol] || '🪙';
-};
+interface Trade {
+  id: string;
+  time: string;
+  symbol: string;
+  type: 'buy' | 'sell';
+  price: number;
+  profit: number;
+  status: 'executing' | 'completed';
+}
+
+interface ChartData {
+  time: string;
+  profit: number;
+  totalTrades: number;
+}
 
 const Market = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [marketData, setMarketData] = useState<BinancePair[]>([]);
-  const [arbitrageOpportunities, setArbitrageOpportunities] = useState<BinanceArbitrageData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [isActive, setIsActive] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const { toast } = useToast();
 
-  const fetchMarketData = async () => {
-    try {
-      setIsLoading(true);
-      const [pairs, opportunities] = await Promise.all([
-        binanceArbitrageService.getBinancePairs(),
-        binanceArbitrageService.analyzeBinanceArbitrage()
-      ]);
-      
-      setMarketData(pairs);
-      setArbitrageOpportunities(opportunities);
-      setLastUpdate(new Date());
-      
-      toast({
-        title: "Dados atualizados",
-        description: "Preços e oportunidades atualizados da CoinMarketCap",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Usando dados simulados",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const generateRandomTrade = (): Trade => {
+    const symbols = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'XRP', 'DOT', 'MATIC'];
+    const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+    const type = Math.random() > 0.5 ? 'buy' : 'sell';
+    const price = Math.random() * 100000 + 1000;
+    const profit = (Math.random() * 200 - 50);
+    
+    return {
+      id: Math.random().toString(36).substr(2, 9),
+      time: new Date().toLocaleTimeString(),
+      symbol,
+      type,
+      price,
+      profit,
+      status: 'executing'
+    };
+  };
+
+  const executeTrade = () => {
+    if (!isActive) return;
+    
+    const newTrade = generateRandomTrade();
+    
+    setTrades(prev => {
+      const updated = [newTrade, ...prev].slice(0, 20);
+      return updated;
+    });
+
+    // Update total profit
+    setTotalProfit(prev => prev + newTrade.profit);
+
+    // Update chart data
+    const now = new Date().toLocaleTimeString();
+    setChartData(prev => {
+      const updated = [...prev, {
+        time: now,
+        profit: newTrade.profit,
+        totalTrades: trades.length + 1
+      }].slice(-20);
+      return updated;
+    });
+
+    // Mark trade as completed after 2 seconds
+    setTimeout(() => {
+      setTrades(prev => 
+        prev.map(trade => 
+          trade.id === newTrade.id 
+            ? { ...trade, status: 'completed' }
+            : trade
+        )
+      );
+    }, 2000);
+  };
+
+  const toggleBot = () => {
+    setIsActive(!isActive);
+    toast({
+      title: isActive ? "Bot Parado" : "Bot Iniciado",
+      description: isActive ? "Arbitragem interrompida" : "Executando arbitragem automática",
+      variant: isActive ? "destructive" : "default",
+    });
   };
 
   useEffect(() => {
-    fetchMarketData();
+    if (!isActive) return;
     
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchMarketData, 60000);
+    const interval = setInterval(() => {
+      executeTrade();
+    }, Math.random() * 3000 + 2000); // Entre 2-5 segundos
+    
     return () => clearInterval(interval);
-  }, []);
-
-  const filteredData = marketData.filter(coin => 
-    coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  }, [isActive, trades.length]);
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">
@@ -84,140 +111,156 @@ const Market = () => {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center">
-              <DollarSign className="h-6 w-6 md:h-8 md:w-8 mr-3 text-primary" />
-              Mercado de Criptomoedas
+              <ArrowUpDown className="h-6 w-6 md:h-8 md:w-8 mr-3 text-primary" />
+              Arbitragem em Tempo Real
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              Dados da CoinMarketCap - Última atualização: {lastUpdate.toLocaleTimeString()}
+              Sistema automatizado de negociação - Bot {isActive ? 'ATIVO' : 'INATIVO'}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
-            <Button onClick={fetchMarketData} disabled={isLoading} variant="outline" className="w-full sm:w-auto">
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              {isLoading ? 'Carregando...' : 'Atualizar'}
+            <Button onClick={toggleBot} variant={isActive ? "destructive" : "default"} className="w-full sm:w-auto">
+              <Zap className="h-4 w-4 mr-2" />
+              {isActive ? 'Parar Bot' : 'Iniciar Bot'}
             </Button>
-            <Badge variant="outline" className="animate-pulse w-full sm:w-auto justify-center">
+            <Badge variant={isActive ? "default" : "secondary"} className={`w-full sm:w-auto justify-center ${isActive ? 'animate-pulse' : ''}`}>
               <RefreshCw className="h-3 w-3 mr-1" />
-              API Ativa
+              {isActive ? 'EXECUTANDO' : 'PARADO'}
             </Badge>
           </div>
         </div>
 
-        {/* Arbitrage Opportunities */}
-        {arbitrageOpportunities.length > 0 && (
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center text-card-foreground">
-                <ArrowUpDown className="h-5 w-5 mr-2 text-primary" />
-                Oportunidades de Arbitragem (Tempo Real)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
-                {arbitrageOpportunities.slice(0, 6).map((opp, index) => (
-                  <div key={index} className="p-4 bg-secondary rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{getCoinIcon(opp.symbol)}</span>
-                        <span className="font-medium">{opp.symbol}</span>
-                      </div>
-                      <Badge variant="default" className="text-trading-green">
-                        +{opp.profitPercent.toFixed(2)}%
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Binance Spot: ${opp.spotPrice.toFixed(2)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Binance Futures: ${opp.futuresPrice.toFixed(2)}
-                    </div>
-                    <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Executar
-                    </Button>
-                  </div>
-                ))}
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Lucro Total</p>
+                  <p className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
+                    ${totalProfit.toFixed(2)}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
-        )}
+          
+          <Card className="bg-card border-border">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Negociações</p>
+                  <p className="text-2xl font-bold text-foreground">{trades.length}</p>
+                </div>
+                <ArrowUpDown className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card border-border">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Taxa de Sucesso</p>
+                  <p className="text-2xl font-bold text-trading-green">
+                    {trades.length > 0 ? Math.round((trades.filter(t => t.profit > 0).length / trades.length) * 100) : 0}%
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-trading-green" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Market Table */}
+        {/* Chart */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <CardTitle className="text-card-foreground">Top 50 Criptomoedas</CardTitle>
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar moeda..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+            <CardTitle className="flex items-center text-card-foreground">
+              <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+              Gráfico de Lucros em Tempo Real
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-                <p className="text-muted-foreground">Carregando dados da CoinMarketCap...</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ranking</TableHead>
-                    <TableHead>Moeda</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Variação 24h</TableHead>
-                    <TableHead>Volume 24h</TableHead>
-                    <TableHead>Market Cap</TableHead>
-                    <TableHead>Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredData.map((coin, index) => (
-                    <TableRow key={coin.symbol}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{getCoinIcon(coin.symbol)}</span>
-                          <div>
-                            <div className="font-medium">{coin.name}</div>
-                            <div className="text-sm text-muted-foreground">{coin.symbol}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        ${coin.price.toFixed(coin.price < 1 ? 6 : 2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className={`flex items-center ${coin.change24h >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
-                          {coin.change24h >= 0 ? 
-                            <TrendingUp className="h-4 w-4 mr-1" /> : 
-                            <TrendingDown className="h-4 w-4 mr-1" />
-                          }
-                          {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        ${(coin.volume24h / 1000000).toFixed(0)}M
-                      </TableCell>
-                      <TableCell>
-                        ${(coin.volume24h / 100000000).toFixed(1)}B
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={coin.change24h >= 0 ? "default" : "destructive"} className="cursor-pointer">
-                          Negociar
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" />
+                <Line 
+                  type="monotone" 
+                  dataKey="profit" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2}
+                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Live Trading Panel */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center text-card-foreground">
+              <Zap className="h-5 w-5 mr-2 text-primary" />
+              Painel de Negociações em Tempo Real
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {trades.length === 0 ? (
+                <div className="text-center py-8">
+                  <ArrowUpDown className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Inicie o bot para ver as negociações</p>
+                </div>
+              ) : (
+                trades.map((trade) => (
+                  <div key={trade.id} className={`p-4 rounded-lg border transition-all duration-500 ${
+                    trade.status === 'executing' 
+                      ? 'bg-yellow-500/10 border-yellow-500/30 animate-pulse' 
+                      : trade.profit >= 0 
+                        ? 'bg-green-500/10 border-green-500/30' 
+                        : 'bg-red-500/10 border-red-500/30'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Badge variant={trade.type === 'buy' ? 'default' : 'secondary'}>
+                          {trade.type.toUpperCase()}
                         </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                        <span className="font-medium">{trade.symbol}</span>
+                        <span className="text-sm text-muted-foreground">{trade.time}</span>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <span className="font-mono text-sm">${trade.price.toFixed(2)}</span>
+                        <span className={`font-bold ${trade.profit >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
+                          {trade.profit >= 0 ? '+' : ''}${trade.profit.toFixed(2)}
+                        </span>
+                        <Badge variant={trade.status === 'executing' ? 'outline' : 'default'}>
+                          {trade.status === 'executing' ? 'Executando...' : 'Concluído'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
