@@ -396,189 +396,235 @@ const Community = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Mobile-First */}
-        <div className="sticky top-0 bg-background/90 backdrop-blur-md border-b border-border z-10">
-          <div className="flex items-center justify-between p-3 sm:p-4">
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">Comunidade</h1>
-            <Badge variant="outline" className="text-xs text-primary border-primary">
-              <Users className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">1,247 online</span>
-              <span className="sm:hidden">1.2k</span>
-            </Badge>
-          </div>
-        </div>
-
-        {/* Aviso Anti-Spam - Mobile Optimized */}
-        <div className="bg-warning/10 border-b border-warning/20 p-3 sm:p-4">
-          <div className="flex items-start space-x-2">
-            <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
-            <div>
-              <span className="text-sm font-medium text-warning block">Importante!</span>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {gamificationSettings.spamWarning}
-              </p>
-              <div className="text-xs text-muted-foreground mt-2">
-                <strong>Limite:</strong> ${monthlyEarnings.toFixed(2)}/${gamificationSettings.monthlyLimit}
+      <div className="max-w-6xl mx-auto flex">
+        {/* Sidebar Esquerda - Hidden on Mobile */}
+        <div className="hidden lg:flex lg:w-64 xl:w-80 flex-col p-4 sticky top-0 h-screen overflow-y-auto">
+          <div className="space-y-4">
+            {/* Profile Card */}
+            <UserProfile
+              user={currentUser}
+              isOwnProfile={true}
+              isAdmin={isAdmin}
+              onEdit={handleUserEdit}
+            />
+            
+            {/* Quick Actions */}
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <h3 className="font-bold text-foreground mb-3">Ações Rápidas</h3>
+              <div className="space-y-2">
+                <Button variant="ghost" className="w-full justify-start text-sm">
+                  <TrendingUp className="h-4 w-4 mr-3" />
+                  Ver Trending
+                </Button>
+                <Button variant="ghost" className="w-full justify-start text-sm">
+                  <Users className="h-4 w-4 mr-3" />
+                  Encontrar Pessoas
+                </Button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Layout Responsivo */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-          {/* Sidebar Esquerda - Hidden on Mobile */}
-          <div className="hidden lg:block lg:col-span-3 p-4">
-            <div className="sticky top-32">
-              <UserProfile
-                user={currentUser}
-                isOwnProfile={true}
-                isAdmin={isAdmin}
-                onEdit={handleUserEdit}
-              />
+        <div className="flex-1 max-w-2xl border-x border-border min-h-screen">
+          {/* Header Sticky */}
+          <div className="sticky top-0 bg-background/95 backdrop-blur-md border-b border-border z-10">
+            <div className="flex items-center justify-between p-4">
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Início</h1>
+                <p className="text-sm text-muted-foreground lg:hidden">O que está acontecendo</p>
+              </div>
+              <Badge variant="outline" className="text-xs text-primary border-primary lg:hidden">
+                <Users className="h-3 w-3 mr-1" />
+                1.2k online
+              </Badge>
             </div>
           </div>
 
-          {/* Feed Principal - Full Width on Mobile */}
-          <div className="lg:col-span-6 lg:border-x lg:border-border">
-            {/* Mobile Profile Summary */}
-            <div className="lg:hidden border-b border-border p-3">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={currentUser.avatar} />
-                  <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-sm">{currentUser.displayName}</span>
-                    {currentUser.verified && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
-                  </div>
-                  <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                    <span>{currentUser.followers} seguidores</span>
-                    <span>Level {currentUser.level}</span>
-                    <span>${currentUser.earnings.toFixed(2)}</span>
-                  </div>
+          {/* Aviso Anti-Spam */}
+          <div className="bg-warning/10 border-b border-warning/20 p-4">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-sm font-medium text-warning block">Importante!</span>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {gamificationSettings.spamWarning}
+                </p>
+                <div className="text-xs text-muted-foreground mt-2">
+                  <strong>Limite:</strong> ${monthlyEarnings.toFixed(2)}/${gamificationSettings.monthlyLimit}
                 </div>
               </div>
-            </div>
-
-            {/* Criar Post - Mobile Optimized */}
-            <div className="border-b border-border p-3 sm:p-4">
-              <div className="flex space-x-3">
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                  <AvatarImage src={currentUser.avatar} />
-                  <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <Textarea
-                    value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
-                    placeholder="O que está acontecendo?"
-                    className="min-h-[80px] sm:min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-xl placeholder:text-muted-foreground"
-                    maxLength={280}
-                  />
-                  <div className="flex justify-between items-center mt-3 sm:mt-4">
-                    <div className="text-xs sm:text-sm text-muted-foreground">
-                      {newPost.length}/280
-                    </div>
-                    <Button 
-                      onClick={handlePost}
-                      disabled={!newPost.trim()}
-                      className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 text-sm"
-                    >
-                      Postar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Posts - Mobile Optimized */}
-            <div className="pb-16 lg:pb-0">
-              {posts.map((post, index) => (
-                <div key={post.id} className="border-b border-border p-3 sm:p-4">
-                  <TwitterPost
-                    post={post}
-                    onLike={handleLike}
-                    onRetweet={handleRetweet}
-                    onReply={handleReply}
-                    onUserClick={handleUserClick}
-                    currentUserId={currentUser.id}
-                  />
-                </div>
-              ))}
             </div>
           </div>
 
-          {/* Sidebar Direita - Hidden on Mobile */}
-          <div className="hidden lg:block lg:col-span-3 p-4">
-            <div className="sticky top-32 space-y-4">
-              <SuggestedUsers
-                users={suggestedUsers}
-                onFollow={handleFollow}
-                onUserClick={handleUserClick}
-              />
+          {/* Mobile Profile Summary */}
+          <div className="lg:hidden border-b border-border p-4">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={currentUser.avatar} />
+                <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-sm">{currentUser.displayName}</span>
+                  {currentUser.verified && <CheckCircle2 className="h-3 w-3 text-blue-500" />}
+                </div>
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                  <span>{currentUser.followers} seguidores</span>
+                  <span>Level {currentUser.level}</span>
+                  <span>${currentUser.earnings.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-card-foreground">
-                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                    Ranking
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {leaderboard.slice(0, 3).map((user, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            'bg-yellow-600 text-white'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <span className="text-sm font-medium">{user.name}</span>
+          {/* Criar Post - Twitter Style */}
+          <div className="border-b border-border p-4">
+            <div className="flex space-x-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={currentUser.avatar} />
+                <AvatarFallback>{currentUser.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <Textarea
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  placeholder="O que está acontecendo?"
+                  className="min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-xl placeholder:text-muted-foreground bg-transparent"
+                  maxLength={280}
+                />
+                <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
+                  <div className="text-sm text-muted-foreground">
+                    {newPost.length}/280
+                  </div>
+                  <Button 
+                    onClick={handlePost}
+                    disabled={!newPost.trim()}
+                    className="bg-primary hover:bg-primary/90 rounded-full px-8 py-2 font-bold"
+                  >
+                    Postar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Posts Feed */}
+          <div className="pb-16 lg:pb-0">
+            {posts.map((post, index) => (
+              <div key={post.id} className="border-b border-border p-4 hover:bg-secondary/30 transition-colors cursor-pointer">
+                <TwitterPost
+                  post={post}
+                  onLike={handleLike}
+                  onRetweet={handleRetweet}
+                  onReply={handleReply}
+                  onUserClick={handleUserClick}
+                  currentUserId={currentUser.id}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sidebar Direita - Hidden on Mobile */}
+        <div className="hidden xl:flex xl:w-80 flex-col p-4 sticky top-0 h-screen overflow-y-auto">
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="bg-secondary rounded-full p-3">
+              <div className="flex items-center space-x-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar na Alphabit" 
+                  className="bg-transparent border-0 outline-0 flex-1 text-sm placeholder:text-muted-foreground"
+                />
+              </div>
+            </div>
+
+            {/* Sugestões de Usuários */}
+            <div className="bg-card rounded-2xl border border-border overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h2 className="text-xl font-bold text-foreground">Sugestões para você</h2>
+              </div>
+              <div className="p-4">
+                <SuggestedUsers
+                  users={suggestedUsers}
+                  onFollow={handleFollow}
+                  onUserClick={handleUserClick}
+                />
+              </div>
+            </div>
+
+            {/* Trending/Ranking */}
+            <div className="bg-card rounded-2xl border border-border overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h2 className="text-xl font-bold text-foreground">Ranking Semanal</h2>
+              </div>
+              <div className="p-4">
+                <div className="space-y-3">
+                  {leaderboard.slice(0, 5).map((user, index) => (
+                    <div key={index} className="flex items-center justify-between hover:bg-secondary/50 p-2 rounded-lg transition-colors cursor-pointer">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-yellow-500 text-white' :
+                          index === 1 ? 'bg-gray-400 text-white' :
+                          index === 2 ? 'bg-yellow-600 text-white' :
+                          'bg-muted text-muted-foreground'
+                        }`}>
+                          {index + 1}
                         </div>
-                        <span className="text-xs text-primary">${user.earnings.toFixed(2)}</span>
+                        <div>
+                          <div className="font-medium text-sm text-foreground">{user.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Lv. {user.level} • ${user.earnings.toFixed(2)}
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        user.change.startsWith('+') ? 'text-green-500' :
+                        user.change.startsWith('-') ? 'text-red-500' :
+                        'text-muted-foreground'
+                      }`}>
+                        {user.change !== '0' && user.change}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="ghost" className="w-full mt-3 text-primary">
+                  Ver mais
+                </Button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Bottom Navigation */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50">
-          <div className="flex justify-around p-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex-col h-auto py-2 text-muted-foreground"
-              onClick={() => navigate("/community")}
-            >
-              <Users className="h-4 w-4 mb-1" />
-              <span className="text-xs">Início</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex-col h-auto py-2 text-muted-foreground"
-            >
-              <TrendingUp className="h-4 w-4 mb-1" />
-              <span className="text-xs">Ranking</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex-col h-auto py-2 text-muted-foreground"
-            >
-              <Trophy className="h-4 w-4 mb-1" />
-              <span className="text-xs">Perfil</span>
-            </Button>
-          </div>
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50">
+        <div className="flex justify-around p-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-col h-auto py-2 text-muted-foreground"
+            onClick={() => navigate("/community")}
+          >
+            <Users className="h-4 w-4 mb-1" />
+            <span className="text-xs">Início</span>
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-col h-auto py-2 text-muted-foreground"
+          >
+            <TrendingUp className="h-4 w-4 mb-1" />
+            <span className="text-xs">Ranking</span>
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-col h-auto py-2 text-muted-foreground"
+          >
+            <Trophy className="h-4 w-4 mb-1" />
+            <span className="text-xs">Perfil</span>
+          </Button>
         </div>
       </div>
 

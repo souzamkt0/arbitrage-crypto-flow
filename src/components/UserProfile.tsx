@@ -109,196 +109,64 @@ const UserProfile = ({
   };
 
   return (
-    <Card className="bg-card border-border">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={user.avatar} alt={user.displayName} />
-              <AvatarFallback>{user.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-xl font-bold text-foreground">{user.displayName}</h2>
-                {user.verified && (
-                  <CheckCircle2 className="h-5 w-5 text-blue-500" />
-                )}
-                <Badge variant="secondary" className={`text-xs ${getLevelColor(user.level)}`}>
-                  {user.badge}
-                </Badge>
-              </div>
-              
-              <p className="text-muted-foreground text-sm">@{user.username}</p>
-              
-              {user.bio && (
-                <p className="text-sm text-foreground mt-2">{user.bio}</p>
-              )}
-              
-              <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
-                <div className="flex items-center space-x-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>Entrou em {user.joinDate}</span>
-                </div>
-                
-                {user.location && (
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-3 w-3" />
-                    <span>{user.location}</span>
-                  </div>
-                )}
-                
-                {user.website && (
-                  <div className="flex items-center space-x-1">
-                    <LinkIcon className="h-3 w-3" />
-                    <a href={user.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {user.website.replace('https://', '').replace('http://', '')}
-                    </a>
-                  </div>
-                )}
-              </div>
+    <div className="bg-card rounded-2xl border border-border overflow-hidden">
+      {/* Mini Header/Cover */}
+      <div className="h-16 bg-gradient-to-r from-primary/20 to-accent/20"></div>
+      
+      <div className="p-3 -mt-8">
+        {/* Avatar */}
+        <div className="relative">
+          <Avatar className="h-16 w-16 border-4 border-background">
+            <AvatarImage src={user.avatar} alt={user.displayName} />
+            <AvatarFallback>{user.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          </Avatar>
+        </div>
+        
+        {/* User Info */}
+        <div className="mt-3">
+          <div className="flex items-center space-x-1">
+            <h3 className="font-bold text-foreground text-sm truncate">{user.displayName}</h3>
+            {user.verified && (
+              <CheckCircle2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            )}
+          </div>
+          
+          <p className="text-muted-foreground text-sm">@{user.username}</p>
+          
+          {user.bio && (
+            <p className="text-sm text-foreground mt-2 line-clamp-2">{user.bio}</p>
+          )}
+          
+          {/* Stats */}
+          <div className="flex items-center space-x-4 mt-3 text-sm">
+            <div className="flex space-x-1">
+              <span className="font-bold text-foreground">{user.following}</span>
+              <span className="text-muted-foreground">seguindo</span>
+            </div>
+            <div className="flex space-x-1">
+              <span className="font-bold text-foreground">{user.followers}</span>
+              <span className="text-muted-foreground">seguidores</span>
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            {!isOwnProfile && (
-              <Button
-                variant={user.isFollowing ? "outline" : "default"}
-                size="sm"
-                onClick={handleFollowToggle}
-                className={user.isFollowing ? "hover:bg-red-50 hover:text-red-600 hover:border-red-300" : ""}
-              >
-                {user.isFollowing ? (
-                  <>
-                    <UserCheck className="h-4 w-4 mr-2" />
-                    Seguindo
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Seguir
-                  </>
-                )}
-              </Button>
-            )}
-            
-            {isAdmin && !isOwnProfile && (
-              <div className="flex space-x-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleVerifyToggle}
-                  className={user.verified ? "text-blue-600 border-blue-300" : ""}
-                >
-                  <Shield className="h-4 w-4" />
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBlockToggle}
-                  className={user.isBlocked ? "text-red-600 border-red-300" : ""}
-                >
-                  <Ban className="h-4 w-4" />
-                </Button>
+          {/* Trading Stats */}
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-muted-foreground">Ganhos:</span>
+                <span className="font-medium text-primary ml-1">${user.earnings.toFixed(2)}</span>
               </div>
-            )}
-            
-            {(isOwnProfile || isAdmin) && (
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Editar Perfil</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="displayName">Nome</Label>
-                      <Input
-                        id="displayName"
-                        value={editData.displayName}
-                        onChange={(e) => setEditData({...editData, displayName: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Input
-                        id="bio"
-                        value={editData.bio}
-                        onChange={(e) => setEditData({...editData, bio: e.target.value})}
-                        placeholder="Conte um pouco sobre você..."
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="location">Localização</Label>
-                      <Input
-                        id="location"
-                        value={editData.location}
-                        onChange={(e) => setEditData({...editData, location: e.target.value})}
-                        placeholder="São Paulo, Brasil"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="website">Website</Label>
-                      <Input
-                        id="website"
-                        value={editData.website}
-                        onChange={(e) => setEditData({...editData, website: e.target.value})}
-                        placeholder="https://meusite.com"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleSaveEdit}>
-                      Salvar
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+              <div>
+                <span className="text-muted-foreground">Level:</span>
+                <span className={`font-medium ml-1 ${getLevelColor(user.level)}`}>
+                  {user.level}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className="flex items-center space-x-6 text-sm">
-          <div className="flex space-x-1">
-            <span className="font-bold text-foreground">{user.following}</span>
-            <span className="text-muted-foreground">seguindo</span>
-          </div>
-          <div className="flex space-x-1">
-            <span className="font-bold text-foreground">{user.followers}</span>
-            <span className="text-muted-foreground">seguidores</span>
-          </div>
-          <div className="flex space-x-1">
-            <span className="font-bold text-foreground">{user.posts}</span>
-            <span className="text-muted-foreground">posts</span>
-          </div>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Ganhos:</span>
-            <span className="font-medium text-primary ml-2">${user.earnings.toFixed(2)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Level:</span>
-            <span className={`font-medium ml-2 ${getLevelColor(user.level)}`}>
-              {user.level}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
