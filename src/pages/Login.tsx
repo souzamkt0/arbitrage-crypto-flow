@@ -6,11 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, User, TrendingUp } from "lucide-react";
+import { Lock, Mail, User, TrendingUp, MapPin, Building, Camera } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [referralInfo, setReferralInfo] = useState<{code: string, referrerName: string} | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState("photo-1649972904349-6e44c42644a7");
+
+  const avatarOptions = [
+    "photo-1649972904349-6e44c42644a7",
+    "photo-1581091226825-a6a2a5aee158", 
+    "photo-1526374965328-7f61d4dc18c5",
+    "photo-1506744038136-46273834b3fb",
+    "photo-1582562124811-c09040d0a901",
+    "photo-1472099645785-5658abf4ff4e",
+    "photo-1507003211169-0a1dd7228f2d",
+    "photo-1494790108755-2616b612b977"
+  ];
   const navigate = useNavigate();
   const { toast } = useToast();
   const { referralCode } = useParams();
@@ -48,8 +61,24 @@ const Login = () => {
     
     const formData = new FormData(e.target as HTMLFormElement);
     const userData = {
-      name: formData.get("name"),
-      email: formData.get("email"),
+      id: Math.random().toString(36).substring(2, 15),
+      username: formData.get("username") as string,
+      displayName: formData.get("name") as string,
+      email: formData.get("email") as string,
+      city: formData.get("city") as string,
+      state: formData.get("state") as string,
+      avatar: `https://images.unsplash.com/${selectedAvatar}?w=400&h=400&fit=crop&crop=face`,
+      verified: false,
+      followers: 0,
+      following: 0,
+      posts: 0,
+      joinDate: new Date().toLocaleDateString('pt-BR'),
+      isFollowing: false,
+      isBlocked: false,
+      earnings: 0,
+      level: 1,
+      badge: "Iniciante",
+      bio: "",
       referredBy: referralInfo?.code || null,
       referralCode: Math.random().toString(36).substring(2, 15),
       registeredAt: new Date().toISOString()
@@ -154,18 +183,66 @@ const Login = () => {
               
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
+                  {/* Foto de Perfil */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="Seu nome"
-                        className="pl-9"
-                        required
-                      />
+                    <Label>Foto de Perfil</Label>
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={`https://images.unsplash.com/${selectedAvatar}?w=400&h=400&fit=crop&crop=face`} />
+                        <AvatarFallback>
+                          <Camera className="h-6 w-6" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="grid grid-cols-4 gap-2">
+                        {avatarOptions.map((avatar) => (
+                          <button
+                            key={avatar}
+                            type="button"
+                            onClick={() => setSelectedAvatar(avatar)}
+                            className={`relative rounded-full overflow-hidden border-2 transition-all ${
+                              selectedAvatar === avatar 
+                                ? "border-primary shadow-lg scale-105" 
+                                : "border-muted hover:border-primary/50"
+                            }`}
+                          >
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={`https://images.unsplash.com/${avatar}?w=400&h=400&fit=crop&crop=face`} />
+                            </Avatar>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome Completo</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="name"
+                          name="name"
+                          type="text"
+                          placeholder="João Silva"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Usuário</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-3 text-sm text-muted-foreground">@</span>
+                        <Input
+                          id="username"
+                          name="username"
+                          type="text"
+                          placeholder="joaosilva"
+                          className="pl-8"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -177,10 +254,42 @@ const Login = () => {
                         id="register-email"
                         name="email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder="joao@email.com"
                         className="pl-9"
                         required
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Cidade</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="city"
+                          name="city"
+                          type="text"
+                          placeholder="São Paulo"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="state">Estado</Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="state"
+                          name="state"
+                          type="text"
+                          placeholder="SP"
+                          className="pl-9"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -190,6 +299,7 @@ const Login = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="register-password"
+                        name="password"
                         type="password"
                         placeholder="••••••••"
                         className="pl-9"

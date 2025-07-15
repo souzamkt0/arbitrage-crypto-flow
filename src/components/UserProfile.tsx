@@ -31,6 +31,8 @@ export interface UserProfileData {
   posts: number;
   joinDate: string;
   location?: string;
+  city?: string;
+  state?: string;
   website?: string;
   isFollowing: boolean;
   isBlocked: boolean;

@@ -1,26 +1,52 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import TwitterPost from "@/components/TwitterPost";
+import SuggestedUsers from "@/components/SuggestedUsers";
+import UserProfile, { UserProfileData } from "@/components/UserProfile";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
-  Send, 
-  Trophy,
+  Search, 
+  TrendingUp, 
+  Settings, 
+  Menu, 
+  MoreHorizontal, 
+  Heart, 
+  MessageCircle, 
+  Repeat2, 
+  Share, 
+  Home, 
+  User, 
+  Bell, 
+  Mail,
   Users,
-  TrendingUp,
-  MessageSquare,
+  Trophy,
   AlertTriangle,
-  Search,
-  Sparkles,
   CheckCircle2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import UserProfile, { UserProfileData } from "@/components/UserProfile";
-import SuggestedUsers from "@/components/SuggestedUsers";
-import TwitterPost, { TwitterPostData } from "@/components/TwitterPost";
+import { communityUsers } from "@/data/communityUsers";
+
+interface TwitterPostData {
+  id: string;
+  author: UserProfileData;
+  content: string;
+  timestamp: string;
+  likes: number;
+  retweets: number;
+  replies: number;
+  shares: number;
+  liked: boolean;
+  retweeted: boolean;
+  hashtags?: string[];
+  mentions?: string[];
+  replyTo?: string;
+}
 
 interface LeaderboardUser {
   name: string;
@@ -34,87 +60,62 @@ const Community = () => {
   const [newPost, setNewPost] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserProfileData | null>(null);
   const [isAdmin] = useState(true); // Simular admin
-  const [currentUser, setCurrentUser] = useState<UserProfileData>({
-    id: "current",
-    username: "joaosilva",
-    displayName: "João Silva",
-    bio: "Trader experiente focado em arbitragem de criptomoedas",
-    avatar: "/avatars/joao.jpg",
-    verified: false,
-    followers: 156,
-    following: 89,
-    posts: 23,
-    joinDate: "março de 2024",
-    location: "São Paulo, Brasil",
-    website: "https://joaotrader.com",
-    isFollowing: false,
-    isBlocked: false,
-    earnings: 12.45,
-    level: 5,
-    badge: "Trader Expert"
-  });
-  const [allUsers] = useState<UserProfileData[]>([
-    {
-      id: "maria",
-      username: "mariasantos",
-      displayName: "Maria Santos",
-      bio: "Especialista em trading de alta frequência",
-      avatar: "/avatars/maria.jpg",
-      verified: true,
-      followers: 342,
-      following: 156,
-      posts: 89,
-      joinDate: "janeiro de 2024",
-      location: "Rio de Janeiro, Brasil",
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 24.50,
-      level: 8,
-      badge: "Pro Trader"
-    },
-    {
-      id: "carlos",
-      username: "carlosoliveira",
-      displayName: "Carlos Oliveira",
-      bio: "Analista técnico e educador financeiro",
-      avatar: "/avatars/carlos.jpg",
-      verified: true,
-      followers: 567,
-      following: 234,
-      posts: 156,
-      joinDate: "dezembro de 2023",
-      location: "Belo Horizonte, Brasil",
-      website: "https://carlosanalise.com",
-      isFollowing: true,
-      isBlocked: false,
-      earnings: 21.80,
-      level: 7,
-      badge: "Analista Expert"
-    },
-    {
-      id: "ana",
-      username: "anacosta",
-      displayName: "Ana Costa",
-      bio: "Jovem trader em ascensão 🚀",
-      avatar: "/avatars/ana.jpg",
-      verified: false,
-      followers: 234,
-      following: 89,
-      posts: 67,
-      joinDate: "abril de 2024",
-      location: "Porto Alegre, Brasil",
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 18.90,
-      level: 6,
-      badge: "Rising Star"
+  const [users] = useState<UserProfileData[]>(communityUsers);
+
+  // Current user data - load from localStorage if exists
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUsers = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
+    const lastUser = savedUsers[savedUsers.length - 1];
+    
+    if (lastUser) {
+      return {
+        id: lastUser.id || "current",
+        username: lastUser.username || "voce",
+        displayName: lastUser.displayName || "Você", 
+        bio: lastUser.bio || "Trader iniciante aprendendo sobre arbitragem de criptomoedas.",
+        avatar: lastUser.avatar || "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=400&fit=crop&crop=face",
+        verified: lastUser.verified || false,
+        followers: lastUser.followers || 42,
+        following: lastUser.following || 128,
+        posts: lastUser.posts || 15,
+        joinDate: lastUser.joinDate || "Outubro 2023",
+        city: lastUser.city || "São Paulo",
+        state: lastUser.state || "SP",
+        location: `${lastUser.city || "São Paulo"}, ${lastUser.state || "SP"}`,
+        isFollowing: false,
+        isBlocked: false,
+        earnings: lastUser.earnings || 1250.75,
+        level: lastUser.level || 3,
+        badge: lastUser.badge || "Iniciante"
+      };
     }
-  ]);
+    
+    return {
+      id: "current",
+      username: "voce",
+      displayName: "Você",
+      bio: "Trader iniciante aprendendo sobre arbitragem de criptomoedas.",
+      avatar: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=400&fit=crop&crop=face",
+      verified: false,
+      followers: 42,
+      following: 128,
+      posts: 15,
+      joinDate: "Outubro 2023",
+      city: "São Paulo",
+      state: "SP", 
+      location: "São Paulo, SP",
+      isFollowing: false,
+      isBlocked: false,
+      earnings: 1250.75,
+      level: 3,
+      badge: "Iniciante"
+    };
+  });
 
   const [posts, setPosts] = useState<TwitterPostData[]>([
     {
       id: "1",
-      author: allUsers[0],
+      author: users[0],
       content: "Acabei de fechar uma operação incrível no BTC/USDT! +15.7% em 2 horas. O bot está funcionando perfeitamente hoje! 🚀 #crypto #trading",
       timestamp: "2 min atrás",
       likes: 23,
@@ -127,7 +128,7 @@ const Community = () => {
     },
     {
       id: "2",
-      author: allUsers[1],
+      author: users[1],
       content: "Pessoal, que acham da estratégia de diversificar em ETH e SOL? Estou vendo boas oportunidades para essa semana. @mariasantos o que acha?",
       timestamp: "15 min atrás",
       likes: 45,
@@ -140,7 +141,7 @@ const Community = () => {
     },
     {
       id: "3",
-      author: allUsers[2],
+      author: users[2],
       content: "Gratidão pela comunidade! Aprendi muito com vocês. Já estou no meu 3º mês consecutivo no lucro! 📈 #grateful #crypto",
       timestamp: "1 hora atrás",
       likes: 67,
