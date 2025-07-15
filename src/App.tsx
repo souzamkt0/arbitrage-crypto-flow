@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import Admin from "./pages/Admin";
+import Bonus from "./pages/Bonus";
 import Investments from "./pages/Investments";
 import Referrals from "./pages/Referrals";
 import Community from "./pages/Community";
@@ -117,6 +118,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Market />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bonus"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Bonus />
                 </Layout>
               </ProtectedRoute>
             }

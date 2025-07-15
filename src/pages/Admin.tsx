@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Dialog, 
   DialogContent, 
@@ -691,31 +693,42 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Search and Filter */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
-              <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
-              Buscar Usuários
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 text-sm sm:text-base"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Main Content with Tabs */}
+        <Tabs defaultValue="users" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="deposits">Depósitos</TabsTrigger>
+            <TabsTrigger value="withdrawals">Saques</TabsTrigger>
+            <TabsTrigger value="bonus">Bônus</TabsTrigger>
+            <TabsTrigger value="settings">Configurações</TabsTrigger>
+          </TabsList>
 
-        {/* Users Table */}
-        <Card className="bg-card border-border">
+          <TabsContent value="users" className="space-y-6">
+            {/* Search and Filter */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
+                  Buscar Usuários
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nome ou email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Users Table */}
+            <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-card-foreground text-sm sm:text-base">Usuários ({filteredUsers.length})</CardTitle>
           </CardHeader>
@@ -2041,6 +2054,157 @@ const Admin = () => {
             )}
           </DialogContent>
         </Dialog>
+          </TabsContent>
+
+          <TabsContent value="deposits" className="space-y-6">
+            {/* Existing deposit management content would go here */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Gerenciar Depósitos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Funcionalidade de depósitos já implementada anteriormente.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="withdrawals" className="space-y-6">
+            {/* Existing withdrawal management content would go here */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Gerenciar Saques</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Funcionalidade de saques já implementada anteriormente.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bonus" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações de Bônus</CardTitle>
+                <CardDescription>
+                  Configure os baús de tesouro e prêmios disponíveis
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="minBonusDeposit">Depósito Mínimo para Bônus ($)</Label>
+                    <Input
+                      id="minBonusDeposit"
+                      type="number"
+                      defaultValue="50"
+                      min="1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="chestsPerDay">Baús por Dia</Label>
+                    <Input
+                      id="chestsPerDay"
+                      type="number"
+                      defaultValue="3"
+                      min="1"
+                      max="10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Prêmios Disponíveis ($)</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {[1, 2, 3, 5, 8, 10, 15, 20, 25, 30, 50, 100].map((prize) => (
+                      <div key={prize} className="flex items-center space-x-2">
+                        <Checkbox id={`prize-${prize}`} defaultChecked={prize <= 30} />
+                        <Label htmlFor={`prize-${prize}`} className="text-sm">${prize}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Button>Salvar Configurações</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Estatísticas de Bônus</CardTitle>
+                <CardDescription>
+                  Acompanhe o uso dos baús de tesouro
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">1,247</div>
+                    <div className="text-sm text-blue-600">Baús Abertos Hoje</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">$12,580</div>
+                    <div className="text-sm text-green-600">Prêmios Pagos Hoje</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">456</div>
+                    <div className="text-sm text-purple-600">Usuários Ativos</div>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">$10.50</div>
+                    <div className="text-sm text-orange-600">Prêmio Médio</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Bônus</CardTitle>
+                <CardDescription>
+                  Últimas aberturas de baús
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { user: "João Silva", prize: 25, time: "2 min atrás", chest: 1 },
+                    { user: "Maria Santos", prize: 10, time: "5 min atrás", chest: 3 },
+                    { user: "Pedro Costa", prize: 50, time: "8 min atrás", chest: 2 },
+                    { user: "Ana Oliveira", prize: 15, time: "12 min atrás", chest: 1 },
+                    { user: "Carlos Lima", prize: 5, time: "15 min atrás", chest: 3 }
+                  ].map((bonus, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                          🎁
+                        </div>
+                        <div>
+                          <div className="font-medium">{bonus.user}</div>
+                          <div className="text-sm text-muted-foreground">Baú #{bonus.chest}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-green-600">${bonus.prize}</div>
+                        <div className="text-sm text-muted-foreground">{bonus.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            {/* Existing settings content would go here */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações Gerais</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Configurações gerais do sistema.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

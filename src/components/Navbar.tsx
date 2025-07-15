@@ -17,7 +17,8 @@ import {
   MessageSquare,
   Bot,
   Wallet,
-  ArrowDown
+  ArrowDown,
+  Gift
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +35,7 @@ const Navbar = () => {
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
+    { path: "/bonus", label: "Bônus", icon: Gift },
     { path: "/community", label: "Comunidade", icon: MessageSquare },
     { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },
