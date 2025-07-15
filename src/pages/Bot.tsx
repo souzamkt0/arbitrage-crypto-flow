@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -321,6 +321,101 @@ const BotPage = () => {
     });
   };
 
+  // Função para calcular projeção de lucros em tempo real
+  const calculateProfitProjection = () => {
+    const { maxInvestment, strategy, riskLevel, takeProfit, stopLoss } = botConfig;
+    
+    let dailyMultiplier = 0;
+    let successRateAdjustment = 0;
+    
+    // Multiplicadores por estratégia
+    switch(strategy) {
+      case "scalping":
+        dailyMultiplier = 0.008; // 0.8% ao dia
+        successRateAdjustment = 85;
+        break;
+      case "swing":
+        dailyMultiplier = 0.015; // 1.5% ao dia  
+        successRateAdjustment = 75;
+        break;
+      case "arbitrage":
+        dailyMultiplier = 0.012; // 1.2% ao dia
+        successRateAdjustment = 90;
+        break;
+      case "grid":
+        dailyMultiplier = 0.010; // 1.0% ao dia
+        successRateAdjustment = 80;
+        break;
+      default:
+        dailyMultiplier = 0.008;
+        successRateAdjustment = 70;
+    }
+    
+    // Ajuste por nível de risco (1-10)
+    const riskMultiplier = 1 + (riskLevel - 5) * 0.1; // -40% a +50%
+    
+    // Ajuste por take profit e stop loss
+    const profitLossRatio = takeProfit / (stopLoss || 1);
+    const strategyAdjustment = Math.min(1.5, profitLossRatio * 0.3);
+    
+    // Cálculo final
+    const finalMultiplier = dailyMultiplier * riskMultiplier * strategyAdjustment;
+    const dailyProfitMin = maxInvestment * finalMultiplier * 0.7; // 70% do potencial
+    const dailyProfitMax = maxInvestment * finalMultiplier * 1.3; // 130% do potencial
+    
+    return {
+      daily: {
+        min: dailyProfitMin,
+        max: dailyProfitMax
+      },
+      monthly: {
+        min: dailyProfitMin * 22, // 22 dias úteis
+        max: dailyProfitMax * 22
+      },
+      successRate: Math.min(95, successRateAdjustment + (riskLevel * 2)),
+      riskLevel: riskLevel <= 3 ? "Baixo" : riskLevel <= 7 ? "Médio" : "Alto"
+    };
+  };
+
+  const getStrategyDescription = (strategy: string) => {
+    const descriptions = {
+      scalping: {
+        name: "Scalping",
+        description: "Operações rápidas de segundos a minutos, aproveitando pequenas variações de preço",
+        advantages: ["Alta frequência de operações", "Lucros consistentes", "Menor exposição ao risco de mercado"],
+        timeframe: "1s - 5min",
+        profitTarget: "0.1% - 0.5% por trade",
+        riskLevel: "Baixo a Médio"
+      },
+      swing: {
+        name: "Swing Trading", 
+        description: "Operações de médio prazo, capturando movimentos de tendência de dias a semanas",
+        advantages: ["Maior potencial de lucro", "Menos estresse operacional", "Aproveita tendências maiores"],
+        timeframe: "1h - 1 semana",
+        profitTarget: "2% - 8% por trade",
+        riskLevel: "Médio"
+      },
+      arbitrage: {
+        name: "Arbitragem",
+        description: "Explora diferenças de preço entre exchanges ou pares de moedas simultaneamente",
+        advantages: ["Risco muito baixo", "Lucros garantidos", "Independe da direção do mercado"],
+        timeframe: "Instantâneo",
+        profitTarget: "0.1% - 1% por trade",
+        riskLevel: "Muito Baixo"
+      },
+      grid: {
+        name: "Grid Trading",
+        description: "Coloca ordens de compra e venda em intervalos regulares, lucrando com volatilidade",
+        advantages: ["Automatizado", "Funciona em mercados laterais", "Composta lucros"],
+        timeframe: "Contínuo",
+        profitTarget: "0.5% - 2% por ciclo",
+        riskLevel: "Baixo a Médio"
+      }
+    };
+    
+    return descriptions[strategy as keyof typeof descriptions] || descriptions.scalping;
+  };
+
   const getRiskColor = (risk: string) => {
     switch(risk) {
       case "LOW": return "text-trading-green";
@@ -340,34 +435,37 @@ const BotPage = () => {
     }
   };
 
+  const profitProjection = calculateProfitProjection();
+  const strategyInfo = getStrategyDescription(botConfig.strategy);
+
   return (
-    <div className="min-h-screen bg-background p-3 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
-              <Bot className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
-              <span className="hidden sm:inline">Bot de Trading</span>
-              <span className="sm:hidden">Bot</span>
+    <div className="min-h-screen bg-background p-2 sm:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 lg:space-y-6">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 text-primary" />
+              <span className="text-base sm:text-xl lg:text-3xl">Bot de Trading</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
               Gerencie seu bot automatizado conectado à Binance
             </p>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Badge variant={isConnected ? "default" : "destructive"} className="flex items-center">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <Badge variant={isConnected ? "default" : "destructive"} className="flex items-center text-xs sm:text-sm">
               {isConnected ? (
-                <CheckCircle className="h-4 w-4 mr-1" />
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               ) : (
-                <AlertCircle className="h-4 w-4 mr-1" />
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               )}
-              API Binance {isConnected ? "Conectada" : "Desconectada"}
+              <span className="hidden sm:inline">API Binance</span>
+              <span className="sm:hidden">API</span> {isConnected ? "Conectada" : "Desconectada"}
             </Badge>
             
             <div className="flex items-center space-x-2">
-              <Label htmlFor="bot-toggle" className="text-sm font-medium">
+              <Label htmlFor="bot-toggle" className="text-xs sm:text-sm font-medium">
                 Bot {botConfig.isActive ? "ON" : "OFF"}
               </Label>
               <Switch
@@ -379,56 +477,56 @@ const BotPage = () => {
           </div>
         </div>
 
-        {/* Status da API Binance */}
+        {/* Status da API Binance - Mobile Optimized */}
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-trading-green rounded-full animate-pulse"></div>
-                  <span className="font-medium">API Binance Conectada</span>
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-trading-green rounded-full animate-pulse"></div>
+                  <span className="font-medium text-sm sm:text-base">API Binance Conectada</span>
                 </div>
-                <Badge variant="outline" className="text-primary border-primary">
-                  {binanceApiStatus.dataStreams} streams ativos
+                <Badge variant="outline" className="text-primary border-primary text-xs">
+                  {binanceApiStatus.dataStreams} streams
                 </Badge>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-muted-foreground">
                 <div>Latência: {binanceApiStatus.latency}ms</div>
-                <div>Analisando: {botStats.analysisSpeed} ops/s</div>
-                <div>Última sync: {binanceApiStatus.lastUpdate}</div>
+                <div className="hidden sm:block">Analisando: {botStats.analysisSpeed} ops/s</div>
+                <div className="hidden lg:block">Última sync: {binanceApiStatus.lastUpdate}</div>
               </div>
             </div>
             
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center space-x-2">
-                <Signal className="h-4 w-4 text-primary" />
-                <span>Dados em tempo real</span>
+                <Signal className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-xs sm:text-sm">Dados em tempo real</span>
               </div>
               <div className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4 text-trading-green" />
-                <span>Análise de tendências</span>
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-trading-green" />
+                <span className="text-xs sm:text-sm">Análise de tendências</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Target className="h-4 w-4 text-warning" />
-                <span>Seleção automática</span>
+                <Target className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
+                <span className="text-xs sm:text-sm">Seleção automática</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <span>Execução otimizada</span>
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                <span className="text-xs sm:text-sm">Execução otimizada</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Lucro Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-trading-green" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Lucro Total</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-trading-green" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-trading-green">
+              <div className="text-lg sm:text-2xl font-bold text-trading-green">
                 +${botStats.totalProfit.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -439,11 +537,11 @@ const BotPage = () => {
 
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
-              <Target className="h-4 w-4 text-primary" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Taxa de Sucesso</CardTitle>
+              <Target className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-lg sm:text-2xl font-bold text-primary">
                 {botStats.successRate}%
               </div>
               <p className="text-xs text-muted-foreground">
@@ -454,11 +552,11 @@ const BotPage = () => {
 
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Operações Ativas</CardTitle>
-              <Activity className="h-4 w-4 text-warning" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Operações Ativas</CardTitle>
+              <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">
+              <div className="text-lg sm:text-2xl font-bold text-warning">
                 {botStats.activeTrades}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -469,11 +567,11 @@ const BotPage = () => {
 
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Análise/Segundo</CardTitle>
-              <Activity className="h-4 w-4 text-secondary-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Análise/Segundo</CardTitle>
+              <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-secondary-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-secondary-foreground">
+              <div className="text-lg sm:text-2xl font-bold text-secondary-foreground">
                 {botStats.analysisSpeed}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -483,7 +581,7 @@ const BotPage = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           {/* Gráfico de Mercado com Dados da Binance */}
           <Card className="bg-card border-border">
             <CardHeader>
@@ -595,34 +693,76 @@ const BotPage = () => {
             </CardContent>
           </Card>
 
-          {/* Configurações do Bot */}
+          {/* Configurações do Bot - Mobile Optimized */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center text-card-foreground">
-                <Settings className="h-5 w-5 mr-2 text-primary" />
+              <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
                 Configurações do Bot
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="space-y-4">
+            <CardContent className="p-3 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
+                {/* Estratégia com Explicação */}
+                <div className="space-y-3 sm:space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="strategy">Estratégia</Label>
+                    <Label htmlFor="strategy" className="text-sm sm:text-base font-medium">Estratégia de Trading</Label>
                     <Select value={botConfig.strategy} onValueChange={(value) => setBotConfig(prev => ({ ...prev, strategy: value }))}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="scalping">Scalping</SelectItem>
-                        <SelectItem value="swing">Swing Trading</SelectItem>
-                        <SelectItem value="arbitrage">Arbitragem</SelectItem>
-                        <SelectItem value="grid">Grid Trading</SelectItem>
+                        <SelectItem value="scalping">Scalping - Rápido e Frequente</SelectItem>
+                        <SelectItem value="swing">Swing Trading - Médio Prazo</SelectItem>
+                        <SelectItem value="arbitrage">Arbitragem - Baixo Risco</SelectItem>
+                        <SelectItem value="grid">Grid Trading - Automatizado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
+                  {/* Explicação da Estratégia Selecionada */}
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-primary">
+                        {strategyInfo.name} - {strategyInfo.riskLevel}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="text-xs sm:text-sm mb-3">
+                        {strategyInfo.description}
+                      </CardDescription>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <span className="font-medium">Tempo:</span>
+                          <div className="text-muted-foreground">{strategyInfo.timeframe}</div>
+                        </div>
+                        <div>
+                          <span className="font-medium">Lucro por Trade:</span>
+                          <div className="text-trading-green">{strategyInfo.profitTarget}</div>
+                        </div>
+                        <div>
+                          <span className="font-medium">Risco:</span>
+                          <div className="text-muted-foreground">{strategyInfo.riskLevel}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <span className="font-medium text-xs">Vantagens:</span>
+                        <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                          {strategyInfo.advantages.map((advantage, index) => (
+                            <li key={index} className="flex items-center space-x-1">
+                              <div className="w-1 h-1 bg-primary rounded-full"></div>
+                              <span>{advantage}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <div className="space-y-2">
-                    <Label htmlFor="risk-level">Nível de Risco: {botConfig.riskLevel}/10</Label>
+                    <Label htmlFor="risk-level" className="text-sm sm:text-base">Nível de Risco: {botConfig.riskLevel}/10</Label>
                     <Slider
                       id="risk-level"
                       min={1}
@@ -634,39 +774,43 @@ const BotPage = () => {
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Conservador</span>
+                      <span>Equilibrado</span>
                       <span>Agressivo</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="max-investment">Investimento Máximo ($)</Label>
+                      <Label htmlFor="max-investment" className="text-sm">Investimento Máximo ($)</Label>
                       <Input
                         id="max-investment"
                         type="number"
                         value={botConfig.maxInvestment}
                         onChange={(e) => setBotConfig(prev => ({ ...prev, maxInvestment: parseFloat(e.target.value) || 0 }))}
+                        className="text-sm"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="stop-loss">Stop Loss (%)</Label>
+                      <Label htmlFor="stop-loss" className="text-sm">Stop Loss (%)</Label>
                       <Input
                         id="stop-loss"
                         type="number"
                         value={botConfig.stopLoss}
                         onChange={(e) => setBotConfig(prev => ({ ...prev, stopLoss: parseFloat(e.target.value) || 0 }))}
+                        className="text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="take-profit">Take Profit (%)</Label>
+                    <Label htmlFor="take-profit" className="text-sm">Take Profit (%)</Label>
                     <Input
                       id="take-profit"
                       type="number"
                       value={botConfig.takeProfit}
                       onChange={(e) => setBotConfig(prev => ({ ...prev, takeProfit: parseFloat(e.target.value) || 0 }))}
+                      className="text-sm"
                     />
                   </div>
 
@@ -676,41 +820,73 @@ const BotPage = () => {
                       checked={botConfig.autoTrade}
                       onCheckedChange={(checked) => setBotConfig(prev => ({ ...prev, autoTrade: checked }))}
                     />
-                    <Label htmlFor="auto-trade">Execução Automática</Label>
+                    <Label htmlFor="auto-trade" className="text-sm">Execução Automática</Label>
                   </div>
                 </div>
 
-                <div className="p-4 bg-primary/10 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Projeção de Lucros (Baseada na Binance)</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Diário:</span>
-                      <div className="font-medium text-trading-green">+$125-$380</div>
+                {/* Projeção de Lucros em Tempo Real */}
+                <Card className="bg-gradient-to-br from-trading-green/10 to-primary/10 border-trading-green/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm sm:text-base font-medium text-trading-green flex items-center">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Projeção de Lucros em Tempo Real
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
+                      <div className="text-center p-3 bg-white/50 rounded-lg">
+                        <span className="text-muted-foreground text-xs">Diário (Estimado):</span>
+                        <div className="font-bold text-trading-green text-sm sm:text-base">
+                          ${profitProjection.daily.min.toFixed(0)} - ${profitProjection.daily.max.toFixed(0)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {((profitProjection.daily.min / botConfig.maxInvestment) * 100).toFixed(2)}% - {((profitProjection.daily.max / botConfig.maxInvestment) * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                      <div className="text-center p-3 bg-white/50 rounded-lg">
+                        <span className="text-muted-foreground text-xs">Mensal (Estimado):</span>
+                        <div className="font-bold text-primary text-sm sm:text-base">
+                          ${profitProjection.monthly.min.toFixed(0)} - ${profitProjection.monthly.max.toFixed(0)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {((profitProjection.monthly.min / botConfig.maxInvestment) * 100).toFixed(0)}% - {((profitProjection.monthly.max / botConfig.maxInvestment) * 100).toFixed(0)}%
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Mensal:</span>
-                      <div className="font-medium text-primary">+$3,750-$11,400</div>
+                    
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                      <div className="text-center">
+                        <span className="text-muted-foreground">Taxa de Sucesso Estimada:</span>
+                        <div className="font-medium text-primary">{profitProjection.successRate.toFixed(0)}%</div>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-muted-foreground">Nível de Risco:</span>
+                        <div className="font-medium text-warning">{profitProjection.riskLevel}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    *Baseado em dados históricos da API Binance e análise de {botStats.analysisSpeed} operações por segundo
-                  </div>
-                </div>
+                    
+                    <div className="mt-3 text-xs text-muted-foreground bg-white/30 p-2 rounded text-center">
+                      <strong>⚠️ Aviso:</strong> Projeções baseadas em dados históricos da Binance e análise de {botStats.analysisSpeed} operações/segundo. 
+                      Resultados passados não garantem lucros futuros.
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Algoritmo de Seleção das Melhores Oportunidades */}
+        {/* Algoritmo de Seleção das Melhores Oportunidades - Mobile Optimized */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center text-card-foreground">
-                <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                Algoritmo de Seleção - Melhores Oportunidades
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
+                <span className="hidden sm:inline">Algoritmo de Seleção - Melhores Oportunidades</span>
+                <span className="sm:hidden">Melhores Oportunidades</span>
               </CardTitle>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-primary border-primary animate-pulse">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <Badge variant="outline" className="text-primary border-primary animate-pulse text-xs">
                   Analisando Binance
                 </Badge>
                 <Button 
@@ -718,22 +894,23 @@ const BotPage = () => {
                   size="sm"
                   onClick={handleRefreshOpportunities}
                   disabled={!canRefresh}
+                  className="text-xs w-full sm:w-auto"
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${!canRefresh ? 'opacity-50' : ''}`} />
+                  <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 ${!canRefresh ? 'opacity-50' : ''}`} />
                   {canRefresh ? 'Atualizar' : `${Math.floor(timeUntilRefresh / 60)}h ${timeUntilRefresh % 60}m`}
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6">
             <div className="mb-4 p-3 bg-primary/10 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
                 <h4 className="text-sm font-medium">Algoritmo de Maximização de Lucro</h4>
-                <Badge variant="outline" className="text-trading-green border-trading-green">
+                <Badge variant="outline" className="text-trading-green border-trading-green text-xs">
                   {botStats.analysisSpeed} análises/s
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-xs mb-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-trading-green rounded-full"></div>
                   <span>Análise de volatilidade</span>
@@ -757,16 +934,16 @@ const BotPage = () => {
               </div>
             </div>
             
-            <div className="space-y-4">{tradeOpportunities.map((opportunity) => (
-                <div key={opportunity.id} className="p-4 bg-secondary rounded-lg border border-border">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={opportunity.type === "BUY" ? "default" : "secondary"}>
+            <div className="space-y-3 sm:space-y-4">{tradeOpportunities.map((opportunity) => (
+                <div key={opportunity.id} className="p-3 sm:p-4 bg-secondary rounded-lg border border-border">
+                  <div className="flex flex-col lg:flex-row items-start justify-between gap-3 lg:gap-4">
+                    <div className="space-y-2 sm:space-y-3 flex-1 w-full">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={opportunity.type === "BUY" ? "default" : "secondary"} className="text-xs">
                           {opportunity.type}
                         </Badge>
-                        <span className="font-medium">{opportunity.pair}</span>
-                        <Badge variant="outline" className={getRiskColor(opportunity.riskLevel)}>
+                        <span className="font-medium text-sm sm:text-base">{opportunity.pair}</span>
+                        <Badge variant="outline" className={`${getRiskColor(opportunity.riskLevel)} text-xs`}>
                           {opportunity.riskLevel}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
@@ -774,7 +951,7 @@ const BotPage = () => {
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <span className="text-muted-foreground">Preço Atual:</span>
                           <div className="font-medium">${opportunity.currentPrice.toLocaleString()}</div>
@@ -805,7 +982,7 @@ const BotPage = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {opportunity.timeframe}
@@ -816,7 +993,8 @@ const BotPage = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <Signal className="h-3 w-3" />
-                          Sync: {opportunity.binanceData.lastUpdate}
+                          <span className="hidden sm:inline">Sync: {opportunity.binanceData.lastUpdate}</span>
+                          <span className="sm:hidden">Live</span>
                         </div>
                       </div>
                     </div>
@@ -827,9 +1005,11 @@ const BotPage = () => {
                         size="sm"
                         onClick={() => handleExecuteTrade(opportunity)}
                         disabled={!botConfig.isActive}
+                        className="text-xs"
                       >
-                        <Zap className="h-4 w-4 mr-1" />
-                        Executar
+                        <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">Executar</span>
+                        <span className="sm:hidden">▶</span>
                       </Button>
                     </div>
                   </div>
@@ -839,22 +1019,18 @@ const BotPage = () => {
           </CardContent>
         </Card>
 
-        {/* Aviso de Risco */}
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="p-4">
+        {/* Aviso de Risco - Mobile Optimized */}
+        <Card className="bg-destructive/10 border-destructive/30">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-destructive mb-2">⚠️ AVISO DE RISCO IMPORTANTE</h3>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p><strong>Trading de criptomoedas envolve alto risco de perda financeira.</strong> Os preços podem ser extremamente voláteis.</p>
-                  <p><strong>Nunca invista mais do que você pode perder.</strong> Este bot não garante lucros e perdas podem ocorrer.</p>
-                  <p><strong>Resultados passados não garantem resultados futuros.</strong> Mercados podem mudar rapidamente.</p>
-                  <p><strong>Considere sua situação financeira</strong> antes de usar estratégias automatizadas de trading.</p>
-                </div>
-                <div className="mt-3 flex items-center space-x-2 text-xs">
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                  <span className="text-destructive font-medium">Você está ciente dos riscos ao usar este sistema</span>
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="space-y-2">
+                <h4 className="text-sm sm:text-base font-medium text-destructive">Aviso de Risco</h4>
+                <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
+                  <p>• Trading de criptomoedas envolve riscos significativos de perda</p>
+                  <p>• Resultados passados não garantem lucros futuros</p>
+                  <p>• Use apenas capital que você pode se permitir perder</p>
+                  <p>• Monitore suas operações regularmente</p>
                 </div>
               </div>
             </div>
