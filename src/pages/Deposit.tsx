@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   DollarSign,
   QrCode,
-  Wallet
+  Wallet,
+  RefreshCw,
+  TrendingUp
 } from "lucide-react";
 
 const Deposit = () => {
@@ -24,10 +26,13 @@ const Deposit = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pixData, setPixData] = useState<{code: string, qrCode: string} | null>(null);
   const [bnbAddress] = useState("0x742d35Cc6634C0532925a3b8D39C1234567890AB");
+  const [usdRate, setUsdRate] = useState(5.45); // Taxa USD/BRL padrão
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
   
   // PIX Form State
   const [pixForm, setPixForm] = useState({
-    amount: "",
+    amountUSD: "",
+    amountBRL: "",
     holderName: "",
     cpf: ""
   });
@@ -38,15 +43,61 @@ const Deposit = () => {
     senderName: ""
   });
 
+  // Buscar cotação do dólar
+  const fetchUSDRate = async () => {
+    setIsLoadingRate(true);
+    try {
+      // Usando uma API gratuita para cotação
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const data = await response.json();
+      if (data.rates?.BRL) {
+        setUsdRate(data.rates.BRL);
+      }
+    } catch (error) {
+      console.log('Erro ao buscar cotação, usando valor padrão');
+      // Usar valor padrão em caso de erro
+      setUsdRate(5.45);
+    } finally {
+      setIsLoadingRate(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUSDRate();
+  }, []);
+
+  // Converter USD para BRL
+  const convertUSDToBRL = (usdAmount: string) => {
+    if (!usdAmount) return "";
+    const usd = parseFloat(usdAmount);
+    if (isNaN(usd)) return "";
+    return (usd * usdRate).toFixed(2);
+  };
+
+  // Converter BRL para USD
+  const convertBRLToUSD = (brlAmount: string) => {
+    if (!brlAmount) return "";
+    const brl = parseFloat(brlAmount);
+    if (isNaN(brl)) return "";
+    return (brl / usdRate).toFixed(2);
+  };
+
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   };
 
+  // Símbolo PIX em SVG
+  const PixIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 512 512" className="inline-block">
+      <path fill="currentColor" d="M242.4 292.5C247.8 287.1 255.4 284 263.4 284h91.2c18.7 0 37.1 7.4 50.5 20.8l78.3 78.3c3.1 3.1 8.2 3.1 11.3 0l27.3-27.3c3.1-3.1 3.1-8.2 0-11.3L430.6 252.1c-25-25-58.8-39.1-94.2-39.1H263.4c-8 0-15.6-3.2-21.2-8.8l-139.1-139.1c-3.1-3.1-8.2-3.1-11.3 0L64.5 92.4c-3.1 3.1-3.1 8.2 0 11.3l139.1 139.1c5.6 5.6 8.8 13.2 8.8 21.2v73c0 8-3.2 15.6-8.8 21.2L64.5 497.3c-3.1 3.1-3.1 8.2 0 11.3l27.3 27.3c3.1 3.1 8.2 3.1 11.3 0l139.1-139.1c5.6-5.6 13.2-8.8 21.2-8.8h73c35.4 0 69.2-14.1 94.2-39.1l91.4-91.4c3.1-3.1 3.1-8.2 0-11.3l-27.3-27.3c-3.1-3.1-8.2-3.1-11.3 0l-78.3 78.3c-13.4 13.4-31.7 20.8-50.5 20.8h-91.2c-8 0-15.6 3.2-21.2 8.8z"/>
+    </svg>
+  );
+
   const handlePixSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!pixForm.amount || !pixForm.holderName || !pixForm.cpf) {
+    if (!pixForm.amountBRL || !pixForm.holderName || !pixForm.cpf) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos para gerar o PIX",
@@ -59,7 +110,7 @@ const Deposit = () => {
 
     // Simular geração do PIX
     setTimeout(() => {
-      const mockPixCode = `00020126580014BR.GOV.BCB.PIX2536pix@alphabit.com.br5204000053039865406${pixForm.amount}5802BR5925${pixForm.holderName}6009SAO PAULO62070503***63041234`;
+      const mockPixCode = `00020126580014BR.GOV.BCB.PIX2536pix@alphabit.com.br5204000053039865406${pixForm.amountBRL}5802BR5925${pixForm.holderName}6009SAO PAULO62070503***63041234`;
       
       setPixData({
         code: mockPixCode,
@@ -167,32 +218,99 @@ const Deposit = () => {
               <TabsContent value="pix" className="space-y-6">
                 <div className="text-center mb-4">
                   <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                    <Smartphone className="h-4 w-4" />
+                    <PixIcon />
                     <span>Depósito via PIX - Instantâneo</span>
                   </div>
                 </div>
+
+                {/* Cotação USD/BRL */}
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="h-5 w-5 text-blue-600" />
+                        <span className="font-semibold text-blue-800">Cotação USD/BRL:</span>
+                        <span className="text-lg font-bold text-blue-600">
+                          R$ {usdRate.toFixed(2)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchUSDRate}
+                        disabled={isLoadingRate}
+                        className="hover-scale"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Última atualização: {new Date().toLocaleTimeString('pt-BR')}
+                    </p>
+                  </CardContent>
+                </Card>
 
                 {!pixData ? (
                   <form onSubmit={handlePixSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="pix-amount">Valor (R$) *</Label>
+                        <Label htmlFor="usd-amount">Valor (USD) *</Label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
-                            id="pix-amount"
+                            id="usd-amount"
                             type="number"
                             placeholder="100.00"
                             className="pl-9"
                             min="10"
                             step="0.01"
-                            value={pixForm.amount}
-                            onChange={(e) => setPixForm({...pixForm, amount: e.target.value})}
+                            value={pixForm.amountUSD}
+                            onChange={(e) => {
+                              const usdValue = e.target.value;
+                              const brlValue = convertUSDToBRL(usdValue);
+                              setPixForm({
+                                ...pixForm, 
+                                amountUSD: usdValue,
+                                amountBRL: brlValue
+                              });
+                            }}
                             required
                           />
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          Valor mínimo: $10.00 USD
+                        </p>
                       </div>
 
+                      <div className="space-y-2">
+                        <Label htmlFor="brl-amount">Valor (BRL) *</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-3 text-sm text-muted-foreground">R$</span>
+                          <Input
+                            id="brl-amount"
+                            type="number"
+                            placeholder="545.00"
+                            className="pl-9 bg-muted"
+                            value={pixForm.amountBRL}
+                            onChange={(e) => {
+                              const brlValue = e.target.value;
+                              const usdValue = convertBRLToUSD(brlValue);
+                              setPixForm({
+                                ...pixForm,
+                                amountBRL: brlValue,
+                                amountUSD: usdValue
+                              });
+                            }}
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-green-600 font-medium">
+                          ≈ ${pixForm.amountUSD || "0.00"} USD
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="cpf">CPF do Titular *</Label>
                         <Input
@@ -208,18 +326,18 @@ const Deposit = () => {
                           required
                         />
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="holder-name">Nome do Titular *</Label>
-                      <Input
-                        id="holder-name"
-                        type="text"
-                        placeholder="Nome completo como no CPF"
-                        value={pixForm.holderName}
-                        onChange={(e) => setPixForm({...pixForm, holderName: e.target.value})}
-                        required
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="holder-name">Nome do Titular *</Label>
+                        <Input
+                          id="holder-name"
+                          type="text"
+                          placeholder="Nome completo como no CPF"
+                          value={pixForm.holderName}
+                          onChange={(e) => setPixForm({...pixForm, holderName: e.target.value})}
+                          required
+                        />
+                      </div>
                     </div>
 
                     <Button 
@@ -235,9 +353,14 @@ const Deposit = () => {
                     <div className="text-center">
                       <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">PIX Gerado com Sucesso!</h3>
-                      <p className="text-muted-foreground">
-                        Valor: <span className="font-semibold text-primary">R$ {pixForm.amount}</span>
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-muted-foreground">
+                          Valor: <span className="font-semibold text-primary">R$ {pixForm.amountBRL}</span>
+                        </p>
+                        <p className="text-sm text-green-600">
+                          Equivalente a: <span className="font-semibold">${pixForm.amountUSD} USD</span>
+                        </p>
+                      </div>
                     </div>
 
                     {/* QR Code */}
@@ -285,7 +408,7 @@ const Deposit = () => {
                       variant="outline"
                       onClick={() => {
                         setPixData(null);
-                        setPixForm({amount: "", holderName: "", cpf: ""});
+                        setPixForm({amountUSD: "", amountBRL: "", holderName: "", cpf: ""});
                       }}
                       className="w-full"
                     >
