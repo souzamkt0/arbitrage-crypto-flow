@@ -492,9 +492,9 @@ const Community = () => {
             </div>
 
             {/* Posts - Mobile Optimized */}
-            <div>
+            <div className="pb-16 lg:pb-0">
               {posts.map((post, index) => (
-                <div key={post.id} className="border-b border-border hover:bg-secondary/30 transition-colors p-3 sm:p-4">
+                <div key={post.id} className="border-b border-border p-3 sm:p-4">
                   <TwitterPost
                     post={post}
                     onLike={handleLike}

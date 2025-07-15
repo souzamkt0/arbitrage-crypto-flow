@@ -95,148 +95,149 @@ const TwitterPost = ({
   };
 
   return (
-    <Card className="bg-card border-border hover:bg-secondary/30 transition-colors cursor-pointer">
-      <CardContent className="pt-4">
-        {post.replyTo && (
-          <div className="flex items-center text-xs text-muted-foreground mb-2 pl-12">
-            <Reply className="h-3 w-3 mr-1" />
-            Respondendo a @{post.replyTo}
-          </div>
-        )}
+    <div className="hover:bg-secondary/30 transition-colors">
+      {post.replyTo && (
+        <div className="flex items-center text-xs text-muted-foreground mb-2 pl-10 sm:pl-12">
+          <Reply className="h-3 w-3 mr-1" />
+          Respondendo a @{post.replyTo}
+        </div>
+      )}
+      
+      <div className="flex space-x-3">
+        <div 
+          className="cursor-pointer flex-shrink-0"
+          onClick={() => onUserClick(post.author)}
+        >
+          <Avatar className="h-10 w-10 sm:h-12 sm:w-12 hover:opacity-90 transition-opacity">
+            <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
+            <AvatarFallback>{post.author.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          </Avatar>
+        </div>
         
-        <div className="flex space-x-3">
-          <div 
-            className="cursor-pointer"
-            onClick={() => onUserClick(post.author)}
-          >
-            <Avatar className="h-12 w-12 hover:opacity-90 transition-opacity">
-              <AvatarImage src={post.author.avatar} alt={post.author.displayName} />
-              <AvatarFallback>{post.author.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-            </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap">
+            <span 
+              className="font-semibold text-foreground hover:underline cursor-pointer text-sm sm:text-base truncate"
+              onClick={() => onUserClick(post.author)}
+            >
+              {post.author.displayName}
+            </span>
+            
+            {post.author.verified && (
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500 flex-shrink-0" />
+            )}
+            
+            <span className="text-muted-foreground text-xs sm:text-sm">@{post.author.username}</span>
+            
+            <span className="text-muted-foreground text-xs sm:text-sm">·</span>
+            
+            <span className="text-muted-foreground text-xs sm:text-sm">{formatTimestamp(post.timestamp)}</span>
+            
+            <div className="ml-auto sm:ml-0">
+              <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
           </div>
           
-          <div className="flex-1">
-            <div className="flex items-center space-x-2">
-              <span 
-                className="font-semibold text-foreground hover:underline cursor-pointer"
-                onClick={() => onUserClick(post.author)}
-              >
-                {post.author.displayName}
-              </span>
-              
-              {post.author.verified && (
-                <CheckCircle2 className="h-4 w-4 text-blue-500" />
-              )}
-              
-              <span className="text-muted-foreground text-sm">@{post.author.username}</span>
-              
-              <span className="text-muted-foreground text-sm">·</span>
-              
-              <span className="text-muted-foreground text-sm">{formatTimestamp(post.timestamp)}</span>
-              
-              <Badge variant="outline" className={`text-xs ${getLevelColor(post.author.level)}`}>
-                {post.author.badge}
-              </Badge>
-              
-              <div className="ml-auto">
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+          <div className="flex items-center space-x-2 mt-1">
+            <Badge variant="outline" className={`text-xs ${getLevelColor(post.author.level)}`}>
+              {post.author.badge}
+            </Badge>
+          </div>
+          
+          <div 
+            className="text-foreground mt-2 leading-relaxed whitespace-pre-wrap text-sm sm:text-base"
+            dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          />
+          
+          <div className="flex items-center justify-between mt-3 max-w-xs sm:max-w-md">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReplyBox(!showReplyBox)}
+              className="text-muted-foreground hover:text-blue-500 hover:bg-blue-50 group p-1 sm:p-2"
+            >
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 group-hover:fill-blue-100" />
+              <span className="text-xs sm:text-sm">{post.replies}</span>
+            </Button>
             
-            <div 
-              className="text-foreground mt-1 leading-relaxed whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRetweet}
+              className={`group p-1 sm:p-2 ${
+                post.retweeted 
+                  ? 'text-green-500 hover:text-green-600' 
+                  : 'text-muted-foreground hover:text-green-500 hover:bg-green-50'
+              }`}
+            >
+              <Repeat2 className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${post.retweeted ? 'text-green-500' : 'group-hover:fill-green-100'}`} />
+              <span className="text-xs sm:text-sm">{post.retweets}</span>
+            </Button>
             
-            <div className="flex items-center justify-between mt-3 max-w-md">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowReplyBox(!showReplyBox)}
-                className="text-muted-foreground hover:text-blue-500 hover:bg-blue-50 group"
-              >
-                <MessageCircle className="h-4 w-4 mr-2 group-hover:fill-blue-100" />
-                <span className="text-sm">{post.replies}</span>
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRetweet}
-                className={`group ${
-                  post.retweeted 
-                    ? 'text-green-500 hover:text-green-600' 
-                    : 'text-muted-foreground hover:text-green-500 hover:bg-green-50'
-                }`}
-              >
-                <Repeat2 className={`h-4 w-4 mr-2 ${post.retweeted ? 'text-green-500' : 'group-hover:fill-green-100'}`} />
-                <span className="text-sm">{post.retweets}</span>
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLike}
-                className={`group ${
-                  post.liked 
-                    ? 'text-red-500 hover:text-red-600' 
-                    : 'text-muted-foreground hover:text-red-500 hover:bg-red-50'
-                }`}
-              >
-                <Heart className={`h-4 w-4 mr-2 ${post.liked ? 'fill-current text-red-500' : 'group-hover:fill-red-100'}`} />
-                <span className="text-sm">{post.likes}</span>
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-blue-500 hover:bg-blue-50 group"
-              >
-                <Share className="h-4 w-4 group-hover:fill-blue-100" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLike}
+              className={`group p-1 sm:p-2 ${
+                post.liked 
+                  ? 'text-red-500 hover:text-red-600' 
+                  : 'text-muted-foreground hover:text-red-500 hover:bg-red-50'
+              }`}
+            >
+              <Heart className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${post.liked ? 'fill-current text-red-500' : 'group-hover:fill-red-100'}`} />
+              <span className="text-xs sm:text-sm">{post.likes}</span>
+            </Button>
             
-            {showReplyBox && (
-              <div className="mt-4 border-t border-border pt-4">
-                <div className="flex space-x-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatars/current-user.jpg" />
-                    <AvatarFallback>TU</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <Textarea
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      placeholder={`Responder para @${post.author.username}...`}
-                      className="min-h-[80px] resize-none border-border"
-                    />
-                    <div className="flex justify-end space-x-2 mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowReplyBox(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleReplySubmit}
-                        disabled={!replyContent.trim()}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        Responder
-                      </Button>
-                    </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-blue-500 hover:bg-blue-50 group p-1 sm:p-2"
+            >
+              <Share className="h-3 w-3 sm:h-4 sm:w-4 group-hover:fill-blue-100" />
+            </Button>
+          </div>
+          
+          {showReplyBox && (
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="flex space-x-2 sm:space-x-3">
+                <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                  <AvatarImage src="/avatars/current-user.jpg" />
+                  <AvatarFallback>TU</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <Textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder={`Responder para @${post.author.username}...`}
+                    className="min-h-[60px] sm:min-h-[80px] resize-none border-border text-sm"
+                  />
+                  <div className="flex justify-end space-x-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowReplyBox(false)}
+                      className="text-xs"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleReplySubmit}
+                      disabled={!replyContent.trim()}
+                      className="bg-primary hover:bg-primary/90 text-xs"
+                    >
+                      Responder
+                    </Button>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
