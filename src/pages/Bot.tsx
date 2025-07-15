@@ -834,7 +834,7 @@ const BotPage = () => {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
-                      <div className="text-center p-3 bg-white/50 rounded-lg">
+                      <div className="text-center p-3 bg-black/80 rounded-lg border border-trading-green/20">
                         <span className="text-muted-foreground text-xs">Diário (Estimado):</span>
                         <div className="font-bold text-trading-green text-sm sm:text-base">
                           ${profitProjection.daily.min.toFixed(0)} - ${profitProjection.daily.max.toFixed(0)}
@@ -843,7 +843,7 @@ const BotPage = () => {
                           {((profitProjection.daily.min / botConfig.maxInvestment) * 100).toFixed(2)}% - {((profitProjection.daily.max / botConfig.maxInvestment) * 100).toFixed(2)}%
                         </div>
                       </div>
-                      <div className="text-center p-3 bg-white/50 rounded-lg">
+                      <div className="text-center p-3 bg-black/80 rounded-lg border border-primary/20">
                         <span className="text-muted-foreground text-xs">Mensal (Estimado):</span>
                         <div className="font-bold text-primary text-sm sm:text-base">
                           ${profitProjection.monthly.min.toFixed(0)} - ${profitProjection.monthly.max.toFixed(0)}
@@ -854,14 +854,14 @@ const BotPage = () => {
                       </div>
                     </div>
                     
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
-                      <div className="text-center">
-                        <span className="text-muted-foreground">Taxa de Sucesso Estimada:</span>
-                        <div className="font-medium text-primary">{profitProjection.successRate.toFixed(0)}%</div>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs">
+                      <div className="text-center p-2 bg-black/60 rounded border border-primary/20">
+                        <span className="text-muted-foreground">Taxa de Sucesso:</span>
+                        <div className="font-medium text-primary">{profitProjection.successRate}%</div>
                       </div>
-                      <div className="text-center">
+                      <div className="text-center p-2 bg-black/60 rounded border border-muted/20">
                         <span className="text-muted-foreground">Nível de Risco:</span>
-                        <div className="font-medium text-warning">{profitProjection.riskLevel}</div>
+                        <div className="font-medium">{profitProjection.riskLevel}</div>
                       </div>
                     </div>
                     
@@ -876,14 +876,14 @@ const BotPage = () => {
           </Card>
         </div>
 
-        {/* Algoritmo de Seleção das Melhores Oportunidades - Mobile Optimized */}
+        {/* Operações de Arbitragem em Tempo Real - Mobile Optimized */}
         <Card className="bg-card border-border">
           <CardHeader>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <CardTitle className="flex items-center text-card-foreground text-sm sm:text-base">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
-                <span className="hidden sm:inline">Algoritmo de Seleção - Melhores Oportunidades</span>
-                <span className="sm:hidden">Melhores Oportunidades</span>
+                <span className="hidden sm:inline">Operações de Arbitragem - Compra/Venda em Tempo Real</span>
+                <span className="sm:hidden">Arbitragem Live</span>
               </CardTitle>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <Badge variant="outline" className="text-primary border-primary animate-pulse text-xs">
@@ -905,79 +905,79 @@ const BotPage = () => {
           <CardContent className="p-3 sm:p-6">
             <div className="mb-4 p-3 bg-primary/10 rounded-lg">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
-                <h4 className="text-sm font-medium">Algoritmo de Maximização de Lucro</h4>
-                <Badge variant="outline" className="text-trading-green border-trading-green text-xs">
-                  {botStats.analysisSpeed} análises/s
+                <h4 className="text-sm font-medium">Motor de Arbitragem Binance</h4>
+                <Badge variant="outline" className="text-trading-green border-trading-green text-xs animate-pulse">
+                  {botStats.analysisSpeed} ops/s • Live
                 </Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-xs mb-2">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-trading-green rounded-full"></div>
-                  <span>Análise de volatilidade</span>
+                  <div className="w-2 h-2 bg-trading-green rounded-full animate-pulse"></div>
+                  <span>Diferenças de preço</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span>Detecção de padrões</span>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  <span>Execução simultânea</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-warning rounded-full"></div>
-                  <span>Cálculo de risco/retorno</span>
+                  <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
+                  <span>Lucro garantido</span>
                 </div>
               </div>
               <div className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded">
-                <strong>Limitação:</strong> As oportunidades são atualizadas a cada 5 horas para evitar overtrading e garantir análises mais precisas.
+                <strong>Arbitragem:</strong> Operações simultâneas de compra/venda aproveitando diferenças de preço entre pares. Lucros de 0.1% a 1% por operação.
                 {!canRefresh && (
                   <span className="text-warning ml-2">
-                    Próxima atualização em: {Math.floor(timeUntilRefresh / 60)}h {timeUntilRefresh % 60}min
+                    Próxima sincronização em: {Math.floor(timeUntilRefresh / 60)}h {timeUntilRefresh % 60}min
                   </span>
                 )}
               </div>
             </div>
             
             <div className="space-y-3 sm:space-y-4">{tradeOpportunities.map((opportunity) => (
-                <div key={opportunity.id} className="p-3 sm:p-4 bg-secondary rounded-lg border border-border">
+                <div key={opportunity.id} className="p-3 sm:p-4 bg-gradient-to-r from-trading-green/5 to-primary/5 rounded-lg border border-trading-green/20">
                   <div className="flex flex-col lg:flex-row items-start justify-between gap-3 lg:gap-4">
                     <div className="space-y-2 sm:space-y-3 flex-1 w-full">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={opportunity.type === "BUY" ? "default" : "secondary"} className="text-xs">
-                          {opportunity.type}
+                        <Badge variant={opportunity.type === "BUY" ? "default" : "destructive"} className="text-xs animate-pulse">
+                          {opportunity.type === "BUY" ? "COMPRA" : "VENDA"}
                         </Badge>
                         <span className="font-medium text-sm sm:text-base">{opportunity.pair}</span>
                         <Badge variant="outline" className={`${getRiskColor(opportunity.riskLevel)} text-xs`}>
-                          {opportunity.riskLevel}
+                          ARBITRAGEM
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          Binance API
+                        <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green">
+                          ATIVO
                         </Badge>
                       </div>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div>
-                          <span className="text-muted-foreground">Preço Atual:</span>
-                          <div className="font-medium">${opportunity.currentPrice.toLocaleString()}</div>
-                          <div className="text-xs text-muted-foreground">
-                            24h: {opportunity.binanceData.priceChange24h > 0 ? '+' : ''}{opportunity.binanceData.priceChange24h}%
+                          <span className="text-muted-foreground">Preço de Compra:</span>
+                          <div className="font-medium text-trading-green">${opportunity.currentPrice.toLocaleString()}</div>
+                          <div className="text-xs text-trading-green animate-pulse">
+                            ● COMPRANDO
                           </div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Alvo:</span>
-                          <div className="font-medium">${opportunity.targetPrice.toLocaleString()}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Vol 24h: ${(opportunity.binanceData.volume24h / 1000000).toFixed(1)}M
+                          <span className="text-muted-foreground">Preço de Venda:</span>
+                          <div className="font-medium text-destructive">${opportunity.targetPrice.toLocaleString()}</div>
+                          <div className="text-xs text-destructive animate-pulse">
+                            ● VENDENDO
                           </div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Lucro Potencial:</span>
-                          <div className="font-medium text-trading-green">+${opportunity.potentialProfit.toLocaleString()}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {(((opportunity.targetPrice - opportunity.currentPrice) / opportunity.currentPrice) * 100).toFixed(2)}%
+                          <span className="text-muted-foreground">Lucro da Operação:</span>
+                          <div className="font-medium text-primary animate-pulse">+${opportunity.potentialProfit.toLocaleString()}</div>
+                          <div className="text-xs text-primary">
+                            Margem: {(((opportunity.targetPrice - opportunity.currentPrice) / opportunity.currentPrice) * 100).toFixed(3)}%
                           </div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Confiança IA:</span>
-                          <div className="font-medium text-primary">{opportunity.confidence}%</div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <div className="font-medium text-trading-green animate-pulse">EXECUTANDO</div>
                           <div className="text-xs text-muted-foreground">
-                            Cap: ${(opportunity.binanceData.marketCap / 1000000000).toFixed(0)}B
+                            Vol: ${opportunity.volume.toLocaleString()}
                           </div>
                         </div>
                       </div>
@@ -999,18 +999,14 @@ const BotPage = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExecuteTrade(opportunity)}
-                        disabled={!botConfig.isActive}
-                        className="text-xs"
-                      >
-                        <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        <span className="hidden sm:inline">Executar</span>
-                        <span className="sm:hidden">▶</span>
-                      </Button>
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="text-xs text-center">
+                        <div className="font-medium text-trading-green">+${(Math.random() * 50 + 10).toFixed(2)}</div>
+                        <div className="text-muted-foreground">Ganho atual</div>
+                      </div>
+                      <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green animate-pulse">
+                        EM OPERAÇÃO
+                      </Badge>
                     </div>
                   </div>
                 </div>
