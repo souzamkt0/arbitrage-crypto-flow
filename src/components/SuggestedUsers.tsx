@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, CheckCircle2, Users } from "lucide-react";
 import { UserProfileData } from "./UserProfile";
+import AvatarSVG from "@/components/AvatarSVG";
 
 interface SuggestedUsersProps {
   users: UserProfileData[];
@@ -27,10 +28,9 @@ const SuggestedUsers = ({ users, onFollow, onUserClick }: SuggestedUsersProps) =
             className="flex items-center space-x-3 flex-1 cursor-pointer"
             onClick={() => onUserClick(user)}
           >
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user.avatar} alt={user.displayName} />
-              <AvatarFallback>{user.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-            </Avatar>
+            <div className="h-10 w-10 rounded-full overflow-hidden bg-background hover-scale animate-fade-in">
+              <AvatarSVG type={user.avatar} />
+            </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2">

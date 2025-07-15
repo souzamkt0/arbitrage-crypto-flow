@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import AvatarSVG from "@/components/AvatarSVG";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -118,10 +119,9 @@ const UserProfile = ({
       <div className="p-3 -mt-8">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className="h-16 w-16 border-4 border-background">
-            <AvatarImage src={user.avatar} alt={user.displayName} />
-            <AvatarFallback>{user.displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-          </Avatar>
+          <div className="h-16 w-16 rounded-full border-4 border-background overflow-hidden bg-background animate-scale-in">
+            <AvatarSVG type={user.avatar} />
+          </div>
         </div>
         
         {/* User Info */}

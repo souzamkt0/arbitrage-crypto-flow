@@ -8,23 +8,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, User, TrendingUp, MapPin, Building, Camera, Phone, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarSVG from "@/components/AvatarSVG";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [referralInfo, setReferralInfo] = useState<{code: string, referrerName: string} | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState("photo-1649972904349-6e44c42644a7");
+  const [selectedAvatar, setSelectedAvatar] = useState("avatar1");
   const [referralCode, setReferralCode] = useState("");
   const [referralError, setReferralError] = useState("");
 
   const avatarOptions = [
-    "photo-1649972904349-6e44c42644a7",
-    "photo-1581091226825-a6a2a5aee158", 
-    "photo-1526374965328-7f61d4dc18c5",
-    "photo-1506744038136-46273834b3fb",
-    "photo-1582562124811-c09040d0a901",
-    "photo-1472099645785-5658abf4ff4e",
-    "photo-1507003211169-0a1dd7228f2d",
-    "photo-1494790108755-2616b612b977"
+    "avatar1", // Homem moreno
+    "avatar2", // Mulher loira
+    "avatar3", // Homem asiático
+    "avatar4", // Mulher morena
+    "avatar5", // Homem ruivo
+    "avatar6", // Mulher asiática
+    "avatar7", // Homem negro
+    "avatar8"  // Mulher negra
   ];
 
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ const Login = () => {
       whatsapp: formData.get("whatsapp") as string,
       city: formData.get("city") as string,
       state: formData.get("state") as string,
-      avatar: `https://images.unsplash.com/${selectedAvatar}?w=400&h=400&fit=crop&crop=face`,
+      avatar: selectedAvatar,
       verified: false,
       followers: 0,
       following: 0,
@@ -210,27 +211,24 @@ const Login = () => {
                   <div className="space-y-2">
                     <Label>Foto de Perfil</Label>
                     <div className="flex items-center space-x-4">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={`https://images.unsplash.com/${selectedAvatar}?w=400&h=400&fit=crop&crop=face`} />
-                        <AvatarFallback>
-                          <Camera className="h-6 w-6" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-primary bg-background animate-scale-in">
+                        <AvatarSVG type={selectedAvatar} />
+                      </div>
                       <div className="grid grid-cols-4 gap-2">
                         {avatarOptions.map((avatar) => (
                           <button
                             key={avatar}
                             type="button"
                             onClick={() => setSelectedAvatar(avatar)}
-                            className={`relative rounded-full overflow-hidden border-2 transition-all ${
+                            className={`relative rounded-full overflow-hidden border-2 transition-all hover-scale ${
                               selectedAvatar === avatar 
-                                ? "border-primary shadow-lg scale-105" 
+                                ? "border-primary shadow-lg animate-scale-in" 
                                 : "border-muted hover:border-primary/50"
                             }`}
                           >
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={`https://images.unsplash.com/${avatar}?w=400&h=400&fit=crop&crop=face`} />
-                            </Avatar>
+                            <div className="h-8 w-8">
+                              <AvatarSVG type={avatar} />
+                            </div>
                           </button>
                         ))}
                       </div>
