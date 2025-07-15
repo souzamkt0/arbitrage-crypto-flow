@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Gift, Lock, DollarSign, Calendar, Sparkles } from "lucide-react";
+import { Gift, Lock, DollarSign, Calendar, Sparkles, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import treasureChestImage from "@/assets/treasure-chest.png";
 
 interface TreasureChest {
   id: number;
@@ -19,18 +20,58 @@ interface BonusSettings {
   prizes: number[];
 }
 
+interface RecentWinner {
+  id: number;
+  userName: string;
+  prize: number;
+  timeAgo: string;
+  chestNumber: number;
+}
+
 const Bonus = () => {
   const [chests, setChests] = useState<TreasureChest[]>([]);
   const [canOpenChests, setCanOpenChests] = useState(false);
   const [chestsOpened, setChestsOpened] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
   const [lastDepositAmount, setLastDepositAmount] = useState(0);
+  const [recentWinners, setRecentWinners] = useState<RecentWinner[]>([]);
   const [bonusSettings, setBonusSettings] = useState<BonusSettings>({
     minDepositForBonus: 50,
     chestsPerDay: 3,
     prizes: [1, 2, 3, 5, 8, 10, 15, 20, 25, 30]
   });
   const { toast } = useToast();
+
+  // Simulador de usuários ganhando prêmios
+  useEffect(() => {
+    // Gerar dados iniciais de vencedores
+    const initialWinners: RecentWinner[] = [
+      { id: 1, userName: "João Silva", prize: 25, timeAgo: "2 min atrás", chestNumber: 1 },
+      { id: 2, userName: "Maria Santos", prize: 10, timeAgo: "5 min atrás", chestNumber: 3 },
+      { id: 3, userName: "Pedro Costa", prize: 50, timeAgo: "8 min atrás", chestNumber: 2 },
+      { id: 4, userName: "Ana Oliveira", prize: 15, timeAgo: "12 min atrás", chestNumber: 1 },
+      { id: 5, userName: "Carlos Lima", prize: 5, timeAgo: "15 min atrás", chestNumber: 3 }
+    ];
+    setRecentWinners(initialWinners);
+
+    // Simular novos vencedores a cada 8-15 segundos
+    const interval = setInterval(() => {
+      const names = ["Lucas Almeida", "Fernanda Rocha", "Ricardo Santos", "Juliana Costa", "Rafael Silva", "Beatriz Lima", "Gabriel Souza", "Camila Ferreira"];
+      const prizes = [1, 2, 3, 5, 8, 10, 15, 20, 25, 30];
+      
+      const newWinner: RecentWinner = {
+        id: Date.now(),
+        userName: names[Math.floor(Math.random() * names.length)],
+        prize: prizes[Math.floor(Math.random() * prizes.length)],
+        timeAgo: "Agora",
+        chestNumber: Math.floor(Math.random() * 3) + 1
+      };
+
+      setRecentWinners(prev => [newWinner, ...prev.slice(0, 9)]); // Manter apenas os 10 mais recentes
+    }, Math.random() * 7000 + 8000); // Entre 8-15 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Simular verificação de depósito do usuário
@@ -192,52 +233,72 @@ const Bonus = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {chests.map((chest) => (
               <div key={chest.id} className="flex flex-col items-center">
-                <Button
-                  onClick={() => openChest(chest.id)}
-                  disabled={chest.opened || chest.isOpening || (lastDepositAmount >= bonusSettings.minDepositForBonus && chestsOpened >= bonusSettings.chestsPerDay)}
-                  className={`
-                    w-32 h-32 rounded-xl text-6xl transition-all duration-300
-                    ${chest.opened 
-                      ? 'bg-green-100 text-green-600 border-2 border-green-300 hover:bg-green-100' 
-                      : chest.isOpening
-                      ? 'bg-yellow-100 text-yellow-600 border-2 border-yellow-300 animate-pulse'
-                      : lastDepositAmount < bonusSettings.minDepositForBonus
-                      ? 'bg-gray-200 text-gray-400 border-2 border-gray-300 cursor-pointer hover:bg-gray-300'
-                      : 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white hover:from-yellow-500 hover:to-yellow-700 shadow-lg hover:shadow-xl'
-                    }
-                  `}
-                  variant={chest.opened ? "outline" : "default"}
-                >
-                    {chest.isOpening ? (
-                      <div className="animate-spin">⚡</div>
-                    ) : chest.opened ? (
-                      <div className="flex flex-col items-center">
-                        <div className="text-2xl">💰</div>
-                        <div className="text-sm font-bold">${chest.prize}</div>
-                      </div>
-                    ) : (
-                      '🎁'
-                    )}
-                  </Button>
-                  
-                  <div className="mt-3 text-center">
-                    <Badge variant={chest.opened ? "default" : "secondary"} className="mb-1">
-                      Baú #{chest.id}
-                    </Badge>
+                <div className="relative">
+                  <Button
+                    onClick={() => openChest(chest.id)}
+                    disabled={chest.opened || chest.isOpening || (lastDepositAmount >= bonusSettings.minDepositForBonus && chestsOpened >= bonusSettings.chestsPerDay)}
+                    className={`
+                      w-40 h-40 rounded-xl p-0 overflow-hidden transition-all duration-300 relative
+                      ${chest.opened 
+                        ? 'border-4 border-green-400 shadow-lg shadow-green-200' 
+                        : chest.isOpening
+                        ? 'border-4 border-yellow-400 shadow-lg shadow-yellow-200 animate-pulse'
+                        : lastDepositAmount < bonusSettings.minDepositForBonus
+                        ? 'border-4 border-gray-300 grayscale hover:grayscale-0 cursor-pointer'
+                        : 'border-4 border-yellow-400 shadow-lg shadow-yellow-200 hover:shadow-xl hover:shadow-yellow-300 animate-pulse'
+                      }
+                    `}
+                    variant="ghost"
+                    style={{ padding: 0 }}
+                  >
+                    <img 
+                      src={treasureChestImage} 
+                      alt="Baú do tesouro" 
+                      className={`w-full h-full object-cover ${
+                        chest.isOpening ? 'animate-bounce' : ''
+                      } ${
+                        !chest.opened && lastDepositAmount >= bonusSettings.minDepositForBonus ? 'golden-glow' : ''
+                      }`}
+                    />
                     {chest.opened && (
-                      <div className="text-sm text-green-600 font-medium">
-                        Prêmio: ${chest.prize}
+                      <div className="absolute inset-0 bg-green-400 bg-opacity-20 flex items-center justify-center">
+                        <div className="text-center text-white font-bold">
+                          <div className="text-2xl">💰</div>
+                          <div className="text-lg">${chest.prize}</div>
+                        </div>
                       </div>
                     )}
                     {chest.isOpening && (
-                      <div className="text-sm text-yellow-600 animate-pulse">
-                        Abrindo...
+                      <div className="absolute inset-0 bg-yellow-400 bg-opacity-30 flex items-center justify-center">
+                        <div className="text-white text-3xl animate-spin">✨</div>
                       </div>
                     )}
-                  </div>
+                  </Button>
                 </div>
-              ))}
-            </div>
+                
+                <div className="mt-4 text-center">
+                  <Badge variant={chest.opened ? "default" : "secondary"} className="mb-2">
+                    Baú #{chest.id}
+                  </Badge>
+                  {chest.opened && (
+                    <div className="text-sm text-green-600 font-medium animate-bounce">
+                      Prêmio: ${chest.prize} 🎉
+                    </div>
+                  )}
+                  {chest.isOpening && (
+                    <div className="text-sm text-yellow-600 animate-pulse font-medium">
+                      Abrindo... ✨
+                    </div>
+                  )}
+                  {!chest.opened && !chest.isOpening && lastDepositAmount < bonusSettings.minDepositForBonus && (
+                    <div className="text-sm text-gray-500">
+                      Bloqueado 🔒
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
 
             {chestsOpened >= bonusSettings.chestsPerDay && lastDepositAmount >= bonusSettings.minDepositForBonus && (
               <div className="mt-8 text-center">
@@ -253,6 +314,58 @@ const Bonus = () => {
                 </Alert>
               </div>
             )}
+        </CardContent>
+      </Card>
+
+      {/* Simulador de Vencedores */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            Últimos Vencedores
+          </CardTitle>
+          <CardDescription>
+            Veja quem está ganhando prêmios dos baús de tesouro em tempo real!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {recentWinners.map((winner) => (
+              <div 
+                key={winner.id} 
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200 animate-fade-in"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <img 
+                      src={treasureChestImage} 
+                      alt="Baú" 
+                      className="w-6 h-6"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-800">{winner.userName}</div>
+                    <div className="text-sm text-gray-600">
+                      Abriu o Baú #{winner.chestNumber}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-green-600 text-lg">
+                    +${winner.prize}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {winner.timeAgo}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            <Sparkles className="h-4 w-4 inline mr-1" />
+            Novos vencedores aparecem em tempo real!
+          </div>
         </CardContent>
       </Card>
 
@@ -280,6 +393,36 @@ const Bonus = () => {
           </div>
         </CardContent>
       </Card>
+
+      <style>{`
+        .golden-glow {
+          animation: goldenGlow 2s infinite ease-in-out;
+        }
+        
+        @keyframes goldenGlow {
+          0%, 100% {
+            filter: drop-shadow(0 0 5px #ffd700) brightness(1);
+          }
+          50% {
+            filter: drop-shadow(0 0 20px #ffd700) brightness(1.2);
+          }
+        }
+        
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
