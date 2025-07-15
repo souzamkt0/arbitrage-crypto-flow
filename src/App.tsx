@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 import Bot from "./pages/Bot";
+import Deposit from "./pages/Deposit";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
@@ -65,6 +66,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Bot />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deposit"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Deposit />
                 </Layout>
               </ProtectedRoute>
             }

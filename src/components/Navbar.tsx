@@ -16,7 +16,8 @@ import {
   Shield,
   PiggyBank,
   MessageSquare,
-  Bot
+  Bot,
+  Wallet
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +30,7 @@ const Navbar = () => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/bot", label: "Bot", icon: Bot },
+    { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
     { path: "/community", label: "Comunidade", icon: MessageSquare },
