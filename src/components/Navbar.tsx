@@ -12,12 +12,12 @@ import {
   LogOut,
   Menu,
   X,
-  Play,
   Shield,
   PiggyBank,
   MessageSquare,
   Bot,
-  Wallet
+  Wallet,
+  ArrowDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,6 +31,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/bot", label: "Bot", icon: Bot },
     { path: "/deposit", label: "Depósito", icon: Wallet },
+    { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
     { path: "/community", label: "Comunidade", icon: MessageSquare },

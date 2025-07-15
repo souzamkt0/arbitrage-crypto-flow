@@ -49,7 +49,8 @@ import {
   X as XIcon,
   Download,
   Wallet,
-  CreditCard
+  CreditCard,
+  ArrowDown
 } from "lucide-react";
 
 interface User {
@@ -74,6 +75,24 @@ interface InvestmentPlan {
   duration: number;
   description: string;
   status: "active" | "inactive";
+}
+
+interface Withdrawal {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  amountBRL: number;
+  type: "pix" | "usdt";
+  status: "pending" | "approved" | "rejected" | "processing";
+  holderName?: string;
+  cpf?: string;
+  pixKeyType?: "cpf" | "cnpj" | "email" | "phone" | "random";
+  pixKey?: string;
+  walletAddress?: string;
+  date: string;
+  fee: number;
+  netAmount: number;
 }
 
 interface Deposit {
@@ -245,7 +264,40 @@ const Admin = () => {
     }
   ]);
 
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([
+    {
+      id: "1",
+      userId: "1",
+      userName: "João Silva",
+      amount: 100,
+      amountBRL: 550,
+      type: "pix",
+      status: "pending",
+      holderName: "João Silva",
+      cpf: "123.456.789-00",
+      pixKeyType: "cpf",
+      pixKey: "123.456.789-00",
+      date: "2024-07-15T14:30:00Z",
+      fee: 2,
+      netAmount: 98
+    },
+    {
+      id: "2",
+      userId: "2",
+      userName: "Maria Santos",
+      amount: 200,
+      amountBRL: 1100,
+      type: "usdt",
+      status: "approved",
+      walletAddress: "0xb794f5ea0ba39494ce839613fffba74279579268",
+      date: "2024-07-14T11:20:00Z",
+      fee: 10,
+      netAmount: 190
+    }
+  ]);
+
   const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected">("all");
+  const [withdrawalFilter, setWithdrawalFilter] = useState<"all" | "pending" | "approved" | "rejected" | "processing">("all");
   
   const [adminSettings, setAdminSettings] = useState({
     referralPercent: 5,
@@ -264,7 +316,14 @@ const Admin = () => {
     usdtEnabled: true,
     minimumDeposit: 50,
     maximumDeposit: 10000,
-    autoApproval: false
+    autoApproval: false,
+    // Configurações de saque
+    withdrawalFeePixPercent: 2,
+    withdrawalFeeUsdtPercent: 5,
+    pixDailyLimit: 2000,
+    usdtDailyLimit: 10000,
+    withdrawalProcessingHours: "09:00-17:00",
+    withdrawalBusinessDays: true
   });
   const { toast } = useToast();
 
@@ -282,8 +341,14 @@ const Admin = () => {
     depositFilter === "all" || deposit.status === depositFilter
   );
   
+  const filteredWithdrawals = withdrawals.filter(withdrawal => 
+    withdrawalFilter === "all" || withdrawal.status === withdrawalFilter
+  );
+  
   const pendingDeposits = deposits.filter(d => d.status === "pending").length;
+  const pendingWithdrawals = withdrawals.filter(w => w.status === "pending").length;
   const totalDepositAmount = deposits.filter(d => d.status === "paid").reduce((sum, d) => sum + d.amount, 0);
+  const totalWithdrawalAmount = withdrawals.filter(w => w.status === "approved").reduce((sum, w) => sum + w.netAmount, 0);
 
   const handleToggleStatus = (userId: string) => {
     setUsers(prevUsers => 
@@ -389,6 +454,50 @@ const Admin = () => {
     });
   };
 
+  const handleWithdrawalAction = (withdrawalId: string, action: "approve" | "reject") => {
+    setWithdrawals(prev =>
+      prev.map(withdrawal =>
+        withdrawal.id === withdrawalId
+          ? { ...withdrawal, status: action === "approve" ? "approved" : "rejected" }
+          : withdrawal
+      )
+    );
+    
+    toast({
+      title: action === "approve" ? "Saque aprovado" : "Saque rejeitado",
+      description: `Saque foi ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso.`,
+    });
+  };
+
+  const exportWithdrawalsReport = () => {
+    const csvContent = [
+      ["Data", "Usuário", "Tipo", "Valor USD", "Taxa", "Líquido", "Status", "Detalhes"],
+      ...withdrawals.map(w => [
+        new Date(w.date).toLocaleDateString("pt-BR"),
+        w.userName,
+        w.type.toUpperCase(),
+        `$${w.amount}`,
+        `$${w.fee}`,
+        `$${w.netAmount}`,
+        w.status,
+        w.type === "pix" ? `${w.holderName} - ${w.pixKey}` : w.walletAddress || ""
+      ])
+    ].map(row => row.join(",")).join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `saques_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Relatório exportado",
+      description: "Relatório de saques foi baixado com sucesso.",
+    });
+  };
+
   const handleTogglePlanStatus = (planId: string) => {
     setInvestmentPlans(prev =>
       prev.map(plan =>
@@ -474,7 +583,14 @@ const Admin = () => {
         usdtEnabled: loaded.usdtEnabled !== undefined ? loaded.usdtEnabled : true,
         minimumDeposit: loaded.minimumDeposit || 50,
         maximumDeposit: loaded.maximumDeposit || 10000,
-        autoApproval: loaded.autoApproval !== undefined ? loaded.autoApproval : false
+        autoApproval: loaded.autoApproval !== undefined ? loaded.autoApproval : false,
+        // Configurações de saque com valores padrão
+        withdrawalFeePixPercent: loaded.withdrawalFeePixPercent || 2,
+        withdrawalFeeUsdtPercent: loaded.withdrawalFeeUsdtPercent || 5,
+        pixDailyLimit: loaded.pixDailyLimit || 2000,
+        usdtDailyLimit: loaded.usdtDailyLimit || 10000,
+        withdrawalProcessingHours: loaded.withdrawalProcessingHours || "09:00-17:00",
+        withdrawalBusinessDays: loaded.withdrawalBusinessDays !== undefined ? loaded.withdrawalBusinessDays : true
       });
     }
   }, []);
@@ -961,6 +1077,351 @@ const Admin = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDepositAction(deposit.id, "reject")}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            >
+                              <XIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+
+        {/* Gestão de Saques */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="text-card-foreground flex items-center">
+                <ArrowDown className="h-5 w-5 mr-2 text-primary" />
+                Gestão de Saques
+              </CardTitle>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={exportWithdrawalsReport} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Relatório
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Stats de Saques */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold text-warning">{pendingWithdrawals}</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-warning" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Sacado</p>
+                      <p className="text-2xl font-bold text-primary">${totalWithdrawalAmount.toLocaleString()}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Saques</p>
+                      <p className="text-2xl font-bold text-trading-green">{withdrawals.length}</p>
+                    </div>
+                    <ArrowDown className="h-8 w-8 text-trading-green" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Configurações de Saque */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Configurações de Saque
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="withdrawalFeePixPercent">Taxa PIX (%)</Label>
+                      <Input
+                        id="withdrawalFeePixPercent"
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={adminSettings.withdrawalFeePixPercent}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            withdrawalFeePixPercent: parseFloat(e.target.value) || 0 
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="withdrawalFeeUsdtPercent">Taxa USDT (%)</Label>
+                      <Input
+                        id="withdrawalFeeUsdtPercent"
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={adminSettings.withdrawalFeeUsdtPercent}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            withdrawalFeeUsdtPercent: parseFloat(e.target.value) || 0 
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pixDailyLimit">Limite PIX/dia (R$)</Label>
+                      <Input
+                        id="pixDailyLimit"
+                        type="number"
+                        min="100"
+                        value={adminSettings.pixDailyLimit}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            pixDailyLimit: parseInt(e.target.value) || 100 
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="usdtDailyLimit">Limite USDT/dia (R$)</Label>
+                      <Input
+                        id="usdtDailyLimit"
+                        type="number"
+                        min="1000"
+                        value={adminSettings.usdtDailyLimit}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            usdtDailyLimit: parseInt(e.target.value) || 1000 
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="withdrawalBusinessDays" className="text-sm font-medium">Apenas Dias Úteis</Label>
+                    <Switch
+                      id="withdrawalBusinessDays"
+                      checked={adminSettings.withdrawalBusinessDays}
+                      onCheckedChange={(checked) => 
+                        setAdminSettings(prev => ({ ...prev, withdrawalBusinessDays: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="withdrawalProcessingHours">Horário de Processamento</Label>
+                    <Input
+                      id="withdrawalProcessingHours"
+                      value={adminSettings.withdrawalProcessingHours}
+                      onChange={(e) => 
+                        setAdminSettings(prev => ({ 
+                          ...prev, 
+                          withdrawalProcessingHours: e.target.value 
+                        }))
+                      }
+                      placeholder="09:00-17:00"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Informações do Sistema</h3>
+                <div className="p-4 bg-secondary rounded-lg">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Taxa PIX:</span>
+                      <span className="font-medium">{adminSettings.withdrawalFeePixPercent}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxa USDT:</span>
+                      <span className="font-medium">{adminSettings.withdrawalFeeUsdtPercent}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Limite PIX:</span>
+                      <span className="font-medium">R$ {adminSettings.pixDailyLimit.toLocaleString()}/dia</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Limite USDT:</span>
+                      <span className="font-medium">R$ {adminSettings.usdtDailyLimit.toLocaleString()}/dia</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Horário:</span>
+                      <span className="font-medium">{adminSettings.withdrawalProcessingHours}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Dias úteis:</span>
+                      <Badge variant={adminSettings.withdrawalBusinessDays ? "default" : "secondary"}>
+                        {adminSettings.withdrawalBusinessDays ? "Sim" : "Não"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-950 dark:border-amber-800">
+                  <h4 className="text-sm font-medium mb-2 text-amber-800 dark:text-amber-200">
+                    ⏰ Processamento de Saques
+                  </h4>
+                  <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                    <li>• Processamento em até 2 horas úteis</li>
+                    <li>• Verificação automática de dados</li>
+                    <li>• Notificação por email ao usuário</li>
+                    <li>• Rejeição automática para dados incorretos</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Filtros de Saque */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "all", label: "Todos", count: withdrawals.length },
+                { key: "pending", label: "Pendentes", count: withdrawals.filter(w => w.status === "pending").length },
+                { key: "approved", label: "Aprovados", count: withdrawals.filter(w => w.status === "approved").length },
+                { key: "processing", label: "Processando", count: withdrawals.filter(w => w.status === "processing").length },
+                { key: "rejected", label: "Rejeitados", count: withdrawals.filter(w => w.status === "rejected").length }
+              ].map(filter => (
+                <Button
+                  key={filter.key}
+                  variant={withdrawalFilter === filter.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setWithdrawalFilter(filter.key as any)}
+                >
+                  {filter.label} ({filter.count})
+                </Button>
+              ))}
+            </div>
+
+            {/* Tabela de Saques */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Data</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Usuário</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Tipo</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Valor</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Taxa</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Líquido</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Detalhes</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredWithdrawals.map((withdrawal) => (
+                    <TableRow key={withdrawal.id}>
+                      <TableCell className="text-xs sm:text-sm">
+                        {new Date(withdrawal.date).toLocaleDateString("pt-BR")}
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(withdrawal.date).toLocaleTimeString("pt-BR", { 
+                            hour: "2-digit", 
+                            minute: "2-digit" 
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        {withdrawal.userName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {withdrawal.type.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        <div>${withdrawal.amount}</div>
+                        <div className="text-xs text-muted-foreground">
+                          R$ {withdrawal.amountBRL.toLocaleString()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm text-destructive">
+                        -${withdrawal.fee.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm text-trading-green">
+                        ${withdrawal.netAmount.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={
+                            withdrawal.status === "approved" ? "default" : 
+                            withdrawal.status === "processing" ? "secondary" : 
+                            withdrawal.status === "pending" ? "outline" :
+                            "destructive"
+                          }
+                          className="text-xs"
+                        >
+                          {withdrawal.status === "approved" ? "Aprovado" : 
+                           withdrawal.status === "processing" ? "Processando" :
+                           withdrawal.status === "pending" ? "Pendente" : 
+                           "Rejeitado"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        {withdrawal.type === "pix" ? (
+                          <div>
+                            <div className="font-medium">{withdrawal.holderName}</div>
+                            <div className="text-muted-foreground">CPF: {withdrawal.cpf}</div>
+                            <div className="text-muted-foreground">
+                              {withdrawal.pixKeyType?.toUpperCase()}: {withdrawal.pixKey}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-medium">USDT BNB20</div>
+                            <div className="text-muted-foreground text-xs">
+                              {withdrawal.walletAddress?.substring(0, 15)}...
+                            </div>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {withdrawal.status === "pending" && (
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleWithdrawalAction(withdrawal.id, "approve")}
+                              className="h-8 w-8 p-0 text-trading-green hover:text-trading-green"
+                            >
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleWithdrawalAction(withdrawal.id, "reject")}
                               className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                             >
                               <XIcon className="h-3 w-3 sm:h-4 sm:w-4" />

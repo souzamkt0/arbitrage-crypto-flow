@@ -8,6 +8,7 @@ import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 import Bot from "./pages/Bot";
 import Deposit from "./pages/Deposit";
+import Withdrawal from "./pages/Withdrawal";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
@@ -76,6 +77,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Deposit />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/withdrawal"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Withdrawal />
                 </Layout>
               </ProtectedRoute>
             }
