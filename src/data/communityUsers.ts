@@ -13,11 +13,13 @@ export const communityUsers = [
     city: "São Paulo",
     state: "SP",
     location: "São Paulo, SP",
+    whatsapp: "(11) 99876-5432",
     isFollowing: false,
     isBlocked: false,
     earnings: 15420.50,
     level: 8,
-    badge: "Especialista"
+    badge: "Especialista",
+    referralCode: "CARLOS2023"
   },
   {
     id: "2", 
@@ -33,11 +35,13 @@ export const communityUsers = [
     city: "Rio de Janeiro", 
     state: "RJ",
     location: "Rio de Janeiro, RJ",
+    whatsapp: "(21) 98765-4321",
     isFollowing: true,
     isBlocked: false,
     earnings: 28750.80,
     level: 9,
-    badge: "Master"
+    badge: "Master",
+    referralCode: "MARIA2023"
   },
   {
     id: "3",
@@ -53,11 +57,13 @@ export const communityUsers = [
     city: "Belo Horizonte",
     state: "MG", 
     location: "Belo Horizonte, MG",
+    whatsapp: "(31) 97654-3210",
     isFollowing: false,
     isBlocked: false,
     earnings: 8950.25,
     level: 6,
-    badge: "Avançado"
+    badge: "Avançado",
+    referralCode: "PEDRO2023"
   },
   {
     id: "4",
@@ -73,11 +79,13 @@ export const communityUsers = [
     city: "Curitiba",
     state: "PR",
     location: "Curitiba, PR", 
+    whatsapp: "(41) 96543-2109",
     isFollowing: true,
     isBlocked: false,
     earnings: 42180.90,
     level: 10,
-    badge: "Lendário"
+    badge: "Lendário",
+    referralCode: "ANA2022"
   },
   {
     id: "5",
@@ -93,11 +101,13 @@ export const communityUsers = [
     city: "Porto Alegre",
     state: "RS",
     location: "Porto Alegre, RS",
+    whatsapp: "(51) 95432-1098",
     isFollowing: false,
     isBlocked: false,
     earnings: 5680.75,
     level: 4,
-    badge: "Intermediário"
+    badge: "Intermediário",
+    referralCode: "LUIZ2023"
   },
   {
     id: "6",
@@ -113,11 +123,13 @@ export const communityUsers = [
     city: "Salvador",
     state: "BA", 
     location: "Salvador, BA",
+    whatsapp: "(71) 94321-0987",
     isFollowing: true,
     isBlocked: false,
     earnings: 12340.60,
     level: 7,
-    badge: "Profissional"
+    badge: "Profissional",
+    referralCode: "JULIANA2023"
   },
   {
     id: "7",
@@ -133,11 +145,13 @@ export const communityUsers = [
     city: "Brasília",
     state: "DF",
     location: "Brasília, DF",
+    whatsapp: "(61) 93210-9876",
     isFollowing: false,
     isBlocked: false,
     earnings: 35920.45,
     level: 9,
-    badge: "Master"
+    badge: "Master",
+    referralCode: "RICARDO2022"
   },
   {
     id: "8",
@@ -153,10 +167,20 @@ export const communityUsers = [
     city: "Fortaleza",
     state: "CE",
     location: "Fortaleza, CE",
+    whatsapp: "(85) 92109-8765",
     isFollowing: true,
     isBlocked: false,
     earnings: 7850.30,
     level: 5,
-    badge: "Avançado"
+    badge: "Avançado",
+    referralCode: "TATIANE2023"
   }
 ];
+
+// Adicionar os usuários com códigos de referência no localStorage automaticamente
+if (typeof window !== 'undefined') {
+  const existingUsers = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
+  if (existingUsers.length === 0) {
+    localStorage.setItem("alphabit_users", JSON.stringify(communityUsers));
+  }
+}

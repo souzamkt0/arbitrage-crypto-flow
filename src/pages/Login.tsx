@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, User, TrendingUp, MapPin, Building, Camera } from "lucide-react";
+import { Lock, Mail, User, TrendingUp, MapPin, Building, Camera, Phone, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [referralInfo, setReferralInfo] = useState<{code: string, referrerName: string} | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState("photo-1649972904349-6e44c42644a7");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralError, setReferralError] = useState("");
 
   const avatarOptions = [
     "photo-1649972904349-6e44c42644a7",
@@ -24,9 +26,33 @@ const Login = () => {
     "photo-1507003211169-0a1dd7228f2d",
     "photo-1494790108755-2616b612b977"
   ];
+
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { referralCode } = useParams();
+  const { referralCode: urlReferralCode } = useParams();
+
+  // Verificar código de referência
+  const checkReferralCode = (code: string) => {
+    if (!code) {
+      setReferralInfo(null);
+      setReferralError("");
+      return;
+    }
+
+    const users = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
+    const referrer = users.find((u: any) => u.referralCode === code);
+    
+    if (referrer) {
+      setReferralInfo({ 
+        code: code, 
+        referrerName: referrer.displayName || referrer.name 
+      });
+      setReferralError("");
+    } else {
+      setReferralInfo(null);
+      setReferralError("Código de referência inválido");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,19 +70,21 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (referralCode) {
-      // Get referral info from localStorage (simulando busca no banco)
-      const users = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
-      const referrer = users.find((u: any) => u.referralCode === referralCode);
-      
-      if (referrer) {
-        setReferralInfo({ code: referralCode, referrerName: referrer.name });
-      }
+    if (urlReferralCode) {
+      setReferralCode(urlReferralCode);
+      checkReferralCode(urlReferralCode);
     }
-  }, [referralCode]);
+  }, [urlReferralCode]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verificar se tem código de referência válido
+    if (!referralInfo) {
+      setReferralError("Código de referência é obrigatório");
+      return;
+    }
+    
     setIsLoading(true);
     
     const formData = new FormData(e.target as HTMLFormElement);
@@ -65,6 +93,7 @@ const Login = () => {
       username: formData.get("username") as string,
       displayName: formData.get("name") as string,
       email: formData.get("email") as string,
+      whatsapp: formData.get("whatsapp") as string,
       city: formData.get("city") as string,
       state: formData.get("state") as string,
       avatar: `https://images.unsplash.com/${selectedAvatar}?w=400&h=400&fit=crop&crop=face`,
@@ -124,64 +153,58 @@ const Login = () => {
         <Card className="bg-card border-border shadow-xl">
           <CardHeader>
             <CardTitle className="text-center text-card-foreground">
-              {referralInfo ? "Cadastre-se via indicação" : "Acesse sua conta"}
+              Criar conta - Indicação obrigatória
             </CardTitle>
+            <p className="text-center text-sm text-muted-foreground">
+              É necessário um código de indicação para se cadastrar
+            </p>
             {referralInfo && (
-              <div className="text-center mt-2 p-3 bg-primary/10 rounded-lg">
+              <div className="text-center mt-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <p className="text-sm text-primary font-medium">
-                  🎉 Você foi indicado por: <strong>{referralInfo.referrerName}</strong>
+                  ✅ Indicado por: <strong>{referralInfo.referrerName}</strong>
+                </p>
+                <p className="text-xs text-primary/80 mt-1">
+                  Código válido! Pode prosseguir com o cadastro.
+                </p>
+              </div>
+            )}
+            {referralError && (
+              <div className="text-center mt-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                <p className="text-sm text-destructive font-medium">
+                  ❌ {referralError}
                 </p>
               </div>
             )}
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={referralInfo ? "register" : "login"} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
-                <TabsTrigger value="login" disabled={!!referralInfo} className="text-sm">Login</TabsTrigger>
-                <TabsTrigger value="register" className="text-sm">Cadastro</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="pl-9"
-                        required
-                      />
-                    </div>
+            <div className="w-full">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4 text-center">Cadastro</h3>
+                
+                {/* Código de Referência - Obrigatório */}
+                <div className="space-y-2 mb-6">
+                  <Label htmlFor="referral">Código de Indicação *</Label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="referral"
+                      type="text"
+                      placeholder="Digite o código de indicação"
+                      className="pl-9"
+                      value={referralCode}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setReferralCode(value);
+                        checkReferralCode(value);
+                      }}
+                      required
+                    />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-9"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-primary hover:bg-primary/90" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="register">
+                  <p className="text-xs text-muted-foreground">
+                    Este campo é obrigatório. Peça o código para quem te indicou.
+                  </p>
+                </div>
+
                 <form onSubmit={handleRegister} className="space-y-4">
                   {/* Foto de Perfil */}
                   <div className="space-y-2">
@@ -247,7 +270,7 @@ const Login = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">Email *</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -261,9 +284,24 @@ const Login = () => {
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp *</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="whatsapp"
+                        name="whatsapp"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="city">Cidade</Label>
+                      <Label htmlFor="city">Cidade *</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -278,7 +316,7 @@ const Login = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="state">Estado</Label>
+                      <Label htmlFor="state">Estado *</Label>
                       <div className="relative">
                         <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -294,7 +332,7 @@ const Login = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Senha</Label>
+                    <Label htmlFor="register-password">Senha *</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -311,13 +349,13 @@ const Login = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-primary/90" 
-                    disabled={isLoading}
+                    disabled={isLoading || !referralInfo}
                   >
                     {isLoading ? "Criando conta..." : "Criar conta"}
                   </Button>
                 </form>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
