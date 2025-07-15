@@ -30,7 +30,9 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  History
+  History,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 interface WithdrawalRequest {
@@ -61,6 +63,7 @@ const Withdrawal = () => {
   const [exchangeRate, setExchangeRate] = useState(5.5);
   const [isLoading, setIsLoading] = useState(false);
   const [userBalance] = useState(2500.75); // Mock user balance
+  const [showBalance, setShowBalance] = useState(true); // Show/hide balance state
   const [dailyLimits] = useState({
     pix: { limit: 2000, used: 500 },
     usdt: { limit: 10000, used: 2000 }
@@ -260,34 +263,50 @@ const Withdrawal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center">
-              <ArrowDown className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-primary" />
+    <div className="min-h-screen bg-background p-2 sm:p-3 lg:p-6">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
+              <ArrowDown className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 text-primary" />
               <span className="hidden sm:inline">Solicitação de Saque</span>
               <span className="sm:hidden">Saque</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
               Solicite seus saques de segunda a sexta-feira
             </p>
           </div>
           
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Saldo Disponível</p>
-            <p className="text-xl font-bold text-trading-green">${userBalance.toLocaleString()}</p>
+          <div className="text-right w-full sm:w-auto">
+            <div className="flex items-center justify-between sm:justify-end gap-2">
+              <p className="text-xs sm:text-sm text-muted-foreground">Saldo Disponível</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowBalance(!showBalance)}
+                className="h-6 w-6 p-0"
+              >
+                {showBalance ? (
+                  <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />
+                ) : (
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-trading-green">
+              {showBalance ? `$${userBalance.toLocaleString()}` : "••••••"}
+            </p>
           </div>
         </div>
 
-        {/* Important Info */}
+        {/* Important Info - Mobile Optimized */}
         <Card className="bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-start space-x-2 sm:space-x-3">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1 min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200">
                   Informações Importantes sobre Saques
                 </p>
                 <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
@@ -302,21 +321,21 @@ const Withdrawal = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Withdrawal Form */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          {/* Withdrawal Form - Mobile Optimized */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Wallet className="h-5 w-5 mr-2 text-primary" />
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
                 Nova Solicitação
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Amount Inputs */}
-                <div className="grid grid-cols-2 gap-4">
+            <CardContent className="p-3 sm:p-6">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                {/* Amount Inputs - Mobile Optimized */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Valor em USD</Label>
+                    <Label htmlFor="amount" className="text-xs sm:text-sm">Valor em USD</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -325,11 +344,12 @@ const Withdrawal = () => {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="0.00"
+                      className="text-sm"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="amountBRL">Valor em BRL</Label>
+                    <Label htmlFor="amountBRL" className="text-xs sm:text-sm">Valor em BRL</Label>
                     <Input
                       id="amountBRL"
                       type="number"
@@ -338,21 +358,22 @@ const Withdrawal = () => {
                       value={amountBRL}
                       onChange={(e) => handleBRLChange(e.target.value)}
                       placeholder="0,00"
+                      className="text-sm"
                       required
                     />
                   </div>
                 </div>
 
-                {/* Exchange Rate */}
-                <div className="text-sm text-muted-foreground">
+                {/* Exchange Rate - Mobile Optimized */}
+                <div className="text-xs sm:text-sm text-muted-foreground bg-secondary/50 p-2 rounded">
                   Taxa atual: 1 USD = R$ {exchangeRate.toFixed(2)}
                 </div>
 
-                {/* Withdrawal Type */}
+                {/* Withdrawal Type - Mobile Optimized */}
                 <div className="space-y-2">
-                  <Label>Tipo de Saque</Label>
+                  <Label className="text-xs sm:text-sm">Tipo de Saque</Label>
                   <Select value={withdrawalType} onValueChange={(value: "pix" | "usdt") => setWithdrawalType(value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -362,52 +383,54 @@ const Withdrawal = () => {
                   </Select>
                 </div>
 
-                {/* Daily Limits */}
+                {/* Daily Limits - Mobile Optimized */}
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span>Limite diário {withdrawalType.toUpperCase()}:</span>
                     <span>R$ {dailyLimits[withdrawalType].limit.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Usado hoje:</span>
                     <span>R$ {dailyLimits[withdrawalType].used.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm font-medium">
+                  <div className="flex justify-between text-xs sm:text-sm font-medium">
                     <span>Disponível:</span>
                     <span className="text-trading-green">R$ {getRemainingLimit().toLocaleString()}</span>
                   </div>
                 </div>
 
-                {/* PIX Fields */}
+                {/* PIX Fields - Mobile Optimized */}
                 {withdrawalType === "pix" && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="holderName">Nome do Titular</Label>
+                      <Label htmlFor="holderName" className="text-xs sm:text-sm">Nome do Titular</Label>
                       <Input
                         id="holderName"
                         value={holderName}
                         onChange={(e) => setHolderName(e.target.value)}
                         placeholder="Nome completo do titular da conta"
+                        className="text-sm"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cpf">CPF do Titular</Label>
+                      <Label htmlFor="cpf" className="text-xs sm:text-sm">CPF do Titular</Label>
                       <Input
                         id="cpf"
                         value={cpf}
                         onChange={(e) => handleCPFChange(e.target.value)}
                         placeholder="000.000.000-00"
                         maxLength={14}
+                        className="text-sm"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Tipo de Chave PIX</Label>
+                      <Label className="text-xs sm:text-sm">Tipo de Chave PIX</Label>
                       <Select value={pixKeyType} onValueChange={(value: any) => setPixKeyType(value)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -421,7 +444,7 @@ const Withdrawal = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="pixKey">Chave PIX</Label>
+                      <Label htmlFor="pixKey" className="text-xs sm:text-sm">Chave PIX</Label>
                       <Input
                         id="pixKey"
                         value={pixKey}
@@ -433,21 +456,23 @@ const Withdrawal = () => {
                           pixKeyType === "phone" ? "(00) 00000-0000" :
                           "Chave aleatória"
                         }
+                        className="text-sm"
                         required
                       />
                     </div>
                   </>
                 )}
 
-                {/* USDT Fields */}
+                {/* USDT Fields - Mobile Optimized */}
                 {withdrawalType === "usdt" && (
                   <div className="space-y-2">
-                    <Label htmlFor="walletAddress">Endereço da Carteira USDT (BNB20)</Label>
+                    <Label htmlFor="walletAddress" className="text-xs sm:text-sm">Endereço da Carteira USDT (BNB20)</Label>
                     <Input
                       id="walletAddress"
                       value={walletAddress}
                       onChange={(e) => setWalletAddress(e.target.value)}
                       placeholder="0x..."
+                      className="text-sm"
                       required
                     />
                     <p className="text-xs text-muted-foreground">
@@ -456,50 +481,50 @@ const Withdrawal = () => {
                   </div>
                 )}
 
-                {/* Fee Calculation */}
+                {/* Fee Calculation - Mobile Optimized */}
                 {amount && (
                   <div className="space-y-2 p-3 bg-secondary rounded-lg">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Valor solicitado:</span>
                       <span>${parseFloat(amount).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Taxa ({withdrawalType === "pix" ? "2%" : "5%"}):</span>
                       <span>-${calculateFee().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-medium border-t pt-2">
+                    <div className="flex justify-between text-xs sm:text-sm font-medium border-t pt-2">
                       <span>Valor líquido:</span>
                       <span className="text-trading-green">${getNetAmount().toFixed(2)}</span>
                     </div>
                   </div>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full text-sm" disabled={isLoading}>
                   {isLoading ? "Processando..." : "Solicitar Saque"}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Statistics */}
-          <div className="space-y-6">
-            {/* Daily Limits Card */}
+          {/* Statistics - Mobile Optimized */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Daily Limits Card - Mobile Optimized */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center text-sm sm:text-base">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
                   Limites Diários
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">PIX</span>
-                    <Badge variant="outline">R$ 2.000/dia</Badge>
+                    <span className="text-xs sm:text-sm font-medium">PIX</span>
+                    <Badge variant="outline" className="text-xs">R$ 2.000/dia</Badge>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
                     <div 
-                      className="bg-primary h-2 rounded-full" 
+                      className="bg-primary h-2 rounded-full transition-all duration-300" 
                       style={{ width: `${(dailyLimits.pix.used / dailyLimits.pix.limit) * 100}%` }}
                     ></div>
                   </div>
@@ -511,12 +536,12 @@ const Withdrawal = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">USDT</span>
-                    <Badge variant="outline">R$ 10.000/dia</Badge>
+                    <span className="text-xs sm:text-sm font-medium">USDT</span>
+                    <Badge variant="outline" className="text-xs">R$ 10.000/dia</Badge>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
                     <div 
-                      className="bg-primary h-2 rounded-full" 
+                      className="bg-primary h-2 rounded-full transition-all duration-300" 
                       style={{ width: `${(dailyLimits.usdt.used / dailyLimits.usdt.limit) * 100}%` }}
                     ></div>
                   </div>
@@ -528,58 +553,58 @@ const Withdrawal = () => {
               </CardContent>
             </Card>
 
-            {/* Processing Hours */}
+            {/* Processing Hours - Mobile Optimized */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-primary" />
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex items-center text-sm sm:text-base">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
                   Horários de Processamento
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-6">
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-trading-green" />
-                  <span className="text-sm">Segunda a Sexta: 9h às 17h</span>
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-trading-green flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Segunda a Sexta: 9h às 17h</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Prazo: até 2 horas úteis</span>
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Prazo: até 2 horas úteis</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Fins de semana: não processados</span>
+                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Fins de semana: não processados</span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Withdrawal History */}
+        {/* Withdrawal History - Mobile Optimized */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <History className="h-5 w-5 mr-2 text-primary" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center text-sm sm:text-base">
+              <History className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
               Histórico de Saques
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Taxa</TableHead>
-                    <TableHead>Líquido</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Detalhes</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Data</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Tipo</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Valor</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Taxa</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Líquido</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Detalhes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {withdrawalHistory.map((withdrawal) => (
                     <TableRow key={withdrawal.id}>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-xs sm:text-sm">
                         {new Date(withdrawal.date).toLocaleDateString("pt-BR")}
                         <div className="text-xs text-muted-foreground">
                           {new Date(withdrawal.date).toLocaleTimeString("pt-BR", { 
@@ -593,31 +618,31 @@ const Withdrawal = () => {
                           {withdrawal.type.toUpperCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium text-xs sm:text-sm">
                         <div>${withdrawal.amount}</div>
                         <div className="text-xs text-muted-foreground">
                           R$ {withdrawal.amountBRL.toLocaleString()}
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm">
+                      <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                         ${withdrawal.fee.toFixed(2)}
                       </TableCell>
-                      <TableCell className="font-medium text-trading-green">
+                      <TableCell className="font-medium text-trading-green text-xs sm:text-sm">
                         ${withdrawal.netAmount.toFixed(2)}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(withdrawal.status)}
                       </TableCell>
-                      <TableCell className="text-xs">
+                      <TableCell className="text-xs hidden lg:table-cell">
                         {withdrawal.type === "pix" ? (
                           <div>
-                            <div>{withdrawal.holderName}</div>
-                            <div className="text-muted-foreground">
+                            <div className="truncate max-w-[120px]">{withdrawal.holderName}</div>
+                            <div className="text-muted-foreground truncate max-w-[120px]">
                               {withdrawal.pixKeyType?.toUpperCase()}: {withdrawal.pixKey}
                             </div>
                           </div>
                         ) : (
-                          <div className="text-muted-foreground">
+                          <div className="text-muted-foreground truncate max-w-[120px]">
                             {withdrawal.walletAddress?.substring(0, 10)}...
                           </div>
                         )}
