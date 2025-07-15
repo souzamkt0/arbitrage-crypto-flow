@@ -63,6 +63,8 @@ const Withdrawal = () => {
   const [exchangeRate, setExchangeRate] = useState(5.5);
   const [isLoading, setIsLoading] = useState(false);
   const [userBalance] = useState(2500.75); // Mock user balance
+  const [referralBalance] = useState(850.30); // Mock referral balance  
+  const [residualBalance] = useState(1245.50); // Mock residual balance
   const [showBalance, setShowBalance] = useState(true); // Show/hide balance state
   const [dailyLimits] = useState({
     pix: { limit: 2000, used: 500 },
@@ -266,55 +268,98 @@ const Withdrawal = () => {
     <div className="min-h-screen bg-background p-2 sm:p-3 lg:p-6">
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Header - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="w-full sm:w-auto">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
-              <ArrowDown className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 text-primary" />
-              <span className="hidden sm:inline">Solicitação de Saque</span>
-              <span className="sm:hidden">Saque</span>
-            </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
-              Solicite seus saques de segunda a sexta-feira
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
+                <ArrowDown className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 text-primary" />
+                <span className="hidden sm:inline">Solicitação de Saque</span>
+                <span className="sm:hidden">Saque</span>
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
+                Solicite seus saques de segunda a sexta-feira
+              </p>
+            </div>
           </div>
           
-          <div className="text-right w-full sm:w-auto">
-            <div className="flex items-center justify-between sm:justify-end gap-2">
-              <p className="text-xs sm:text-sm text-muted-foreground">Saldo Disponível</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowBalance(!showBalance)}
-                className="h-6 w-6 p-0"
-              >
-                {showBalance ? (
-                  <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />
-                ) : (
-                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                )}
-              </Button>
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-trading-green">
-              {showBalance ? `$${userBalance.toLocaleString()}` : "••••••"}
-            </p>
+          {/* Balance Cards - Mobile Optimized */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {/* Main Balance */}
+            <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Saldo Principal</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowBalance(!showBalance)}
+                        className="h-5 w-5 p-0"
+                      >
+                        {showBalance ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xl sm:text-2xl font-bold text-trading-green">
+                      {showBalance ? `$${userBalance.toLocaleString()}` : "••••••"}
+                    </p>
+                  </div>
+                  <Wallet className="h-6 w-6 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Referral Balance */}
+            <Card className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo de Indicação</p>
+                    <p className="text-lg sm:text-xl font-bold text-amber-600">
+                      {showBalance ? `$${referralBalance.toLocaleString()}` : "••••••"}
+                    </p>
+                  </div>
+                  <DollarSign className="h-6 w-6 text-amber-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Residual Balance */}
+            <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo Residual</p>
+                    <p className="text-lg sm:text-xl font-bold text-blue-600">
+                      {showBalance ? `$${residualBalance.toLocaleString()}` : "••••••"}
+                    </p>
+                  </div>
+                  <CreditCard className="h-6 w-6 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* Important Info - Mobile Optimized */}
-        <Card className="bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800">
+        <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-start space-x-2 sm:space-x-3">
-              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
               <div className="space-y-1 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200">
+                <p className="text-xs sm:text-sm font-medium text-white">
                   Informações Importantes sobre Saques
                 </p>
-                <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
-                  <li>• Saques processados de segunda a sexta-feira, das 9h às 17h</li>
-                  <li>• Prazo de processamento: até 2 horas úteis</li>
-                  <li>• Limite diário PIX: R$ 2.000 | USDT: R$ 10.000</li>
-                  <li>• Verifique seus dados antes de confirmar para evitar perda do recebimento</li>
-                  <li>• Taxa PIX: 2% | Taxa USDT: 5%</li>
+                <ul className="text-xs text-gray-300 space-y-1">
+                  <li className="text-yellow-400">• Saques processados de segunda a sexta-feira, das 9h às 17h</li>
+                  <li className="text-yellow-400">• Prazo de processamento: até 2 horas úteis</li>
+                  <li className="text-white">• Limite diário PIX: R$ 2.000 | USDT: R$ 10.000</li>
+                  <li className="text-white">• Verifique seus dados antes de confirmar para evitar perda do recebimento</li>
+                  <li className="text-yellow-400">• Taxa PIX: 2% | Taxa USDT: 5%</li>
                 </ul>
               </div>
             </div>
