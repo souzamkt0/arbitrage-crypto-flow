@@ -43,7 +43,13 @@ import {
   MessageSquare,
   Heart,
   MessageCircle,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  X as XIcon,
+  Download,
+  Wallet,
+  CreditCard
 } from "lucide-react";
 
 interface User {
@@ -68,6 +74,22 @@ interface InvestmentPlan {
   duration: number;
   description: string;
   status: "active" | "inactive";
+}
+
+interface Deposit {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  amountBRL: number;
+  type: "pix" | "usdt";
+  status: "pending" | "paid" | "rejected";
+  holderName?: string;
+  cpf?: string;
+  senderName?: string;
+  date: string;
+  pixCode?: string;
+  walletAddress?: string;
 }
 
 const Admin = () => {
@@ -182,6 +204,49 @@ const Admin = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isNewPlan, setIsNewPlan] = useState(false);
+  const [deposits, setDeposits] = useState<Deposit[]>([
+    {
+      id: "1",
+      userId: "1",
+      userName: "João Silva",
+      amount: 100,
+      amountBRL: 550,
+      type: "pix",
+      status: "pending",
+      holderName: "João Silva",
+      cpf: "123.456.789-00",
+      date: "2024-07-15T10:30:00Z",
+      pixCode: "00020126580014BR.GOV.BCB.PIX013634567890..."
+    },
+    {
+      id: "2",
+      userId: "2",
+      userName: "Maria Santos",
+      amount: 200,
+      amountBRL: 1100,
+      type: "usdt",
+      status: "paid",
+      senderName: "Maria Santos",
+      date: "2024-07-14T15:45:00Z",
+      walletAddress: "0xb794f5ea0ba39494ce839613fffba74279579268"
+    },
+    {
+      id: "3",
+      userId: "3",
+      userName: "Pedro Oliveira",
+      amount: 500,
+      amountBRL: 2750,
+      type: "pix",
+      status: "paid",
+      holderName: "Pedro Oliveira",
+      cpf: "987.654.321-00",
+      date: "2024-07-13T09:15:00Z",
+      pixCode: "00020126580014BR.GOV.BCB.PIX013634567890..."
+    }
+  ]);
+
+  const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected">("all");
+  
   const [adminSettings, setAdminSettings] = useState({
     referralPercent: 5,
     residualPercent: 10,
@@ -193,7 +258,13 @@ const Admin = () => {
     likeReward: 0.001,
     commentReward: 0.002,
     monthlyLimit: 50,
-    spamWarning: "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
+    spamWarning: "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas.",
+    // Configurações de depósito
+    pixEnabled: true,
+    usdtEnabled: true,
+    minimumDeposit: 50,
+    maximumDeposit: 10000,
+    autoApproval: false
   });
   const { toast } = useToast();
 
@@ -206,6 +277,13 @@ const Admin = () => {
   const totalBalance = users.reduce((sum, user) => sum + user.balance, 0);
   const totalProfit = users.reduce((sum, user) => sum + user.totalProfit, 0);
   const connectedUsers = users.filter(user => user.apiConnected).length;
+  
+  const filteredDeposits = deposits.filter(deposit => 
+    depositFilter === "all" || deposit.status === depositFilter
+  );
+  
+  const pendingDeposits = deposits.filter(d => d.status === "pending").length;
+  const totalDepositAmount = deposits.filter(d => d.status === "paid").reduce((sum, d) => sum + d.amount, 0);
 
   const handleToggleStatus = (userId: string) => {
     setUsers(prevUsers => 
@@ -326,6 +404,49 @@ const Admin = () => {
     });
   };
 
+  const handleDepositAction = (depositId: string, action: "approve" | "reject") => {
+    setDeposits(prev =>
+      prev.map(deposit =>
+        deposit.id === depositId
+          ? { ...deposit, status: action === "approve" ? "paid" : "rejected" }
+          : deposit
+      )
+    );
+    
+    toast({
+      title: action === "approve" ? "Depósito aprovado" : "Depósito rejeitado",
+      description: `Depósito foi ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso.`,
+    });
+  };
+
+  const exportDepositsReport = () => {
+    const csvContent = [
+      ["Data", "Usuário", "Tipo", "Valor USD", "Valor BRL", "Status", "Titular/Remetente"],
+      ...deposits.map(d => [
+        new Date(d.date).toLocaleDateString("pt-BR"),
+        d.userName,
+        d.type.toUpperCase(),
+        `$${d.amount}`,
+        `R$ ${d.amountBRL.toLocaleString()}`,
+        d.status,
+        d.holderName || d.senderName || ""
+      ])
+    ].map(row => row.join(",")).join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `depositos_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Relatório exportado",
+      description: "Relatório de depósitos foi baixado com sucesso.",
+    });
+  };
+
   // Salvar planos no localStorage quando houver mudanças
   useEffect(() => {
     localStorage.setItem("alphabit_investment_plans", JSON.stringify(investmentPlans));
@@ -347,7 +468,13 @@ const Admin = () => {
         likeReward: loaded.likeReward || 0.001,
         commentReward: loaded.commentReward || 0.002,
         monthlyLimit: loaded.monthlyLimit || 50,
-        spamWarning: loaded.spamWarning || "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas."
+        spamWarning: loaded.spamWarning || "⚠️ AVISO: Spam será banido! Mantenha-se ativo de forma natural para ganhar recompensas.",
+        // Configurações de depósito com valores padrão
+        pixEnabled: loaded.pixEnabled !== undefined ? loaded.pixEnabled : true,
+        usdtEnabled: loaded.usdtEnabled !== undefined ? loaded.usdtEnabled : true,
+        minimumDeposit: loaded.minimumDeposit || 50,
+        maximumDeposit: loaded.maximumDeposit || 10000,
+        autoApproval: loaded.autoApproval !== undefined ? loaded.autoApproval : false
       });
     }
   }, []);
@@ -570,6 +697,282 @@ const Admin = () => {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* Gestão de Depósitos */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="text-card-foreground flex items-center">
+                <Wallet className="h-5 w-5 mr-2 text-primary" />
+                Gestão de Depósitos
+              </CardTitle>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={exportDepositsReport} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Relatório
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Stats de Depósitos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold text-warning">{pendingDeposits}</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-warning" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Depositado</p>
+                      <p className="text-2xl font-bold text-trading-green">${totalDepositAmount.toLocaleString()}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-trading-green" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Depósitos</p>
+                      <p className="text-2xl font-bold text-primary">{deposits.length}</p>
+                    </div>
+                    <CreditCard className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Configurações de Depósito */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Configurações de Depósito
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="pixEnabled" className="text-sm font-medium">Permitir PIX</Label>
+                    <Switch
+                      id="pixEnabled"
+                      checked={adminSettings.pixEnabled}
+                      onCheckedChange={(checked) => 
+                        setAdminSettings(prev => ({ ...prev, pixEnabled: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="usdtEnabled" className="text-sm font-medium">Permitir USDT BNB20</Label>
+                    <Switch
+                      id="usdtEnabled"
+                      checked={adminSettings.usdtEnabled}
+                      onCheckedChange={(checked) => 
+                        setAdminSettings(prev => ({ ...prev, usdtEnabled: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="autoApproval" className="text-sm font-medium">Aprovação Automática</Label>
+                    <Switch
+                      id="autoApproval"
+                      checked={adminSettings.autoApproval}
+                      onCheckedChange={(checked) => 
+                        setAdminSettings(prev => ({ ...prev, autoApproval: checked }))
+                      }
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="minimumDeposit">Depósito Mínimo ($)</Label>
+                      <Input
+                        id="minimumDeposit"
+                        type="number"
+                        min="1"
+                        value={adminSettings.minimumDeposit}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            minimumDeposit: parseInt(e.target.value) || 1 
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="maximumDeposit">Depósito Máximo ($)</Label>
+                      <Input
+                        id="maximumDeposit"
+                        type="number"
+                        min="100"
+                        value={adminSettings.maximumDeposit}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            maximumDeposit: parseInt(e.target.value) || 100 
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Informações do Sistema</h3>
+                <div className="p-4 bg-secondary rounded-lg">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>PIX:</span>
+                      <Badge variant={adminSettings.pixEnabled ? "default" : "secondary"}>
+                        {adminSettings.pixEnabled ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>USDT BNB20:</span>
+                      <Badge variant={adminSettings.usdtEnabled ? "default" : "secondary"}>
+                        {adminSettings.usdtEnabled ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Aprovação:</span>
+                      <Badge variant={adminSettings.autoApproval ? "default" : "secondary"}>
+                        {adminSettings.autoApproval ? "Automática" : "Manual"}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Limites:</span>
+                      <span className="font-medium">${adminSettings.minimumDeposit} - ${adminSettings.maximumDeposit}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filtros de Depósito */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "all", label: "Todos", count: deposits.length },
+                { key: "pending", label: "Pendentes", count: deposits.filter(d => d.status === "pending").length },
+                { key: "paid", label: "Pagos", count: deposits.filter(d => d.status === "paid").length },
+                { key: "rejected", label: "Rejeitados", count: deposits.filter(d => d.status === "rejected").length }
+              ].map(filter => (
+                <Button
+                  key={filter.key}
+                  variant={depositFilter === filter.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDepositFilter(filter.key as any)}
+                >
+                  {filter.label} ({filter.count})
+                </Button>
+              ))}
+            </div>
+
+            {/* Tabela de Depósitos */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Data</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Usuário</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Tipo</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Valor</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Titular/Remetente</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDeposits.map((deposit) => (
+                    <TableRow key={deposit.id}>
+                      <TableCell className="text-xs sm:text-sm">
+                        {new Date(deposit.date).toLocaleDateString("pt-BR")}
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(deposit.date).toLocaleTimeString("pt-BR", { 
+                            hour: "2-digit", 
+                            minute: "2-digit" 
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        {deposit.userName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {deposit.type.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        <div>${deposit.amount}</div>
+                        <div className="text-xs text-muted-foreground">
+                          R$ {deposit.amountBRL.toLocaleString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={
+                            deposit.status === "paid" ? "default" : 
+                            deposit.status === "pending" ? "secondary" : 
+                            "destructive"
+                          }
+                          className="text-xs"
+                        >
+                          {deposit.status === "paid" ? "Pago" : 
+                           deposit.status === "pending" ? "Pendente" : 
+                           "Rejeitado"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        {deposit.holderName || deposit.senderName}
+                        {deposit.cpf && (
+                          <div className="text-xs text-muted-foreground">
+                            CPF: {deposit.cpf}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {deposit.status === "pending" && (
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDepositAction(deposit.id, "approve")}
+                              className="h-8 w-8 p-0 text-trading-green hover:text-trading-green"
+                            >
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDepositAction(deposit.id, "reject")}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            >
+                              <XIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 

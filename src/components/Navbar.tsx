@@ -36,7 +36,6 @@ const Navbar = () => {
     { path: "/community", label: "Comunidade", icon: MessageSquare },
     { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },
-    { path: "/simulation", label: "Simulação", icon: Play },
     { path: "/admin", label: "Admin", icon: Shield },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
