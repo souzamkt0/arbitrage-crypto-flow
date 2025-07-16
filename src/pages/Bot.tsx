@@ -113,10 +113,10 @@ const BotPage = () => {
       currentPrice: 43250.00,
       targetPrice: 44100.00,
       potentialProfit: 850.00,
-      confidence: 87,
-      timeframe: "15m",
+      confidence: 95,
+      timeframe: "Instantâneo",
       volume: 2500,
-      riskLevel: "MEDIUM",
+      riskLevel: "LOW",
       binanceData: {
         priceChange24h: 2.34,
         volume24h: 24567890,
@@ -125,18 +125,18 @@ const BotPage = () => {
       }
     },
     {
-      id: "2",
+      id: "2", 
       pair: "ETH/USDT",
-      type: "SELL",
+      type: "BUY",
       currentPrice: 2485.50,
-      targetPrice: 2420.00,
-      potentialProfit: 520.00,
-      confidence: 92,
-      timeframe: "5m",
+      targetPrice: 2495.20,
+      potentialProfit: 97.60,
+      confidence: 88,
+      timeframe: "1m",
       volume: 1800,
-      riskLevel: "LOW",
+      riskLevel: "MEDIUM",
       binanceData: {
-        priceChange24h: -1.23,
+        priceChange24h: 1.23,
         volume24h: 12345678,
         marketCap: 298000000000,
         lastUpdate: "2024-07-14 10:23:44"
@@ -144,20 +144,38 @@ const BotPage = () => {
     },
     {
       id: "3",
-      pair: "SOL/USDT",
-      type: "BUY",
+      pair: "SOL/USDT", 
+      type: "SELL",
       currentPrice: 98.75,
-      targetPrice: 102.30,
-      potentialProfit: 355.00,
-      confidence: 75,
-      timeframe: "30m",
+      targetPrice: 95.30,
+      potentialProfit: 1104.00,
+      confidence: 82,
+      timeframe: "4h",
       volume: 3200,
-      riskLevel: "HIGH",
+      riskLevel: "MEDIUM",
       binanceData: {
         priceChange24h: 5.67,
         volume24h: 987654321,
         marketCap: 45000000000,
         lastUpdate: "2024-07-14 10:23:43"
+      }
+    },
+    {
+      id: "4",
+      pair: "BNB/USDT",
+      type: "BUY",
+      currentPrice: 385.20,
+      targetPrice: 389.45,
+      potentialProfit: 425.00,
+      confidence: 76,
+      timeframe: "Contínuo",
+      volume: 2100,
+      riskLevel: "LOW",
+      binanceData: {
+        priceChange24h: 1.85,
+        volume24h: 8765432,
+        marketCap: 59000000000,
+        lastUpdate: "2024-07-14 10:23:45"
       }
     }
   ]);
@@ -433,6 +451,57 @@ const BotPage = () => {
       case "grid": return "Grid Trading";
       default: return "Personalizada";
     }
+  };
+
+  const getOperationStrategy = (opportunityId: string) => {
+    const strategies = [
+      {
+        name: "Arbitragem Instantânea",
+        description: "Explora diferenças de preço entre exchanges em tempo real",
+        type: "ARBITRAGE",
+        execution: "Compra numa exchange e vende simultaneamente em outra",
+        timeframe: "Instantâneo",
+        profitRange: "0.1% - 1%",
+        riskLevel: "Muito Baixo",
+        features: ["Lucro garantido", "Sem exposição ao mercado", "Execução automática"],
+        howItWorks: "Bot identifica diferenças de preço entre exchanges ou pares, executa compra e venda simultâneas"
+      },
+      {
+        name: "Scalping Rápido",
+        description: "Operações de alta frequência aproveitando micro movimentos",
+        type: "SCALPING",
+        execution: "Compra e venda em segundos ou minutos",
+        timeframe: "1s - 5min",
+        profitRange: "0.1% - 0.5%",
+        riskLevel: "Baixo a Médio",
+        features: ["Alta frequência", "Lucros pequenos consistentes", "Análise técnica avançada"],
+        howItWorks: "Bot analisa padrões de preço em timeframes muito curtos, executa trades rápidos"
+      },
+      {
+        name: "Swing Trading",
+        description: "Captura tendências de médio prazo com análise técnica",
+        type: "SWING",
+        execution: "Mantém posições por horas ou dias",
+        timeframe: "1h - 1 semana",
+        profitRange: "2% - 8%",
+        riskLevel: "Médio",
+        features: ["Maior potencial de lucro", "Menos operações", "Segue tendências"],
+        howItWorks: "Bot identifica tendências usando indicadores técnicos, mantém posições por mais tempo"
+      },
+      {
+        name: "Grid Trading",
+        description: "Sistema automatizado de ordens escalonadas",
+        type: "GRID",
+        execution: "Ordens de compra e venda em intervalos regulares",
+        timeframe: "Contínuo",
+        profitRange: "0.5% - 2%",
+        riskLevel: "Baixo a Médio",
+        features: ["Totalmente automatizado", "Aproveita volatilidade", "Funciona em laterais"],
+        howItWorks: "Bot coloca ordens em grid, comprando baixo e vendendo alto automaticamente"
+      }
+    ];
+    
+    return strategies[parseInt(opportunityId) - 1] || strategies[0];
   };
 
   const profitProjection = calculateProfitProjection();
@@ -934,83 +1003,133 @@ const BotPage = () => {
               </div>
             </div>
             
-            <div className="space-y-3 sm:space-y-4">{tradeOpportunities.map((opportunity) => (
-                <div key={opportunity.id} className="p-3 sm:p-4 bg-gradient-to-r from-trading-green/5 to-primary/5 rounded-lg border border-trading-green/20">
-                  <div className="flex flex-col lg:flex-row items-start justify-between gap-3 lg:gap-4">
-                    <div className="space-y-2 sm:space-y-3 flex-1 w-full">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={opportunity.type === "BUY" ? "default" : "destructive"} className="text-xs animate-pulse">
-                          {opportunity.type === "BUY" ? "COMPRA" : "VENDA"}
-                        </Badge>
-                        <span className="font-medium text-sm sm:text-base">{opportunity.pair}</span>
-                        <Badge variant="outline" className={`${getRiskColor(opportunity.riskLevel)} text-xs`}>
-                          ARBITRAGEM
-                        </Badge>
-                        <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green">
-                          ATIVO
+            <div className="space-y-3 sm:space-y-4">{tradeOpportunities.map((opportunity) => {
+                const strategyInfo = getOperationStrategy(opportunity.id);
+                return (
+                  <div key={opportunity.id} className="p-3 sm:p-4 bg-gradient-to-r from-trading-green/5 to-primary/5 rounded-lg border border-trading-green/20">
+                    {/* Cabeçalho da Estratégia */}
+                    <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div>
+                          <h4 className="text-sm font-medium text-primary">{strategyInfo.name}</h4>
+                          <p className="text-xs text-muted-foreground">{strategyInfo.description}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary">
+                          {strategyInfo.type}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
                         <div>
-                          <span className="text-muted-foreground">Preço de Compra:</span>
-                          <div className="font-medium text-trading-green">${opportunity.currentPrice.toLocaleString()}</div>
-                          <div className="text-xs text-trading-green animate-pulse">
-                            ● COMPRANDO
-                          </div>
+                          <span className="font-medium">Tempo:</span>
+                          <div className="text-muted-foreground">{strategyInfo.timeframe}</div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Preço de Venda:</span>
-                          <div className="font-medium text-destructive">${opportunity.targetPrice.toLocaleString()}</div>
-                          <div className="text-xs text-destructive animate-pulse">
-                            ● VENDENDO
-                          </div>
+                          <span className="font-medium">Lucro:</span>
+                          <div className="text-trading-green">{strategyInfo.profitRange}</div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Lucro da Operação:</span>
-                          <div className="font-medium text-primary animate-pulse">+${opportunity.potentialProfit.toLocaleString()}</div>
-                          <div className="text-xs text-primary">
-                            Margem: {(((opportunity.targetPrice - opportunity.currentPrice) / opportunity.currentPrice) * 100).toFixed(3)}%
-                          </div>
+                          <span className="font-medium">Risco:</span>
+                          <div className="text-muted-foreground">{strategyInfo.riskLevel}</div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Status:</span>
-                          <div className="font-medium text-trading-green animate-pulse">EXECUTANDO</div>
-                          <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Execução:</span>
+                          <div className="text-warning">{strategyInfo.execution}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 p-2 bg-secondary/50 rounded text-xs">
+                        <span className="font-medium">Como funciona:</span>
+                        <div className="text-muted-foreground mt-1">{strategyInfo.howItWorks}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row items-start justify-between gap-3 lg:gap-4">
+                      <div className="space-y-2 sm:space-y-3 flex-1 w-full">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={opportunity.type === "BUY" ? "default" : "destructive"} className="text-xs animate-pulse">
+                            {opportunity.type === "BUY" ? "COMPRA" : "VENDA"}
+                          </Badge>
+                          <span className="font-medium text-sm sm:text-base">{opportunity.pair}</span>
+                          <Badge variant="outline" className={`${getRiskColor(opportunity.riskLevel)} text-xs`}>
+                            {strategyInfo.type}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green">
+                            ATIVO
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Preço de Compra:</span>
+                            <div className="font-medium text-trading-green">${opportunity.currentPrice.toLocaleString()}</div>
+                            <div className="text-xs text-trading-green animate-pulse">
+                              ● COMPRANDO
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Preço de Venda:</span>
+                            <div className="font-medium text-destructive">${opportunity.targetPrice.toLocaleString()}</div>
+                            <div className="text-xs text-destructive animate-pulse">
+                              ● VENDENDO
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Lucro da Operação:</span>
+                            <div className="font-medium text-primary animate-pulse">+${opportunity.potentialProfit.toLocaleString()}</div>
+                            <div className="text-xs text-primary">
+                              Margem: {(((opportunity.targetPrice - opportunity.currentPrice) / opportunity.currentPrice) * 100).toFixed(3)}%
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Status:</span>
+                            <div className="font-medium text-trading-green animate-pulse">EXECUTANDO</div>
+                            <div className="text-xs text-muted-foreground">
+                              Vol: ${opportunity.volume.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Características da Estratégia */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                          {strategyInfo.features.map((feature, index) => (
+                            <div key={index} className="flex items-center space-x-1 p-2 bg-secondary/30 rounded">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                              <span className="text-muted-foreground">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {opportunity.timeframe}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Wallet className="h-3 w-3" />
                             Vol: ${opportunity.volume.toLocaleString()}
                           </div>
+                          <div className="flex items-center gap-1">
+                            <Signal className="h-3 w-3" />
+                            <span className="hidden sm:inline">Sync: {opportunity.binanceData.lastUpdate}</span>
+                            <span className="sm:hidden">Live</span>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {opportunity.timeframe}
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="text-xs text-center">
+                          <div className="font-medium text-trading-green">+${(Math.random() * 50 + 10).toFixed(2)}</div>
+                          <div className="text-muted-foreground">Ganho atual</div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Wallet className="h-3 w-3" />
-                          Vol: ${opportunity.volume.toLocaleString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Signal className="h-3 w-3" />
-                          <span className="hidden sm:inline">Sync: {opportunity.binanceData.lastUpdate}</span>
-                          <span className="sm:hidden">Live</span>
-                        </div>
+                        <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green animate-pulse">
+                          EM OPERAÇÃO
+                        </Badge>
                       </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="text-xs text-center">
-                        <div className="font-medium text-trading-green">+${(Math.random() * 50 + 10).toFixed(2)}</div>
-                        <div className="text-muted-foreground">Ganho atual</div>
-                      </div>
-                      <Badge variant="outline" className="text-xs bg-trading-green/10 text-trading-green border-trading-green animate-pulse">
-                        EM OPERAÇÃO
-                      </Badge>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
