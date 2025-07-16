@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 import Bot from "./pages/Bot";
@@ -50,7 +51,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register/:referralCode" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/register/:referralCode" element={<Register />} />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"
