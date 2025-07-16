@@ -352,6 +352,21 @@ const Login = () => {
                     {isLoading ? "Criando conta..." : "Criar conta"}
                   </Button>
                 </form>
+
+                {/* Login Button */}
+                <div className="mt-6 pt-4 border-t border-border">
+                  <p className="text-center text-sm text-muted-foreground mb-3">
+                    Já tem uma conta?
+                  </p>
+                  <Button 
+                    onClick={handleLogin}
+                    variant="outline" 
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Entrando..." : "Fazer Login"}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
