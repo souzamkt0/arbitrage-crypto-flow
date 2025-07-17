@@ -51,67 +51,15 @@ const ResidualEarnings = () => {
     const settings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
     const residualPercent = settings.residualPercent || 10;
 
-    // Dados simulados de ganhos residuais
-    const mockResidualEarnings: ResidualEarning[] = [
-      {
-        id: "1",
-        referredUserName: "Maria Silva",
-        referredUserPlan: "Alphabot Básico",
-        investmentAmount: 500,
-        dailyProfit: 1.5, // 0.3% de 500
-        residualPercent,
-        residualEarning: 0.15, // 10% de 1.5
-        date: "2024-07-14",
-        status: "active"
-      },
-      {
-        id: "2",
-        referredUserName: "João Santos", 
-        referredUserPlan: "Alphabot Intermediário",
-        investmentAmount: 2000,
-        dailyProfit: 10, // 0.5% de 2000
-        residualPercent,
-        residualEarning: 1.0, // 10% de 10
-        date: "2024-07-14",
-        status: "active"
-      },
-      {
-        id: "3",
-        referredUserName: "Pedro Oliveira",
-        referredUserPlan: "Alphabot Premium",
-        investmentAmount: 8000,
-        dailyProfit: 160, // 2.0% de 8000
-        residualPercent,
-        residualEarning: 16.0, // 10% de 160
-        date: "2024-07-14",
-        status: "active"
-      },
-      {
-        id: "4",
-        referredUserName: "Ana Costa",
-        referredUserPlan: "Alphabot Avançado",
-        investmentAmount: 5000,
-        dailyProfit: 50, // 1.0% de 5000
-        residualPercent,
-        residualEarning: 5.0, // 10% de 50
-        date: "2024-07-13",
-        status: "paused"
-      }
-    ];
+    // All residual data reset to zero
+    setResidualEarnings([]);
 
-    setResidualEarnings(mockResidualEarnings);
-
-    // Calcular estatísticas
-    const activeEarnings = mockResidualEarnings.filter(e => e.status === "active");
-    const dailyResidual = activeEarnings.reduce((sum, e) => sum + e.residualEarning, 0);
-    const monthlyResidual = dailyResidual * 30;
-    const totalResidual = dailyResidual * 90; // Simulando 90 dias de histórico
-
+    // Reset all stats to zero
     setResidualStats({
-      totalResidual,
-      dailyResidual,
-      monthlyResidual,
-      activeInvestments: activeEarnings.length
+      totalResidual: 0,
+      dailyResidual: 0,
+      monthlyResidual: 0,
+      activeInvestments: 0
     });
   }, []);
 

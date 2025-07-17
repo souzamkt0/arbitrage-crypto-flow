@@ -74,13 +74,13 @@ const Bonus = () => {
   }, []);
 
   useEffect(() => {
-    // Simular verificação de depósito do usuário
+    // Reset all deposit amounts and chest data to zero
     const checkUserDeposit = () => {
-      const savedDeposit = localStorage.getItem("last_deposit_amount");
-      const depositAmount = savedDeposit ? parseFloat(savedDeposit) : 0;
-      setLastDepositAmount(depositAmount);
+      setLastDepositAmount(0); // Always zero due to reset
+      setChestsOpened(0);
+      setTotalEarned(0);
       
-      // Sempre inicializar os baús para mostrar
+      // Initialize chests but they will be locked due to zero deposit
       initializeChests();
     };
 

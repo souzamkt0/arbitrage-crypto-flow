@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Dialog, 
   DialogContent, 
@@ -114,56 +116,8 @@ interface Deposit {
 }
 
 const Admin = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      name: "João Silva",
-      email: "joao@email.com",
-      role: "user",
-      status: "active",
-      balance: 15420.89,
-      totalProfit: 2340.56,
-      joinDate: "2024-01-15",
-      lastLogin: "2024-07-13",
-      apiConnected: true
-    },
-    {
-      id: "2", 
-      name: "Maria Santos",
-      email: "maria@email.com",
-      role: "user",
-      status: "active",
-      balance: 8765.43,
-      totalProfit: 1245.78,
-      joinDate: "2024-02-20",
-      lastLogin: "2024-07-12",
-      apiConnected: false
-    },
-    {
-      id: "3",
-      name: "Pedro Oliveira", 
-      email: "pedro@email.com",
-      role: "admin",
-      status: "active",
-      balance: 25678.90,
-      totalProfit: 4567.89,
-      joinDate: "2023-12-01",
-      lastLogin: "2024-07-13",
-      apiConnected: true
-    },
-    {
-      id: "4",
-      name: "Ana Costa",
-      email: "ana@email.com", 
-      role: "user",
-      status: "inactive",
-      balance: 3456.78,
-      totalProfit: 567.90,
-      joinDate: "2024-03-10",
-      lastLogin: "2024-06-15",
-      apiConnected: false
-    }
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const { user } = useAuth();
 
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([
     {
@@ -225,78 +179,9 @@ const Admin = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isNewPlan, setIsNewPlan] = useState(false);
-  const [deposits, setDeposits] = useState<Deposit[]>([
-    {
-      id: "1",
-      userId: "1",
-      userName: "João Silva",
-      amount: 100,
-      amountBRL: 550,
-      type: "pix",
-      status: "pending",
-      holderName: "João Silva",
-      cpf: "123.456.789-00",
-      date: "2024-07-15T10:30:00Z",
-      pixCode: "00020126580014BR.GOV.BCB.PIX013634567890..."
-    },
-    {
-      id: "2",
-      userId: "2",
-      userName: "Maria Santos",
-      amount: 200,
-      amountBRL: 1100,
-      type: "usdt",
-      status: "paid",
-      senderName: "Maria Santos",
-      date: "2024-07-14T15:45:00Z",
-      walletAddress: "0xb794f5ea0ba39494ce839613fffba74279579268"
-    },
-    {
-      id: "3",
-      userId: "3",
-      userName: "Pedro Oliveira",
-      amount: 500,
-      amountBRL: 2750,
-      type: "pix",
-      status: "paid",
-      holderName: "Pedro Oliveira",
-      cpf: "987.654.321-00",
-      date: "2024-07-13T09:15:00Z",
-      pixCode: "00020126580014BR.GOV.BCB.PIX013634567890..."
-    }
-  ]);
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
 
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([
-    {
-      id: "1",
-      userId: "1",
-      userName: "João Silva",
-      amount: 100,
-      amountBRL: 550,
-      type: "pix",
-      status: "pending",
-      holderName: "João Silva",
-      cpf: "123.456.789-00",
-      pixKeyType: "cpf",
-      pixKey: "123.456.789-00",
-      date: "2024-07-15T14:30:00Z",
-      fee: 2,
-      netAmount: 98
-    },
-    {
-      id: "2",
-      userId: "2",
-      userName: "Maria Santos",
-      amount: 200,
-      amountBRL: 1100,
-      type: "usdt",
-      status: "approved",
-      walletAddress: "0xb794f5ea0ba39494ce839613fffba74279579268",
-      date: "2024-07-14T11:20:00Z",
-      fee: 10,
-      netAmount: 190
-    }
-  ]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
 
   const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected">("all");
   const [withdrawalFilter, setWithdrawalFilter] = useState<"all" | "pending" | "approved" | "rejected" | "processing">("all");
@@ -328,6 +213,93 @@ const Admin = () => {
     withdrawalBusinessDays: true
   });
   const { toast } = useToast();
+
+  // Load real data from database
+  useEffect(() => {
+    const loadAdminData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch all users/profiles
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (profiles) {
+          const formattedUsers = profiles.map(profile => ({
+            id: profile.user_id,
+            name: profile.display_name || profile.username || profile.email || 'User',
+            email: profile.email || 'no-email',
+            role: profile.role as "admin" | "user",
+            status: profile.status as "active" | "inactive",
+            balance: profile.balance || 0,
+            totalProfit: profile.total_profit || 0,
+            joinDate: profile.created_at?.split('T')[0] || '',
+            lastLogin: profile.last_login?.split('T')[0] || '',
+            apiConnected: profile.api_connected || false
+          }));
+          setUsers(formattedUsers);
+        }
+
+        // Fetch deposits
+        const { data: depositsData } = await supabase
+          .from('deposits')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (depositsData) {
+          const formattedDeposits = depositsData.map(deposit => ({
+            id: deposit.id,
+            userId: deposit.user_id,
+            userName: 'User', // Simplified since there's no relation
+            amount: deposit.amount_usd,
+            amountBRL: deposit.amount_brl || 0,
+            type: deposit.type as "pix" | "usdt",
+            status: deposit.status as "pending" | "paid" | "rejected",
+            holderName: deposit.holder_name,
+            cpf: deposit.cpf,
+            senderName: deposit.sender_name,
+            date: deposit.created_at,
+            pixCode: deposit.pix_code,
+            walletAddress: deposit.wallet_address
+          }));
+          setDeposits(formattedDeposits);
+        }
+
+        // Fetch withdrawals
+        const { data: withdrawalsData } = await supabase
+          .from('withdrawals')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (withdrawalsData) {
+          const formattedWithdrawals = withdrawalsData.map(withdrawal => ({
+            id: withdrawal.id,
+            userId: withdrawal.user_id,
+            userName: 'User', // Simplified since there's no relation
+            amount: withdrawal.amount_usd,
+            amountBRL: withdrawal.amount_brl || 0,
+            type: withdrawal.type as "pix" | "usdt",
+            status: withdrawal.status as "pending" | "approved" | "rejected" | "processing",
+            holderName: withdrawal.holder_name,
+            cpf: withdrawal.cpf,
+            pixKeyType: withdrawal.pix_key_type as "cpf" | "cnpj" | "email" | "phone" | "random",
+            pixKey: withdrawal.pix_key,
+            walletAddress: withdrawal.wallet_address,
+            date: withdrawal.created_at,
+            fee: withdrawal.fee,
+            netAmount: withdrawal.net_amount
+          }));
+          setWithdrawals(formattedWithdrawals);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do admin:', error);
+      }
+    };
+
+    loadAdminData();
+  }, [user]);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

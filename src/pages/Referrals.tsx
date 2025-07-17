@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Table,
   TableBody,
@@ -54,13 +56,68 @@ const Referrals = () => {
     pendingCommission: 0
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Gerar link de indicação
-    const userCode = Math.random().toString(36).substring(2, 15);
-    setReferralLink(`${window.location.origin}/register/${userCode}`);
+    const loadReferralData = async () => {
+      if (!user) return;
 
-    // Dados simulados de usuários indicados
+      try {
+        // Get user profile with username for referral link
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, referral_balance')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.username) {
+          setReferralLink(`${window.location.origin}/register?ref=${profile.username}`);
+        }
+
+        // Get referral data
+        const { data: referrals } = await supabase
+          .from('referrals')
+          .select(`
+            *,
+            referred_profile:profiles!referrals_referred_id_fkey(username, display_name, email)
+          `)
+          .eq('referrer_id', user.id);
+
+        if (referrals) {
+          // Calculate stats based on real data
+          const totalCommission = referrals.reduce((sum, ref) => sum + (ref.total_commission || 0), 0);
+          const activeReferrals = referrals.filter(ref => ref.status === 'active').length;
+          
+          setStats({
+            totalReferrals: referrals.length,
+            activeReferrals,
+            totalCommission,
+            pendingCommission: 0 // Set to 0 since everything is zeroed
+          });
+
+          // For now, keep the mock data format but with zero values
+          setReferredUsers([]);
+        } else {
+          // Reset all stats to zero
+          setStats({
+            totalReferrals: 0,
+            activeReferrals: 0,
+            totalCommission: 0,
+            pendingCommission: 0
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados de referência:', error);
+      }
+    };
+
+    // Generate fallback referral code if no username
+    const userCode = Math.random().toString(36).substring(2, 15);
+    setReferralLink(`${window.location.origin}/register?ref=${userCode}`);
+    
+    loadReferralData();
+
+    // Keep mock data structure but with zero values - remove for production
     const mockReferredUsers: ReferredUser[] = [
       {
         id: "1",
@@ -112,20 +169,9 @@ const Referrals = () => {
       }
     ];
 
-    setReferredUsers(mockReferredUsers);
-
-    // Calcular estatísticas
-    const totalCommission = mockReferredUsers.reduce((sum, user) => sum + user.commission, 0);
-    const activeUsers = mockReferredUsers.filter(user => user.status === "active");
-    const totalResidualDaily = 22.15; // Simulando ganhos residuais diários
-    
-    setStats({
-      totalReferrals: mockReferredUsers.length,
-      activeReferrals: activeUsers.length,
-      totalCommission,
-      pendingCommission: totalCommission * 0.3 // 30% pendente
-    });
-  }, []);
+    // Set empty array to show no referrals
+    setReferredUsers([]);
+  }, [user]);
 
   const copyToClipboard = async () => {
     try {

@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Dialog, 
   DialogContent, 
@@ -68,70 +70,77 @@ interface UserInvestment {
 
 const Investments = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
-
-  const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([
-    {
-      id: "1",
-      investmentId: "1",
-      investmentName: "Alphabot Basic",
-      amount: 1000,
-      dailyRate: 1.5,
-      startDate: "2024-07-01",
-      endDate: "2024-07-31",
-      totalEarned: 195.50,
-      status: "active",
-      daysRemaining: 18,
-      currentDayProgress: 45,
-      todayEarnings: 6.75,
-      dailyTarget: 15.00,
-      currentOperation: {
-        pair: "BTC/USDT",
-        buyPrice: 67420.50,
-        sellPrice: 67451.20,
-        profit: 0.85,
-        progress: 65,
-        timeRemaining: 35
-      },
-      operationsCompleted: 8,
-      totalOperations: 15
-    },
-    {
-      id: "2",
-      investmentId: "2", 
-      investmentName: "Alphabot Premium",
-      amount: 5000,
-      dailyRate: 2.0,
-      startDate: "2024-06-15",
-      endDate: "2024-08-14",
-      totalEarned: 580.00,
-      status: "active",
-      daysRemaining: 32,
-      currentDayProgress: 72,
-      todayEarnings: 72.00,
-      dailyTarget: 100.00,
-      currentOperation: {
-        pair: "ETH/USDT",
-        buyPrice: 3842.15,
-        sellPrice: 3847.92,
-        profit: 2.45,
-        progress: 82,
-        timeRemaining: 18
-      },
-      operationsCompleted: 12,
-      totalOperations: 20
-    }
-  ]);
-
+  const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
   const [investmentAmount, setInvestmentAmount] = useState("");
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
-  const [userBalance] = useState(12543.89);
+  const [userBalance, setUserBalance] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
-  // Carregar planos do localStorage na inicialização
+  // Load user data and investment plans
   useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('balance')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          setUserBalance(profile.balance || 0);
+        }
+
+        // Fetch user investments
+        const { data: userInvs } = await supabase
+          .from('user_investments')
+          .select(`
+            *,
+            investment_plan:investment_plans(name),
+            current_operations(*)
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (userInvs) {
+          const formattedInvestments = userInvs.map(inv => ({
+            id: inv.id,
+            investmentId: inv.investment_plan_id,
+            investmentName: inv.investment_plan?.name || 'Plano',
+            amount: inv.amount,
+            dailyRate: inv.daily_rate,
+            startDate: inv.start_date?.split('T')[0] || '',
+            endDate: inv.end_date?.split('T')[0] || '',
+            totalEarned: inv.total_earned || 0,
+            status: inv.status as "active" | "completed",
+            daysRemaining: inv.days_remaining || 0,
+            currentDayProgress: inv.current_day_progress || 0,
+            todayEarnings: inv.today_earnings || 0,
+            dailyTarget: inv.daily_target,
+            currentOperation: inv.current_operations?.[0] ? {
+              pair: inv.current_operations[0].pair,
+              buyPrice: inv.current_operations[0].buy_price,
+              sellPrice: inv.current_operations[0].sell_price,
+              profit: inv.current_operations[0].profit,
+              progress: inv.current_operations[0].progress || 0,
+              timeRemaining: inv.current_operations[0].time_remaining || 0
+            } : undefined,
+            operationsCompleted: inv.operations_completed || 0,
+            totalOperations: inv.total_operations || 15
+          }));
+          setUserInvestments(formattedInvestments);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    };
+
     const defaultPlans: Investment[] = [
       {
         id: "1",
@@ -199,7 +208,9 @@ const Investments = () => {
       localStorage.setItem("alphabit_investment_plans", JSON.stringify(defaultPlans));
       setInvestments(defaultPlans);
     }
-  }, []);
+
+    loadUserData();
+  }, [user]);
 
   // Escutar mudanças no localStorage (quando Admin alterar planos)
   useEffect(() => {

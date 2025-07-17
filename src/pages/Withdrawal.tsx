@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Select,
   SelectContent,
@@ -62,47 +64,69 @@ const Withdrawal = () => {
   const [walletAddress, setWalletAddress] = useState("");
   const [exchangeRate, setExchangeRate] = useState(5.5);
   const [isLoading, setIsLoading] = useState(false);
-  const [userBalance] = useState(2500.75); // Mock user balance
-  const [referralBalance] = useState(850.30); // Mock referral balance  
-  const [residualBalance] = useState(1245.50); // Mock residual balance
-  const [showBalance, setShowBalance] = useState(true); // Show/hide balance state
+  const [userBalance, setUserBalance] = useState(0);
+  const [referralBalance, setReferralBalance] = useState(0);
+  const [residualBalance, setResidualBalance] = useState(0);
+  const [showBalance, setShowBalance] = useState(true);
+  const { user } = useAuth();
   const [dailyLimits] = useState({
     pix: { limit: 2000, used: 500 },
     usdt: { limit: 10000, used: 2000 }
   });
   
-  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRequest[]>([
-    {
-      id: "1",
-      amount: 100,
-      amountBRL: 550,
-      type: "pix",
-      status: "approved",
-      date: "2024-07-14T10:30:00Z",
-      holderName: "João Silva",
-      cpf: "123.456.789-00",
-      pixKeyType: "cpf",
-      pixKey: "123.456.789-00",
-      fee: 5,
-      netAmount: 95
-    },
-    {
-      id: "2",
-      amount: 200,
-      amountBRL: 1100,
-      type: "usdt",
-      status: "pending",
-      date: "2024-07-15T09:15:00Z",
-      walletAddress: "0xb794f5ea0ba39494ce839613fffba74279579268",
-      fee: 10,
-      netAmount: 190
-    }
-  ]);
+  const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalRequest[]>([]);
 
   const { toast } = useToast();
 
-  // Fetch exchange rate
+  // Load user data and withdrawal history
   useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch user profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('balance, referral_balance, residual_balance')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          setUserBalance(profile.balance || 0);
+          setReferralBalance(profile.referral_balance || 0);
+          setResidualBalance(profile.residual_balance || 0);
+        }
+
+        // Fetch withdrawal history
+        const { data: withdrawals } = await supabase
+          .from('withdrawals')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (withdrawals) {
+          const formattedWithdrawals = withdrawals.map(w => ({
+            id: w.id,
+            amount: w.amount_usd,
+            amountBRL: w.amount_brl || 0,
+            type: w.type as "pix" | "usdt",
+            status: w.status as "pending" | "approved" | "rejected" | "processing",
+            date: w.created_at,
+            holderName: w.holder_name,
+            cpf: w.cpf,
+            pixKeyType: w.pix_key_type as "cpf" | "cnpj" | "email" | "phone" | "random",
+            pixKey: w.pix_key,
+            walletAddress: w.wallet_address,
+            fee: w.fee,
+            netAmount: w.net_amount
+          }));
+          setWithdrawalHistory(formattedWithdrawals);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    };
+
     const fetchExchangeRate = async () => {
       try {
         const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
@@ -115,10 +139,11 @@ const Withdrawal = () => {
       }
     };
 
+    loadUserData();
     fetchExchangeRate();
     const interval = setInterval(fetchExchangeRate, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   // Convert USD to BRL
   useEffect(() => {

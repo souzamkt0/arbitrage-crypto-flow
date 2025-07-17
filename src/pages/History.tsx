@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +6,53 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Download, Filter, History as HistoryIcon, Search, TrendingUp, TrendingDown } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const History = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [trades, setTrades] = useState<any[]>([]);
+  const { user } = useAuth();
 
-  const trades = [
+  // Load trading history from database
+  useEffect(() => {
+    const loadTradingHistory = async () => {
+      if (!user) return;
+
+      try {
+        const { data: tradingHistory } = await supabase
+          .from('trading_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (tradingHistory) {
+          const formattedTrades = tradingHistory.map(trade => ({
+            id: trade.operation_id,
+            timestamp: new Date(trade.created_at).toLocaleString('pt-BR'),
+            pair: trade.pair,
+            type: trade.type || 'Arbitrage',
+            buyPrice: trade.buy_price,
+            sellPrice: trade.sell_price,
+            amount: trade.amount,
+            profit: trade.profit,
+            profitPercent: trade.profit_percent,
+            status: trade.status === 'completed' ? 'Completed' : 'Failed',
+            exchange1: trade.exchange_1 || 'Binance Spot',
+            exchange2: trade.exchange_2 || 'Binance Futures'
+          }));
+          setTrades(formattedTrades);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    };
+
+    loadTradingHistory();
+  }, [user]);
+
+  const mockTrades = [
     {
       id: "ARB001",
       timestamp: "2024-01-15 14:32:15",
@@ -84,15 +125,18 @@ const History = () => {
     }
   ];
 
-  const filteredTrades = trades.filter(trade => {
+  // Use real data if available, otherwise show empty state
+  const displayTrades = trades.length > 0 ? trades : [];
+
+  const filteredTrades = displayTrades.filter(trade => {
     const matchesFilter = filter === "all" || trade.status.toLowerCase() === filter;
     const matchesSearch = trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trade.id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const totalProfit = trades.filter(t => t.status === "Completed").reduce((sum, trade) => sum + trade.profit, 0);
-  const successRate = (trades.filter(t => t.status === "Completed").length / trades.length * 100).toFixed(1);
+  const totalProfit = displayTrades.filter(t => t.status === "Completed").reduce((sum, trade) => sum + trade.profit, 0);
+  const successRate = displayTrades.length > 0 ? (displayTrades.filter(t => t.status === "Completed").length / displayTrades.length * 100).toFixed(1) : "0.0";
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">
@@ -149,7 +193,7 @@ const History = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Total de Operações</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {trades.length}
+                    {displayTrades.length}
                   </p>
                 </div>
                 <HistoryIcon className="h-8 w-8 text-muted-foreground" />
