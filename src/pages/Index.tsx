@@ -1,18 +1,20 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem("alphabit_user");
-    if (isAuthenticated) {
-      navigate("/dashboard", { replace: true });
-    } else {
-      navigate("/login", { replace: true });
+    if (!isLoading) {
+      if (user) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
     }
-  }, [navigate]);
+  }, [user, isLoading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
