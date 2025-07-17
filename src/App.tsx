@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AdminRegister from "./pages/AdminRegister";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 import Bot from "./pages/Bot";
@@ -78,7 +79,8 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/register/:referralCode" element={<Register />} />
+           <Route path="/register/:referralCode" element={<Register />} />
+           <Route path="/admin-register" element={<AdminRegister />} />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"

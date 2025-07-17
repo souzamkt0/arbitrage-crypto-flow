@@ -104,9 +104,9 @@ const Login = () => {
             </form>
 
             {/* Register Button */}
-            <div className="mt-6 pt-4 border-t border-border">
-              <p className="text-center text-sm text-muted-foreground mb-3">
-                Não tem uma conta?
+            <div className="mt-6 pt-4 border-t border-border space-y-3">
+              <p className="text-center text-sm text-muted-foreground">
+                Ainda não tem uma conta?
               </p>
               <Link to="/register">
                 <Button 
@@ -114,6 +114,27 @@ const Login = () => {
                   className="w-full"
                 >
                   Criar conta
+                </Button>
+              </Link>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Admin
+                  </span>
+                </div>
+              </div>
+              
+              <Link to="/admin-register">
+                <Button 
+                  variant="secondary" 
+                  className="w-full text-xs"
+                  size="sm"
+                >
+                  Registro Administrativo (souzamkt0@gmail.com)
                 </Button>
               </Link>
             </div>
