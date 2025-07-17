@@ -778,6 +778,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_referral_commission: {
+        Args: { referred_user_id: string; investment_amount: number }
+        Returns: undefined
+      }
+      create_treasure_chests: {
+        Args: { user_id_param: string; deposit_id_param: string }
+        Returns: undefined
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
