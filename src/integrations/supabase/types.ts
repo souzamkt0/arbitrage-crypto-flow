@@ -790,6 +790,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      set_user_as_admin: {
+        Args: { user_email: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

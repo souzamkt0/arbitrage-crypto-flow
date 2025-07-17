@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, User, TrendingUp, MapPin, Building, Phone, Users } from "lucide-react";
 import AvatarSVG from "@/components/AvatarSVG";
@@ -14,40 +16,59 @@ const Register = () => {
   const [selectedAvatar, setSelectedAvatar] = useState("avatar1");
   const [referralCode, setReferralCode] = useState("");
   const [referralError, setReferralError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    whatsapp: "",
+    city: "",
+    state: ""
+  });
 
   const avatarOptions = [
-    "avatar1", // Homem Executivo 
-    "avatar2", // Mulher Executiva
-    "avatar3", // Homem Jovem Casual
-    "avatar4", // Mulher Jovem Casual
-    "avatar5", // Homem Maduro Barbudo
-    "avatar6", // Mulher Madura Elegante
-    "avatar7", // Homem Atlético
-    "avatar8"  // Mulher Artista
+    "avatar1", "avatar2", "avatar3", "avatar4", 
+    "avatar5", "avatar6", "avatar7", "avatar8"
   ];
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp, user } = useAuth();
   const { referralCode: urlReferralCode } = useParams();
 
-  // Verificar código de referência
-  const checkReferralCode = (code: string) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  // Verificar código de referência no banco
+  const checkReferralCode = async (code: string) => {
     if (!code) {
       setReferralInfo(null);
       setReferralError("");
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
-    const referrer = users.find((u: any) => u.referralCode === code);
-    
-    if (referrer) {
-      setReferralInfo({ 
-        code: code, 
-        referrerName: referrer.displayName || referrer.name 
-      });
-      setReferralError("");
-    } else {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('display_name, username')
+        .eq('username', code.toLowerCase())
+        .single();
+
+      if (error || !profile) {
+        setReferralInfo(null);
+        setReferralError("Código de referência inválido");
+      } else {
+        setReferralInfo({ 
+          code: code, 
+          referrerName: profile.display_name || profile.username
+        });
+        setReferralError("");
+      }
+    } catch (error) {
       setReferralInfo(null);
       setReferralError("Código de referência inválido");
     }
@@ -58,12 +79,23 @@ const Register = () => {
       setReferralCode(urlReferralCode);
       checkReferralCode(urlReferralCode);
     }
+    // Set default referral code to souzamkt0
+    else {
+      setReferralCode("souzamkt0");
+      checkReferralCode("souzamkt0");
+    }
   }, [urlReferralCode]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Verificar se tem código de referência válido
     if (!referralInfo) {
       setReferralError("Código de referência é obrigatório");
       return;
@@ -71,53 +103,16 @@ const Register = () => {
     
     setIsLoading(true);
     
-    const formData = new FormData(e.target as HTMLFormElement);
-    const userData = {
-      id: Math.random().toString(36).substring(2, 15),
-      username: formData.get("username") as string,
-      displayName: formData.get("name") as string,
-      email: formData.get("email") as string,
-      whatsapp: formData.get("whatsapp") as string,
-      city: formData.get("city") as string,
-      state: formData.get("state") as string,
-      avatar: selectedAvatar,
-      verified: false,
-      followers: 0,
-      following: 0,
-      posts: 0,
-      joinDate: new Date().toLocaleDateString('pt-BR'),
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 0,
-      level: 1,
-      badge: "Iniciante",
-      bio: "",
-      referredBy: referralInfo?.code || null,
-      referralCode: Math.random().toString(36).substring(2, 15),
-      registeredAt: new Date().toISOString()
-    };
+    const { error } = await signUp(formData.email, formData.password, referralCode);
     
-    // Save user data
-    const users = JSON.parse(localStorage.getItem("alphabit_users") || "[]");
-    users.push(userData);
-    localStorage.setItem("alphabit_users", JSON.stringify(users));
-    
-    // Process referral reward if applicable
-    if (referralInfo) {
-      const settings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
-      const referralPercent = settings.referralPercent || 5;
-      
+    if (!error) {
       toast({
-        title: "Conta criada via indicação!",
-        description: `Parabéns! ${referralInfo.referrerName} receberá ${referralPercent}% de comissão.`,
+        title: "Cadastro realizado!",
+        description: `Indicado por: ${referralInfo.referrerName}`,
       });
     }
     
-    // Simulate registration
-    setTimeout(() => {
-      localStorage.setItem("alphabit_user", "true");
-      navigate("/api-connection");
-    }, 1500);
+    setIsLoading(false);
   };
 
   return (
@@ -185,7 +180,7 @@ const Register = () => {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Este campo é obrigatório. Peça o código para quem te indicou.
+                    Use: souzamkt0 (padrão) ou peça um código para quem te indicou.
                   </p>
                 </div>
 
@@ -194,7 +189,7 @@ const Register = () => {
                   <div className="space-y-2">
                     <Label>Foto de Perfil</Label>
                     <div className="flex items-center space-x-4">
-                      <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-primary bg-background animate-scale-in">
+                      <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-primary bg-background">
                         <AvatarSVG type={selectedAvatar} />
                       </div>
                       <div className="grid grid-cols-4 gap-2">
@@ -203,9 +198,9 @@ const Register = () => {
                             key={avatar}
                             type="button"
                             onClick={() => setSelectedAvatar(avatar)}
-                            className={`relative rounded-full overflow-hidden border-2 transition-all hover-scale ${
+                            className={`relative rounded-full overflow-hidden border-2 transition-all ${
                               selectedAvatar === avatar 
-                                ? "border-primary shadow-lg animate-scale-in" 
+                                ? "border-primary shadow-lg" 
                                 : "border-muted hover:border-primary/50"
                             }`}
                           >
@@ -225,10 +220,11 @@ const Register = () => {
                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="name"
-                          name="name"
                           type="text"
                           placeholder="João Silva"
                           className="pl-9"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
                           required
                         />
                       </div>
@@ -240,10 +236,11 @@ const Register = () => {
                         <span className="absolute left-3 top-3 text-sm text-muted-foreground">@</span>
                         <Input
                           id="username"
-                          name="username"
                           type="text"
                           placeholder="joaosilva"
                           className="pl-8"
+                          value={formData.username}
+                          onChange={(e) => handleInputChange('username', e.target.value)}
                           required
                         />
                       </div>
@@ -256,10 +253,11 @@ const Register = () => {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="register-email"
-                        name="email"
                         type="email"
                         placeholder="joao@email.com"
                         className="pl-9"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
                         required
                       />
                     </div>
@@ -271,10 +269,11 @@ const Register = () => {
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="whatsapp"
-                        name="whatsapp"
                         type="tel"
                         placeholder="(11) 99999-9999"
                         className="pl-9"
+                        value={formData.whatsapp}
+                        onChange={(e) => handleInputChange('whatsapp', e.target.value)}
                         required
                       />
                     </div>
@@ -287,10 +286,11 @@ const Register = () => {
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="city"
-                          name="city"
                           type="text"
                           placeholder="São Paulo"
                           className="pl-9"
+                          value={formData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
                           required
                         />
                       </div>
@@ -302,10 +302,11 @@ const Register = () => {
                         <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="state"
-                          name="state"
                           type="text"
                           placeholder="SP"
                           className="pl-9"
+                          value={formData.state}
+                          onChange={(e) => handleInputChange('state', e.target.value)}
                           required
                         />
                       </div>
@@ -318,10 +319,11 @@ const Register = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="register-password"
-                        name="password"
                         type="password"
                         placeholder="••••••••"
                         className="pl-9"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
                         required
                       />
                     </div>
@@ -336,7 +338,6 @@ const Register = () => {
                   </Button>
                 </form>
 
-                {/* Login Button */}
                 <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-center text-sm text-muted-foreground mb-3">
                     Já tem uma conta?

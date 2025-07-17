@@ -20,15 +20,15 @@ import {
   ArrowDown,
   Gift
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signOut, isAdmin, profile } = useAuth();
 
-  const navItems = [
+  const baseNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/bot", label: "Bot", icon: Bot },
     { path: "/deposit", label: "Depósito", icon: Wallet },
@@ -39,18 +39,16 @@ const Navbar = () => {
     { path: "/community", label: "Comunidade", icon: MessageSquare },
     { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },
-    { path: "/admin", label: "Admin", icon: Shield },
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("alphabit_user");
-    localStorage.removeItem("binance_api_key");
-    localStorage.removeItem("binance_secret_key");
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso",
-    });
+  // Add admin item only for administrators
+  const navItems = isAdmin 
+    ? [...baseNavItems.slice(0, -1), { path: "/admin", label: "Admin", icon: Shield }, baseNavItems[baseNavItems.length - 1]]
+    : baseNavItems;
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/login");
   };
 
