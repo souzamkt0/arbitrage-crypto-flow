@@ -77,6 +77,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Verificar se é o admin master que ainda não tem conta Supabase
+      if (email === 'souzamkt0@gmail.com' && password === '123456') {
+        // Tentar login normal primeiro
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        // Se não conseguir login normal, redirecionar para registro
+        if (authError && authError.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Admin não registrado",
+            description: "Faça o registro com este email para criar sua conta admin",
+            variant: "destructive",
+          });
+          window.location.href = '/register';
+          return { error: authError };
+        }
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
