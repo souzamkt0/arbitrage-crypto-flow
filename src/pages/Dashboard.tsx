@@ -22,15 +22,21 @@ import {
   Bot
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
-  const [balance, setBalance] = useState(12543.89);
-  const [dailyProfit, setDailyProfit] = useState(234.56);
-  const [totalProfit, setTotalProfit] = useState(1875.34);
-  const [activeOrders, setActiveOrders] = useState(3);
+  const [balance, setBalance] = useState(0);
+  const [dailyProfit, setDailyProfit] = useState(0);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [activeOrders, setActiveOrders] = useState(0);
   const [referralLink, setReferralLink] = useState("");
+  const [referralBalance, setReferralBalance] = useState(0);
+  const [residualBalance, setResidualBalance] = useState(0);
+  const [monthlyEarnings, setMonthlyEarnings] = useState(0);
   const { toast } = useToast();
+  const { user, profile } = useAuth();
 
   const [arbitrageOpportunities] = useState([
     { pair: "BTC/USDT", exchange1: "Binance", exchange2: "Future", profit: 1.2, amount: 0.5 },
@@ -77,11 +83,48 @@ const Dashboard = () => {
   ]);
 
   
+  // Carregar dados reais do usuário
   useEffect(() => {
-    // Gerar link de indicação único
-    const userCode = Math.random().toString(36).substring(2, 15);
-    setReferralLink(`${window.location.origin}/register/${userCode}`);
-  }, []);
+    const loadUserData = async () => {
+      if (profile) {
+        setBalance(profile.balance || 0);
+        setTotalProfit(profile.total_profit || 0);
+        setReferralBalance(profile.referral_balance || 0);
+        setResidualBalance(profile.residual_balance || 0);
+        setMonthlyEarnings(profile.monthly_earnings || 0);
+        setDailyProfit(profile.earnings || 0);
+
+        // Carregar dados de investimentos e operações
+        const { data: investments } = await supabase
+          .from('user_investments')
+          .select('*')
+          .eq('user_id', profile.user_id)
+          .eq('status', 'active');
+
+        const { data: operations } = await supabase
+          .from('current_operations')
+          .select('*')
+          .in('user_investment_id', investments?.map(inv => inv.id) || []);
+
+        setActiveOrders(operations?.length || 0);
+
+        // Gerar link de indicação único baseado no username
+        if (profile.username) {
+          setReferralLink(`${window.location.origin}/register/${profile.username}`);
+        }
+      }
+    };
+
+    loadUserData();
+  }, [profile]);
+
+  useEffect(() => {
+    // Fallback para gerar link genérico caso não tenha username
+    if (!referralLink && user) {
+      const userCode = Math.random().toString(36).substring(2, 15);
+      setReferralLink(`${window.location.origin}/register/${userCode}`);
+    }
+  }, [user, referralLink]);
 
   const toggleBot = () => {
     setBotActive(!botActive);
@@ -226,20 +269,20 @@ const Dashboard = () => {
                 Compartilhe seu link exclusivo e ganhe comissão sobre os investimentos dos seus indicados!
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                <div className="text-center p-3 bg-primary/10 rounded-lg">
-                  <div className="text-lg font-bold text-primary">5%</div>
-                  <div className="text-xs text-muted-foreground">Comissão por indicação</div>
-                </div>
-                <div className="text-center p-3 bg-trading-green/10 rounded-lg">
-                  <div className="text-lg font-bold text-trading-green">3</div>
-                  <div className="text-xs text-muted-foreground">Pessoas indicadas</div>
-                </div>
-                <div className="text-center p-3 bg-warning/10 rounded-lg">
-                  <div className="text-lg font-bold text-warning">$245.50</div>
-                  <div className="text-xs text-muted-foreground">Total em comissões</div>
-                </div>
-              </div>
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                 <div className="text-center p-3 bg-primary/10 rounded-lg">
+                   <div className="text-lg font-bold text-primary">10%</div>
+                   <div className="text-xs text-muted-foreground">Comissão por indicação</div>
+                 </div>
+                 <div className="text-center p-3 bg-trading-green/10 rounded-lg">
+                   <div className="text-lg font-bold text-trading-green">0</div>
+                   <div className="text-xs text-muted-foreground">Pessoas indicadas</div>
+                 </div>
+                 <div className="text-center p-3 bg-warning/10 rounded-lg">
+                   <div className="text-lg font-bold text-warning">${referralBalance.toFixed(2)}</div>
+                   <div className="text-xs text-muted-foreground">Total em comissões</div>
+                 </div>
+               </div>
             </div>
           </CardContent>
         </Card>
