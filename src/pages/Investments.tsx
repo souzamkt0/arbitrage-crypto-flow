@@ -30,6 +30,17 @@ import {
   Activity,
   Zap
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+  ReferenceLine,
+  Tooltip
+} from "recharts";
 
 interface Investment {
   id: string;
@@ -75,10 +86,44 @@ const Investments = () => {
   const [investmentAmount, setInvestmentAmount] = useState("");
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
+  const [chartData, setChartData] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
+
+  // Gerar dados do gráfico
+  const generateChartData = () => {
+    const data = [];
+    const basePrice = 43000;
+    let currentPrice = basePrice;
+    
+    for (let i = 0; i < 50; i++) {
+      const variation = (Math.random() - 0.5) * 1000;
+      currentPrice += variation;
+      
+      data.push({
+        time: i,
+        price: Math.max(currentPrice, basePrice * 0.8),
+        volume: Math.random() * 100000 + 50000,
+        support: basePrice * 0.95,
+        resistance: basePrice * 1.05
+      });
+    }
+    
+    return data;
+  };
+
+  // Atualizar dados do gráfico a cada 3 segundos
+  useEffect(() => {
+    setChartData(generateChartData());
+    
+    const interval = setInterval(() => {
+      setChartData(generateChartData());
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Load user data and investment plans
   useEffect(() => {
@@ -482,15 +527,51 @@ const Investments = () => {
                         </div>
                       </div>
 
-                      {/* Chart placeholder */}
-                      <div className="h-16 bg-background/50 rounded flex items-end justify-end space-x-1 p-2">
-                        {[...Array(12)].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className="bg-trading-green/60 w-1" 
-                            style={{height: `${Math.random() * 100 + 20}%`}}
-                          />
-                        ))}
+                      {/* Gráfico Animado */}
+                      <div className="h-20 bg-transparent rounded-lg overflow-hidden">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData}>
+                            <defs>
+                              <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--trading-green))" stopOpacity={0.6} />
+                                <stop offset="100%" stopColor="hsl(var(--trading-green))" stopOpacity={0.1} />
+                              </linearGradient>
+                              <linearGradient id={`gradient-red-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.6} />
+                                <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                              </linearGradient>
+                            </defs>
+                            <XAxis dataKey="time" hide />
+                            <YAxis domain={['dataMin - 500', 'dataMax + 500']} hide />
+                            
+                            {/* Linha de Suporte */}
+                            <ReferenceLine y={chartData[0]?.support} stroke="hsl(var(--destructive))" strokeDasharray="3 3" strokeOpacity={0.7} />
+                            
+                            {/* Linha de Resistência */}
+                            <ReferenceLine y={chartData[0]?.resistance} stroke="hsl(var(--trading-green))" strokeDasharray="3 3" strokeOpacity={0.7} />
+                            
+                            {/* Área Principal */}
+                            <Area 
+                              type="monotone" 
+                              dataKey="price" 
+                              stroke="hsl(var(--trading-green))" 
+                              strokeWidth={2}
+                              fill={`url(#gradient-${index})`}
+                              animationDuration={2000}
+                              className="animate-fade-in"
+                            />
+                            
+                            {/* Linha vermelha para quedas */}
+                            <Line 
+                              type="monotone" 
+                              dataKey="price" 
+                              stroke="hsl(var(--destructive))" 
+                              strokeWidth={1}
+                              dot={false}
+                              animationDuration={2000}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
                       </div>
 
                       {/* Stats Grid */}
@@ -559,15 +640,47 @@ const Investments = () => {
                           <div className="text-lg sm:text-xl font-bold text-trading-green">${investment.totalEarned.toFixed(2)}</div>
                         </div>
 
-                        {/* Chart with current operation progress */}
-                        <div className="h-16 bg-background/50 rounded flex items-end justify-end space-x-1 p-2">
-                          {[...Array(12)].map((_, i) => (
-                            <div 
-                              key={i} 
-                              className={`w-1 ${i < Math.floor((currentOperation?.progress || 0) / 10) ? 'bg-trading-green' : 'bg-trading-green/30'}`}
-                              style={{height: `${Math.random() * 100 + 20}%`}}
-                            />
-                          ))}
+                        {/* Gráfico dos Investimentos Ativos */}
+                        <div className="h-20 bg-transparent rounded-lg overflow-hidden">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData}>
+                              <defs>
+                                <linearGradient id={`invest-gradient-${investment.id}`} x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                                  <stop offset="50%" stopColor="hsl(var(--trading-green))" stopOpacity={0.6} />
+                                  <stop offset="100%" stopColor="hsl(var(--trading-green))" stopOpacity={0.1} />
+                                </linearGradient>
+                              </defs>
+                              <XAxis dataKey="time" hide />
+                              <YAxis domain={['dataMin - 200', 'dataMax + 200']} hide />
+                              
+                              {/* Linhas de suporte e resistência */}
+                              <ReferenceLine y={chartData[0]?.support} stroke="hsl(var(--destructive))" strokeDasharray="2 2" strokeOpacity={0.5} />
+                              <ReferenceLine y={chartData[0]?.resistance} stroke="hsl(var(--trading-green))" strokeDasharray="2 2" strokeOpacity={0.5} />
+                              
+                              {/* Área do gráfico */}
+                              <Area 
+                                type="monotone" 
+                                dataKey="price" 
+                                stroke="hsl(var(--primary))" 
+                                strokeWidth={2}
+                                fill={`url(#invest-gradient-${investment.id})`}
+                                animationDuration={2000}
+                                className="animate-fade-in"
+                              />
+                              
+                              {/* Indicador de progresso da operação */}
+                              <Line 
+                                type="monotone" 
+                                dataKey="volume" 
+                                stroke="hsl(var(--warning))" 
+                                strokeWidth={1}
+                                strokeOpacity={currentOperation ? (currentOperation.progress / 100) : 0.3}
+                                dot={false}
+                                animationDuration={1000}
+                              />
+                            </AreaChart>
+                          </ResponsiveContainer>
                         </div>
 
                         {/* Stats Grid */}
