@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import axios from "axios";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -47,116 +48,96 @@ const Dashboard = () => {
   const [cryptoNews, setCryptoNews] = useState([]);
   const [performance24h, setPerformance24h] = useState({ percentage: 0, symbol: '', price: 0 });
   const [lastPerformanceUpdate, setLastPerformanceUpdate] = useState(null);
+  const [arbitrageTrades, setArbitrageTrades] = useState([]);
+  const [arbitrageLastUpdate, setArbitrageLastUpdate] = useState(() => Date.now());
+  const [arbitrageProgress, setArbitrageProgress] = useState(0);
 
-  const [recentTrades] = useState([
-    { time: "14:32:15", pair: "BTC/USDT", type: "BUY", profit: "+$45.23", status: "Completed" },
-    { time: "14:28:42", pair: "ETH/USDT", type: "SELL", profit: "+$23.67", status: "Completed" },
-    { time: "14:25:11", pair: "BNB/USDT", type: "BUY", profit: "+$89.12", status: "Completed" },
-    { time: "14:22:03", pair: "ADA/USDT", type: "SELL", profit: "+$12.45", status: "Completed" },
-  ]);
-
-  
-  // Fetch news from newsdata.io
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await fetch('/functions/v1/fetch-news', {
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8`,
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setCryptoNews(data.news || []);
-        }
-      } catch (error) {
-        console.error('Error fetching news:', error);
-      }
+    const generateArbitrageOpportunities = () => {
+      const cryptoPairs = [
+        { symbol: "BTC/USDT", basePrice: 43000 },
+        { symbol: "ETH/USDT", basePrice: 2500 },
+        { symbol: "BNB/USDT", basePrice: 385 },
+        { symbol: "SOL/USDT", basePrice: 98 },
+        { symbol: "ADA/USDT", basePrice: 0.45 },
+        { symbol: "XRP/USDT", basePrice: 0.62 },
+        { symbol: "DOT/USDT", basePrice: 7.8 },
+        { symbol: "LINK/USDT", basePrice: 14.5 },
+        { symbol: "MATIC/USDT", basePrice: 0.95 },
+        { symbol: "AVAX/USDT", basePrice: 32.5 }
+      ];
+      return cryptoPairs.slice(0, 10).map((pair) => {
+        const priceVariation = (Math.random() - 0.5) * 0.1; // ±5%
+        const buyPrice = pair.basePrice * (1 + priceVariation);
+        const sellPrice = buyPrice * (1 + (Math.random() * 0.015 + 0.002)); // 0.2% a 1.7% acima
+        const profit = sellPrice - buyPrice;
+        return {
+          pair: pair.symbol,
+          buyPrice,
+          sellPrice,
+          profit,
+          time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        };
+      });
     };
 
-    fetchNews();
-    // Refresh news every hour
-    const newsInterval = setInterval(fetchNews, 60 * 60 * 1000);
-    
-    return () => clearInterval(newsInterval);
-  }, []);
+    // Só gera se trades estiver vazio (primeira carga)
+    if (arbitrageTrades.length === 0) {
+      setArbitrageTrades(generateArbitrageOpportunities());
+      setArbitrageLastUpdate(Date.now());
+      setArbitrageProgress(0);
+    }
 
-  // Fetch 24h performance from CoinMarketCap 3 times per day
-  useEffect(() => {
-    const fetch24hPerformance = async () => {
-      try {
-        // Check if we should update (3 times per day = every 8 hours)
-        const now = new Date();
-        const lastUpdate = lastPerformanceUpdate ? new Date(lastPerformanceUpdate) : null;
-        const shouldUpdate = !lastUpdate || (now.getTime() - lastUpdate.getTime()) >= 8 * 60 * 60 * 1000;
+    // Atualiza barra de progresso a cada minuto
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - arbitrageLastUpdate;
+      const percent = Math.min((elapsed / (24 * 60 * 60 * 1000)) * 100, 100);
+      setArbitrageProgress(percent);
 
-        if (shouldUpdate) {
-          // Simulate CoinMarketCap data with realistic crypto performance
-          const cryptos = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL'];
-          const selectedCrypto = cryptos[Math.floor(Math.random() * cryptos.length)];
-          const percentage = (Math.random() * 20 - 10); // -10% to +10%
-          const basePrice = {
-            'BTC': 45000,
-            'ETH': 2800,
-            'BNB': 400,
-            'ADA': 0.5,
-            'SOL': 100
-          }[selectedCrypto];
-
-          setPerformance24h({
-            percentage: percentage,
-            symbol: selectedCrypto,
-            price: basePrice * (1 + percentage / 100)
-          });
-          setLastPerformanceUpdate(now.toISOString());
-        }
-      } catch (error) {
-        console.error('Error fetching 24h performance:', error);
+      // Se passou 24h, gera novas operações
+      if (elapsed >= 24 * 60 * 60 * 1000) {
+        setArbitrageTrades(generateArbitrageOpportunities());
+        setArbitrageLastUpdate(Date.now());
+        setArbitrageProgress(0);
       }
-    };
+    }, 1000 * 60);
 
-    fetch24hPerformance();
-    // Check every hour but only update 3 times per day
-    const performanceInterval = setInterval(fetch24hPerformance, 60 * 60 * 1000);
-    
-    return () => clearInterval(performanceInterval);
-  }, [lastPerformanceUpdate]);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line
+  }, [arbitrageTrades, arbitrageLastUpdate]);
 
   // Carregar dados reais do usuário
   useEffect(() => {
-    const loadUserData = async () => {
-      if (profile) {
-        setBalance(profile.balance || 0);
-        setTotalProfit(profile.total_profit || 0);
-        setReferralBalance(profile.referral_balance || 0);
-        setResidualBalance(profile.residual_balance || 0);
-        setMonthlyEarnings(profile.monthly_earnings || 0);
-        setDailyProfit(profile.earnings || 0);
+    if (!profile) return;
+    setBalance(profile.balance || 0);
+    setTotalProfit(profile.total_profit || 0);
+    setReferralBalance(profile.referral_balance || 0);
+    setResidualBalance(profile.residual_balance || 0);
+    setMonthlyEarnings(profile.monthly_earnings || 0);
+    setDailyProfit(profile.earnings || 0);
 
-        // Carregar dados de investimentos e operações
-        const { data: investments } = await supabase
-          .from('user_investments')
-          .select('*')
-          .eq('user_id', profile.user_id)
-          .eq('status', 'active');
+    // Carregar dados de investimentos e operações
+    const loadInvestments = async () => {
+      const { data: investments } = await supabase
+        .from('user_investments')
+        .select('*')
+        .eq('user_id', profile.user_id)
+        .eq('status', 'active');
 
-        const { data: operations } = await supabase
-          .from('current_operations')
-          .select('*')
-          .in('user_investment_id', investments?.map(inv => inv.id) || []);
+      const { data: operations } = await supabase
+        .from('current_operations')
+        .select('*')
+        .in('user_investment_id', investments?.map(inv => inv.id) || []);
 
-        setActiveOrders(operations?.length || 0);
+      setActiveOrders(operations?.length || 0);
 
-        // Gerar link de indicação único baseado no username
-        if (profile.username) {
-          setReferralLink(`${window.location.origin}/register/${profile.username}`);
-        }
+      // Gerar link de indicação único baseado no username
+      if (profile.username) {
+        setReferralLink(`${window.location.origin}/register/${profile.username}`);
       }
     };
-
-    loadUserData();
-  }, [profile]);
+    loadInvestments();
+  }, [profile?.user_id]);
 
   useEffect(() => {
     // Fallback para gerar link genérico caso não tenha username
@@ -165,6 +146,53 @@ const Dashboard = () => {
       setReferralLink(`${window.location.origin}/register/${userCode}`);
     }
   }, [user, referralLink]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const url = new URL('https://newsdata.io/api/1/news');
+        url.searchParams.set('apikey', 'pub_7d30bec4ab0045e59c9fc2e3836551ad');
+        url.searchParams.set('q', 'financial markets OR crypto OR bitcoin OR ethereum OR trading OR stock market');
+        url.searchParams.set('language', 'pt');
+        url.searchParams.set('country', 'br,us');
+        url.searchParams.set('category', 'business,technology');
+        url.searchParams.set('size', '10');
+
+        const response = await fetch(url.toString());
+        if (response.ok) {
+          const data = await response.json();
+          const formattedNews = (data.results?.map((article) => ({
+            title: article.title,
+            source: article.source_id || 'NewsData',
+            time: new Date(article.pubDate).toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            sentiment: article.sentiment || 'neutral',
+            url: article.link,
+            description: article.description,
+          })) || []).slice(0, 5);
+          setCryptoNews(formattedNews);
+        } else {
+          toast({
+            title: 'Erro ao buscar notícias',
+            description: `Status: ${response.status}`,
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        toast({
+          title: 'Erro ao buscar notícias',
+          description: String(error),
+          variant: 'destructive',
+        });
+      }
+    };
+
+    fetchNews();
+    const newsInterval = setInterval(fetchNews, 60 * 60 * 1000);
+    return () => clearInterval(newsInterval);
+  }, [toast]);
 
   const toggleBot = () => {
     setBotActive(!botActive);
@@ -189,6 +217,21 @@ const Dashboard = () => {
       });
     }
   };
+
+  // Cálculo dos saldos simulados de arbitragem
+  const simulatedTotalProfit = arbitrageTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  const simulatedBalance = 10000 + simulatedTotalProfit; // Exemplo: saldo inicial + lucro simulado
+  const simulatedDailyProfit = simulatedTotalProfit; // Ou ajuste conforme sua lógica
+
+  // Saldo em BTC: soma do lucro convertido pelo preço do BTC/USDT da primeira operação
+  const btcPair = arbitrageTrades.find(t => t.pair === 'BTC/USDT');
+  const btcPrice = btcPair ? btcPair.buyPrice : 43000;
+  const totalProfitUSD = arbitrageTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  const btcBalance = btcPrice > 0 ? totalProfitUSD / btcPrice : 0;
+
+  // Saldo em BRL: lucro do dia convertido para real (cotação fixa 1 USD = 5.40 BRL)
+  const brlRate = 5.40;
+  const brlBalance = simulatedDailyProfit * brlRate;
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -235,7 +278,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-lg md:text-2xl font-bold text-primary">
-                ${balance.toLocaleString()}
+                ${simulatedBalance.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">
                 +2.5% desde ontem
@@ -252,7 +295,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-trading-green">
-                +${dailyProfit.toFixed(2)}
+                +${simulatedDailyProfit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 +15.3% desde ontem
@@ -269,7 +312,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                +${totalProfit.toFixed(2)}
+                +${simulatedTotalProfit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Desde o início
@@ -691,33 +734,58 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Trades */}
+        {/* Recent Trades substituído por Arbitragem CoinMarketCap */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center text-card-foreground">
               <Clock className="h-5 w-5 mr-2 text-primary" />
-              Operações Recentes
+              Operações Recentes de Arbitragem (CoinMarketCap)
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Saldo em BTC acima do cronômetro */}
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Saldo em BTC:</span>
+              <span className="font-mono text-lg text-primary">{btcBalance.toFixed(5)} BTC</span>
+            </div>
+            {/* Saldo em Real */}
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Saldo em Real:</span>
+              <span className="font-mono text-lg text-primary">R$ {brlBalance.toFixed(2)}</span>
+            </div>
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Próxima atualização em 24h</span>
+                <span className="text-xs text-muted-foreground">{(24 - Math.floor((arbitrageProgress/100)*24)).toString().padStart(2, '0')}:00h</span>
+              </div>
+              <div className="w-full bg-secondary rounded-full h-2">
+                <div className="bg-primary h-2 rounded-full" style={{ width: `${arbitrageProgress}%` }}></div>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {recentTrades.map((trade, index) => (
-                <div key={index} className="p-2 sm:p-3 bg-secondary rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">{trade.time}</div>
-                    <Badge variant={trade.type === "BUY" ? "default" : "secondary"} className="text-xs">
-                      {trade.type}
-                    </Badge>
+              {arbitrageTrades.length > 0 ? (
+                arbitrageTrades.map((trade, index) => (
+                  <div key={index} className="p-2 sm:p-3 bg-secondary rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">{trade.time}</div>
+                      <Badge variant="default" className="text-xs">ARBITRAGEM</Badge>
+                    </div>
+                    <div className="font-medium text-secondary-foreground text-sm sm:text-base">{trade.pair}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-trading-green text-sm sm:text-base">+${trade.profit.toFixed(2)}</div>
+                      <Badge variant="outline" className="text-xs">Lucro</Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span>Compra: ${trade.buyPrice.toFixed(2)}</span>
+                      <span>Venda: ${trade.sellPrice.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="font-medium text-secondary-foreground text-sm sm:text-base">{trade.pair}</div>
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold text-trading-green text-sm sm:text-base">{trade.profit}</div>
-                    <Badge variant="outline" className="text-xs">
-                      {trade.status}
-                    </Badge>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-muted-foreground w-full col-span-4">
+                  <p className="text-sm">Carregando negociações de arbitragem...</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
