@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { DigitoPayWithdrawal } from "@/components/DigitoPayWithdrawal";
+import { DigitoPayHistory } from "@/components/DigitoPayHistory";
 import { 
   Select,
   SelectContent,
@@ -34,7 +37,8 @@ import {
   XCircle,
   History,
   Eye,
-  EyeOff
+  EyeOff,
+  Smartphone
 } from "lucide-react";
 
 interface WithdrawalRequest {
@@ -54,6 +58,7 @@ interface WithdrawalRequest {
 }
 
 const Withdrawal = () => {
+  const [activeTab, setActiveTab] = useState("digitopay");
   const [amount, setAmount] = useState("");
   const [amountBRL, setAmountBRL] = useState("");
   const [withdrawalType, setWithdrawalType] = useState<"pix" | "usdt">("pix");
@@ -392,16 +397,60 @@ const Withdrawal = () => {
         </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-          {/* Withdrawal Form - Mobile Optimized */}
+          {/* Withdrawal Methods */}
           <Card>
             <CardHeader className="pb-3 sm:pb-6">
               <CardTitle className="flex items-center text-sm sm:text-base">
                 <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-primary" />
-                Nova Solicitação
+                Método de Saque
               </CardTitle>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="digitopay" className="flex items-center space-x-2">
+                    <Smartphone className="h-4 w-4" />
+                    <span>DigitoPay PIX</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="manual" className="flex items-center space-x-2">
+                    <Wallet className="h-4 w-4" />
+                    <span>Saque Manual</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* DigitoPay Tab */}
+                <TabsContent value="digitopay" className="space-y-6">
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                      <Smartphone className="h-4 w-4" />
+                      <span>Saque via DigitoPay - Integração Real</span>
+                    </div>
+                  </div>
+
+                  {user ? (
+                    <DigitoPayWithdrawal onSuccess={() => {
+                      toast({
+                        title: "Sucesso!",
+                        description: "Saque solicitado com sucesso",
+                      });
+                    }} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Faça login para acessar o DigitoPay</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Manual Withdrawal Tab */}
+                <TabsContent value="manual" className="space-y-6">
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                      <Wallet className="h-4 w-4" />
+                      <span>Saque Manual - Processamento Manual</span>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 {/* Amount Inputs - Mobile Optimized */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
@@ -573,6 +622,8 @@ const Withdrawal = () => {
                   {isLoading ? "Processando..." : "Solicitar Saque"}
                 </Button>
               </form>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 

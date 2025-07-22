@@ -6,6 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
+import { DigitoPayHistory } from "@/components/DigitoPayHistory";
+import { DatabaseTest } from "@/components/DatabaseTest";
+import { DigitoPayDebug } from "@/components/DigitoPayDebug";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -16,13 +22,21 @@ import {
   QrCode,
   Wallet,
   RefreshCw,
-  TrendingUp
+  TrendingUp,
+  History,
+  TestTube
 } from "lucide-react";
 
 const Deposit = () => {
+  console.log('🚀 Deposit component loading...');
+  
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("pix");
+  const { user, profile } = useAuth();
+  
+  console.log('👤 User:', user);
+  console.log('📋 Profile:', profile);
+  const [activeTab, setActiveTab] = useState("digitopay");
   const [isLoading, setIsLoading] = useState(false);
   const [pixData, setPixData] = useState<{code: string, qrCode: string} | null>(null);
   const [bnbAddress] = useState("0x742d35Cc6634C0532925a3b8D39C1234567890AB");
@@ -174,8 +188,9 @@ const Deposit = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary p-4">
-      <div className="max-w-4xl mx-auto">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary p-4">
+        <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center space-x-4 mb-6 animate-fade-in">
           <Button
@@ -203,18 +218,63 @@ const Deposit = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="digitopay" className="flex items-center space-x-2">
+                  <Smartphone className="h-4 w-4" />
+                  <span>DigitoPay PIX</span>
+                </TabsTrigger>
                 <TabsTrigger value="pix" className="flex items-center space-x-2">
                   <Smartphone className="h-4 w-4" />
-                  <span>PIX</span>
+                  <span>PIX Simulado</span>
                 </TabsTrigger>
                 <TabsTrigger value="usdt" className="flex items-center space-x-2">
                   <CreditCard className="h-4 w-4" />
                   <span>USDT BNB20</span>
                 </TabsTrigger>
+                <TabsTrigger value="test" className="flex items-center space-x-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Teste DB</span>
+                </TabsTrigger>
+                <TabsTrigger value="debug" className="flex items-center space-x-2">
+                  <TestTube className="h-4 w-4" />
+                  <span>Debug</span>
+                </TabsTrigger>
               </TabsList>
 
-              {/* PIX Tab */}
+              {/* DigitoPay Tab */}
+              <TabsContent value="digitopay" className="space-y-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                    <Smartphone className="h-4 w-4" />
+                    <span>Depósito via DigitoPay - Integração Real</span>
+                  </div>
+                </div>
+
+                {user ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <DigitoPayDeposit onSuccess={() => {
+                      toast({
+                        title: "Sucesso!",
+                        description: "Depósito processado com sucesso",
+                      });
+                    }} />
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        <h3 className="font-semibold">Histórico de Transações</h3>
+                      </div>
+                      <DigitoPayHistory />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Faça login para acessar o DigitoPay</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* PIX Simulado Tab */}
               <TabsContent value="pix" className="space-y-6">
                 <div className="text-center mb-4">
                   <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
@@ -500,6 +560,28 @@ const Deposit = () => {
                   </Button>
                 </form>
               </TabsContent>
+
+              {/* Teste de Banco de Dados Tab */}
+              <TabsContent value="test" className="space-y-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Teste de Conexão - Banco de Dados</span>
+                  </div>
+                </div>
+                <DatabaseTest />
+              </TabsContent>
+
+              {/* Debug DigitoPay Tab */}
+              <TabsContent value="debug" className="space-y-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center space-x-2 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
+                    <TestTube className="h-4 w-4" />
+                    <span>Debug - Configurações DigitoPay</span>
+                  </div>
+                </div>
+                <DigitoPayDebug />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -520,6 +602,7 @@ const Deposit = () => {
         </Card>
       </div>
     </div>
+    </ErrorBoundary>
   );
 };
 
