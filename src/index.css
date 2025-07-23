@@ -8,56 +8,56 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Alphabit/Binance Theme - Dark with Gold accents */
-    --background: 220 13% 9%;
-    --foreground: 0 0% 95%;
+    /* Tema Azul Escuro com Letras Brancas */
+    --background: 220 30% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 13% 12%;
-    --card-foreground: 0 0% 95%;
+    --card: 220 25% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 13% 12%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 45 100% 51%;
-    --primary-foreground: 220 13% 9%;
+    --primary: 210 100% 60%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 13% 15%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 13% 15%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 0 0% 85%;
 
-    --accent: 45 100% 51%;
-    --accent-foreground: 220 13% 9%;
+    --accent: 210 100% 60%;
+    --accent-foreground: 0 0% 98%;
 
-    --success: 120 100% 40%;
-    --success-foreground: 0 0% 100%;
+    --success: 120 100% 50%;
+    --success-foreground: 0 0% 98%;
 
-    --warning: 45 100% 51%;
-    --warning-foreground: 220 13% 9%;
+    --warning: 45 100% 60%;
+    --warning-foreground: 220 30% 8%;
 
     --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 20%;
-    --input: 220 13% 20%;
-    --ring: 45 100% 51%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 210 100% 60%;
 
-    --trading-green: 120 100% 40%;
+    --trading-green: 120 100% 50%;
     --trading-red: 0 75% 60%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(45 100% 51%), hsl(45 100% 60%));
-    --gradient-dark: linear-gradient(135deg, hsl(220 13% 9%), hsl(220 13% 12%));
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 60%), hsl(210 100% 70%));
+    --gradient-dark: linear-gradient(135deg, hsl(220 30% 8%), hsl(220 25% 12%));
     
-    --shadow-glow: 0 0 20px hsl(45 100% 51% / 0.3);
-    --shadow-card: 0 4px 20px hsl(220 13% 5% / 0.5);
+    --shadow-glow: 0 0 20px hsl(210 100% 60% / 0.3);
+    --shadow-card: 0 4px 20px hsl(220 30% 4% / 0.5);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 13% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 220 13% 9%;
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 210 100% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 220 13% 15%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 220 13% 20%;
