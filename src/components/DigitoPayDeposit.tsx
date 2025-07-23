@@ -121,10 +121,18 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
         );
 
         if (saveResult.success) {
+          console.log('✅ Transação salva com sucesso:', result);
           setDepositData({
             trxId: result.id,
             pixCode: result.pixCopiaECola || '',
             qrCodeBase64: result.qrCodeBase64 || '',
+          });
+
+          console.log('📱 Dados do depósito configurados:', {
+            trxId: result.id,
+            hasPixCode: !!result.pixCopiaECola,
+            hasQrCode: !!result.qrCodeBase64,
+            qrCodeLength: result.qrCodeBase64?.length || 0
           });
 
           toast({
@@ -255,11 +263,20 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
             {depositData.qrCodeBase64 && (
               <div className="flex justify-center">
                 <img
-                  src={`data:image/png;base64,${depositData.qrCodeBase64}`}
+                  src={depositData.qrCodeBase64.startsWith('data:') 
+                    ? depositData.qrCodeBase64 
+                    : `data:image/png;base64,${depositData.qrCodeBase64}`}
                   alt="QR Code PIX"
                   className="border rounded-lg"
                   width={200}
                   height={200}
+                  onError={(e) => {
+                    console.error('❌ Erro ao carregar QR Code:', e);
+                    console.log('📄 QR Code data:', depositData.qrCodeBase64?.substring(0, 100) + '...');
+                  }}
+                  onLoad={() => {
+                    console.log('✅ QR Code carregado com sucesso');
+                  }}
                 />
               </div>
             )}
