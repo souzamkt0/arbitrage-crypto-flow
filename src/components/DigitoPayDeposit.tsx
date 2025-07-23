@@ -93,7 +93,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
 
     try {
       // URL de callback para webhook
-      const callbackUrl = `${window.location.origin}/api/digitopay/webhook/deposit`;
+      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook`;
 
       console.log('🚀 Iniciando criação de depósito...');
 

@@ -1,1 +1,4 @@
 project_id = "cbwpghrkfvczjqzefvix"
+
+[functions.digitopay-webhook]
+verify_jwt = false
