@@ -130,7 +130,7 @@ export const DigitoPayHistory: React.FC = () => {
               <History className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">Nenhuma transação encontrada</p>
             </div> : <div className="space-y-3">
-              {transactions.map(transaction => <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-gray-900">
+              {transactions.map(transaction => <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
