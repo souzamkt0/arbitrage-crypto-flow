@@ -255,7 +255,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
             {depositData.qrCodeBase64 && (
               <div className="flex justify-center">
                 <img
-                  src={depositData.qrCodeBase64}
+                  src={`data:image/png;base64,${depositData.qrCodeBase64}`}
                   alt="QR Code PIX"
                   className="border rounded-lg"
                   width={200}
