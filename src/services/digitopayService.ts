@@ -93,34 +93,40 @@ export class DigitoPayService {
   private static accessToken: string | null = null;
   private static tokenExpiry: number = 0;
 
-  // Autenticação com a API - Conforme documentação oficial
+  // Autenticação com a API - Via Edge Function para evitar CORS
   static async authenticate(): Promise<DigitoPayAuthResponse> {
     try {
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/token/api`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clientId: DIGITOPAY_CONFIG.clientId,
-          secret: DIGITOPAY_CONFIG.clientSecret,
-        }),
+      console.log('🔐 Iniciando autenticação via Edge Function...');
+      
+      const response = await supabase.functions.invoke('digitopay-auth', {
+        body: {}
       });
 
-      const data = await response.json();
+      console.log('📡 Resposta da Edge Function:', response);
 
-      if (response.ok && data.accessToken) {
+      if (response.error) {
+        await this.logDebug('authenticate_error', response.error);
+        return { success: false, message: response.error.message || 'Erro na Edge Function' };
+      }
+
+      const data = response.data;
+
+      if (data.success && data.accessToken) {
         this.accessToken = data.accessToken;
         this.tokenExpiry = Date.now() + (data.expiration * 1000);
         
-        await this.logDebug('authenticate', data);
+        await this.logDebug('authenticate_success', { 
+          hasToken: !!data.accessToken,
+          expiration: data.expiration
+        });
         
         return { success: true, accessToken: data.accessToken };
       } else {
-        await this.logDebug('authenticate_error', data);
-        return { success: false, message: data.mensagem || data.message || 'Erro na autenticação' };
+        await this.logDebug('authenticate_failure', data);
+        return { success: false, message: data.message || 'Erro na autenticação' };
       }
     } catch (error) {
+      console.error('💥 Erro na autenticação:', error);
       await this.logDebug('authenticate_exception', { error: String(error) });
       return { success: false, message: 'Erro de conexão' };
     }
