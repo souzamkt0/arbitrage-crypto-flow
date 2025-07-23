@@ -29,7 +29,7 @@ serve(async (req) => {
         payload: webhookData
       });
 
-    const { id, status, valor, details } = webhookData;
+    const { id, status, value, person } = webhookData;
 
     if (!id) {
       throw new Error('ID da transação não fornecido');
@@ -49,12 +49,15 @@ serve(async (req) => {
     // Update transaction status
     let newStatus = 'pending';
     
-    if (status === 'REALIZADO') {
+    // DigitoPay webhook status mapping
+    if (status === 'PAID' || status === 'REALIZADO') {
       newStatus = 'completed';
-    } else if (status === 'CANCELADO') {
+    } else if (status === 'CANCELLED' || status === 'CANCELADO') {
       newStatus = 'cancelled';
-    } else if (status === 'FALHOU') {
+    } else if (status === 'FAILED' || status === 'FALHOU') {
       newStatus = 'failed';
+    } else if (status === 'EXPIRED' || status === 'EXPIRADO') {
+      newStatus = 'expired';
     }
 
     // Update the transaction
@@ -136,12 +139,14 @@ serve(async (req) => {
     await supabase
       .from('digitopay_debug')
       .insert({
-        trx_id: id,
         tipo: 'webhook_processed',
         payload: {
+          trx_id: id,
           original_status: status,
           new_status: newStatus,
-          transaction_type: transaction.type
+          transaction_type: transaction.type,
+          value: value,
+          person: person
         }
       });
 
@@ -168,7 +173,7 @@ serve(async (req) => {
           tipo: 'webhook_error',
           payload: {
             error: error.message,
-            body: await req.text()
+            request_body: webhookData || 'Failed to parse'
           }
         });
     } catch (logError) {

@@ -187,7 +187,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
               <SelectItem value="CNPJ">CNPJ</SelectItem>
               <SelectItem value="EMAIL">E-mail</SelectItem>
               <SelectItem value="PHONE">Telefone</SelectItem>
-              <SelectItem value="EVP">Chave Aleatória</SelectItem>
+              <SelectItem value="RANDOM">Chave Aleatória</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -201,7 +201,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
               pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
               pixKeyType === 'EMAIL' ? 'seu@email.com' :
               pixKeyType === 'PHONE' ? '(11) 99999-9999' :
-              pixKeyType === 'EVP' ? 'Chave aleatória' :
+              pixKeyType === 'RANDOM' ? 'Chave aleatória' :
               'Digite sua chave PIX'
             }
             value={pixKey}
