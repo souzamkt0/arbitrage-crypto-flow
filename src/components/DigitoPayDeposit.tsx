@@ -95,7 +95,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       // URL de callback para webhook
       const callbackUrl = `${window.location.origin}/api/digitopay/webhook/deposit`;
 
-      // Criar depósito no DigitoPay
+      console.log('🚀 Iniciando criação de depósito...');
+
+      // Criar depósito no DigitoPay via Edge Function
+      // A Edge Function já salva a transação automaticamente
       const result = await DigitoPayService.createDeposit(
         amountValue,
         cpf,
@@ -103,52 +106,34 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
         callbackUrl
       );
 
+      console.log('📋 Resultado do depósito:', result);
+
       if (result.success && result.id) {
-        // Salvar transação no banco
-        const saveResult = await DigitoPayService.saveTransaction(
-          user.id,
-          result.id,
-          'deposit',
-          amountValue,
-          amountValue, // Valor em BRL
-          result.pixCopiaECola,
-          result.qrCodeBase64,
-          undefined,
-          undefined,
-          profile.display_name || profile.username || 'Nome não informado',
-          cpf,
-          result
-        );
+        console.log('✅ Depósito criado com sucesso:', result);
+        setDepositData({
+          trxId: result.id,
+          pixCode: result.pixCopiaECola || '',
+          qrCodeBase64: result.qrCodeBase64 || '',
+        });
 
-        if (saveResult.success) {
-          console.log('✅ Transação salva com sucesso:', result);
-          setDepositData({
-            trxId: result.id,
-            pixCode: result.pixCopiaECola || '',
-            qrCodeBase64: result.qrCodeBase64 || '',
-          });
+        console.log('📱 Dados do depósito configurados:', {
+          trxId: result.id,
+          hasPixCode: !!result.pixCopiaECola,
+          hasQrCode: !!result.qrCodeBase64,
+          qrCodeLength: result.qrCodeBase64?.length || 0
+        });
 
-          console.log('📱 Dados do depósito configurados:', {
-            trxId: result.id,
-            hasPixCode: !!result.pixCopiaECola,
-            hasQrCode: !!result.qrCodeBase64,
-            qrCodeLength: result.qrCodeBase64?.length || 0
-          });
+        toast({
+          title: 'Depósito criado!',
+          description: 'Escaneie o QR Code ou copie o código PIX',
+        });
 
-          toast({
-            title: 'Depósito criado!',
-            description: 'Escaneie o QR Code ou copie o código PIX',
-          });
-
-          onSuccess?.();
-        } else {
-          throw new Error('Erro ao salvar transação');
-        }
+        onSuccess?.();
       } else {
         throw new Error(result.message || 'Erro ao criar depósito');
       }
     } catch (error) {
-      console.error('Erro ao criar depósito:', error);
+      console.error('❌ Erro ao criar depósito:', error);
       toast({
         title: 'Erro',
         description: error instanceof Error ? error.message : 'Erro interno',
