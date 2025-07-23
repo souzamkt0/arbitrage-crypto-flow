@@ -150,13 +150,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
 
     try {
       const result = await DigitoPayService.checkTransactionStatus(depositData.trxId);
+      console.log('📊 Status da transação:', result);
       
-      if (result.status === 'PAID') {
-        toast({
-          title: 'Pagamento confirmado!',
-          description: 'Seu saldo foi atualizado',
-        });
-        
+      // Mapear status do DigitoPay para status interno
+      let isCompleted = false;
+      if (result.status === 'PAID' || result.status === 'REALIZADO') {
+        isCompleted = true;
+      }
+      
+      if (isCompleted) {
         // Atualizar status no banco
         await DigitoPayService.updateTransactionStatus(
           depositData.trxId,
@@ -164,10 +166,42 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
           result
         );
 
+        // Chamar função para processar transação manualmente
+        try {
+          const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/process-transaction', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ trxId: depositData.trxId })
+          });
+
+          const processResult = await response.json();
+          console.log('🔧 Resultado do processamento:', processResult);
+
+          if (processResult.success) {
+            toast({
+              title: 'Pagamento confirmado!',
+              description: 'Seu saldo foi atualizado automaticamente',
+            });
+          } else {
+            toast({
+              title: 'Pagamento confirmado!',
+              description: 'Entre em contato se o saldo não foi atualizado',
+            });
+          }
+        } catch (processError) {
+          console.error('❌ Erro ao processar transação:', processError);
+          toast({
+            title: 'Pagamento confirmado!',
+            description: 'Entre em contato se o saldo não foi atualizado',
+          });
+        }
+
         setDepositData(null);
         setAmount('');
         onSuccess?.();
-      } else if (result.status === 'CANCELLED' || result.status === 'EXPIRED') {
+      } else if (result.status === 'CANCELLED' || result.status === 'CANCELED' || result.status === 'CANCELADO' || result.status === 'EXPIRED' || result.status === 'EXPIRADO') {
         toast({
           title: 'Pagamento cancelado/expirado',
           description: 'Tente novamente',
@@ -176,10 +210,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       } else {
         toast({
           title: 'Aguardando pagamento',
-          description: 'O pagamento ainda não foi confirmado',
+          description: `Status: ${result.status}`,
         });
       }
     } catch (error) {
+      console.error('❌ Erro ao verificar status:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao verificar status',

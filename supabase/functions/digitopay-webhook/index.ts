@@ -67,17 +67,21 @@ Deno.serve(async (req) => {
       case 'paid':
       case 'approved':
       case 'completed':
+      case 'realizado': // Status do DigitoPay para pagamento confirmado
         internalStatus = 'completed';
         break;
       case 'cancelled':
       case 'canceled':
+      case 'cancelado':
         internalStatus = 'cancelled';
         break;
       case 'failed':
       case 'error':
+      case 'falhou':
         internalStatus = 'failed';
         break;
       case 'expired':
+      case 'expirado':
         internalStatus = 'expired';
         break;
       default:
