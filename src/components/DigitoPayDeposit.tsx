@@ -99,7 +99,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       const result = await DigitoPayService.createDeposit(
         amountValue,
         cpf,
-        `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        profile.display_name || profile.username || 'Nome não informado',
         callbackUrl
       );
 
@@ -115,7 +115,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
           result.qrCodeBase64,
           undefined,
           undefined,
-          `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+          profile.display_name || profile.username || 'Nome não informado',
           cpf,
           result
         );
