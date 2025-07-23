@@ -141,7 +141,7 @@ export class DigitoPayService {
     return true;
   }
 
-  // Criar depósito - Conforme documentação oficial
+  // Criar depósito - Via Edge Function para evitar CORS
   static async createDeposit(
     amount: number,
     cpf: string,
@@ -150,35 +150,34 @@ export class DigitoPayService {
     description?: string
   ): Promise<DigitoPayDepositResponse> {
     try {
-      if (!(await this.ensureValidToken())) {
-        return { success: false, message: 'Erro na autenticação' };
-      }
-
-      const depositData: DigitoPayDepositRequest = {
-        dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutos
-        paymentOptions: ['PIX'],
-        person: {
-          cpf: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos
-          name: name
-        },
-        value: amount,
-        callbackUrl: callbackUrl,
-        idempotencyKey: `deposit_${Date.now()}`
-      };
-
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/deposit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        body: JSON.stringify(depositData),
+      console.log('💰 Criando depósito via Edge Function...');
+      
+      const response = await supabase.functions.invoke('digitopay-deposit', {
+        body: {
+          amount,
+          cpf,
+          name,
+          callbackUrl,
+          userId: (await supabase.auth.getUser()).data.user?.id
+        }
       });
 
-      const data = await response.json();
-      await this.logDebug('createDeposit', { request: depositData, response: data });
+      console.log('📡 Resposta da Edge Function deposit:', response);
 
-      if (response.ok && data.id) {
+      if (response.error) {
+        await this.logDebug('createDeposit_error', response.error);
+        return { success: false, message: response.error.message || 'Erro na Edge Function' };
+      }
+
+      const data = response.data;
+
+      if (data.success && data.id) {
+        await this.logDebug('createDeposit_success', {
+          id: data.id,
+          hasPixCode: !!data.pixCopiaECola,
+          hasQrCode: !!data.qrCodeBase64
+        });
+
         return {
           success: true,
           id: data.id,
@@ -189,13 +188,15 @@ export class DigitoPayService {
           status: data.status
         };
       } else {
+        await this.logDebug('createDeposit_failure', data);
         return {
           success: false,
-          message: data.message || data.mensagem || 'Erro ao criar depósito',
+          message: data.message || 'Erro ao criar depósito',
           errors: data.errors
         };
       }
     } catch (error) {
+      console.error('💥 Erro ao criar depósito:', error);
       await this.logDebug('createDeposit_exception', { error: String(error) });
       return { success: false, message: 'Erro de conexão' };
     }
