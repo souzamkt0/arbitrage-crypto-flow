@@ -80,10 +80,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
     }
 
     const amountValue = parseFloat(amount);
-    if (amountValue < 10) {
+    if (amountValue < 2) {
       toast({
         title: 'Valor mínimo',
-        description: 'O valor mínimo é R$ 10,00',
+        description: 'O valor mínimo é R$ 2,00',
         variant: 'destructive',
       });
       return;
@@ -212,7 +212,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
                 placeholder="0,00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                min="10"
+                min="2"
                 step="0.01"
               />
             </div>
