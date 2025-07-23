@@ -81,7 +81,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
         cpf,
         `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
         pixKey,
-        pixKeyType,
+        pixKeyType as 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM',
         callbackUrl
       );
 
@@ -119,7 +119,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
           throw new Error('Erro ao salvar transação');
         }
       } else {
-        throw new Error(result.mensagem || 'Erro ao criar saque');
+        throw new Error(result.message || 'Erro ao criar saque');
       }
     } catch (error) {
       console.error('Erro ao criar saque:', error);
