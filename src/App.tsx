@@ -9,7 +9,7 @@ import Register from "./pages/Register";
 import AdminRegister from "./pages/AdminRegister";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
-import Bot from "./pages/Bot";
+
 import Deposit from "./pages/Deposit";
 import Withdrawal from "./pages/Withdrawal";
 import History from "./pages/History";
@@ -92,16 +92,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/bot"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Bot />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/deposit"
             element={

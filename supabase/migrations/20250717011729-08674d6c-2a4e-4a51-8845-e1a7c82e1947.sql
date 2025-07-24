@@ -139,8 +139,8 @@ CREATE TABLE public.trading_history (
   profit decimal(15,2) NOT NULL,
   profit_percent decimal(8,4) NOT NULL,
   status text DEFAULT 'completed' CHECK (status IN ('completed', 'failed', 'cancelled')),
-  exchange_1 text DEFAULT 'Binance Spot',
-  exchange_2 text DEFAULT 'Binance Futures',
+  exchange_1 text DEFAULT 'Spot Exchange',
+  exchange_2 text DEFAULT 'Futures Exchange',
   execution_time integer, -- em segundos
   created_at timestamp with time zone DEFAULT now()
 );
@@ -228,7 +228,7 @@ CREATE TABLE public.admin_settings (
 CREATE TABLE public.api_connections (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  api_provider text NOT NULL CHECK (api_provider IN ('binance', 'okx', 'bybit')),
+  api_provider text NOT NULL CHECK (api_provider IN ('spot', 'futures', 'okx', 'bybit')),
   api_key_encrypted text NOT NULL,
   secret_key_encrypted text NOT NULL,
   is_active boolean DEFAULT true,

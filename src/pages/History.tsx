@@ -39,8 +39,8 @@ const History = () => {
             profit: trade.profit,
             profitPercent: trade.profit_percent,
             status: trade.status === 'completed' ? 'Completed' : 'Failed',
-            exchange1: trade.exchange_1 || 'Binance Spot',
-            exchange2: trade.exchange_2 || 'Binance Futures'
+            exchange1: trade.exchange_1 || 'Spot Exchange',
+            exchange2: trade.exchange_2 || 'Futures Exchange'
           }));
           setTrades(formattedTrades);
         }
@@ -64,8 +64,8 @@ const History = () => {
       profit: 264.85,
       profitPercent: 1.25,
       status: "Completed",
-      exchange1: "Binance Spot",
-      exchange2: "Binance Futures"
+      exchange1: "Spot Exchange",
+      exchange2: "Futures Exchange"
     },
     {
       id: "ARB002", 
@@ -78,8 +78,8 @@ const History = () => {
       profit: 45.15,
       profitPercent: 0.83,
       status: "Completed",
-      exchange1: "Binance Spot",
-      exchange2: "Binance Futures"
+      exchange1: "Spot Exchange",
+      exchange2: "Futures Exchange"
     },
     {
       id: "ARB003",
@@ -92,8 +92,8 @@ const History = () => {
       profit: 100.50,
       profitPercent: 2.12,
       status: "Completed",
-      exchange1: "Binance Spot",
-      exchange2: "Binance Futures"
+      exchange1: "Spot Exchange",
+      exchange2: "Futures Exchange"
     },
     {
       id: "ARB004",
@@ -106,8 +106,8 @@ const History = () => {
       profit: 55.00,
       profitPercent: 1.22,
       status: "Failed",
-      exchange1: "Binance Spot",
-      exchange2: "Binance Futures"
+      exchange1: "Spot Exchange",
+      exchange2: "Futures Exchange"
     },
     {
       id: "ARB005",
@@ -120,8 +120,8 @@ const History = () => {
       profit: 3.50,
       profitPercent: 0.97,
       status: "Completed",
-      exchange1: "Binance Spot",
-      exchange2: "Binance Futures"
+      exchange1: "Spot Exchange",
+      exchange2: "Futures Exchange"
     }
   ];
 

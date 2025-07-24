@@ -1,5 +1,5 @@
-// Simulação de dados da Binance para arbitragem
-export interface BinanceArbitrageData {
+// Simulação de dados de arbitragem entre exchanges
+export interface ArbitrageData {
   symbol: string;
   name: string;
   spotPrice: number;
@@ -11,7 +11,7 @@ export interface BinanceArbitrageData {
   lastAnalyzed: Date;
 }
 
-export interface BinancePair {
+export interface CryptoPair {
   symbol: string;
   name: string;
   price: number;
@@ -21,10 +21,10 @@ export interface BinancePair {
   low24h: number;
 }
 
-export const binanceArbitrageService = {
-  // Simula dados reais da Binance API
-  async getBinancePairs(): Promise<BinancePair[]> {
-    // Simula dados da Binance com flutuações realistas
+export const arbitrageService = {
+  // Simula dados reais de exchanges
+  async getCryptoPairs(): Promise<CryptoPair[]> {
+    // Simula dados de exchanges com flutuações realistas
     const basePairs = [
       { symbol: "BTCUSDT", name: "Bitcoin", basePrice: 43250, volatility: 0.02 },
       { symbol: "ETHUSDT", name: "Ethereum", basePrice: 2680, volatility: 0.025 },
@@ -60,9 +60,9 @@ export const binanceArbitrageService = {
     });
   },
 
-  async analyzeBinanceArbitrage(): Promise<BinanceArbitrageData[]> {
-    const pairs = await this.getBinancePairs();
-    const opportunities: BinanceArbitrageData[] = [];
+  async analyzeArbitrage(): Promise<ArbitrageData[]> {
+    const pairs = await this.getCryptoPairs();
+    const opportunities: ArbitrageData[] = [];
 
     pairs.forEach(pair => {
       // Simula diferenças de preço entre Spot e Futures
@@ -92,7 +92,7 @@ export const binanceArbitrageService = {
     return opportunities.sort((a, b) => b.profitPercent - a.profitPercent);
   },
 
-  async executeArbitrage(opportunity: BinanceArbitrageData, amount: number): Promise<boolean> {
+  async executeArbitrage(opportunity: ArbitrageData, amount: number): Promise<boolean> {
     // Simula execução da arbitragem
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -104,4 +104,4 @@ export const binanceArbitrageService = {
   }
 };
 
-export default binanceArbitrageService;
+export default arbitrageService;

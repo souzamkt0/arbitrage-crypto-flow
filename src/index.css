@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Alphabit/Binance Theme - Dark with Gold accents */
+    /* Alphabit Theme - Dark with Gold accents */
     --background: 220 13% 9%;
     --foreground: 0 0% 95%;
 

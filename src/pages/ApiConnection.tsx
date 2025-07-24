@@ -9,18 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Key, Shield, CheckCircle, AlertTriangle, TrendingUp } from "lucide-react";
 
 const ApiConnection = () => {
-  const [apiKey, setApiKey] = useState("B5xi6RvYu11sYxxvZPdYZ4pzTK0pii2CpOsawmVG45bXICkYhjzV9MkjH2y0XGqt");
-  const [secretKey, setSecretKey] = useState("WRS9svtgQAeb83LMpf54XjiCrfNz5U0Ie8B1dWn2gBY5P61layPLkYISl56zqUMq");
+  const [apiKey, setApiKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle");
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Salvar as chaves automaticamente no localStorage na inicialização
-  useEffect(() => {
-    localStorage.setItem('binance_api_key', apiKey);
-    localStorage.setItem('binance_secret_key', secretKey);
-  }, []);
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +24,6 @@ const ApiConnection = () => {
     setTimeout(() => {
       if (apiKey.length >= 20 && secretKey.length >= 20) {
         setConnectionStatus("success");
-        localStorage.setItem("binance_api_key", apiKey);
-        localStorage.setItem("binance_secret_key", secretKey);
         toast({
           title: "API conectada com sucesso!",
           description: "Suas credenciais foram validadas",
@@ -62,10 +54,10 @@ const ApiConnection = () => {
             <h1 className="text-3xl font-bold text-primary">Alphabit</h1>
           </div>
           <h2 className="text-xl font-semibold text-card-foreground mb-2">
-            Conectar API Binance
+            Conectar API de Trading
           </h2>
           <p className="text-muted-foreground">
-            Conecte sua conta Binance para começar a arbitragem
+            Conecte sua conta de trading para começar a arbitragem
           </p>
         </div>
 
@@ -94,7 +86,7 @@ const ApiConnection = () => {
                   <Input
                     id="api-key"
                     type="text"
-                    placeholder="Sua API Key da Binance"
+                    placeholder="Sua API Key"
                     className="pl-9"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
@@ -110,7 +102,7 @@ const ApiConnection = () => {
                   <Input
                     id="secret-key"
                     type="password"
-                    placeholder="Sua Secret Key da Binance"
+                    placeholder="Sua Secret Key"
                     className="pl-9"
                     value={secretKey}
                     onChange={(e) => setSecretKey(e.target.value)}
@@ -153,7 +145,7 @@ const ApiConnection = () => {
                 Como obter suas chaves da API:
               </h4>
               <ol className="text-sm text-muted-foreground space-y-1">
-                <li>1. Acesse sua conta Binance</li>
+                <li>1. Acesse sua conta de trading</li>
                 <li>2. Vá em API Management</li>
                 <li>3. Crie uma nova API Key</li>
                 <li>4. Ative as permissões de Spot & Margin Trading</li>

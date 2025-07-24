@@ -47,8 +47,8 @@ const Simulation = () => {
           profitPercent: success ? profit : 0,
           amount,
           status: success ? "Success" : "Failed",
-          exchange1: "Binance Spot",
-          exchange2: "Binance Futures"
+          exchange1: "Spot Exchange",
+          exchange2: "Futures Exchange"
         });
       }
       

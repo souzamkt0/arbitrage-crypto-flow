@@ -1,60 +1,71 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReferralSystem from "@/components/ReferralSystem";
-import BinanceApiTester from "@/components/BinanceApiTester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Settings as SettingsIcon, 
   Save, 
-  AlertTriangle, 
-  DollarSign, 
-  Percent, 
-  Volume2, 
-  Key, 
-  Eye, 
-  EyeOff,
-  User
+  User,
+  Lock,
+  Users,
+  Crown,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Shield
 } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [minProfit, setMinProfit] = useState([1.5]);
-  const [maxAmount, setMaxAmount] = useState(1000);
-  const [baseCurrency, setBaseCurrency] = useState("USDT");
-  const [soundNotifications, setSoundNotifications] = useState(true);
-  const [autoExecute, setAutoExecute] = useState(true);
-  const [riskLevel, setRiskLevel] = useState([3]);
-  const [binanceApiKey, setBinanceApiKey] = useState("B5xi6RvYu11sYxxvZPdYZ4pzTK0pii2CpOsawmVG45bXICkYhjzV9MkjH2y0XGqt");
-  const [binanceSecretKey, setBinanceSecretKey] = useState("WRS9svtgQAeb83LMpf54XjiCrfNz5U0Ie8B1dWn2gBY5P61layPLkYISl56zqUMq");
-  const [showSecretKey, setShowSecretKey] = useState(false);
   const { toast } = useToast();
-
-  // Salvar as chaves automaticamente no localStorage na inicialização
-  useEffect(() => {
-    localStorage.setItem('binance_api_key', binanceApiKey);
-    localStorage.setItem('binance_secret_key', binanceSecretKey);
-  }, []);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSave = () => {
-    // Salvar as chaves da API no localStorage
-    if (binanceApiKey) {
-      localStorage.setItem('binance_api_key', binanceApiKey);
-    }
-    if (binanceSecretKey) {
-      localStorage.setItem('binance_secret_key', binanceSecretKey);
-    }
-    
     toast({
       title: "Configurações salvas!",
       description: "Suas preferências foram atualizadas com sucesso.",
     });
+  };
+
+  const handlePasswordChange = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erro!",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Senha alterada!",
+      description: "Sua senha foi atualizada com sucesso.",
+    });
+    
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  // Mock data - in a real app this would come from your auth context or API
+  const userInfo = {
+    name: "João Silva",
+    email: "joao.silva@email.com",
+    phone: "+55 (11) 99999-9999",
+    joinDate: "15/03/2024",
+    location: "São Paulo, SP",
+    referrals: 12,
+    activePlans: 2,
+    communityRank: "Gold",
+    totalEarnings: 1250.50
   };
 
   return (
@@ -89,154 +100,127 @@ const Settings = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Trading Settings */}
-          <Card className="bg-card border-border">
+          {/* Profile Settings */}
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-card-foreground">
-                <DollarSign className="h-5 w-5 mr-2 text-primary" />
-                Configurações de Trading
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Perfil
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="min-profit">Lucro Mínimo (%)</Label>
-                <div className="px-3">
-                  <Slider
-                    value={minProfit}
-                    onValueChange={setMinProfit}
-                    max={10}
-                    min={0.1}
-                    step={0.1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>0.1%</span>
-                    <span className="font-medium text-primary">{minProfit[0]}%</span>
-                    <span>10%</span>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Editar Perfil</p>
+                  <p className="text-sm text-muted-foreground">
+                    Altere suas informações pessoais, foto e biografia
+                  </p>
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/edit-profile')}
+                >
+                  Editar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Account Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Informações da Conta
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{userInfo.email}</p>
+                    <p className="text-xs text-muted-foreground">Email</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="max-amount">Valor Máximo por Operação (USD)</Label>
-                <Input
-                  id="max-amount"
-                  type="number"
-                  value={maxAmount}
-                  onChange={(e) => setMaxAmount(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="base-currency">Moeda Base</Label>
-                <Select value={baseCurrency} onValueChange={setBaseCurrency}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a moeda base" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USDT">USDT</SelectItem>
-                    <SelectItem value="BUSD">BUSD</SelectItem>
-                    <SelectItem value="BTC">BTC</SelectItem>
-                    <SelectItem value="ETH">ETH</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="risk-level">Nível de Risco</Label>
-                <div className="px-3">
-                  <Slider
-                    value={riskLevel}
-                    onValueChange={setRiskLevel}
-                    max={5}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>Conservador</span>
-                    <span className="font-medium text-primary">Nível {riskLevel[0]}</span>
-                    <span>Agressivo</span>
+                
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{userInfo.phone}</p>
+                    <p className="text-xs text-muted-foreground">Telefone</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{userInfo.joinDate}</p>
+                    <p className="text-xs text-muted-foreground">Membro desde</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{userInfo.location}</p>
+                    <p className="text-xs text-muted-foreground">Localização</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-        {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Perfil
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Editar Perfil</p>
-                <p className="text-sm text-muted-foreground">
-                  Altere suas informações pessoais, foto e biografia
-                </p>
-              </div>
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/edit-profile')}
-              >
-                Editar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Settings */}
-          <Card className="bg-card border-border">
+          {/* Referral Statistics */}
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-card-foreground">
-                <SettingsIcon className="h-5 w-5 mr-2 text-primary" />
-                Configurações do Sistema
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Estatísticas de Indicações
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Execução Automática</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Executar arbitragens automaticamente quando identificadas
-                  </p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-primary/10 rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{userInfo.referrals}</p>
+                  <p className="text-sm text-muted-foreground">Indicados</p>
                 </div>
-                <Switch
-                  checked={autoExecute}
-                  onCheckedChange={setAutoExecute}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base flex items-center">
-                    <Volume2 className="h-4 w-4 mr-2" />
-                    Notificações Sonoras
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Tocar som quando uma arbitragem for executada
-                  </p>
+                <div className="text-center p-3 bg-green-500/10 rounded-lg">
+                  <p className="text-2xl font-bold text-green-500">R$ {userInfo.totalEarnings.toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">Ganhos Totais</p>
                 </div>
-                <Switch
-                  checked={soundNotifications}
-                  onCheckedChange={setSoundNotifications}
-                />
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
+          {/* Active Plans */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                Planos Ativos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-warning">Aviso de Risco</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Trading automatizado envolve riscos. Configure os limites com cuidado
-                      e monitore as operações regularmente.
+                    <p className="font-medium">Planos Ativos</p>
+                    <p className="text-sm text-muted-foreground">
+                      {userInfo.activePlans} planos ativos
                     </p>
+                  </div>
+                  <Badge variant="secondary">{userInfo.communityRank}</Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Plano Premium</span>
+                    <Badge variant="outline">Ativo</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Plano VIP</span>
+                    <Badge variant="outline">Ativo</Badge>
                   </div>
                 </div>
               </div>
@@ -244,125 +228,55 @@ const Settings = () => {
           </Card>
         </div>
 
-        {/* API Binance Settings */}
-        <Card className="bg-card border-border">
+        {/* Password Change */}
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Key className="h-5 w-5 mr-2 text-primary" />
-              Configuração API Binance
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Trocar Senha
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="api-key">API Key</Label>
-              <Input
-                id="api-key"
-                type="text"
-                placeholder="Insira sua API Key da Binance"
-                value={binanceApiKey}
-                onChange={(e) => setBinanceApiKey(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="secret-key">Secret Key</Label>
-              <div className="relative">
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Senha Atual</Label>
                 <Input
-                  id="secret-key"
-                  type={showSecretKey ? "text" : "password"}
-                  placeholder="Insira sua Secret Key da Binance"
-                  value={binanceSecretKey}
-                  onChange={(e) => setBinanceSecretKey(e.target.value)}
-                  className="w-full pr-10"
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Digite sua senha atual"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowSecretKey(!showSecretKey)}
-                >
-                  {showSecretKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova Senha</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Digite a nova senha"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirme a nova senha"
+                />
               </div>
             </div>
-
-            <div className="p-4 bg-info/10 border border-info/20 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <Key className="h-5 w-5 text-info mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-info">Segurança das Chaves</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Suas chaves são armazenadas localmente no navegador. Para máxima segurança,
-                    certifique-se de que as permissões da API estão configuradas apenas para trading spot.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Teste da API Binance */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Key className="h-5 w-5 mr-2 text-primary" />
-              Teste da Integração API
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BinanceApiTester />
-          </CardContent>
-        </Card>
-
-        {/* Advanced Settings */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Percent className="h-5 w-5 mr-2 text-primary" />
-              Configurações Avançadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="slippage">Slippage Máximo (%)</Label>
-                <Input
-                  id="slippage"
-                  type="number"
-                  defaultValue="0.5"
-                  step="0.1"
-                  min="0.1"
-                  max="5"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timeout">Timeout da Ordem (s)</Label>
-                <Input
-                  id="timeout"
-                  type="number"
-                  defaultValue="30"
-                  min="5"
-                  max="300"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="retry">Tentativas de Retry</Label>
-                <Input
-                  id="retry"
-                  type="number"
-                  defaultValue="3"
-                  min="1"
-                  max="10"
-                />
-              </div>
+            
+            <div className="flex justify-end">
+              <Button onClick={handlePasswordChange} className="bg-primary hover:bg-primary/90">
+                <Lock className="h-4 w-4 mr-2" />
+                Alterar Senha
+              </Button>
             </div>
           </CardContent>
         </Card>

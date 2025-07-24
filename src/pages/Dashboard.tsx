@@ -39,21 +39,70 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
 
-  const [arbitrageOpportunities] = useState([
-    { pair: "BTC/USDT", exchange1: "Binance", exchange2: "Future", profit: 1.2, amount: 0.5 },
-    { pair: "ETH/USDT", exchange1: "Spot", exchange2: "Future", profit: 0.8, amount: 2.1 },
-    { pair: "BNB/USDT", exchange1: "Binance", exchange2: "Future", profit: 2.1, amount: 15.0 },
+  const [cryptoNews, setCryptoNews] = useState([]);
+  const [performance24h, setPerformance24h] = useState({ percentage: 2.34, symbol: 'BTC', price: 43250 });
+  const [lastPerformanceUpdate, setLastPerformanceUpdate] = useState(null);
+  const [alphabotTrades, setAlphabotTrades] = useState([]);
+  const [alphabotProgress, setAlphabotProgress] = useState(0);
+  const [alphabotLastUpdate, setAlphabotLastUpdate] = useState(() => Date.now());
+  const [alphabotBalances, setAlphabotBalances] = useState({
+    btc: 0,
+    usdt: 0,
+    real: 0
+  });
+  const [communityMessages, setCommunityMessages] = useState([
+    {
+      id: 1,
+      user: "João Silva",
+      avatar: "JS",
+      message: "Acabei de fazer um lucro de $2,500 com BTC! O bot está funcionando perfeitamente! 🚀",
+      time: "2 min atrás",
+      likes: 12,
+      isVerified: true
+    },
+    {
+      id: 2,
+      user: "Maria Santos",
+      avatar: "MS",
+      message: "Primeira semana usando o sistema e já estou com +15% de lucro. Recomendo demais! 💎",
+      time: "8 min atrás",
+      likes: 8,
+      isVerified: true
+    },
+    {
+      id: 3,
+      user: "Pedro Costa",
+      avatar: "PC",
+      message: "Alguém mais está vendo essa oportunidade em ETH? Parece promissora! 📈",
+      time: "15 min atrás",
+      likes: 5,
+      isVerified: false
+    },
+    {
+      id: 4,
+      user: "Ana Oliveira",
+      avatar: "AO",
+      message: "Consegui pagar minhas contas do mês só com os lucros do trading! Obrigada comunidade! 🙏",
+      time: "22 min atrás",
+      likes: 18,
+      isVerified: true
+    },
+    {
+      id: 5,
+      user: "Carlos Lima",
+      avatar: "CL",
+      message: "Dica: sempre configurem o stop loss, salvou minha operação hoje! ⚠️",
+      time: "35 min atrás",
+      likes: 14,
+      isVerified: true
+    }
   ]);
 
-  const [cryptoNews, setCryptoNews] = useState([]);
-  const [performance24h, setPerformance24h] = useState({ percentage: 0, symbol: '', price: 0 });
-  const [lastPerformanceUpdate, setLastPerformanceUpdate] = useState(null);
-  const [arbitrageTrades, setArbitrageTrades] = useState([]);
-  const [arbitrageLastUpdate, setArbitrageLastUpdate] = useState(() => Date.now());
-  const [arbitrageProgress, setArbitrageProgress] = useState(0);
 
+
+  // Gerar negociações de arbitragem do Alphabot
   useEffect(() => {
-    const generateArbitrageOpportunities = () => {
+    const generateAlphabotTrades = () => {
       const cryptoPairs = [
         { symbol: "BTC/USDT", basePrice: 43000 },
         { symbol: "ETH/USDT", basePrice: 2500 },
@@ -66,45 +115,75 @@ const Dashboard = () => {
         { symbol: "MATIC/USDT", basePrice: 0.95 },
         { symbol: "AVAX/USDT", basePrice: 32.5 }
       ];
-      return cryptoPairs.slice(0, 10).map((pair) => {
+
+      return cryptoPairs.map((pair) => {
         const priceVariation = (Math.random() - 0.5) * 0.1; // ±5%
         const buyPrice = pair.basePrice * (1 + priceVariation);
         const sellPrice = buyPrice * (1 + (Math.random() * 0.015 + 0.002)); // 0.2% a 1.7% acima
         const profit = sellPrice - buyPrice;
+        const volume = Math.random() * 1000 + 100; // Volume entre 100 e 1100
+        
         return {
+          id: Math.random().toString(36).substring(7),
           pair: pair.symbol,
           buyPrice,
           sellPrice,
           profit,
+          volume,
           time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+          exchange1: "Spot Exchange",
+          exchange2: "Futures Exchange"
         };
       });
     };
 
-    // Só gera se trades estiver vazio (primeira carga)
-    if (arbitrageTrades.length === 0) {
-      setArbitrageTrades(generateArbitrageOpportunities());
-      setArbitrageLastUpdate(Date.now());
-      setArbitrageProgress(0);
+    // Gerar trades se estiver vazio (primeira carga)
+    if (alphabotTrades.length === 0) {
+      const trades = generateAlphabotTrades();
+      setAlphabotTrades(trades);
+      setAlphabotLastUpdate(Date.now());
+      setAlphabotProgress(0);
+      
+      // Calcular saldos
+      const totalProfit = trades.reduce((acc, trade) => acc + trade.profit, 0);
+      const btcPrice = 43000; // Preço fixo do BTC
+      const brlRate = 5.40; // Taxa USD/BRL
+      
+      setAlphabotBalances({
+        btc: totalProfit / btcPrice,
+        usdt: totalProfit,
+        real: totalProfit * brlRate
+      });
     }
 
-    // Atualiza barra de progresso a cada minuto
+    // Atualizar barra de progresso a cada minuto
     const interval = setInterval(() => {
-      const elapsed = Date.now() - arbitrageLastUpdate;
+      const elapsed = Date.now() - alphabotLastUpdate;
       const percent = Math.min((elapsed / (24 * 60 * 60 * 1000)) * 100, 100);
-      setArbitrageProgress(percent);
+      setAlphabotProgress(percent);
 
       // Se passou 24h, gera novas operações
       if (elapsed >= 24 * 60 * 60 * 1000) {
-        setArbitrageTrades(generateArbitrageOpportunities());
-        setArbitrageLastUpdate(Date.now());
-        setArbitrageProgress(0);
+        const trades = generateAlphabotTrades();
+        setAlphabotTrades(trades);
+        setAlphabotLastUpdate(Date.now());
+        setAlphabotProgress(0);
+        
+        // Recalcular saldos
+        const totalProfit = trades.reduce((acc, trade) => acc + trade.profit, 0);
+        const btcPrice = 43000;
+        const brlRate = 5.40;
+        
+        setAlphabotBalances({
+          btc: totalProfit / btcPrice,
+          usdt: totalProfit,
+          real: totalProfit * brlRate
+        });
       }
     }, 1000 * 60);
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [arbitrageTrades, arbitrageLastUpdate]);
+  }, [alphabotTrades.length, alphabotLastUpdate]);
 
   // Carregar dados reais do usuário
   useEffect(() => {
@@ -218,16 +297,14 @@ const Dashboard = () => {
     }
   };
 
-  // Cálculo dos saldos simulados de arbitragem
-  const simulatedTotalProfit = arbitrageTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  // Cálculo dos saldos simulados
+  const simulatedTotalProfit = 1234.56; // Valor fixo para demonstração
   const simulatedBalance = 10000 + simulatedTotalProfit; // Exemplo: saldo inicial + lucro simulado
-  const simulatedDailyProfit = simulatedTotalProfit; // Ou ajuste conforme sua lógica
+  const simulatedDailyProfit = 234.56; // Valor fixo para demonstração
 
-  // Saldo em BTC: soma do lucro convertido pelo preço do BTC/USDT da primeira operação
-  const btcPair = arbitrageTrades.find(t => t.pair === 'BTC/USDT');
-  const btcPrice = btcPair ? btcPair.buyPrice : 43000;
-  const totalProfitUSD = arbitrageTrades.reduce((acc, trade) => acc + trade.profit, 0);
-  const btcBalance = btcPrice > 0 ? totalProfitUSD / btcPrice : 0;
+  // Saldo em BTC: valor fixo para demonstração
+  const btcPrice = 43000;
+  const btcBalance = simulatedTotalProfit / btcPrice;
 
   // Saldo em BRL: lucro do dia convertido para real (cotação fixa 1 USD = 5.40 BRL)
   const brlRate = 5.40;
@@ -336,9 +413,108 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
-        </div>
+                 </div>
 
-        {/* Painel de Controle */}
+         {/* Alphabot - Negociações de Arbitragem */}
+         <Card className="bg-card border-border">
+           <CardHeader>
+             <CardTitle className="flex items-center text-card-foreground">
+               <Bot className="h-5 w-5 mr-2 text-primary" />
+               Alphabot
+             </CardTitle>
+           </CardHeader>
+           <CardContent>
+             <div className="space-y-4">
+                               {/* Saldos do Alphabot */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Lucro BTC</span>
+                      <span className="text-lg font-bold text-primary">{alphabotBalances.btc.toFixed(6)} BTC</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                  </div>
+                  <div className="p-3 bg-trading-green/10 rounded-lg border border-trading-green/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Lucro USDT</span>
+                      <span className="text-lg font-bold text-trading-green">${alphabotBalances.usdt.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                  </div>
+                  <div className="p-3 bg-warning/10 rounded-lg border border-warning/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Lucro Real</span>
+                      <span className="text-lg font-bold text-warning">R$ {alphabotBalances.real.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                  </div>
+                </div>
+
+               {/* Cronômetro e Barra de Progresso */}
+               <div className="space-y-2">
+                 <div className="flex items-center justify-between">
+                   <span className="text-sm text-muted-foreground">Próxima atualização em 24h</span>
+                   <span className="text-sm text-muted-foreground">
+                     {Math.floor((24 - (alphabotProgress/100)*24))}h {Math.floor(((24 - (alphabotProgress/100)*24) % 1) * 60)}min
+                   </span>
+                 </div>
+                 <div className="w-full bg-secondary rounded-full h-2">
+                   <div 
+                     className="bg-gradient-to-r from-primary to-trading-green h-2 rounded-full transition-all duration-300" 
+                     style={{ width: `${alphabotProgress}%` }}
+                   ></div>
+                 </div>
+               </div>
+
+               {/* Negociações de Arbitragem */}
+               <div className="space-y-3">
+                 <div className="flex items-center justify-between">
+                   <h3 className="text-sm font-medium text-foreground">Negociações de Arbitragem (CoinMarketCap)</h3>
+                   <Badge variant="outline" className="text-xs">
+                     {alphabotTrades.length} operações
+                   </Badge>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                   {alphabotTrades.slice(0, 10).map((trade) => (
+                     <div key={trade.id} className="p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
+                       <div className="flex items-center justify-between mb-2">
+                         <span className="text-xs text-muted-foreground">{trade.time}</span>
+                         <Badge variant="default" className="text-xs">ARBITRAGEM</Badge>
+                       </div>
+                       <div className="font-medium text-sm mb-2">{trade.pair}</div>
+                       <div className="space-y-1 text-xs">
+                         <div className="flex justify-between">
+                           <span className="text-muted-foreground">Compra:</span>
+                           <span className="font-mono">${trade.buyPrice.toFixed(2)}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span className="text-muted-foreground">Venda:</span>
+                           <span className="font-mono">${trade.sellPrice.toFixed(2)}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span className="text-muted-foreground">Volume:</span>
+                           <span className="font-mono">${trade.volume.toFixed(0)}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span className="text-muted-foreground">Lucro:</span>
+                           <span className="font-bold text-trading-green">+${trade.profit.toFixed(2)}</span>
+                         </div>
+                       </div>
+                       <div className="mt-2 pt-2 border-t border-border">
+                         <div className="text-xs text-muted-foreground">
+                           {trade.exchange1} → {trade.exchange2}
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
+
+         {/* Painel de Controle */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center text-card-foreground">
@@ -476,112 +652,62 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Investimento Ativo */}
+          {/* Mensagens da Comunidade */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center text-card-foreground">
-                <Activity className="h-5 w-5 mr-2 text-primary" />
-                Investimento Ativo
+                <Users className="h-5 w-5 mr-2 text-primary" />
+                Mensagens da Comunidade
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-trading-green rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-foreground">ATIVO</span>
-                    </div>
-                    <Badge variant="outline" className="text-primary border-primary">
-                      Plano Pro
-                    </Badge>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Últimas Mensagens</span>
                   </div>
-                  
-                  {/* Gráfico de Oscilação do Mercado */}
-                  <div className="mb-4 p-3 bg-background/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-muted-foreground">BTC/USDT</span>
-                      <span className="text-xs font-medium text-trading-green">+2.34%</span>
-                    </div>
-                    
-                    <div className="relative h-16 w-full overflow-hidden">
-                      <svg className="w-full h-full" viewBox="0 0 200 60">
-                        {/* Linha de oscilação animada */}
-                        <path
-                          d="M0,30 Q20,20 40,25 T80,35 Q100,25 120,30 T160,40 Q180,35 200,30"
-                          fill="none"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth="2"
-                          className="animate-[marketOscillation_4s_ease-in-out_infinite]"
-                        />
-                        
-                        {/* Área de preenchimento */}
-                        <path
-                          d="M0,30 Q20,20 40,25 T80,35 Q100,25 120,30 T160,40 Q180,35 200,30 L200,60 L0,60 Z"
-                          fill="hsl(var(--primary))"
-                          fillOpacity="0.1"
-                          className="animate-[marketOscillation_4s_ease-in-out_infinite]"
-                        />
-                        
-                        {/* Pontos de negociação */}
-                        <circle cx="40" cy="25" r="2" fill="hsl(var(--trading-green))" className="animate-pulse">
-                          <animate attributeName="cy" values="25;20;25" dur="2s" repeatCount="indefinite"/>
-                        </circle>
-                        <circle cx="120" cy="30" r="2" fill="hsl(var(--trading-green))" className="animate-pulse">
-                          <animate attributeName="cy" values="30;35;30" dur="3s" repeatCount="indefinite"/>
-                        </circle>
-                        <circle cx="160" cy="40" r="2" fill="hsl(var(--warning))" className="animate-pulse">
-                          <animate attributeName="cy" values="40;35;40" dur="2.5s" repeatCount="indefinite"/>
-                        </circle>
-                      </svg>
-                      
-                      {/* Indicadores de preço */}
-                      <div className="absolute top-0 right-0 text-xs">
-                        <div className="text-trading-green font-mono">$43,250</div>
+                  <Badge variant="outline" className="text-xs text-primary border-primary">
+                    {communityMessages.length} ativas
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {communityMessages.slice(0, 3).map((message) => (
+                    <div key={message.id} className="flex items-start space-x-3 p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary">{message.avatar}</span>
+                        </div>
                       </div>
-                      <div className="absolute bottom-0 right-0 text-xs">
-                        <div className="text-muted-foreground font-mono">$42,890</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-sm font-medium text-foreground">{message.user}</span>
+                          {message.isVerified && (
+                            <div className="w-4 h-4 bg-trading-green rounded-full flex items-center justify-center">
+                              <span className="text-[10px] text-white">✓</span>
+                            </div>
+                          )}
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <span className="text-xs text-muted-foreground">{message.time}</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-2">{message.message}</p>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-4 h-4 text-trading-green">❤️</div>
+                            <span className="text-xs text-muted-foreground">{message.likes}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Indicadores de operação em tempo real */}
-                    <div className="flex items-center justify-between mt-2 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <div className="w-1 h-1 bg-trading-green rounded-full animate-pulse"></div>
-                        <span className="text-muted-foreground">Compra: $42,980</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-1 h-1 bg-warning rounded-full animate-pulse"></div>
-                        <span className="text-muted-foreground">Venda: $43,120</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Valor Investido:</span>
-                      <span className="text-sm font-bold text-foreground">$5,000.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Lucro Atual:</span>
-                      <span className="text-sm font-bold text-trading-green">+$1,234.56</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">ROI:</span>
-                      <span className="text-sm font-bold text-primary">+24.69%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Tempo Ativo:</span>
-                      <span className="text-sm font-medium text-foreground">15 dias</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <div className="text-xs text-muted-foreground mb-1">Progresso do Mês</div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full w-1/2"></div>
-                    </div>
-                  </div>
+                  ))}
+                </div>
+                
+                <div className="pt-3 border-t border-border">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Users className="h-4 w-4 mr-2" />
+                    Ver Todas as Mensagens
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -734,61 +860,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Trades substituído por Arbitragem CoinMarketCap */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center text-card-foreground">
-              <Clock className="h-5 w-5 mr-2 text-primary" />
-              Operações Recentes de Arbitragem (CoinMarketCap)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Saldo em BTC acima do cronômetro */}
-            <div className="mb-1 flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Saldo em BTC:</span>
-              <span className="font-mono text-lg text-primary">{btcBalance.toFixed(5)} BTC</span>
-            </div>
-            {/* Saldo em Real */}
-            <div className="mb-3 flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Saldo em Real:</span>
-              <span className="font-mono text-lg text-primary">R$ {brlBalance.toFixed(2)}</span>
-            </div>
-            <div className="mb-2">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">Próxima atualização em 24h</span>
-                <span className="text-xs text-muted-foreground">{(24 - Math.floor((arbitrageProgress/100)*24)).toString().padStart(2, '0')}:00h</span>
-              </div>
-              <div className="w-full bg-secondary rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: `${arbitrageProgress}%` }}></div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {arbitrageTrades.length > 0 ? (
-                arbitrageTrades.map((trade, index) => (
-                  <div key={index} className="p-2 sm:p-3 bg-secondary rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">{trade.time}</div>
-                      <Badge variant="default" className="text-xs">ARBITRAGEM</Badge>
-                    </div>
-                    <div className="font-medium text-secondary-foreground text-sm sm:text-base">{trade.pair}</div>
-                    <div className="flex items-center justify-between">
-                      <div className="font-bold text-trading-green text-sm sm:text-base">+${trade.profit.toFixed(2)}</div>
-                      <Badge variant="outline" className="text-xs">Lucro</Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span>Compra: ${trade.buyPrice.toFixed(2)}</span>
-                      <span>Venda: ${trade.sellPrice.toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-muted-foreground w-full col-span-4">
-                  <p className="text-sm">Carregando negociações de arbitragem...</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+
 
       </div>
     </div>

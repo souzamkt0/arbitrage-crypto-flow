@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, DollarSign, ArrowUpDown, Zap, TrendingUp, TrendingDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import binanceArbitrageService, { BinanceArbitrageData } from "@/services/coinMarketCapService";
+import arbitrageService, { ArbitrageData } from "@/services/coinMarketCapService";
 
 interface Trade {
   id: string;

@@ -15,7 +15,7 @@ import {
   Shield,
   PiggyBank,
   MessageSquare,
-  Bot,
+
   Wallet,
   ArrowDown,
   Gift
@@ -30,7 +30,7 @@ const Navbar = () => {
 
   const baseNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { path: "/bot", label: "Bot", icon: Bot },
+
     { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/market", label: "Mercado", icon: TrendingUp },
