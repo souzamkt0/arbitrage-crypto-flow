@@ -159,7 +159,7 @@ const History = () => {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -173,7 +173,7 @@ const History = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -187,7 +187,7 @@ const History = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -203,7 +203,7 @@ const History = () => {
         </div>
 
         {/* Filters */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center text-card-foreground">
               <Filter className="h-5 w-5 mr-2 text-primary" />
@@ -253,7 +253,7 @@ const History = () => {
         </Card>
 
         {/* Trades Table */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg md:text-xl text-card-foreground">Operações</CardTitle>
           </CardHeader>

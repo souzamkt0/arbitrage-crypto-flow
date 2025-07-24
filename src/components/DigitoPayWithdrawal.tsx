@@ -81,7 +81,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
         cpf,
         `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
         pixKey,
-        pixKeyType,
+        pixKeyType as 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM',
         callbackUrl
       );
 
@@ -119,7 +119,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
           throw new Error('Erro ao salvar transação');
         }
       } else {
-        throw new Error(result.mensagem || 'Erro ao criar saque');
+        throw new Error(result.message || 'Erro ao criar saque');
       }
     } catch (error) {
       console.error('Erro ao criar saque:', error);
@@ -187,7 +187,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
               <SelectItem value="CNPJ">CNPJ</SelectItem>
               <SelectItem value="EMAIL">E-mail</SelectItem>
               <SelectItem value="PHONE">Telefone</SelectItem>
-              <SelectItem value="EVP">Chave Aleatória</SelectItem>
+              <SelectItem value="RANDOM">Chave Aleatória</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -201,7 +201,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
               pixKeyType === 'CNPJ' ? '00.000.000/0000-00' :
               pixKeyType === 'EMAIL' ? 'seu@email.com' :
               pixKeyType === 'PHONE' ? '(11) 99999-9999' :
-              pixKeyType === 'EVP' ? 'Chave aleatória' :
+              pixKeyType === 'RANDOM' ? 'Chave aleatória' :
               'Digite sua chave PIX'
             }
             value={pixKey}

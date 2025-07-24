@@ -80,10 +80,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
     }
 
     const amountValue = parseFloat(amount);
-    if (amountValue < 10) {
+    if (amountValue < 2) {
       toast({
         title: 'Valor mínimo',
-        description: 'O valor mínimo é R$ 10,00',
+        description: 'O valor mínimo é R$ 2,00',
         variant: 'destructive',
       });
       return;
@@ -93,54 +93,47 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
 
     try {
       // URL de callback para webhook
-      const callbackUrl = `${window.location.origin}/api/digitopay/webhook/deposit`;
+      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook`;
 
-      // Criar depósito no DigitoPay
+      console.log('🚀 Iniciando criação de depósito...');
+
+      // Criar depósito no DigitoPay via Edge Function
+      // A Edge Function já salva a transação automaticamente
       const result = await DigitoPayService.createDeposit(
         amountValue,
         cpf,
-        `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        profile.display_name || profile.username || 'Nome não informado',
         callbackUrl
       );
 
+      console.log('📋 Resultado do depósito:', result);
+
       if (result.success && result.id) {
-        // Salvar transação no banco
-        const saveResult = await DigitoPayService.saveTransaction(
-          user.id,
-          result.id,
-          'deposit',
-          amountValue,
-          amountValue, // Valor em BRL
-          result.pixCopiaECola,
-          result.qrCodeBase64,
-          undefined,
-          undefined,
-          `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-          cpf,
-          result
-        );
+        console.log('✅ Depósito criado com sucesso:', result);
+        setDepositData({
+          trxId: result.id,
+          pixCode: result.pixCopiaECola || '',
+          qrCodeBase64: result.qrCodeBase64 || '',
+        });
 
-        if (saveResult.success) {
-          setDepositData({
-            trxId: result.id,
-            pixCode: result.pixCopiaECola || '',
-            qrCodeBase64: result.qrCodeBase64 || '',
-          });
+        console.log('📱 Dados do depósito configurados:', {
+          trxId: result.id,
+          hasPixCode: !!result.pixCopiaECola,
+          hasQrCode: !!result.qrCodeBase64,
+          qrCodeLength: result.qrCodeBase64?.length || 0
+        });
 
-          toast({
-            title: 'Depósito criado!',
-            description: 'Escaneie o QR Code ou copie o código PIX',
-          });
+        toast({
+          title: 'Depósito criado!',
+          description: 'Escaneie o QR Code ou copie o código PIX',
+        });
 
-          onSuccess?.();
-        } else {
-          throw new Error('Erro ao salvar transação');
-        }
+        onSuccess?.();
       } else {
         throw new Error(result.message || 'Erro ao criar depósito');
       }
     } catch (error) {
-      console.error('Erro ao criar depósito:', error);
+      console.error('❌ Erro ao criar depósito:', error);
       toast({
         title: 'Erro',
         description: error instanceof Error ? error.message : 'Erro interno',
@@ -157,13 +150,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
 
     try {
       const result = await DigitoPayService.checkTransactionStatus(depositData.trxId);
+      console.log('📊 Status da transação:', result);
       
-      if (result.status === 'PAID') {
-        toast({
-          title: 'Pagamento confirmado!',
-          description: 'Seu saldo foi atualizado',
-        });
-        
+      // Mapear status do DigitoPay para status interno
+      let isCompleted = false;
+      if (result.status === 'PAID' || result.status === 'REALIZADO') {
+        isCompleted = true;
+      }
+      
+      if (isCompleted) {
         // Atualizar status no banco
         await DigitoPayService.updateTransactionStatus(
           depositData.trxId,
@@ -171,10 +166,42 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
           result
         );
 
+        // Chamar função para processar transação manualmente
+        try {
+          const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/process-transaction', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ trxId: depositData.trxId })
+          });
+
+          const processResult = await response.json();
+          console.log('🔧 Resultado do processamento:', processResult);
+
+          if (processResult.success) {
+            toast({
+              title: 'Pagamento confirmado!',
+              description: 'Seu saldo foi atualizado automaticamente',
+            });
+          } else {
+            toast({
+              title: 'Pagamento confirmado!',
+              description: 'Entre em contato se o saldo não foi atualizado',
+            });
+          }
+        } catch (processError) {
+          console.error('❌ Erro ao processar transação:', processError);
+          toast({
+            title: 'Pagamento confirmado!',
+            description: 'Entre em contato se o saldo não foi atualizado',
+          });
+        }
+
         setDepositData(null);
         setAmount('');
         onSuccess?.();
-      } else if (result.status === 'CANCELLED' || result.status === 'EXPIRED') {
+      } else if (result.status === 'CANCELLED' || result.status === 'CANCELED' || result.status === 'CANCELADO' || result.status === 'EXPIRED' || result.status === 'EXPIRADO') {
         toast({
           title: 'Pagamento cancelado/expirado',
           description: 'Tente novamente',
@@ -183,10 +210,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       } else {
         toast({
           title: 'Aguardando pagamento',
-          description: 'O pagamento ainda não foi confirmado',
+          description: `Status: ${result.status}`,
         });
       }
     } catch (error) {
+      console.error('❌ Erro ao verificar status:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao verificar status',
@@ -219,7 +247,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
                 placeholder="0,00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                min="10"
+                min="2"
                 step="0.01"
               />
             </div>
@@ -255,11 +283,20 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
             {depositData.qrCodeBase64 && (
               <div className="flex justify-center">
                 <img
-                  src={depositData.qrCodeBase64}
+                  src={depositData.qrCodeBase64.startsWith('data:') 
+                    ? depositData.qrCodeBase64 
+                    : `data:image/png;base64,${depositData.qrCodeBase64}`}
                   alt="QR Code PIX"
                   className="border rounded-lg"
                   width={200}
                   height={200}
+                  onError={(e) => {
+                    console.error('❌ Erro ao carregar QR Code:', e);
+                    console.log('📄 QR Code data:', depositData.qrCodeBase64?.substring(0, 100) + '...');
+                  }}
+                  onLoad={() => {
+                    console.log('✅ QR Code carregado com sucesso');
+                  }}
                 />
               </div>
             )}

@@ -19,11 +19,11 @@ Deno.serve(async (req) => {
 
     // Parse webhook payload
     const webhookData = await req.json();
-    console.log('🔔 Webhook recebido:', JSON.stringify(webhookData, null, 2));
+    console.log('🔔 Webhook SAQUE recebido:', JSON.stringify(webhookData, null, 2));
 
     // Log webhook para debug
     await supabase.from('digitopay_debug').insert({
-      tipo: 'webhook_received',
+      tipo: 'withdrawal_webhook_received',
       payload: webhookData,
       timestamp: new Date().toISOString()
     });
@@ -44,22 +44,23 @@ Deno.serve(async (req) => {
       .from('digitopay_transactions')
       .select('*')
       .eq('trx_id', trxId)
+      .eq('type', 'withdrawal') // Garantir que é um saque
       .single();
 
     if (transactionError || !transaction) {
-      console.error('❌ Transação não encontrada:', trxId);
+      console.error('❌ Transação de saque não encontrada:', trxId);
       await supabase.from('digitopay_debug').insert({
-        tipo: 'transaction_not_found',
+        tipo: 'withdrawal_transaction_not_found',
         payload: { trxId, error: transactionError },
         timestamp: new Date().toISOString()
       });
-      return new Response(JSON.stringify({ error: 'Transaction not found' }), {
+      return new Response(JSON.stringify({ error: 'Withdrawal transaction not found' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    console.log('📋 Transação encontrada:', transaction);
+    console.log('📋 Transação de saque encontrada:', transaction);
 
     // Mapear status do DigitoPay para status interno
     let internalStatus = 'pending';
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
         internalStatus = 'pending';
     }
 
-    console.log(`🔄 Atualizando status de ${transaction.status} para ${internalStatus}`);
+    console.log(`🔄 Atualizando status do saque de ${transaction.status} para ${internalStatus}`);
 
     // Atualizar status da transação
     const { error: updateError } = await supabase
@@ -101,53 +102,14 @@ Deno.serve(async (req) => {
       .eq('trx_id', trxId);
 
     if (updateError) {
-      console.error('❌ Erro ao atualizar transação:', updateError);
+      console.error('❌ Erro ao atualizar transação de saque:', updateError);
       throw updateError;
     }
 
-    console.log('✅ Status da transação atualizado');
-
-    // Se é um depósito aprovado, atualizar saldo do usuário
-    if (internalStatus === 'completed' && transaction.type === 'deposit') {
-      console.log('💰 Processando depósito aprovado...');
-
-      // Atualizar saldo do usuário
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({
-          balance: supabase.raw(`balance + ${transaction.amount_brl}`)
-        })
-        .eq('user_id', transaction.user_id);
-
-      if (balanceError) {
-        console.error('❌ Erro ao atualizar saldo:', balanceError);
-        throw balanceError;
-      }
-
-      console.log(`✅ Saldo atualizado: +R$ ${transaction.amount_brl}`);
-
-      // Registrar na tabela de depósitos
-      const { error: depositError } = await supabase
-        .from('deposits')
-        .insert({
-          user_id: transaction.user_id,
-          amount: transaction.amount_brl,
-          payment_method: 'pix',
-          status: 'completed',
-          gateway_transaction_id: trxId,
-          gateway_response: webhookData
-        });
-
-      if (depositError) {
-        console.error('❌ Erro ao registrar depósito:', depositError);
-        // Não vamos falhar por isso, só logar
-      } else {
-        console.log('✅ Depósito registrado na tabela deposits');
-      }
-    }
+    console.log('✅ Status da transação de saque atualizado');
 
     // Se é um saque aprovado, registrar na tabela de saques
-    if (internalStatus === 'completed' && transaction.type === 'withdrawal') {
+    if (internalStatus === 'completed') {
       console.log('💸 Processando saque aprovado...');
 
       // Registrar na tabela de saques
@@ -155,11 +117,20 @@ Deno.serve(async (req) => {
         .from('withdrawals')
         .insert({
           user_id: transaction.user_id,
-          amount: transaction.amount_brl,
-          payment_method: 'pix',
+          amount_usd: transaction.amount,
+          amount_brl: transaction.amount_brl,
+          net_amount: transaction.amount_brl,
+          type: 'pix',
           status: 'completed',
+          holder_name: transaction.person_name,
+          cpf: transaction.person_cpf,
+          pix_key: transaction.pix_key,
+          pix_key_type: transaction.pix_key_type,
           gateway_transaction_id: trxId,
-          gateway_response: webhookData
+          gateway_response: webhookData,
+          exchange_rate: 1.0,
+          fee: 0.00,
+          completed_date: new Date().toISOString()
         });
 
       if (withdrawalError) {
@@ -172,31 +143,32 @@ Deno.serve(async (req) => {
 
     // Log sucesso
     await supabase.from('digitopay_debug').insert({
-      tipo: 'webhook_processed',
+      tipo: 'withdrawal_webhook_processed',
       payload: {
         trxId,
         oldStatus: transaction.status,
         newStatus: internalStatus,
-        type: transaction.type,
+        type: 'withdrawal',
         amount: transaction.amount_brl
       },
       timestamp: new Date().toISOString()
     });
 
-    console.log('🎉 Webhook processado com sucesso');
+    console.log('🎉 Webhook de saque processado com sucesso');
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Webhook processed successfully',
+      message: 'Withdrawal webhook processed successfully',
       transactionId: trxId,
-      status: internalStatus
+      status: internalStatus,
+      type: 'withdrawal'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error);
+    console.error('❌ Erro no webhook de saque:', error);
     
     // Log erro
     try {
@@ -205,7 +177,7 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
       
       await supabase.from('digitopay_debug').insert({
-        tipo: 'webhook_error',
+        tipo: 'withdrawal_webhook_error',
         payload: { error: error.message, stack: error.stack },
         timestamp: new Date().toISOString()
       });
@@ -215,7 +187,8 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      type: 'withdrawal'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

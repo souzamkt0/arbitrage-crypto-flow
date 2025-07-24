@@ -17,22 +17,15 @@ export interface DigitoPayAuthResponse {
 
 // Estrutura de depósito conforme documentação oficial
 export interface DigitoPayDepositRequest {
-  amount: number;
-  description?: string;
-  externalId?: string;
-  expiresAt?: string;
-  customer: {
+  dueDate: string;
+  paymentOptions: string[];
+  person: {
+    cpf: string;
     name: string;
-    email?: string;
-    document: string; // CPF
-    phone?: string;
   };
-  paymentMethod: {
-    type: 'PIX';
-    pixKey?: string;
-    pixKeyType?: string;
-  };
-  webhookUrl?: string;
+  value: number;
+  callbackUrl?: string;
+  idempotencyKey?: string;
 }
 
 export interface DigitoPayDepositResponse {
@@ -52,28 +45,25 @@ export interface DigitoPayDepositResponse {
 
 // Estrutura de saque conforme documentação oficial
 export interface DigitoPayWithdrawalRequest {
-  amount: number;
-  description?: string;
-  externalId?: string;
-  customer: {
-    name: string;
-    email?: string;
-    document: string; // CPF
-    phone?: string;
-  };
-  paymentMethod: {
-    type: 'PIX';
+  paymentOptions: string[];
+  person: {
+    pixKeyTypes: string;
     pixKey: string;
-    pixKeyType: 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM';
+    name: string;
+    cpf: string;
   };
-  webhookUrl?: string;
+  value: number;
+  endToEndId?: string;
+  callbackUrl?: string;
+  idempotencyKey?: string;
 }
 
 export interface DigitoPayWithdrawalResponse {
   success: boolean;
   id?: string;
-  status?: string;
+  isSend?: boolean;
   message?: string;
+  idempotencyKey?: string;
   errors?: Array<{
     field: string;
     message: string;
@@ -103,34 +93,40 @@ export class DigitoPayService {
   private static accessToken: string | null = null;
   private static tokenExpiry: number = 0;
 
-  // Autenticação com a API - Conforme documentação oficial
+  // Autenticação com a API - Via Edge Function para evitar CORS
   static async authenticate(): Promise<DigitoPayAuthResponse> {
     try {
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clientId: DIGITOPAY_CONFIG.clientId,
-          clientSecret: DIGITOPAY_CONFIG.clientSecret,
-        }),
+      console.log('🔐 Iniciando autenticação via Edge Function...');
+      
+      const response = await supabase.functions.invoke('digitopay-auth', {
+        body: {}
       });
 
-      const data = await response.json();
+      console.log('📡 Resposta da Edge Function:', response);
 
-      if (response.ok && data.accessToken) {
+      if (response.error) {
+        await this.logDebug('authenticate_error', response.error);
+        return { success: false, message: response.error.message || 'Erro na Edge Function' };
+      }
+
+      const data = response.data;
+
+      if (data.success && data.accessToken) {
         this.accessToken = data.accessToken;
-        this.tokenExpiry = Date.now() + (data.expiresIn * 1000);
+        this.tokenExpiry = Date.now() + (data.expiration * 1000);
         
-        await this.logDebug('authenticate', data);
+        await this.logDebug('authenticate_success', { 
+          hasToken: !!data.accessToken,
+          expiration: data.expiration
+        });
         
         return { success: true, accessToken: data.accessToken };
       } else {
-        await this.logDebug('authenticate_error', data);
+        await this.logDebug('authenticate_failure', data);
         return { success: false, message: data.message || 'Erro na autenticação' };
       }
     } catch (error) {
+      console.error('💥 Erro na autenticação:', error);
       await this.logDebug('authenticate_exception', { error: String(error) });
       return { success: false, message: 'Erro de conexão' };
     }
@@ -145,7 +141,7 @@ export class DigitoPayService {
     return true;
   }
 
-  // Criar depósito - Conforme documentação oficial
+  // Criar depósito - Via Edge Function para evitar CORS
   static async createDeposit(
     amount: number,
     cpf: string,
@@ -154,38 +150,34 @@ export class DigitoPayService {
     description?: string
   ): Promise<DigitoPayDepositResponse> {
     try {
-      if (!(await this.ensureValidToken())) {
-        return { success: false, message: 'Erro na autenticação' };
-      }
-
-      const depositData: DigitoPayDepositRequest = {
-        amount: amount,
-        description: description || 'Depósito via PIX',
-        externalId: `deposit_${Date.now()}`,
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutos
-        customer: {
-          name: name,
-          document: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos
-        },
-        paymentMethod: {
-          type: 'PIX'
-        },
-        webhookUrl: callbackUrl
-      };
-
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        body: JSON.stringify(depositData),
+      console.log('💰 Criando depósito via Edge Function...');
+      
+      const response = await supabase.functions.invoke('digitopay-deposit', {
+        body: {
+          amount,
+          cpf,
+          name,
+          callbackUrl,
+          userId: (await supabase.auth.getUser()).data.user?.id
+        }
       });
 
-      const data = await response.json();
-      await this.logDebug('createDeposit', { request: depositData, response: data });
+      console.log('📡 Resposta da Edge Function deposit:', response);
 
-      if (response.ok && data.id) {
+      if (response.error) {
+        await this.logDebug('createDeposit_error', response.error);
+        return { success: false, message: response.error.message || 'Erro na Edge Function' };
+      }
+
+      const data = response.data;
+
+      if (data.success && data.id) {
+        await this.logDebug('createDeposit_success', {
+          id: data.id,
+          hasPixCode: !!data.pixCopiaECola,
+          hasQrCode: !!data.qrCodeBase64
+        });
+
         return {
           success: true,
           id: data.id,
@@ -196,6 +188,7 @@ export class DigitoPayService {
           status: data.status
         };
       } else {
+        await this.logDebug('createDeposit_failure', data);
         return {
           success: false,
           message: data.message || 'Erro ao criar depósito',
@@ -203,6 +196,7 @@ export class DigitoPayService {
         };
       }
     } catch (error) {
+      console.error('💥 Erro ao criar depósito:', error);
       await this.logDebug('createDeposit_exception', { error: String(error) });
       return { success: false, message: 'Erro de conexão' };
     }
@@ -224,22 +218,20 @@ export class DigitoPayService {
       }
 
       const withdrawalData: DigitoPayWithdrawalRequest = {
-        amount: amount,
-        description: description || 'Saque via PIX',
-        externalId: `withdrawal_${Date.now()}`,
-        customer: {
-          name: name,
-          document: cpf.replace(/\D/g, ''),
-        },
-        paymentMethod: {
-          type: 'PIX',
+        paymentOptions: ['PIX'],
+        person: {
+          pixKeyTypes: pixKeyType,
           pixKey: pixKey,
-          pixKeyType: pixKeyType
+          name: name,
+          cpf: cpf.replace(/\D/g, '')
         },
-        webhookUrl: callbackUrl
+        value: amount,
+        endToEndId: `withdrawal_${Date.now()}`,
+        callbackUrl: callbackUrl,
+        idempotencyKey: `withdrawal_${Date.now()}`
       };
 
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/withdrawals`, {
+      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/withdraw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,12 +247,12 @@ export class DigitoPayService {
         return {
           success: true,
           id: data.id,
-          status: data.status
+          isSend: data.isSend
         };
       } else {
         return {
           success: false,
-          message: data.message || 'Erro ao criar saque',
+          message: data.message || data.mensagem || 'Erro ao criar saque',
           errors: data.errors
         };
       }
@@ -277,7 +269,7 @@ export class DigitoPayService {
         return { success: false, message: 'Erro na autenticação' };
       }
 
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/payments/${trxId}`, {
+      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/statusTransaction/${trxId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -301,7 +293,7 @@ export class DigitoPayService {
         return { success: false, message: 'Erro na autenticação' };
       }
 
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/withdrawals/${trxId}`, {
+      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/statusTransaction/${trxId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -325,7 +317,7 @@ export class DigitoPayService {
         return { success: false, message: 'Erro na autenticação' };
       }
 
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/payments?page=${page}&limit=${limit}`, {
+      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/accountTransaction?page=${page}&limit=${limit}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -376,7 +368,7 @@ export class DigitoPayService {
         .from('digitopay_transactions')
         .insert({
           user_id: userId,
-          trx: trxId,
+          trx_id: trxId,
           type,
           amount,
           amount_brl: amountBrl,
@@ -412,7 +404,7 @@ export class DigitoPayService {
           status,
           callback_data: callbackData
         })
-        .eq('trx', trxId)
+        .eq('trx_id', trxId)
         .select()
         .single();
 

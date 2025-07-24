@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
 import { DigitoPayHistory } from "@/components/DigitoPayHistory";
+import { DigitoPayTest } from "@/components/DigitoPayTest";
 import { DatabaseTest } from "@/components/DatabaseTest";
 import { DigitoPayDebug } from "@/components/DigitoPayDebug";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -218,7 +219,7 @@ const Deposit = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="digitopay" className="flex items-center space-x-2">
                   <Smartphone className="h-4 w-4" />
                   <span>DigitoPay PIX</span>
@@ -230,6 +231,10 @@ const Deposit = () => {
                 <TabsTrigger value="usdt" className="flex items-center space-x-2">
                   <CreditCard className="h-4 w-4" />
                   <span>USDT BNB20</span>
+                </TabsTrigger>
+                <TabsTrigger value="digitest" className="flex items-center space-x-2">
+                  <TestTube className="h-4 w-4" />
+                  <span>Teste API</span>
                 </TabsTrigger>
                 <TabsTrigger value="test" className="flex items-center space-x-2">
                   <RefreshCw className="h-4 w-4" />
@@ -272,6 +277,17 @@ const Deposit = () => {
                     <p className="text-muted-foreground">Faça login para acessar o DigitoPay</p>
                   </div>
                 )}
+              </TabsContent>
+
+              {/* Teste API DigitoPay Tab */}
+              <TabsContent value="digitest" className="space-y-6">
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                    <TestTube className="h-4 w-4" />
+                    <span>Teste de Conexão - API DigitoPay</span>
+                  </div>
+                </div>
+                <DigitoPayTest />
               </TabsContent>
 
               {/* PIX Simulado Tab */}
