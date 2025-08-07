@@ -216,7 +216,7 @@ const TradingSimulator = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            Simulação de Trading - {planName} 
+            Trading - {planName}
             {totalActiveOperations > 0 && (
               <Badge variant="secondary" className="text-xs">
                 +{Math.floor(totalActiveOperations / 2)} operações extras
@@ -259,7 +259,7 @@ const TradingSimulator = ({
             <div className="text-center">
               <Button onClick={handleStart} className="bg-primary hover:bg-primary/90">
                 <Play className="h-4 w-4 mr-2" />
-                Iniciar Simulação de Trading
+                Iniciar Trading
               </Button>
             </div>
           )}
@@ -340,7 +340,7 @@ const TradingSimulator = ({
             <Card className="bg-primary/5">
               <CardContent className="p-4">
                 <div className="text-center space-y-2">
-                  <div className="text-sm font-medium">Progresso Geral da Simulação</div>
+                  <div className="text-sm font-medium">Progresso Geral do Trading</div>
                   <Progress value={(completedOperations / exchanges.length) * 100} className="h-3" />
                   <div className="text-xs text-muted-foreground">
                     {completedOperations} de {exchanges.length} operações concluídas
