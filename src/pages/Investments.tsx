@@ -186,29 +186,43 @@ const Investments = () => {
       }
     };
 
-    // Clear all existing plans and start fresh
-    localStorage.setItem("alphabit_investment_plans", JSON.stringify([]));
-    setInvestments([]);
+    // Load investment plans from Supabase
+    const loadInvestmentPlans = async () => {
+      try {
+        const { data: plans, error } = await supabase
+          .from('investment_plans')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading investment plans:', error);
+          return;
+        }
+
+        if (plans) {
+          const formattedPlans = plans.map(plan => ({
+            id: plan.id,
+            name: plan.name,
+            dailyRate: plan.daily_rate,
+            minimumAmount: plan.minimum_amount,
+            maximumAmount: plan.maximum_amount,
+            duration: plan.duration_days,
+            description: plan.description || '',
+            status: plan.status as "active" | "inactive"
+          }));
+          setInvestments(formattedPlans);
+        }
+      } catch (error) {
+        console.error('Error loading investment plans:', error);
+      }
+    };
+
+    loadInvestmentPlans();
 
     loadUserData();
   }, [user]);
 
-  // Escutar mudanças no localStorage (quando Admin alterar planos)
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "alphabit_investment_plans" && e.newValue) {
-        try {
-          const updatedPlans = JSON.parse(e.newValue) as Investment[];
-          setInvestments(updatedPlans);
-        } catch (error) {
-          console.error("Erro ao sincronizar planos:", error);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
   useEffect(() => {
     const interval = setInterval(() => {
       setUserInvestments(prev => prev.map(investment => {

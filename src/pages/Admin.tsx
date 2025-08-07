@@ -163,11 +163,39 @@ const Admin = () => {
   });
   const { toast } = useToast();
 
-  // Load investment plans from localStorage or start with empty list
+  // Load investment plans from Supabase
   useEffect(() => {
-    // Clear all existing plans on component mount
-    localStorage.setItem("alphabit_investment_plans", JSON.stringify([]));
-    setInvestmentPlans([]);
+    const loadInvestmentPlans = async () => {
+      try {
+        const { data: plans, error } = await supabase
+          .from('investment_plans')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading investment plans:', error);
+          return;
+        }
+
+        if (plans) {
+          const formattedPlans = plans.map(plan => ({
+            id: plan.id,
+            name: plan.name,
+            dailyRate: plan.daily_rate,
+            minimumAmount: plan.minimum_amount,
+            maximumAmount: plan.maximum_amount,
+            duration: plan.duration_days,
+            description: plan.description || '',
+            status: plan.status as "active" | "inactive"
+          }));
+          setInvestmentPlans(formattedPlans);
+        }
+      } catch (error) {
+        console.error('Error loading investment plans:', error);
+      }
+    };
+
+    loadInvestmentPlans();
   }, []);
 
   // Load real data from database
@@ -348,40 +376,125 @@ const Admin = () => {
     setIsPlanModalOpen(true);
   };
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (selectedPlan) {
-      if (isNewPlan) {
-        const newId = (investmentPlans.length + 1).toString();
-        const newPlan = { ...selectedPlan, id: newId };
-        setInvestmentPlans(prev => [...prev, newPlan]);
-        
+      try {
+        if (isNewPlan) {
+          const { data, error } = await supabase
+            .from('investment_plans')
+            .insert([{
+              name: selectedPlan.name,
+              daily_rate: selectedPlan.dailyRate,
+              minimum_amount: selectedPlan.minimumAmount,
+              maximum_amount: selectedPlan.maximumAmount,
+              duration_days: selectedPlan.duration,
+              description: selectedPlan.description,
+              status: selectedPlan.status
+            }])
+            .select()
+            .single();
+
+          if (error) {
+            console.error('Error creating plan:', error);
+            toast({
+              title: "Erro",
+              description: "Erro ao criar plano de investimento.",
+            });
+            return;
+          }
+
+          if (data) {
+            const newPlan = {
+              id: data.id,
+              name: data.name,
+              dailyRate: data.daily_rate,
+              minimumAmount: data.minimum_amount,
+              maximumAmount: data.maximum_amount,
+              duration: data.duration_days,
+              description: data.description || '',
+              status: data.status as "active" | "inactive"
+            };
+            setInvestmentPlans(prev => [...prev, newPlan]);
+            
+            toast({
+              title: "Plano criado",
+              description: "Novo plano de investimento foi criado com sucesso.",
+            });
+          }
+        } else {
+          const { error } = await supabase
+            .from('investment_plans')
+            .update({
+              name: selectedPlan.name,
+              daily_rate: selectedPlan.dailyRate,
+              minimum_amount: selectedPlan.minimumAmount,
+              maximum_amount: selectedPlan.maximumAmount,
+              duration_days: selectedPlan.duration,
+              description: selectedPlan.description,
+              status: selectedPlan.status
+            })
+            .eq('id', selectedPlan.id);
+
+          if (error) {
+            console.error('Error updating plan:', error);
+            toast({
+              title: "Erro",
+              description: "Erro ao atualizar plano de investimento.",
+            });
+            return;
+          }
+
+          setInvestmentPlans(prev =>
+            prev.map(plan =>
+              plan.id === selectedPlan.id ? selectedPlan : plan
+            )
+          );
+          
+          toast({
+            title: "Plano atualizado",
+            description: "Plano de investimento foi atualizado com sucesso.",
+          });
+        }
+        setIsPlanModalOpen(false);
+      } catch (error) {
+        console.error('Error saving plan:', error);
         toast({
-          title: "Plano criado",
-          description: "Novo plano de investimento foi criado com sucesso.",
-        });
-      } else {
-        setInvestmentPlans(prev =>
-          prev.map(plan =>
-            plan.id === selectedPlan.id ? selectedPlan : plan
-          )
-        );
-        
-        toast({
-          title: "Plano atualizado",
-          description: "Plano de investimento foi atualizado com sucesso.",
+          title: "Erro",
+          description: "Erro ao salvar plano de investimento.",
         });
       }
-      setIsPlanModalOpen(false);
     }
   };
 
-  const handleDeletePlan = (planId: string) => {
-    setInvestmentPlans(prev => prev.filter(plan => plan.id !== planId));
-    
-    toast({
-      title: "Plano removido",
-      description: "Plano de investimento foi removido do sistema.",
-    });
+  const handleDeletePlan = async (planId: string) => {
+    try {
+      const { error } = await supabase
+        .from('investment_plans')
+        .delete()
+        .eq('id', planId);
+
+      if (error) {
+        console.error('Error deleting plan:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao remover plano de investimento.",
+        });
+        return;
+      }
+
+      setInvestmentPlans(prev => prev.filter(plan => plan.id !== planId));
+      
+      toast({
+        title: "Plano removido",
+        description: "Plano de investimento foi removido do sistema.",
+      });
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover plano de investimento.",
+      });
+    }
   };
 
   const handleWithdrawalAction = (withdrawalId: string, action: "approve" | "reject") => {
@@ -428,19 +541,46 @@ const Admin = () => {
     });
   };
 
-  const handleTogglePlanStatus = (planId: string) => {
-    setInvestmentPlans(prev =>
-      prev.map(plan =>
-        plan.id === planId
-          ? { ...plan, status: plan.status === "active" ? "inactive" : "active" }
-          : plan
-      )
-    );
-    
-    toast({
-      title: "Status atualizado",
-      description: "Status do plano foi alterado com sucesso.",
-    });
+  const handleTogglePlanStatus = async (planId: string) => {
+    const plan = investmentPlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    const newStatus = plan.status === "active" ? "inactive" : "active";
+
+    try {
+      const { error } = await supabase
+        .from('investment_plans')
+        .update({ status: newStatus })
+        .eq('id', planId);
+
+      if (error) {
+        console.error('Error updating plan status:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao alterar status do plano.",
+        });
+        return;
+      }
+
+      setInvestmentPlans(prev =>
+        prev.map(plan =>
+          plan.id === planId
+            ? { ...plan, status: newStatus }
+            : plan
+        )
+      );
+      
+      toast({
+        title: "Status atualizado",
+        description: "Status do plano foi alterado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error updating plan status:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar status do plano.",
+      });
+    }
   };
 
   const handleDepositAction = (depositId: string, action: "approve" | "reject") => {
@@ -486,10 +626,6 @@ const Admin = () => {
     });
   };
 
-  // Salvar planos no localStorage quando houver mudanças
-  useEffect(() => {
-    localStorage.setItem("alphabit_investment_plans", JSON.stringify(investmentPlans));
-  }, [investmentPlans]);
 
   // Carregar e salvar configurações do admin
   useEffect(() => {
