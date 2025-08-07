@@ -68,6 +68,7 @@ interface User {
   joinDate: string;
   lastLogin: string;
   apiConnected: boolean;
+  display_name?: string; // Adicionar display_name opcional
 }
 
 interface InvestmentPlan {
@@ -176,6 +177,11 @@ const Admin = () => {
     withdrawalProcessingHours: "09:00-17:00",
     withdrawalBusinessDays: true
   });
+  
+  // Estados para Trading
+  const [selectedUserEmail, setSelectedUserEmail] = useState("");
+  const [tradingAction, setTradingAction] = useState("reset");
+  
   const { toast } = useToast();
 
   // Load investment plans from Supabase
@@ -741,8 +747,139 @@ const Admin = () => {
     });
   };
 
+  // Funções de Trading
+  const handleTradingAction = async () => {
+    if (!selectedUserEmail.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite o email do usuário.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  // Carregar e salvar configurações do admin
+    try {
+      if (tradingAction === "reset") {
+        // Resetar cooldown para usuário específico
+        const keys = Object.keys(localStorage);
+        const userKeys = keys.filter(key => key.startsWith('lastClaim_'));
+        
+        userKeys.forEach(key => {
+          localStorage.removeItem(key);
+        });
+
+        toast({
+          title: "Cooldown Resetado",
+          description: `Cooldown de trading resetado para ${selectedUserEmail}`,
+        });
+      } else if (tradingAction === "unlock") {
+        // Liberar trading - limpar todas as restrições
+        const keys = Object.keys(localStorage);
+        const tradingKeys = keys.filter(key => 
+          key.startsWith('lastClaim_') || key.startsWith('tradingBlock_')
+        );
+        
+        tradingKeys.forEach(key => {
+          localStorage.removeItem(key);
+        });
+
+        toast({
+          title: "Trading Liberado",
+          description: `Trading liberado para ${selectedUserEmail}`,
+        });
+      } else if (tradingAction === "block") {
+        // Bloquear trading - adicionar bloqueio
+        localStorage.setItem(`tradingBlock_${selectedUserEmail}`, Date.now().toString());
+
+        toast({
+          title: "Trading Bloqueado",
+          description: `Trading bloqueado para ${selectedUserEmail}`,
+        });
+      }
+
+      setSelectedUserEmail("");
+    } catch (error) {
+      console.error('Erro na ação de trading:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao executar ação de trading.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResetAllCooldowns = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      const cooldownKeys = keys.filter(key => key.startsWith('lastClaim_'));
+      
+      cooldownKeys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+
+      toast({
+        title: "Cooldowns Resetados",
+        description: `${cooldownKeys.length} cooldowns foram resetados globalmente.`,
+      });
+    } catch (error) {
+      console.error('Erro ao resetar cooldowns:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao resetar cooldowns.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUnlockAllTrading = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      const tradingKeys = keys.filter(key => 
+        key.startsWith('lastClaim_') || key.startsWith('tradingBlock_')
+      );
+      
+      tradingKeys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+
+      toast({
+        title: "Trading Liberado Globalmente",
+        description: `Trading liberado para todos os usuários. ${tradingKeys.length} restrições removidas.`,
+      });
+    } catch (error) {
+      console.error('Erro ao liberar trading:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao liberar trading globalmente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResetUserCooldown = (userEmail: string) => {
+    try {
+      const keys = Object.keys(localStorage);
+      const userKeys = keys.filter(key => 
+        key.startsWith('lastClaim_') && key.includes(userEmail)
+      );
+      
+      userKeys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+
+      toast({
+        title: "Cooldown Resetado",
+        description: `Cooldown resetado para ${userEmail}`,
+      });
+    } catch (error) {
+      console.error('Erro ao resetar cooldown do usuário:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao resetar cooldown do usuário.",
+        variant: "destructive"
+      });
+    }
+  };
   useEffect(() => {
     const savedSettings = localStorage.getItem("alphabit_admin_settings");
     if (savedSettings) {
@@ -874,12 +1011,13 @@ const Admin = () => {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="deposits">Depósitos</TabsTrigger>
             <TabsTrigger value="withdrawals">Saques</TabsTrigger>
             <TabsTrigger value="bonus">Bônus</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
+            <TabsTrigger value="trading">Trading</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -2454,6 +2592,121 @@ const Admin = () => {
                     <p className="text-muted-foreground">Nenhuma transação administrativa encontrada</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="trading" className="space-y-6">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-card-foreground flex items-center">
+                  <Activity className="h-5 w-5 mr-2 text-primary" />
+                  Gerenciamento de Trading
+                </CardTitle>
+                <CardDescription>
+                  Libere trading para usuários que estão bloqueados ou resetem cooldowns
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Liberar Trading para Usuário Específico */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-trading-green" />
+                    Liberar Trading por Usuário
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div className="space-y-2">
+                      <Label htmlFor="userEmail">Email do Usuário</Label>
+                      <Input
+                        id="userEmail"
+                        type="email"
+                        placeholder="usuario@exemplo.com"
+                        value={selectedUserEmail}
+                        onChange={(e) => setSelectedUserEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tradingAction">Ação</Label>
+                      <select
+                        id="tradingAction"
+                        className="w-full px-3 py-2 border border-border rounded-md"
+                        value={tradingAction}
+                        onChange={(e) => setTradingAction(e.target.value)}
+                      >
+                        <option value="reset">Resetar Cooldown</option>
+                        <option value="unlock">Liberar Trading</option>
+                        <option value="block">Bloquear Trading</option>
+                      </select>
+                    </div>
+                    <Button 
+                      onClick={handleTradingAction}
+                      className="bg-trading-green hover:bg-trading-green/90"
+                    >
+                      Executar Ação
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Liberar Trading Global */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Activity className="h-5 w-5 mr-2 text-warning" />
+                    Ações Globais de Trading
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button 
+                      onClick={handleResetAllCooldowns}
+                      variant="outline"
+                      className="border-warning text-warning hover:bg-warning/10"
+                    >
+                      <Activity className="h-4 w-4 mr-2" />
+                      Resetar Todos os Cooldowns
+                    </Button>
+                    <Button 
+                      onClick={handleUnlockAllTrading}
+                      variant="outline" 
+                      className="border-trading-green text-trading-green hover:bg-trading-green/10"
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Liberar Trading para Todos
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ⚠️ Ações globais afetam todos os usuários do sistema
+                  </p>
+                </div>
+
+                {/* Status de Trading dos Usuários */}
+                <div className="border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-primary" />
+                    Status de Trading por Usuário
+                  </h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {users.slice(0, 10).map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-trading-green"></div>
+                          <span className="text-sm font-medium">{user.display_name}</span>
+                          <span className="text-xs text-muted-foreground">({user.email})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-xs">
+                            Trading Ativo
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleResetUserCooldown(user.email)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            Reset
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
