@@ -192,6 +192,7 @@ const Investments = () => {
         
         if (referrals) {
           setReferralCount(referrals.length);
+          console.log('Referrals encontrados:', referrals.length);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -301,8 +302,15 @@ const Investments = () => {
 
     const amount = parseFloat(investmentAmount);
     
+    console.log('Validando investimento:', {
+      investmentName: selectedInvestment.name,
+      referralCount: referralCount,
+      amount: amount
+    });
+
     // Verificar se tem referrals suficientes para o robô 4.0.5 (precisa de 10 referrals usando 4.0.0)
     if (selectedInvestment.name === "Robô 4.0.5" && referralCount < 10) {
+      console.log('Bloqueando investimento 4.0.5 - referrals insuficientes');
       toast({
         title: "Referrals insuficientes",
         description: `Para investir no Robô 4.0.5, você precisa ter 10 referrals usando o Robô 4.0.0. Você tem ${referralCount} referrals.`,
@@ -313,6 +321,7 @@ const Investments = () => {
 
     // Verificar se tem referrals suficientes para o robô 4.1.0 (precisa de 20 referrals usando 4.0.5)  
     if (selectedInvestment.name === "Robô 4.1.0" && referralCount < 20) {
+      console.log('Bloqueando investimento 4.1.0 - referrals insuficientes');
       toast({
         title: "Referrals insuficientes", 
         description: `Para investir no Robô 4.1.0, você precisa ter 20 referrals usando o Robô 4.0.5. Você tem ${referralCount} referrals.`,
@@ -427,6 +436,9 @@ const Investments = () => {
                 Adicione saldo através do painel administrativo
               </p>
             )}
+            <p className="text-xs text-muted-foreground mt-1">
+              Referrals ativos: {referralCount}
+            </p>
           </div>
         </div>
 
