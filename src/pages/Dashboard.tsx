@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [referralBalance, setReferralBalance] = useState(0);
   const [residualBalance, setResidualBalance] = useState(0);
   const [monthlyEarnings, setMonthlyEarnings] = useState(0);
+  const [tradingBalance, setTradingBalance] = useState(0);
   const { toast } = useToast();
   const { user, profile } = useAuth();
 
@@ -210,6 +211,16 @@ const Dashboard = () => {
 
       setActiveOrders(operations?.length || 0);
 
+      // Calcular saldo de trading baseado nas operações concluídas
+      const { data: tradingHistory } = await supabase
+        .from('trading_history')
+        .select('profit')
+        .eq('user_id', profile.user_id)
+        .eq('status', 'completed');
+
+      const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
+      setTradingBalance(totalTradingProfit);
+
       // Gerar link de indicação único baseado no username
       if (profile.username) {
         setReferralLink(`${window.location.origin}/register/${profile.username}`);
@@ -345,7 +356,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
             <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-card-foreground">
@@ -393,6 +404,23 @@ const Dashboard = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Desde o início
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-card-foreground">
+                Saldo Trading
+              </CardTitle>
+              <ArrowUpDown className="h-4 w-4 text-trading-green" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-trading-green">
+                +${tradingBalance.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                De operações
               </p>
             </CardContent>
           </Card>
