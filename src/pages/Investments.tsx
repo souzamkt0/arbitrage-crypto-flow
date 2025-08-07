@@ -206,7 +206,7 @@ const Investments = () => {
           .from('investment_plans')
           .select('*')
           .eq('status', 'active')
-          .order('created_at', { ascending: false });
+          .order('daily_rate', { ascending: true });
 
         if (error) {
           console.error('Error loading investment plans:', error);
