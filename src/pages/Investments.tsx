@@ -333,6 +333,32 @@ const Investments = () => {
       const newBalance = (currentProfile?.balance || 0) + profit;
       const newTotalProfit = (currentProfile?.total_profit || 0) + profit;
 
+      // Registrar operação de trading na tabela trading_history
+      if (selectedInvestmentForTrading) {
+        const operationId = `OP_${Date.now()}_${selectedInvestmentForTrading.investmentName}`;
+        const buyPrice = 43000 + (Math.random() - 0.5) * 1000; // Preço base com variação
+        const sellPrice = buyPrice * (1 + (Math.random() * 0.002 + 0.001)); // 0.1% a 0.3% lucro
+        
+        await supabase
+          .from('trading_history')
+          .insert({
+            user_id: user?.id,
+            buy_price: buyPrice,
+            sell_price: sellPrice,
+            amount: selectedInvestmentForTrading.amount,
+            profit: profit,
+            profit_percent: ((sellPrice - buyPrice) / buyPrice) * 100,
+            execution_time: Math.floor(Math.random() * 60 + 30), // 30-90 segundos
+            status: 'completed',
+            exchange_1: 'Binance Spot',
+            exchange_2: 'Binance Futures',
+            operation_id: operationId,
+            pair: 'BTC/USDT',
+            type: 'investment_trading',
+            strategy: selectedInvestmentForTrading.investmentName
+          });
+      }
+
       // Atualizar saldo do usuário
       const { error } = await supabase
         .from('profiles')

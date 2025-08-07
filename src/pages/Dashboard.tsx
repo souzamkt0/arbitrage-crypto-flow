@@ -211,13 +211,14 @@ const Dashboard = () => {
 
       setActiveOrders(operations?.length || 0);
 
-      // Calcular saldo de trading baseado nas operações concluídas
+      // Calcular saldo de trading baseado nas operações dos investimentos
       const loadTradingBalance = async () => {
         const { data: tradingHistory } = await supabase
           .from('trading_history')
           .select('profit')
           .eq('user_id', profile.user_id)
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          .in('type', ['investment_trading', 'arbitrage']); // Incluir operações de investimento e arbitragem
 
         const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
         setTradingBalance(totalTradingProfit);
@@ -239,7 +240,8 @@ const Dashboard = () => {
           .from('trading_history')
           .select('profit')
           .eq('user_id', profile.user_id)
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          .in('type', ['investment_trading', 'arbitrage']); // Incluir operações de investimento e arbitragem
 
         const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
         setTradingBalance(totalTradingProfit);
