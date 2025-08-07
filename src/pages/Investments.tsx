@@ -236,6 +236,16 @@ const Investments = () => {
         duration: 90,
         description: "Bot VIP com as melhores estratégias disponíveis.",
         status: "active"
+      },
+      {
+        id: "6",
+        name: "Robô 4.0",
+        dailyRate: 2.5,
+        minimumAmount: 10,
+        maximumAmount: 100,
+        duration: 40,
+        description: "Robô de alta performance com 2,5% de retorno diário. Ideal para investimentos menores.",
+        status: "active"
       }
     ];
 
