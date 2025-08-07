@@ -585,9 +585,62 @@ const Investments = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {userInvestments.map((investment) => {
                   const currentOperation = investment.currentOperation;
-                  
                   const planData = investments.find(inv => inv.id === investment.investmentId);
                   const dailyPercentage24h = planData?.dailyRate || investment.dailyRate;
+                  
+                  // Calcular tempo desde último claim (6 horas = 21600000 ms)
+                  const lastClaimTime = localStorage.getItem(`lastClaim_${investment.id}`);
+                  const now = Date.now();
+                  const sixHoursInMs = 6 * 60 * 60 * 1000;
+                  const canClaim = !lastClaimTime || (now - parseInt(lastClaimTime)) >= sixHoursInMs;
+                  const nextClaimTime = lastClaimTime ? new Date(parseInt(lastClaimTime) + sixHoursInMs) : new Date();
+                  
+                  const handleClaimReward = async () => {
+                    if (!canClaim) return;
+                    
+                    const rewardAmount = (investment.amount * (dailyPercentage24h / 100)) / 4; // Divide por 4 (4 claims por dia)
+                    
+                    try {
+                      // Simular trading por 3 segundos
+                      toast({
+                        title: "Simulando Trading...",
+                        description: "Executando operações de arbitragem",
+                      });
+                      
+                      // Atualizar saldo do usuário
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({ 
+                          balance: userBalance + rewardAmount,
+                          total_profit: userBalance + rewardAmount
+                        })
+                        .eq('user_id', user?.id);
+                        
+                      if (error) throw error;
+                      
+                      // Salvar último claim
+                      localStorage.setItem(`lastClaim_${investment.id}`, now.toString());
+                      
+                      // Atualizar estado local
+                      setUserBalance(prev => prev + rewardAmount);
+                      
+                      setTimeout(() => {
+                        toast({
+                          title: "Rendimento Recebido!",
+                          description: `+$${rewardAmount.toFixed(2)} adicionado ao seu saldo`,
+                          variant: "default"
+                        });
+                      }, 3000);
+                      
+                    } catch (error) {
+                      console.error('Erro ao processar rendimento:', error);
+                      toast({
+                        title: "Erro",
+                        description: "Erro ao processar rendimento",
+                        variant: "destructive"
+                      });
+                    }
+                  };
 
                   return (
                     <Card key={investment.id} className="bg-muted/30 border-border">
@@ -604,13 +657,25 @@ const Investments = () => {
 
                         {/* Percentual 24h */}
                         <div className="text-center">
-                          <div className="text-sm text-muted-foreground">Rendimento nas próximas 24h</div>
+                          <div className="text-sm text-muted-foreground">Rendimento nas próximas 6h</div>
                           <div className="text-2xl font-bold text-trading-green">
-                            +{dailyPercentage24h}%
+                            +{(dailyPercentage24h / 4).toFixed(2)}%
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            ≈ ${(investment.amount * (dailyPercentage24h / 100)).toFixed(2)}
+                            ≈ ${(investment.amount * (dailyPercentage24h / 100) / 4).toFixed(2)}
                           </div>
+                        </div>
+
+                        {/* Botão de Claim */}
+                        <div className="text-center">
+                          <Button 
+                            onClick={handleClaimReward}
+                            disabled={!canClaim}
+                            className={`w-full ${canClaim ? 'bg-trading-green hover:bg-trading-green/90' : 'bg-muted'}`}
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            {canClaim ? 'Receber Rendimento' : `Próximo em ${Math.ceil((nextClaimTime.getTime() - now) / (1000 * 60))}min`}
+                          </Button>
                         </div>
 
                         {/* Simulador de Trading */}
