@@ -165,21 +165,9 @@ const Admin = () => {
 
   // Load investment plans from localStorage or start with empty list
   useEffect(() => {
-    // Clear existing default plans
-    localStorage.removeItem("alphabit_investment_plans");
-    
-    const savedPlans = localStorage.getItem("alphabit_investment_plans");
-    if (savedPlans) {
-      try {
-        const parsedPlans = JSON.parse(savedPlans) as InvestmentPlan[];
-        setInvestmentPlans(parsedPlans);
-      } catch (error) {
-        console.error("Erro ao carregar planos salvos:", error);
-        setInvestmentPlans([]);
-      }
-    } else {
-      setInvestmentPlans([]);
-    }
+    // Clear all existing plans on component mount
+    localStorage.setItem("alphabit_investment_plans", JSON.stringify([]));
+    setInvestmentPlans([]);
   }, []);
 
   // Load real data from database

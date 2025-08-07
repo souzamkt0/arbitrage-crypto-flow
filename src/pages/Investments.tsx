@@ -186,18 +186,9 @@ const Investments = () => {
       }
     };
 
-    const savedPlans = localStorage.getItem("alphabit_investment_plans");
-    if (savedPlans) {
-      try {
-        const parsedPlans = JSON.parse(savedPlans) as Investment[];
-        setInvestments(parsedPlans);
-      } catch (error) {
-        console.error("Erro ao carregar planos salvos:", error);
-        setInvestments([]);
-      }
-    } else {
-      setInvestments([]);
-    }
+    // Clear all existing plans and start fresh
+    localStorage.setItem("alphabit_investment_plans", JSON.stringify([]));
+    setInvestments([]);
 
     loadUserData();
   }, [user]);
