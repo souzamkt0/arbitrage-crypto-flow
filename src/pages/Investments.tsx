@@ -849,63 +849,6 @@ const Investments = () => {
                            </Button>
                          </div>
 
-                         {/* Preview de Trading Avançado */}
-                         <div className="bg-gradient-to-r from-card/50 to-muted/30 rounded-lg p-3 border border-border/50">
-                           <div className="flex items-center justify-between mb-3">
-                             <div className="flex items-center gap-2">
-                               <Activity className="h-4 w-4 text-primary animate-pulse" />
-                               <div className="text-sm font-medium text-foreground">Trading Simulado</div>
-                             </div>
-                             <Badge variant="outline" className="text-xs">
-                               {currentOperation?.pair || "BTC/USDT"}
-                             </Badge>
-                           </div>
-                           
-                           {/* Grid de Preços */}
-                           <div className="grid grid-cols-3 gap-2 mb-3">
-                             <div className="bg-trading-red/10 rounded p-2 text-center border border-trading-red/20">
-                               <div className="text-xs text-muted-foreground">Compra</div>
-                               <div className="text-sm font-bold text-trading-red">
-                                 ${currentOperation?.buyPrice.toFixed(2) || (45000 + Math.random() * 1000).toFixed(2)}
-                               </div>
-                             </div>
-                             <div className="bg-trading-green/10 rounded p-2 text-center border border-trading-green/20">
-                               <div className="text-xs text-muted-foreground">Venda</div>
-                               <div className="text-sm font-bold text-trading-green">
-                                 ${currentOperation?.sellPrice.toFixed(2) || (45500 + Math.random() * 1000).toFixed(2)}
-                               </div>
-                             </div>
-                             <div className="bg-primary/10 rounded p-2 text-center border border-primary/20">
-                               <div className="text-xs text-muted-foreground">Lucro</div>
-                               <div className="text-sm font-bold text-primary">
-                                 +${currentOperation?.profit.toFixed(2) || (investment.amount * 0.02).toFixed(2)}
-                               </div>
-                             </div>
-                           </div>
-
-                           {/* Progress da Operação */}
-                           {currentOperation && (
-                             <div className="space-y-2">
-                               <div className="flex justify-between items-center text-xs">
-                                 <div className="flex items-center gap-1 text-muted-foreground">
-                                   <ArrowUpDown className="h-3 w-3" />
-                                   <span>Operação em andamento</span>
-                                 </div>
-                                 <div className="flex items-center gap-1 font-medium">
-                                   <Timer className="h-3 w-3" />
-                                   <span>{currentOperation.timeRemaining}s</span>
-                                 </div>
-                               </div>
-                               <Progress 
-                                 value={currentOperation.progress} 
-                                 className="h-2 bg-muted"
-                               />
-                               <div className="text-xs text-center text-muted-foreground">
-                                 {currentOperation.progress.toFixed(0)}% concluído
-                               </div>
-                             </div>
-                           )}
-                         </div>
                        </CardContent>
                      </Card>
                   );
