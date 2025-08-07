@@ -456,7 +456,7 @@ const Investments = () => {
                       {/* Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <div className="text-base sm:text-lg font-bold text-foreground">{pairs[index] || "BTC/USDT"}</div>
+                          <div className="text-base sm:text-lg font-bold text-foreground">{investment.name}</div>
                           <div className="flex items-center space-x-1">
                             <span className="text-xs text-muted-foreground">↗ {indicators[index] || 50}</span>
                           </div>
@@ -469,9 +469,9 @@ const Investments = () => {
                         </Button>
                       </div>
 
-                      {/* PNL - agora mostra nome do plano e valores min/max */}
+                      {/* PNL - valores min/max */}
                       <div>
-                        <div className="text-xs text-muted-foreground truncate">{investment.name}</div>
+                        <div className="text-xs text-muted-foreground">Faixa de Investimento</div>
                         <div className="text-lg sm:text-xl font-bold text-trading-green">
                           ${investment.minimumAmount.toLocaleString()} - ${investment.maximumAmount.toLocaleString()}
                         </div>
