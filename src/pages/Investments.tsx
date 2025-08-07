@@ -310,7 +310,7 @@ const Investments = () => {
     if (amount > userBalance) {
       toast({
         title: "Saldo insuficiente",
-        description: "Você não possui saldo suficiente para este investimento",
+        description: `Saldo atual: $${userBalance.toFixed(2)}. Valor necessário: $${amount.toFixed(2)}. Adicione saldo através do painel administrativo.`,
         variant: "destructive"
       });
       return;
@@ -376,9 +376,25 @@ const Investments = () => {
             </p>
           </div>
           
-          <div className="text-left lg:text-right w-full lg:w-auto">
+          <div className="text-left lg:text-right w-full lg:w-auto flex flex-col lg:items-end">
             <div className="text-sm sm:text-lg font-semibold text-foreground">Saldo Disponível</div>
-            <div className="text-xl sm:text-2xl font-bold text-primary">${userBalance.toLocaleString()}</div>
+            <div className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+              ${userBalance.toLocaleString()}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => window.location.reload()}
+                className="h-6 w-6 p-0"
+                title="Atualizar saldo"
+              >
+                <Activity className="h-4 w-4" />
+              </Button>
+            </div>
+            {userBalance === 0 && (
+              <p className="text-xs text-destructive mt-1">
+                Adicione saldo através do painel administrativo
+              </p>
+            )}
           </div>
         </div>
 
