@@ -452,128 +452,187 @@ const Investments = () => {
           </Card>
         </div>
 
-        {/* Available Investments */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground flex items-center">
-              <Timer className="h-5 w-5 mr-2 text-primary" />
-              Bots Alphabot Disponíveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {investments.filter(inv => inv.status === "active").map((investment, index) => {
-                const pairs = ["ETH/USDT", "BTC/FDUSD", "BTC/USDT", "XRP/FDUSD", "XRP/USDC"];
-                const indicators = [166, 16, 108, 0, 10];
-                
-                return (
-                  <Card key={investment.id} className="bg-muted/30 border-border hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-3 sm:p-4 space-y-3">
-                      {/* Header */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className="text-base sm:text-lg font-bold text-foreground">{investment.name}</div>
-                          <div className="flex items-center space-x-1">
-                            <span className="text-xs text-muted-foreground">↗ {indicators[index] || 50}</span>
-                          </div>
-                        </div>
-                        <Button 
-                          onClick={() => openInvestModal(investment)}
-                          className="bg-warning text-warning-foreground hover:bg-warning/90 px-3 sm:px-4 py-1 text-xs sm:text-sm font-medium"
-                        >
-                          Create
-                        </Button>
-                      </div>
+        {/* Robôs de IA - Tabelas de Investimento */}
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">Gráfico de receita de IA por versão</h2>
+            <p className="text-muted-foreground">Escolha o robô e período de investimento ideal para você</p>
+          </div>
 
-                      {/* PNL - valores min/max */}
-                      <div>
-                        <div className="text-xs text-muted-foreground">Faixa de Investimento</div>
-                        <div className="text-lg sm:text-xl font-bold text-trading-green">
-                          ${investment.minimumAmount.toLocaleString()} - ${investment.maximumAmount.toLocaleString()}
-                        </div>
-                      </div>
+          {/* Robô 4.0.0 */}
+          <Card className="bg-card border-border">
+            <CardHeader className="text-center">
+              <CardTitle className="text-lg text-card-foreground">
+                Robô 4.0.0 (nenhuma recomendação necessária)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-2 text-foreground">Investir</th>
+                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
+                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
+                      <th className="text-center p-2 text-foreground">1 dia</th>
+                      <th className="text-center p-2 text-foreground">7 dias</th>
+                      <th className="text-center p-2 text-foreground">15 dias</th>
+                      <th className="text-center p-2 text-foreground">30 dias</th>
+                      <th className="text-center p-2 text-foreground">40 dias</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { amount: 10, freq: 2, rate: 2.5, returns: [0.25, 1.75, 3.75, 7.50, 10.00] },
+                      { amount: 20, freq: 2, rate: 2.5, returns: [0.50, 3.50, 7.50, 15.00, 20.00] },
+                      { amount: 30, freq: 2, rate: 2.5, returns: [0.75, 5.25, 11.25, 22.50, 30.00] },
+                      { amount: 40, freq: 2, rate: 2.5, returns: [1.00, 7.00, 15.00, 30.00, 40.00] },
+                      { amount: 50, freq: 2, rate: 2.5, returns: [1.25, 8.75, 18.75, 37.50, 50.00] },
+                      { amount: 60, freq: 2, rate: 2.5, returns: [1.50, 10.50, 22.50, 45.00, 60.00] },
+                      { amount: 70, freq: 2, rate: 2.5, returns: [1.75, 12.25, 26.25, 52.50, 70.00] },
+                      { amount: 80, freq: 2, rate: 2.5, returns: [2.00, 14.00, 30.00, 60.00, 80.00] },
+                      { amount: 90, freq: 2, rate: 2.5, returns: [2.25, 15.75, 33.75, 67.50, 90.00] },
+                      { amount: 100, freq: 2, rate: 2.5, returns: [2.50, 17.50, 37.50, 75.00, 100.00] }
+                    ].map((plan, index) => (
+                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
+                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
+                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
+                        {plan.returns.map((ret, i) => (
+                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toFixed(2)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[0])}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Investir no Robô 4.0.0
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-                      {/* Gráfico Animado */}
-                      <div className="h-20 bg-transparent rounded-lg overflow-hidden">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData}>
-                            <defs>
-                              <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="hsl(var(--trading-green))" stopOpacity={0.6} />
-                                <stop offset="100%" stopColor="hsl(var(--trading-green))" stopOpacity={0.1} />
-                              </linearGradient>
-                              <linearGradient id={`gradient-red-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.6} />
-                                <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
-                              </linearGradient>
-                            </defs>
-                            <XAxis dataKey="time" hide />
-                            <YAxis domain={['dataMin - 500', 'dataMax + 500']} hide />
-                            
-                            {/* Linha de Suporte */}
-                            <ReferenceLine y={chartData[0]?.support} stroke="hsl(var(--destructive))" strokeDasharray="3 3" strokeOpacity={0.7} />
-                            
-                            {/* Linha de Resistência */}
-                            <ReferenceLine y={chartData[0]?.resistance} stroke="hsl(var(--trading-green))" strokeDasharray="3 3" strokeOpacity={0.7} />
-                            
-                            {/* Área Principal */}
-                            <Area 
-                              type="monotone" 
-                              dataKey="price" 
-                              stroke="hsl(var(--trading-green))" 
-                              strokeWidth={2}
-                              fill={`url(#gradient-${index})`}
-                              animationDuration={2000}
-                              className="animate-fade-in"
-                            />
-                            
-                            {/* Linha vermelha para quedas */}
-                            <Line 
-                              type="monotone" 
-                              dataKey="price" 
-                              stroke="hsl(var(--destructive))" 
-                              strokeWidth={1}
-                              dot={false}
-                              animationDuration={2000}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
+          {/* Robô 4.0.5 */}
+          <Card className="bg-card border-border">
+            <CardHeader className="text-center">
+              <CardTitle className="text-lg text-card-foreground">
+                Robôs 4.0.5 (Mínimo 10 USDT para 10 indicações, assine o contrato)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-2 text-foreground">Investir</th>
+                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
+                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
+                      <th className="text-center p-2 text-foreground">1 dia</th>
+                      <th className="text-center p-2 text-foreground">7 dias</th>
+                      <th className="text-center p-2 text-foreground">15 dias</th>
+                      <th className="text-center p-2 text-foreground">30 dias</th>
+                      <th className="text-center p-2 text-foreground">40 dias</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { amount: 20, freq: 3, rate: 3.0, returns: [0.60, 4.20, 9.00, 18.00, 24.00] },
+                      { amount: 40, freq: 3, rate: 3.0, returns: [1.20, 8.40, 18.00, 36.00, 48.00] },
+                      { amount: 60, freq: 3, rate: 3.0, returns: [1.80, 12.60, 27.00, 54.00, 72.00] },
+                      { amount: 80, freq: 3, rate: 3.0, returns: [2.40, 16.80, 36.00, 72.00, 96.00] },
+                      { amount: 100, freq: 3, rate: 3.0, returns: [3.00, 21.00, 45.00, 90.00, 120.00] },
+                      { amount: 120, freq: 3, rate: 3.0, returns: [3.60, 25.20, 54.00, 108.00, 144.00] },
+                      { amount: 140, freq: 3, rate: 3.0, returns: [4.20, 29.40, 63.00, 126.00, 168.00] },
+                      { amount: 160, freq: 3, rate: 3.0, returns: [4.80, 33.60, 72.00, 144.00, 192.00] },
+                      { amount: 180, freq: 3, rate: 3.0, returns: [5.40, 37.80, 81.00, 162.00, 216.00] },
+                      { amount: 200, freq: 3, rate: 3.0, returns: [6.00, 42.00, 90.00, 180.00, 240.00] }
+                    ].map((plan, index) => (
+                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
+                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
+                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
+                        {plan.returns.map((ret, i) => (
+                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toFixed(2)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[1] || investments[0])}
+                  className="bg-warning text-warning-foreground hover:bg-warning/90"
+                >
+                  Investir no Robô 4.0.5
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <div className="text-muted-foreground">ROI</div>
-                          <div className="font-semibold text-trading-green">{investment.dailyRate}%</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Tempo de execução</div>
-                          <div className="font-semibold">3d 7h 34m</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Investimento mínimo</div>
-                          <div className="font-semibold">{investment.minimumAmount}.74 USDT</div>
-                        </div>
-                      </div>
-
-                      {/* Operations Stats */}
-                      <div className="grid grid-cols-2 gap-4 text-xs border-t border-border pt-3">
-                        <div>
-                          <div className="text-muted-foreground">24H Total Matched Trades</div>
-                          <div className="font-semibold">30/178</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">7D MDD</div>
-                          <div className="font-semibold text-trading-red">1.15%</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+          {/* Robô 4.1.0 */}
+          <Card className="bg-card border-border">
+            <CardHeader className="text-center">
+              <CardTitle className="text-lg text-card-foreground">
+                Robôs 4.1.0 (Mínimo 10 USDT para 20 indicações, assine o contrato)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-2 text-foreground">Investir</th>
+                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
+                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
+                      <th className="text-center p-2 text-foreground">1 dia</th>
+                      <th className="text-center p-2 text-foreground">7 dias</th>
+                      <th className="text-center p-2 text-foreground">15 dias</th>
+                      <th className="text-center p-2 text-foreground">30 dias</th>
+                      <th className="text-center p-2 text-foreground">40 dias</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { amount: 500, freq: 4, rate: 4.0, returns: [20.00, 140.00, 300.00, 600.00, 800.00] },
+                      { amount: 1000, freq: 4, rate: 4.0, returns: [40.00, 280.00, 600.00, 1200.00, 1600.00] },
+                      { amount: 1500, freq: 4, rate: 4.0, returns: [60.00, 420.00, 900.00, 1800.00, 2400.00] },
+                      { amount: 2000, freq: 4, rate: 4.0, returns: [80.00, 560.00, 1200.00, 2400.00, 3200.00] },
+                      { amount: 2500, freq: 4, rate: 4.0, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
+                      { amount: 3000, freq: 4, rate: 4.0, returns: [120.00, 840.00, 1800.00, 3600.00, 4800.00] },
+                      { amount: 3500, freq: 4, rate: 4.0, returns: [140.00, 980.00, 2100.00, 4200.00, 5600.00] },
+                      { amount: 4000, freq: 4, rate: 4.0, returns: [160.00, 1120.00, 2400.00, 4800.00, 6400.00] },
+                      { amount: 4500, freq: 4, rate: 4.0, returns: [180.00, 1260.00, 2700.00, 5400.00, 7200.00] },
+                      { amount: 5000, freq: 4, rate: 4.0, returns: [200.00, 1400.00, 3000.00, 6000.00, 8000.00] }
+                    ].map((plan, index) => (
+                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
+                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
+                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
+                        {plan.returns.map((ret, i) => (
+                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toLocaleString()}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[2] || investments[0])}
+                  className="bg-trading-green text-white hover:bg-trading-green/90"
+                >
+                  Investir no Robô 4.1.0
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* My Investments */}
         <Card className="bg-card border-border">
