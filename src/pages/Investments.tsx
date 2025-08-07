@@ -304,12 +304,22 @@ const Investments = () => {
 
   const handleTradingComplete = async (profit: number) => {
     try {
+      // Buscar dados atuais do usuário
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('balance, total_profit')
+        .eq('user_id', user?.id)
+        .single();
+
+      const newBalance = (currentProfile?.balance || 0) + profit;
+      const newTotalProfit = (currentProfile?.total_profit || 0) + profit;
+
       // Atualizar saldo do usuário
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          balance: userBalance + profit,
-          total_profit: userBalance + profit
+          balance: newBalance,
+          total_profit: newTotalProfit
         })
         .eq('user_id', user?.id);
         
@@ -321,11 +331,11 @@ const Investments = () => {
       }
       
       // Atualizar estado local
-      setUserBalance(prev => prev + profit);
+      setUserBalance(newBalance);
       
       toast({
-        title: "Rendimento Recebido!",
-        description: `+$${profit.toFixed(2)} adicionado ao seu saldo`,
+        title: "✅ Rendimento Creditado!",
+        description: `+$${profit.toFixed(2)} foi adicionado ao seu saldo disponível. Novo saldo: $${newBalance.toFixed(2)}`,
         variant: "default"
       });
       
