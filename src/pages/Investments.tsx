@@ -592,10 +592,13 @@ const Investments = () => {
                   return (
                     <Card key={investment.id} className="bg-muted/30 border-border">
                       <CardContent className="p-4 space-y-4">
-                        {/* Nome do Plano */}
-                        <div className="text-center">
+                        {/* Nome do Plano e Tempo de Contrato */}
+                        <div className="text-center space-y-1">
                           <div className="text-lg font-bold text-foreground">
                             {planData?.name || `Plano ${investment.dailyRate}%`}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Contrato: {planData?.duration || investment.daysRemaining} dias
                           </div>
                         </div>
 
