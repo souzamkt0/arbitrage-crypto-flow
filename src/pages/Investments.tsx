@@ -87,6 +87,7 @@ const Investments = () => {
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [referralCount, setReferralCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -180,6 +181,17 @@ const Investments = () => {
             totalOperations: inv.total_operations || 15
           }));
           setUserInvestments(formattedInvestments);
+        }
+
+        // Fetch referral count
+        const { data: referrals } = await supabase
+          .from('referrals')
+          .select('id')
+          .eq('referrer_id', user.id)
+          .eq('status', 'active');
+        
+        if (referrals) {
+          setReferralCount(referrals.length);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -288,6 +300,26 @@ const Investments = () => {
     if (!selectedInvestment || !investmentAmount) return;
 
     const amount = parseFloat(investmentAmount);
+    
+    // Verificar se tem referrals suficientes para o robô 4.0.5 (precisa de 10 referrals usando 4.0.0)
+    if (selectedInvestment.name === "Robô 4.0.5" && referralCount < 10) {
+      toast({
+        title: "Referrals insuficientes",
+        description: `Para investir no Robô 4.0.5, você precisa ter 10 referrals usando o Robô 4.0.0. Você tem ${referralCount} referrals.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificar se tem referrals suficientes para o robô 4.1.0 (precisa de 20 referrals usando 4.0.5)  
+    if (selectedInvestment.name === "Robô 4.1.0" && referralCount < 20) {
+      toast({
+        title: "Referrals insuficientes", 
+        description: `Para investir no Robô 4.1.0, você precisa ter 20 referrals usando o Robô 4.0.5. Você tem ${referralCount} referrals.`,
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (amount < selectedInvestment.minimumAmount) {
       toast({
