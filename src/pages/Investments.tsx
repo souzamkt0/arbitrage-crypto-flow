@@ -28,7 +28,9 @@ import {
   Play,
   ArrowUpDown,
   Activity,
-  Zap
+  Zap,
+  Sparkles,
+  BarChart3
 } from "lucide-react";
 import {
   LineChart,
@@ -41,6 +43,7 @@ import {
   ReferenceLine,
   Tooltip
 } from "recharts";
+import TradingSimulator from "@/components/TradingSimulator";
 
 interface Investment {
   id: string;
@@ -88,6 +91,8 @@ const Investments = () => {
   const [userBalance, setUserBalance] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
   const [referralCount, setReferralCount] = useState(0);
+  const [isTradingSimulatorOpen, setIsTradingSimulatorOpen] = useState(false);
+  const [selectedInvestmentForTrading, setSelectedInvestmentForTrading] = useState<UserInvestment | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -296,6 +301,43 @@ const Investments = () => {
   const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.totalEarned, 0);
   const activeInvestments = userInvestments.filter(inv => inv.status === "active").length;
+
+  const handleTradingComplete = async (profit: number) => {
+    try {
+      // Atualizar saldo do usuário
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          balance: userBalance + profit,
+          total_profit: userBalance + profit
+        })
+        .eq('user_id', user?.id);
+        
+      if (error) throw error;
+      
+      // Salvar último claim
+      if (selectedInvestmentForTrading) {
+        localStorage.setItem(`lastClaim_${selectedInvestmentForTrading.id}`, Date.now().toString());
+      }
+      
+      // Atualizar estado local
+      setUserBalance(prev => prev + profit);
+      
+      toast({
+        title: "Rendimento Recebido!",
+        description: `+$${profit.toFixed(2)} adicionado ao seu saldo`,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('Erro ao processar rendimento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar rendimento",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleInvest = async () => {
     if (!selectedInvestment || !investmentAmount) return;
@@ -716,133 +758,146 @@ const Investments = () => {
                   const canClaim = !lastClaimTime || (now - parseInt(lastClaimTime)) >= sixHoursInMs;
                   const nextClaimTime = lastClaimTime ? new Date(parseInt(lastClaimTime) + sixHoursInMs) : new Date();
                   
-                  const handleClaimReward = async () => {
+                  const handleClaimReward = () => {
                     if (!canClaim) return;
                     
-                    const rewardAmount = (investment.amount * (dailyPercentage24h / 100)) / 4; // Divide por 4 (4 claims por dia)
-                    
-                    try {
-                      // Simular trading por 3 segundos
-                      toast({
-                        title: "Simulando Trading...",
-                        description: "Executando operações de arbitragem",
-                      });
-                      
-                      // Atualizar saldo do usuário
-                      const { error } = await supabase
-                        .from('profiles')
-                        .update({ 
-                          balance: userBalance + rewardAmount,
-                          total_profit: userBalance + rewardAmount
-                        })
-                        .eq('user_id', user?.id);
-                        
-                      if (error) throw error;
-                      
-                      // Salvar último claim
-                      localStorage.setItem(`lastClaim_${investment.id}`, now.toString());
-                      
-                      // Atualizar estado local
-                      setUserBalance(prev => prev + rewardAmount);
-                      
-                      setTimeout(() => {
-                        toast({
-                          title: "Rendimento Recebido!",
-                          description: `+$${rewardAmount.toFixed(2)} adicionado ao seu saldo`,
-                          variant: "default"
-                        });
-                      }, 3000);
-                      
-                    } catch (error) {
-                      console.error('Erro ao processar rendimento:', error);
-                      toast({
-                        title: "Erro",
-                        description: "Erro ao processar rendimento",
-                        variant: "destructive"
-                      });
-                    }
+                    // Abrir simulador de trading
+                    setSelectedInvestmentForTrading(investment);
+                    setIsTradingSimulatorOpen(true);
                   };
 
+
                   return (
-                    <Card key={investment.id} className="bg-muted/30 border-border">
-                      <CardContent className="p-4 space-y-4">
-                        {/* Nome do Plano e Tempo de Contrato */}
-                        <div className="text-center space-y-1">
-                          <div className="text-lg font-bold text-foreground">
-                            {planData?.name || `Plano ${investment.dailyRate}%`}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Contrato: {planData?.duration || investment.daysRemaining} dias
-                          </div>
-                        </div>
+                     <Card key={investment.id} className="bg-gradient-to-br from-card to-card/80 border-border hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                       {/* Background Effect */}
+                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-trading-green/5 opacity-50" />
+                       <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-trading-green/20 to-transparent rounded-full blur-2xl" />
+                       
+                       <CardContent className="p-4 space-y-4 relative z-10">
+                         {/* Header com Badge */}
+                         <div className="text-center space-y-2">
+                           <div className="flex items-center justify-center gap-2">
+                             <Badge className="bg-primary/20 text-primary border-primary/30">
+                               <Bot className="h-3 w-3 mr-1" />
+                               {planData?.name || `Bot ${investment.dailyRate}%`}
+                             </Badge>
+                           </div>
+                           <div className="text-sm text-muted-foreground">
+                             <Calendar className="h-3 w-3 inline mr-1" />
+                             Contrato: {planData?.duration || investment.daysRemaining} dias
+                           </div>
+                         </div>
 
-                        {/* Percentual 24h */}
-                        <div className="text-center">
-                          <div className="text-sm text-muted-foreground">Rendimento nas próximas 6h</div>
-                          <div className="text-2xl font-bold text-trading-green">
-                            +{(dailyPercentage24h / 4).toFixed(2)}%
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            ≈ ${(investment.amount * (dailyPercentage24h / 100) / 4).toFixed(2)}
-                          </div>
-                        </div>
+                         {/* Valor Investido e Status */}
+                         <div className="grid grid-cols-2 gap-3">
+                           <div className="bg-card/80 rounded-lg p-3 text-center">
+                             <div className="text-xs text-muted-foreground">Investido</div>
+                             <div className="text-lg font-bold text-primary">${investment.amount}</div>
+                           </div>
+                           <div className="bg-card/80 rounded-lg p-3 text-center">
+                             <div className="text-xs text-muted-foreground">Taxa</div>
+                             <div className="text-lg font-bold text-trading-green">{dailyPercentage24h}%/dia</div>
+                           </div>
+                         </div>
 
-                        {/* Botão de Claim */}
-                        <div className="text-center">
-                          <Button 
-                            onClick={handleClaimReward}
-                            disabled={!canClaim}
-                            className={`w-full ${canClaim ? 'bg-trading-green hover:bg-trading-green/90' : 'bg-muted'}`}
-                          >
-                            <Zap className="h-4 w-4 mr-2" />
-                            {canClaim ? 'Receber Rendimento' : `Próximo em ${Math.ceil((nextClaimTime.getTime() - now) / (1000 * 60))}min`}
-                          </Button>
-                        </div>
+                         {/* Rendimento 6h */}
+                         <div className="text-center bg-gradient-to-r from-trading-green/10 to-primary/10 rounded-lg p-4 border border-trading-green/20">
+                           <div className="flex items-center justify-center gap-2 mb-2">
+                             <Sparkles className="h-4 w-4 text-trading-green" />
+                             <div className="text-sm font-medium text-foreground">Próximo Rendimento (6h)</div>
+                           </div>
+                           <div className="text-3xl font-bold text-trading-green mb-1">
+                             +{(dailyPercentage24h / 4).toFixed(2)}%
+                           </div>
+                           <div className="text-lg font-semibold text-foreground">
+                             ${(investment.amount * (dailyPercentage24h / 100) / 4).toFixed(2)}
+                           </div>
+                         </div>
 
-                        {/* Simulador de Trading */}
-                        <div className="bg-card/50 rounded-lg p-3 space-y-3">
-                          <div className="text-center">
-                            <div className="text-sm font-medium text-foreground">Simulador de Trading</div>
-                            <div className="text-xs text-muted-foreground">Par: {currentOperation?.pair || "BTC/USDT"}</div>
-                          </div>
-                          
-                          {/* Preços de Compra e Venda */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-trading-red/10 rounded p-2 text-center">
-                              <div className="text-xs text-muted-foreground">Compra</div>
-                              <div className="text-sm font-bold text-trading-red">
-                                ${currentOperation?.buyPrice.toFixed(2) || (45000 + Math.random() * 1000).toFixed(2)}
-                              </div>
-                            </div>
-                            <div className="bg-trading-green/10 rounded p-2 text-center">
-                              <div className="text-xs text-muted-foreground">Venda</div>
-                              <div className="text-sm font-bold text-trading-green">
-                                ${currentOperation?.sellPrice.toFixed(2) || (45500 + Math.random() * 1000).toFixed(2)}
-                              </div>
-                            </div>
-                          </div>
+                         {/* Botão de Claim Melhorado */}
+                         <div className="text-center">
+                           <Button 
+                             onClick={handleClaimReward}
+                             disabled={!canClaim}
+                             className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
+                               canClaim 
+                                 ? 'bg-gradient-to-r from-trading-green to-green-600 hover:from-trading-green/90 hover:to-green-600/90 shadow-lg hover:shadow-xl text-white' 
+                                 : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
+                             }`}
+                           >
+                             {canClaim ? (
+                               <>
+                                 <BarChart3 className="h-5 w-5 mr-2" />
+                                 Executar Trading & Receber
+                               </>
+                             ) : (
+                               <>
+                                 <Timer className="h-4 w-4 mr-2" />
+                                 Próximo em {Math.ceil((nextClaimTime.getTime() - now) / (1000 * 60))}min
+                               </>
+                             )}
+                           </Button>
+                         </div>
 
-                          {/* Lucro Estimado */}
-                          <div className="text-center bg-trading-green/10 rounded p-2">
-                            <div className="text-xs text-muted-foreground">Lucro Estimado</div>
-                            <div className="text-lg font-bold text-trading-green">
-                              +${currentOperation?.profit.toFixed(2) || (investment.amount * 0.02).toFixed(2)}
-                            </div>
-                          </div>
+                         {/* Preview de Trading Avançado */}
+                         <div className="bg-gradient-to-r from-card/50 to-muted/30 rounded-lg p-3 border border-border/50">
+                           <div className="flex items-center justify-between mb-3">
+                             <div className="flex items-center gap-2">
+                               <Activity className="h-4 w-4 text-primary animate-pulse" />
+                               <div className="text-sm font-medium text-foreground">Trading Simulado</div>
+                             </div>
+                             <Badge variant="outline" className="text-xs">
+                               {currentOperation?.pair || "BTC/USDT"}
+                             </Badge>
+                           </div>
+                           
+                           {/* Grid de Preços */}
+                           <div className="grid grid-cols-3 gap-2 mb-3">
+                             <div className="bg-trading-red/10 rounded p-2 text-center border border-trading-red/20">
+                               <div className="text-xs text-muted-foreground">Compra</div>
+                               <div className="text-sm font-bold text-trading-red">
+                                 ${currentOperation?.buyPrice.toFixed(2) || (45000 + Math.random() * 1000).toFixed(2)}
+                               </div>
+                             </div>
+                             <div className="bg-trading-green/10 rounded p-2 text-center border border-trading-green/20">
+                               <div className="text-xs text-muted-foreground">Venda</div>
+                               <div className="text-sm font-bold text-trading-green">
+                                 ${currentOperation?.sellPrice.toFixed(2) || (45500 + Math.random() * 1000).toFixed(2)}
+                               </div>
+                             </div>
+                             <div className="bg-primary/10 rounded p-2 text-center border border-primary/20">
+                               <div className="text-xs text-muted-foreground">Lucro</div>
+                               <div className="text-sm font-bold text-primary">
+                                 +${currentOperation?.profit.toFixed(2) || (investment.amount * 0.02).toFixed(2)}
+                               </div>
+                             </div>
+                           </div>
 
-                          {/* Progress Bar da Operação */}
-                          {currentOperation && (
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-xs">
-                                <span className="text-muted-foreground">Operação em andamento...</span>
-                                <span className="font-medium">{currentOperation.timeRemaining}s</span>
-                              </div>
-                              <Progress value={currentOperation.progress} className="h-2" />
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                           {/* Progress da Operação */}
+                           {currentOperation && (
+                             <div className="space-y-2">
+                               <div className="flex justify-between items-center text-xs">
+                                 <div className="flex items-center gap-1 text-muted-foreground">
+                                   <ArrowUpDown className="h-3 w-3" />
+                                   <span>Operação em andamento</span>
+                                 </div>
+                                 <div className="flex items-center gap-1 font-medium">
+                                   <Timer className="h-3 w-3" />
+                                   <span>{currentOperation.timeRemaining}s</span>
+                                 </div>
+                               </div>
+                               <Progress 
+                                 value={currentOperation.progress} 
+                                 className="h-2 bg-muted"
+                               />
+                               <div className="text-xs text-center text-muted-foreground">
+                                 {currentOperation.progress.toFixed(0)}% concluído
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                       </CardContent>
+                     </Card>
                   );
                 })}
               </div>
@@ -924,6 +979,20 @@ const Investments = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Trading Simulator */}
+        {selectedInvestmentForTrading && (
+          <TradingSimulator
+            isOpen={isTradingSimulatorOpen}
+            onClose={() => {
+              setIsTradingSimulatorOpen(false);
+              setSelectedInvestmentForTrading(null);
+            }}
+            investmentAmount={selectedInvestmentForTrading.amount}
+            dailyRate={selectedInvestmentForTrading.dailyRate}
+            onComplete={handleTradingComplete}
+          />
+        )}
       </div>
     </div>
   );
