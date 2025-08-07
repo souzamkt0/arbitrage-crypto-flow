@@ -115,6 +115,20 @@ interface Deposit {
   walletAddress?: string;
 }
 
+interface AdminTransaction {
+  id: string;
+  userId: string;
+  userName: string;
+  adminUserId: string;
+  adminUserName: string;
+  amountBefore: number;
+  amountAfter: number;
+  amountChanged: number;
+  transactionType: string;
+  reason: string;
+  date: string;
+}
+
 const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
   const { user } = useAuth();
@@ -129,8 +143,8 @@ const Admin = () => {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isNewPlan, setIsNewPlan] = useState(false);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
-
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [adminTransactions, setAdminTransactions] = useState<AdminTransaction[]>([]);
 
   const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected">("all");
   const [withdrawalFilter, setWithdrawalFilter] = useState<"all" | "pending" | "approved" | "rejected" | "processing">("all");
@@ -277,6 +291,33 @@ const Admin = () => {
           }));
           setWithdrawals(formattedWithdrawals);
         }
+
+        // Fetch admin balance transactions
+        const { data: transactionsData } = await supabase
+          .from('admin_balance_transactions')
+          .select(`
+            *,
+            user_profile:profiles!admin_balance_transactions_user_id_fkey(display_name, email),
+            admin_profile:profiles!admin_balance_transactions_admin_user_id_fkey(display_name, email)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (transactionsData) {
+          const formattedTransactions = transactionsData.map(transaction => ({
+            id: transaction.id,
+            userId: transaction.user_id,
+            userName: transaction.user_profile?.display_name || transaction.user_profile?.email || 'User',
+            adminUserId: transaction.admin_user_id,
+            adminUserName: transaction.admin_profile?.display_name || transaction.admin_profile?.email || 'Admin',
+            amountBefore: transaction.amount_before,
+            amountAfter: transaction.amount_after,
+            amountChanged: transaction.amount_changed,
+            transactionType: transaction.transaction_type,
+            reason: transaction.reason || '',
+            date: transaction.created_at
+          }));
+          setAdminTransactions(formattedTransactions);
+        }
       } catch (error) {
         console.error('Erro ao carregar dados do admin:', error);
       }
@@ -340,18 +381,86 @@ const Admin = () => {
     setIsViewModalOpen(true);
   };
 
-  const handleSaveUser = () => {
-    if (selectedUser) {
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === selectedUser.id ? selectedUser : user
-        )
-      );
-      setIsEditModalOpen(false);
-      toast({
-        title: "Usuário atualizado",
-        description: "Dados do usuário foram atualizados com sucesso.",
-      });
+  const handleSaveUser = async () => {
+    if (selectedUser && user) {
+      try {
+        // Buscar o saldo atual do usuário no banco
+        const { data: currentProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('balance')
+          .eq('user_id', selectedUser.id)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error fetching current balance:', fetchError);
+          toast({
+            title: "Erro",
+            description: "Erro ao buscar saldo atual do usuário.",
+          });
+          return;
+        }
+
+        const currentBalance = currentProfile?.balance || 0;
+        const newBalance = selectedUser.balance;
+        const balanceChanged = newBalance - currentBalance;
+
+        // Atualizar saldo no banco de dados
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            balance: newBalance,
+            display_name: selectedUser.name,
+            email: selectedUser.email
+          })
+          .eq('user_id', selectedUser.id);
+
+        if (updateError) {
+          console.error('Error updating user:', updateError);
+          toast({
+            title: "Erro",
+            description: "Erro ao atualizar usuário no banco de dados.",
+          });
+          return;
+        }
+
+        // Se houve mudança no saldo, registrar a transação administrativa
+        if (Math.abs(balanceChanged) > 0.001) {
+          const { error: transactionError } = await supabase
+            .from('admin_balance_transactions')
+            .insert([{
+              user_id: selectedUser.id,
+              admin_user_id: user.id,
+              amount_before: currentBalance,
+              amount_after: newBalance,
+              amount_changed: balanceChanged,
+              transaction_type: 'balance_adjustment',
+              reason: `Saldo ${balanceChanged > 0 ? 'adicionado' : 'removido'} pelo administrador`
+            }]);
+
+          if (transactionError) {
+            console.error('Error creating transaction record:', transactionError);
+            // Não bloquear a operação se falhar o registro da transação
+          }
+        }
+
+        // Atualizar estado local
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user.id === selectedUser.id ? selectedUser : user
+          )
+        );
+        setIsEditModalOpen(false);
+        toast({
+          title: "Usuário atualizado",
+          description: "Dados do usuário foram atualizados com sucesso.",
+        });
+      } catch (error) {
+        console.error('Error saving user:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar alterações do usuário.",
+        });
+      }
     }
   };
 
@@ -759,11 +868,12 @@ const Admin = () => {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="deposits">Depósitos</TabsTrigger>
             <TabsTrigger value="withdrawals">Saques</TabsTrigger>
             <TabsTrigger value="bonus">Bônus</TabsTrigger>
+            <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -2253,6 +2363,77 @@ const Admin = () => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="transactions" className="space-y-6">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center text-card-foreground">
+                  <Activity className="h-5 w-5 mr-2 text-primary" />
+                  Transações Administrativas de Saldo
+                </CardTitle>
+                <CardDescription>
+                  Histórico de alterações de saldo realizadas pelos administradores
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {adminTransactions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Usuário</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Saldo Anterior</TableHead>
+                          <TableHead>Saldo Novo</TableHead>
+                          <TableHead>Alteração</TableHead>
+                          <TableHead>Motivo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {adminTransactions.map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell className="text-sm">
+                              {new Date(transaction.date).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {transaction.userName}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {transaction.adminUserName}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              ${transaction.amountBefore.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              ${transaction.amountAfter.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <span className={`font-medium ${
+                                transaction.amountChanged > 0 
+                                  ? 'text-trading-green' 
+                                  : 'text-trading-red'
+                              }`}>
+                                {transaction.amountChanged > 0 ? '+' : ''}${transaction.amountChanged.toFixed(2)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {transaction.reason}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhuma transação administrativa encontrada</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

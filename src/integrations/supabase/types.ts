@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_balance_transactions: {
+        Row: {
+          admin_user_id: string
+          amount_after: number
+          amount_before: number
+          amount_changed: number
+          created_at: string
+          id: string
+          reason: string | null
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_user_id: string
+          amount_after?: number
+          amount_before?: number
+          amount_changed?: number
+          created_at?: string
+          id?: string
+          reason?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_user_id?: string
+          amount_after?: number
+          amount_before?: number
+          amount_changed?: number
+          created_at?: string
+          id?: string
+          reason?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string | null
