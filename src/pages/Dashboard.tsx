@@ -308,18 +308,18 @@ const Dashboard = () => {
     }
   };
 
-  // Cálculo dos saldos simulados
-  const simulatedTotalProfit = 1234.56; // Valor fixo para demonstração
-  const simulatedBalance = 10000 + simulatedTotalProfit; // Exemplo: saldo inicial + lucro simulado
-  const simulatedDailyProfit = 234.56; // Valor fixo para demonstração
+  // Usar dados reais do usuário em vez de valores simulados
+  const userBalance = balance; // Saldo real do usuário
+  const userTotalProfit = totalProfit; // Lucro total real do usuário
+  const userDailyProfit = dailyProfit; // Lucro diário real do usuário
 
-  // Saldo em BTC: valor fixo para demonstração
+  // Saldo em BTC: baseado no lucro total real
   const btcPrice = 43000;
-  const btcBalance = simulatedTotalProfit / btcPrice;
+  const btcBalance = userTotalProfit / btcPrice;
 
   // Saldo em BRL: lucro do dia convertido para real (cotação fixa 1 USD = 5.40 BRL)
   const brlRate = 5.40;
-  const brlBalance = simulatedDailyProfit * brlRate;
+  const brlBalance = userDailyProfit * brlRate;
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -366,7 +366,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-lg md:text-2xl font-bold text-primary">
-                ${simulatedBalance.toLocaleString()}
+                ${userBalance.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">
                 +2.5% desde ontem
@@ -383,7 +383,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-trading-green">
-                +${simulatedDailyProfit.toFixed(2)}
+                +${userDailyProfit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 +15.3% desde ontem
@@ -400,7 +400,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                +${simulatedTotalProfit.toFixed(2)}
+                +${userTotalProfit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Desde o início
