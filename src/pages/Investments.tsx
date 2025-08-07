@@ -98,6 +98,25 @@ const Investments = () => {
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
+  // Função para calcular operações de um plano
+  const getDailyOperationsFromPlan = (planName: string): number => {
+    if (planName?.includes('4.0.0') || planName?.includes('4.0')) {
+      return 2;
+    } else if (planName?.includes('4.0.5')) {
+      return 3;
+    } else if (planName?.includes('4.1.0')) {
+      return 4;
+    }
+    return 2; // padrão
+  };
+
+  // Calcular total de operações de todos os planos ativos
+  const getTotalActiveOperations = (): number => {
+    return userInvestments
+      .filter(inv => inv.status === "active")
+      .reduce((total, inv) => total + getDailyOperationsFromPlan(inv.investmentName), 0);
+  };
+
   // Gerar dados do gráfico
   const generateChartData = () => {
     const data = [];
@@ -380,15 +399,27 @@ const Investments = () => {
 
       const requiredReferrals = plan?.required_referrals || 0;
 
-      // Verificar se tem referrals suficientes
-      if (referralCount < requiredReferrals) {
+      // Verificar se o usuário já tem investimentos ativos
+      const hasActiveInvestments = userInvestments.some(inv => inv.status === "active");
+
+      // Se já tem investimentos ativos, pode investir em qualquer plano superior
+      if (!hasActiveInvestments && referralCount < requiredReferrals) {
         console.log(`Bloqueando investimento ${selectedInvestment.name} - referrals insuficientes`);
         toast({
           title: "Referrals insuficientes",
-          description: `Para investir no ${selectedInvestment.name}, você precisa ter ${requiredReferrals} referrals ativos. Você tem ${referralCount} referrals.`,
+          description: `Para o primeiro investimento no ${selectedInvestment.name}, você precisa ter ${requiredReferrals} referrals ativos. Você tem ${referralCount} referrals.`,
           variant: "destructive"
         });
         return;
+      }
+
+      // Se já tem investimentos, mostrar que pode expandir quantificação
+      if (hasActiveInvestments && referralCount < requiredReferrals) {
+        toast({
+          title: "Expandindo Quantificação",
+          description: `Você já tem investimentos ativos! Este plano adicionará mais ${getDailyOperationsFromPlan(selectedInvestment.name)} operações simultâneas.`,
+          variant: "default"
+        });
       }
     } catch (error) {
       console.error('Erro na validação de referrals:', error);
@@ -944,6 +975,7 @@ const Investments = () => {
             investmentAmount={selectedInvestmentForTrading.amount}
             dailyRate={selectedInvestmentForTrading.dailyRate}
             planName={selectedInvestmentForTrading.investmentName}
+            totalActiveOperations={getTotalActiveOperations()}
             onComplete={handleTradingComplete}
           />
         )}

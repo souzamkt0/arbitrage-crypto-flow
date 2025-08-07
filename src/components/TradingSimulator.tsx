@@ -41,6 +41,7 @@ interface TradingSimulatorProps {
   investmentAmount: number;
   dailyRate: number;
   planName: string;
+  totalActiveOperations?: number; // Total de operações de todos os planos ativos
   onComplete: (profit: number) => void;
 }
 
@@ -50,6 +51,7 @@ const TradingSimulator = ({
   investmentAmount, 
   dailyRate,
   planName,
+  totalActiveOperations = 0,
   onComplete 
 }: TradingSimulatorProps) => {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
@@ -71,14 +73,18 @@ const TradingSimulator = ({
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT"];
 
   const generateExchangeData = (): Exchange[] => {
-    // Determinar número de exchanges baseado no plano
-    let numExchanges = 2; // Padrão para 4.0.0
+    // Determinar número de exchanges baseado no plano atual
+    let currentPlanOperations = 2; // Padrão para 4.0.0
     
     if (planName?.includes('4.0.5') || dailyRate === 3) {
-      numExchanges = 3;
+      currentPlanOperations = 3;
     } else if (planName?.includes('4.1.0') || dailyRate === 4) {
-      numExchanges = 4;
+      currentPlanOperations = 4;
     }
+
+    // Se tem outros planos ativos, pode usar mais exchanges (máximo 8)
+    const maxExchanges = Math.min(currentPlanOperations + Math.floor(totalActiveOperations / 2), 8);
+    const numExchanges = Math.max(currentPlanOperations, maxExchanges);
     
     // Usar apenas o número necessário de exchanges
     const selectedExchanges = exchangeList.slice(0, numExchanges);
@@ -115,7 +121,7 @@ const TradingSimulator = ({
       setTotalProfit(0);
       setCompletedOperations(0);
     }
-  }, [isOpen, investmentAmount, dailyRate, planName]);
+  }, [isOpen, investmentAmount, dailyRate, planName, totalActiveOperations]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -210,7 +216,12 @@ const TradingSimulator = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            Simulação de Trading - {planName}
+            Simulação de Trading - {planName} 
+            {totalActiveOperations > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                +{Math.floor(totalActiveOperations / 2)} operações extras
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
