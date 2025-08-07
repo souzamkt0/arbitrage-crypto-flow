@@ -212,14 +212,18 @@ const Dashboard = () => {
       setActiveOrders(operations?.length || 0);
 
       // Calcular saldo de trading baseado nas operações concluídas
-      const { data: tradingHistory } = await supabase
-        .from('trading_history')
-        .select('profit')
-        .eq('user_id', profile.user_id)
-        .eq('status', 'completed');
+      const loadTradingBalance = async () => {
+        const { data: tradingHistory } = await supabase
+          .from('trading_history')
+          .select('profit')
+          .eq('user_id', profile.user_id)
+          .eq('status', 'completed');
 
-      const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
-      setTradingBalance(totalTradingProfit);
+        const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
+        setTradingBalance(totalTradingProfit);
+      };
+
+      await loadTradingBalance();
 
       // Gerar link de indicação único baseado no username
       if (profile.username) {
@@ -227,6 +231,22 @@ const Dashboard = () => {
       }
     };
     loadInvestments();
+
+    // Atualizar saldo de trading a cada 30 segundos
+    const tradingBalanceInterval = setInterval(async () => {
+      if (profile?.user_id) {
+        const { data: tradingHistory } = await supabase
+          .from('trading_history')
+          .select('profit')
+          .eq('user_id', profile.user_id)
+          .eq('status', 'completed');
+
+        const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
+        setTradingBalance(totalTradingProfit);
+      }
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(tradingBalanceInterval);
   }, [profile?.user_id]);
 
   useEffect(() => {
