@@ -373,6 +373,7 @@ export type Database = {
           maximum_amount: number
           minimum_amount: number
           name: string
+          required_referrals: number
           status: string | null
           updated_at: string | null
         }
@@ -385,6 +386,7 @@ export type Database = {
           maximum_amount: number
           minimum_amount: number
           name: string
+          required_referrals?: number
           status?: string | null
           updated_at?: string | null
         }
@@ -397,6 +399,7 @@ export type Database = {
           maximum_amount?: number
           minimum_amount?: number
           name?: string
+          required_referrals?: number
           status?: string | null
           updated_at?: string | null
         }

@@ -79,6 +79,7 @@ interface InvestmentPlan {
   duration: number;
   description: string;
   status: "active" | "inactive";
+  requiredReferrals: number;
 }
 
 interface Withdrawal {
@@ -200,7 +201,8 @@ const Admin = () => {
             maximumAmount: plan.maximum_amount,
             duration: plan.duration_days,
             description: plan.description || '',
-            status: plan.status as "active" | "inactive"
+            status: plan.status as "active" | "inactive",
+            requiredReferrals: plan.required_referrals || 0
           }));
           setInvestmentPlans(formattedPlans);
         }
@@ -479,7 +481,8 @@ const Admin = () => {
       maximumAmount: 1000,
       duration: 30,
       description: "",
-      status: "active"
+      status: "active",
+      requiredReferrals: 0
     });
     setIsNewPlan(true);
     setIsPlanModalOpen(true);
@@ -498,7 +501,8 @@ const Admin = () => {
               maximum_amount: selectedPlan.maximumAmount,
               duration_days: selectedPlan.duration,
               description: selectedPlan.description,
-              status: selectedPlan.status
+              status: selectedPlan.status,
+              required_referrals: selectedPlan.requiredReferrals
             }])
             .select()
             .single();
@@ -521,7 +525,8 @@ const Admin = () => {
               maximumAmount: data.maximum_amount,
               duration: data.duration_days,
               description: data.description || '',
-              status: data.status as "active" | "inactive"
+              status: data.status as "active" | "inactive",
+              requiredReferrals: data.required_referrals || 0
             };
             setInvestmentPlans(prev => [...prev, newPlan]);
             
@@ -540,7 +545,8 @@ const Admin = () => {
               maximum_amount: selectedPlan.maximumAmount,
               duration_days: selectedPlan.duration,
               description: selectedPlan.description,
-              status: selectedPlan.status
+              status: selectedPlan.status,
+              required_referrals: selectedPlan.requiredReferrals
             })
             .eq('id', selectedPlan.id);
 
@@ -2120,16 +2126,30 @@ const Admin = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duração (dias)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={selectedPlan.duration}
-                    onChange={(e) => setSelectedPlan({...selectedPlan, duration: parseInt(e.target.value) || 0})}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="duration">Duração (dias)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={selectedPlan.duration}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, duration: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="requiredReferrals">Referrals Obrigatórios</Label>
+                    <Input
+                      id="requiredReferrals"
+                      type="number"
+                      min="0"
+                      max="1000"
+                      value={selectedPlan.requiredReferrals}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, requiredReferrals: parseInt(e.target.value) || 0})}
+                      placeholder="Quantos referrals são necessários"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

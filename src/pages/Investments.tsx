@@ -297,7 +297,7 @@ const Investments = () => {
   const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.totalEarned, 0);
   const activeInvestments = userInvestments.filter(inv => inv.status === "active").length;
 
-  const handleInvest = () => {
+  const handleInvest = async () => {
     if (!selectedInvestment || !investmentAmount) return;
 
     const amount = parseFloat(investmentAmount);
@@ -308,23 +308,41 @@ const Investments = () => {
       amount: amount
     });
 
-    // Verificar se tem referrals suficientes para o robô 4.0.5 (precisa de 10 referrals usando 4.0.0)
-    if (selectedInvestment.name === "Robô 4.0.5" && referralCount < 10) {
-      console.log('Bloqueando investimento 4.0.5 - referrals insuficientes');
-      toast({
-        title: "Referrals insuficientes",
-        description: `Para investir no Robô 4.0.5, você precisa ter 10 referrals usando o Robô 4.0.0. Você tem ${referralCount} referrals.`,
-        variant: "destructive"
-      });
-      return;
-    }
+    // Buscar o plano de investimento com required_referrals
+    try {
+      const { data: plan, error } = await supabase
+        .from('investment_plans')
+        .select('required_referrals')
+        .eq('name', selectedInvestment.name)
+        .single();
 
-    // Verificar se tem referrals suficientes para o robô 4.1.0 (precisa de 20 referrals usando 4.0.5)  
-    if (selectedInvestment.name === "Robô 4.1.0" && referralCount < 20) {
-      console.log('Bloqueando investimento 4.1.0 - referrals insuficientes');
+      if (error) {
+        console.error('Erro ao buscar plano:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao validar plano de investimento.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const requiredReferrals = plan?.required_referrals || 0;
+
+      // Verificar se tem referrals suficientes
+      if (referralCount < requiredReferrals) {
+        console.log(`Bloqueando investimento ${selectedInvestment.name} - referrals insuficientes`);
+        toast({
+          title: "Referrals insuficientes",
+          description: `Para investir no ${selectedInvestment.name}, você precisa ter ${requiredReferrals} referrals ativos. Você tem ${referralCount} referrals.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Erro na validação de referrals:', error);
       toast({
-        title: "Referrals insuficientes", 
-        description: `Para investir no Robô 4.1.0, você precisa ter 20 referrals usando o Robô 4.0.5. Você tem ${referralCount} referrals.`,
+        title: "Erro",
+        description: "Erro ao validar requisitos de referrals.",
         variant: "destructive"
       });
       return;
