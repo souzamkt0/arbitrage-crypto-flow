@@ -990,6 +990,7 @@ const Investments = () => {
             }}
             investmentAmount={selectedInvestmentForTrading.amount}
             dailyRate={selectedInvestmentForTrading.dailyRate}
+            planName={selectedInvestmentForTrading.investmentName}
             onComplete={handleTradingComplete}
           />
         )}

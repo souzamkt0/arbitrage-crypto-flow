@@ -40,6 +40,7 @@ interface TradingSimulatorProps {
   onClose: () => void;
   investmentAmount: number;
   dailyRate: number;
+  planName: string;
   onComplete: (profit: number) => void;
 }
 
@@ -48,6 +49,7 @@ const TradingSimulator = ({
   onClose, 
   investmentAmount, 
   dailyRate,
+  planName,
   onComplete 
 }: TradingSimulatorProps) => {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
@@ -69,14 +71,26 @@ const TradingSimulator = ({
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT"];
 
   const generateExchangeData = (): Exchange[] => {
-    return exchangeList.map((exchange, index) => {
+    // Determinar número de exchanges baseado no plano
+    let numExchanges = 2; // Padrão para 4.0.0
+    
+    if (planName?.includes('4.0.5') || dailyRate === 3) {
+      numExchanges = 3;
+    } else if (planName?.includes('4.1.0') || dailyRate === 4) {
+      numExchanges = 4;
+    }
+    
+    // Usar apenas o número necessário de exchanges
+    const selectedExchanges = exchangeList.slice(0, numExchanges);
+    
+    return selectedExchanges.map((exchange, index) => {
       const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
       const basePrice = Math.random() * 50000 + 1000;
       const spread = 0.001 + Math.random() * 0.002; // 0.1% a 0.3% spread
       const buyPrice = basePrice;
       const sellPrice = basePrice * (1 + spread);
       const volume = Math.random() * 1000000 + 100000;
-      const profit = (investmentAmount * (dailyRate / 100)) / 8; // Dividir por 8 exchanges
+      const profit = (investmentAmount * (dailyRate / 100)) / numExchanges; // Dividir pelo número correto
 
       return {
         name: exchange.name,
@@ -101,7 +115,7 @@ const TradingSimulator = ({
       setTotalProfit(0);
       setCompletedOperations(0);
     }
-  }, [isOpen, investmentAmount, dailyRate]);
+  }, [isOpen, investmentAmount, dailyRate, planName]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -196,7 +210,7 @@ const TradingSimulator = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            Simulação de Trading em Tempo Real
+            Simulação de Trading - {planName}
           </DialogTitle>
         </DialogHeader>
 
