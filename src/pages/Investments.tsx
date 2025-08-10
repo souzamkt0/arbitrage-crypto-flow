@@ -530,279 +530,401 @@ const Investments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="w-full lg:w-auto">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center">
-              <Bot className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 mr-2 sm:mr-3 text-primary" />
-              <span className="truncate">Alphabot - Investimentos</span>
-            </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mt-1">
-              Bots de negociação em pares crypto com rendimento automático
-            </p>
-          </div>
-          
-          <div className="text-left lg:text-right w-full lg:w-auto flex flex-col lg:items-end">
-            <div className="text-sm sm:text-lg font-semibold text-foreground">Saldo Disponível</div>
-            <div className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
-              ${userBalance.toLocaleString()}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => window.location.reload()}
-                className="h-6 w-6 p-0"
-                title="Atualizar saldo"
-              >
-                <Activity className="h-4 w-4" />
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-trading-green/5" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-50" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-trading-green/10 to-transparent rounded-full blur-3xl opacity-30" />
+      
+      <div className="relative z-10 p-3 sm:p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+          {/* Enhanced Header */}
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-lg animate-float-glow">
+                <Bot className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-trading-green bg-clip-text text-transparent">
+                  AlphaBot AI
+                </h1>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Sistema de Investimento Automatizado
+                </p>
+              </div>
             </div>
-            {userBalance === 0 && (
-              <p className="text-xs text-destructive mt-1">
-                Adicione saldo através do painel administrativo
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Referrals ativos: {referralCount}
-            </p>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Total Investido
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-primary">
-                ${totalInvested.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Em {activeInvestments} investimentos ativos
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Ganhos Totais
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-trading-green" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-trading-green">
-                +${totalEarnings.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Rendimento acumulado
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Investimentos Ativos
-              </CardTitle>
-              <Target className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-warning">
-                {activeInvestments}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Planos em andamento
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Robôs de IA - Tabelas de Investimento */}
-        <div className="space-y-6">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Gráfico de receita de IA por versão</h2>
-            <p className="text-muted-foreground">Escolha o robô e período de investimento ideal para você</p>
+            
+            {/* Balance Card */}
+            <Card className="max-w-md mx-auto bg-gradient-to-br from-card via-card to-card/90 border border-primary/20 shadow-xl">
+              <CardContent className="p-6">
+                <div className="text-center space-y-2">
+                  <div className="text-sm font-medium text-muted-foreground">Saldo Disponível</div>
+                  <div className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
+                    <DollarSign className="h-6 w-6" />
+                    ${userBalance.toLocaleString()}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => window.location.reload()}
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                      title="Atualizar saldo"
+                    >
+                      <Activity className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                    <span>Referrals: {referralCount}</span>
+                    {userBalance === 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        Adicione saldo
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Robô 4.0.0 */}
-          <Card className="bg-card border-border">
-            <CardHeader className="text-center">
-              <CardTitle className="text-lg text-card-foreground">
-                Robô 4.0.0 (nenhuma recomendação necessária)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-2 text-foreground">Investir</th>
-                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
-                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
-                      <th className="text-center p-2 text-foreground">1 dia</th>
-                      <th className="text-center p-2 text-foreground">7 dias</th>
-                      <th className="text-center p-2 text-foreground">15 dias</th>
-                      <th className="text-center p-2 text-foreground">30 dias</th>
-                      <th className="text-center p-2 text-foreground">40 dias</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { amount: 10, freq: 2, rate: 2.5, returns: [0.25, 1.75, 3.75, 7.50, 10.00] },
-                      { amount: 20, freq: 2, rate: 2.5, returns: [0.50, 3.50, 7.50, 15.00, 20.00] },
-                      { amount: 30, freq: 2, rate: 2.5, returns: [0.75, 5.25, 11.25, 22.50, 30.00] },
-                      { amount: 40, freq: 2, rate: 2.5, returns: [1.00, 7.00, 15.00, 30.00, 40.00] },
-                      { amount: 50, freq: 2, rate: 2.5, returns: [1.25, 8.75, 18.75, 37.50, 50.00] },
-                      { amount: 60, freq: 2, rate: 2.5, returns: [1.50, 10.50, 22.50, 45.00, 60.00] },
-                      { amount: 70, freq: 2, rate: 2.5, returns: [1.75, 12.25, 26.25, 52.50, 70.00] },
-                      { amount: 80, freq: 2, rate: 2.5, returns: [2.00, 14.00, 30.00, 60.00, 80.00] },
-                      { amount: 90, freq: 2, rate: 2.5, returns: [2.25, 15.75, 33.75, 67.50, 90.00] },
-                      { amount: 100, freq: 2, rate: 2.5, returns: [2.50, 17.50, 37.50, 75.00, 100.00] }
-                    ].map((plan, index) => (
-                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
-                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
-                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
-                        {plan.returns.map((ret, i) => (
-                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toFixed(2)}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 text-center">
-                <Button 
-                  onClick={() => openInvestModal(investments[0])}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Investir no Robô 4.0.0
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Enhanced Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-slide-in-up">
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-primary/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardTitle className="text-sm font-medium text-card-foreground">
+                  Total Investido
+                </CardTitle>
+                <div className="p-2 rounded-full bg-primary/10">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
+                  ${totalInvested.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  Em {activeInvestments} investimentos ativos
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* Robô 4.0.5 */}
-          <Card className="bg-card border-border">
-            <CardHeader className="text-center">
-              <CardTitle className="text-lg text-card-foreground">
-                Robôs 4.0.5 (Mínimo 10 USDT para 10 indicações, assine o contrato)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-2 text-foreground">Investir</th>
-                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
-                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
-                      <th className="text-center p-2 text-foreground">1 dia</th>
-                      <th className="text-center p-2 text-foreground">7 dias</th>
-                      <th className="text-center p-2 text-foreground">15 dias</th>
-                      <th className="text-center p-2 text-foreground">30 dias</th>
-                      <th className="text-center p-2 text-foreground">40 dias</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { amount: 20, freq: 3, rate: 3.0, returns: [0.60, 4.20, 9.00, 18.00, 24.00] },
-                      { amount: 40, freq: 3, rate: 3.0, returns: [1.20, 8.40, 18.00, 36.00, 48.00] },
-                      { amount: 60, freq: 3, rate: 3.0, returns: [1.80, 12.60, 27.00, 54.00, 72.00] },
-                      { amount: 80, freq: 3, rate: 3.0, returns: [2.40, 16.80, 36.00, 72.00, 96.00] },
-                      { amount: 100, freq: 3, rate: 3.0, returns: [3.00, 21.00, 45.00, 90.00, 120.00] },
-                      { amount: 120, freq: 3, rate: 3.0, returns: [3.60, 25.20, 54.00, 108.00, 144.00] },
-                      { amount: 140, freq: 3, rate: 3.0, returns: [4.20, 29.40, 63.00, 126.00, 168.00] },
-                      { amount: 160, freq: 3, rate: 3.0, returns: [4.80, 33.60, 72.00, 144.00, 192.00] },
-                      { amount: 180, freq: 3, rate: 3.0, returns: [5.40, 37.80, 81.00, 162.00, 216.00] },
-                      { amount: 200, freq: 3, rate: 3.0, returns: [6.00, 42.00, 90.00, 180.00, 240.00] }
-                    ].map((plan, index) => (
-                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
-                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
-                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
-                        {plan.returns.map((ret, i) => (
-                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toFixed(2)}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 text-center">
-                <Button 
-                  onClick={() => openInvestModal(investments[1] || investments[0])}
-                  className="bg-warning text-warning-foreground hover:bg-warning/90"
-                >
-                  Investir no Robô 4.0.5
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-trading-green/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardTitle className="text-sm font-medium text-card-foreground">
+                  Ganhos Totais
+                </CardTitle>
+                <div className="p-2 rounded-full bg-trading-green/10">
+                  <TrendingUp className="h-4 w-4 text-trading-green" />
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="text-2xl sm:text-3xl font-bold text-trading-green">
+                  +${totalEarnings.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Rendimento acumulado
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* Robô 4.1.0 */}
-          <Card className="bg-card border-border">
-            <CardHeader className="text-center">
-              <CardTitle className="text-lg text-card-foreground">
-                Robôs 4.1.0 (Mínimo 10 USDT para 20 indicações, assine o contrato)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-2 text-foreground">Investir</th>
-                      <th className="text-center p-2 text-foreground">Quantificar frequência</th>
-                      <th className="text-center p-2 text-foreground">Taxa de juros diária</th>
-                      <th className="text-center p-2 text-foreground">1 dia</th>
-                      <th className="text-center p-2 text-foreground">7 dias</th>
-                      <th className="text-center p-2 text-foreground">15 dias</th>
-                      <th className="text-center p-2 text-foreground">30 dias</th>
-                      <th className="text-center p-2 text-foreground">40 dias</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { amount: 500, freq: 4, rate: 4.0, returns: [20.00, 140.00, 300.00, 600.00, 800.00] },
-                      { amount: 1000, freq: 4, rate: 4.0, returns: [40.00, 280.00, 600.00, 1200.00, 1600.00] },
-                      { amount: 1500, freq: 4, rate: 4.0, returns: [60.00, 420.00, 900.00, 1800.00, 2400.00] },
-                      { amount: 2000, freq: 4, rate: 4.0, returns: [80.00, 560.00, 1200.00, 2400.00, 3200.00] },
-                      { amount: 2500, freq: 4, rate: 4.0, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
-                      { amount: 3000, freq: 4, rate: 4.0, returns: [120.00, 840.00, 1800.00, 3600.00, 4800.00] },
-                      { amount: 3500, freq: 4, rate: 4.0, returns: [140.00, 980.00, 2100.00, 4200.00, 5600.00] },
-                      { amount: 4000, freq: 4, rate: 4.0, returns: [160.00, 1120.00, 2400.00, 4800.00, 6400.00] },
-                      { amount: 4500, freq: 4, rate: 4.0, returns: [180.00, 1260.00, 2700.00, 5400.00, 7200.00] },
-                      { amount: 5000, freq: 4, rate: 4.0, returns: [200.00, 1400.00, 3000.00, 6000.00, 8000.00] }
-                    ].map((plan, index) => (
-                      <tr key={index} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="p-2 font-medium text-foreground">${plan.amount}</td>
-                        <td className="p-2 text-center text-muted-foreground">{plan.freq}</td>
-                        <td className="p-2 text-center text-trading-green font-medium">{plan.rate}%</td>
-                        {plan.returns.map((ret, i) => (
-                          <td key={i} className="p-2 text-center text-muted-foreground">${ret.toLocaleString()}</td>
-                        ))}
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-warning/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardTitle className="text-sm font-medium text-card-foreground">
+                  Investimentos Ativos
+                </CardTitle>
+                <div className="p-2 rounded-full bg-warning/10">
+                  <Target className="h-4 w-4 text-warning" />
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="text-2xl sm:text-3xl font-bold text-warning">
+                  {activeInvestments}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <Bot className="h-3 w-3" />
+                  Planos em andamento
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Enhanced Investment Plans Section */}
+          <div className="space-y-8">
+            <div className="text-center space-y-3">
+              <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-primary to-trading-green bg-clip-text text-transparent">
+                Planos de Investimento AI
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Escolha o robô e período de investimento ideal para você
+              </p>
+            </div>
+
+            {/* Robô 4.0.0 - Enhanced */}
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-primary/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
+              
+              <CardHeader className="text-center relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Bot className="h-6 w-6 text-primary" />
+                  </div>
+                  <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1">
+                    Iniciante
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl text-card-foreground">
+                  Robô 4.0.0
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Nenhuma recomendação necessária</p>
+              </CardHeader>
+              
+              <CardContent className="relative z-10">
+                <div className="bg-muted/30 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
+                      <div className="text-lg font-bold text-trading-green">2.5%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Frequência</div>
+                      <div className="text-lg font-bold text-primary">2x/dia</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Duração</div>
+                      <div className="text-lg font-bold text-warning">40 dias</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/30 rounded-lg">
+                        <th className="text-left p-3 text-foreground font-semibold">Investir</th>
+                        <th className="text-center p-3 text-foreground font-semibold">1 dia</th>
+                        <th className="text-center p-3 text-foreground font-semibold">7 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">15 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">30 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">40 dias</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 text-center">
-                <Button 
-                  onClick={() => openInvestModal(investments[2] || investments[0])}
-                  className="bg-trading-green text-white hover:bg-trading-green/90"
-                >
-                  Investir no Robô 4.1.0
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                    </thead>
+                    <tbody>
+                      {[
+                        { amount: 10, returns: [0.25, 1.75, 3.75, 7.50, 10.00] },
+                        { amount: 20, returns: [0.50, 3.50, 7.50, 15.00, 20.00] },
+                        { amount: 30, returns: [0.75, 5.25, 11.25, 22.50, 30.00] },
+                        { amount: 40, returns: [1.00, 7.00, 15.00, 30.00, 40.00] },
+                        { amount: 50, returns: [1.25, 8.75, 18.75, 37.50, 50.00] },
+                        { amount: 60, returns: [1.50, 10.50, 22.50, 45.00, 60.00] },
+                        { amount: 70, returns: [1.75, 12.25, 26.25, 52.50, 70.00] },
+                        { amount: 80, returns: [2.00, 14.00, 30.00, 60.00, 80.00] },
+                        { amount: 90, returns: [2.25, 15.75, 33.75, 67.50, 90.00] },
+                        { amount: 100, returns: [2.50, 17.50, 37.50, 75.00, 100.00] }
+                      ].map((plan, index) => (
+                        <tr key={index} className="border-b border-border/30 hover:bg-primary/5 transition-colors">
+                          <td className="p-3 font-bold text-primary">${plan.amount}</td>
+                          {plan.returns.map((ret, i) => (
+                            <td key={i} className="p-3 text-center text-trading-green font-medium">
+                              ${ret.toFixed(2)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <Button 
+                    onClick={() => openInvestModal(investments[0])}
+                    className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Investir no Robô 4.0.0
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Robô 4.0.5 - Enhanced */}
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-warning/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-50" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-warning/20 to-transparent rounded-full blur-3xl" />
+              
+              <CardHeader className="text-center relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-warning/10">
+                    <Zap className="h-6 w-6 text-warning" />
+                  </div>
+                  <Badge className="bg-warning/20 text-warning border-warning/30 px-3 py-1">
+                    Intermediário
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl text-card-foreground">
+                  Robô 4.0.5
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Mínimo 10 referrals necessários</p>
+              </CardHeader>
+              
+              <CardContent className="relative z-10">
+                <div className="bg-muted/30 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
+                      <div className="text-lg font-bold text-trading-green">3.0%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Frequência</div>
+                      <div className="text-lg font-bold text-warning">3x/dia</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Duração</div>
+                      <div className="text-lg font-bold text-primary">40 dias</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/30 rounded-lg">
+                        <th className="text-left p-3 text-foreground font-semibold">Investir</th>
+                        <th className="text-center p-3 text-foreground font-semibold">1 dia</th>
+                        <th className="text-center p-3 text-foreground font-semibold">7 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">15 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">30 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">40 dias</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { amount: 20, returns: [0.60, 4.20, 9.00, 18.00, 24.00] },
+                        { amount: 40, returns: [1.20, 8.40, 18.00, 36.00, 48.00] },
+                        { amount: 60, returns: [1.80, 12.60, 27.00, 54.00, 72.00] },
+                        { amount: 80, returns: [2.40, 16.80, 36.00, 72.00, 96.00] },
+                        { amount: 100, returns: [3.00, 21.00, 45.00, 90.00, 120.00] },
+                        { amount: 120, returns: [3.60, 25.20, 54.00, 108.00, 144.00] },
+                        { amount: 140, returns: [4.20, 29.40, 63.00, 126.00, 168.00] },
+                        { amount: 160, returns: [4.80, 33.60, 72.00, 144.00, 192.00] },
+                        { amount: 180, returns: [5.40, 37.80, 81.00, 162.00, 216.00] },
+                        { amount: 200, returns: [6.00, 42.00, 90.00, 180.00, 240.00] }
+                      ].map((plan, index) => (
+                        <tr key={index} className="border-b border-border/30 hover:bg-warning/5 transition-colors">
+                          <td className="p-3 font-bold text-warning">${plan.amount}</td>
+                          {plan.returns.map((ret, i) => (
+                            <td key={i} className="p-3 text-center text-trading-green font-medium">
+                              ${ret.toFixed(2)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <Button 
+                    onClick={() => openInvestModal(investments[1] || investments[0])}
+                    className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Zap className="h-5 w-5 mr-2" />
+                    Investir no Robô 4.0.5
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Robô 4.1.0 - Enhanced */}
+            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-trading-green/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent opacity-50" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-trading-green/20 to-transparent rounded-full blur-3xl" />
+              
+              <CardHeader className="text-center relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-trading-green/10">
+                    <Sparkles className="h-6 w-6 text-trading-green" />
+                  </div>
+                  <Badge className="bg-trading-green/20 text-trading-green border-trading-green/30 px-3 py-1">
+                    Premium
+                  </Badge>
+                </div>
+                <CardTitle className="text-2xl text-card-foreground">
+                  Robô 4.1.0
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Mínimo 20 referrals necessários</p>
+              </CardHeader>
+              
+              <CardContent className="relative z-10">
+                <div className="bg-muted/30 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
+                      <div className="text-lg font-bold text-trading-green">4.0%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Frequência</div>
+                      <div className="text-lg font-bold text-trading-green">4x/dia</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Duração</div>
+                      <div className="text-lg font-bold text-primary">40 dias</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/30 rounded-lg">
+                        <th className="text-left p-3 text-foreground font-semibold">Investir</th>
+                        <th className="text-center p-3 text-foreground font-semibold">1 dia</th>
+                        <th className="text-center p-3 text-foreground font-semibold">7 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">15 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">30 dias</th>
+                        <th className="text-center p-3 text-foreground font-semibold">40 dias</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { amount: 500, returns: [20.00, 140.00, 300.00, 600.00, 800.00] },
+                        { amount: 1000, returns: [40.00, 280.00, 600.00, 1200.00, 1600.00] },
+                        { amount: 1500, returns: [60.00, 420.00, 900.00, 1800.00, 2400.00] },
+                        { amount: 2000, returns: [80.00, 560.00, 1200.00, 2400.00, 3200.00] },
+                        { amount: 2500, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
+                        { amount: 3000, returns: [120.00, 840.00, 1800.00, 3600.00, 4800.00] },
+                        { amount: 3500, returns: [140.00, 980.00, 2100.00, 4200.00, 5600.00] },
+                        { amount: 4000, returns: [160.00, 1120.00, 2400.00, 4800.00, 6400.00] },
+                        { amount: 4500, returns: [180.00, 1260.00, 2700.00, 5400.00, 7200.00] },
+                        { amount: 5000, returns: [200.00, 1400.00, 3000.00, 6000.00, 8000.00] }
+                      ].map((plan, index) => (
+                        <tr key={index} className="border-b border-border/30 hover:bg-trading-green/5 transition-colors">
+                          <td className="p-3 font-bold text-trading-green">${plan.amount.toLocaleString()}</td>
+                          {plan.returns.map((ret, i) => (
+                            <td key={i} className="p-3 text-center text-trading-green font-medium">
+                              ${ret.toLocaleString()}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <Button 
+                    onClick={() => openInvestModal(investments[2] || investments[0])}
+                    className="bg-gradient-to-r from-trading-green to-green-600 text-white hover:from-trading-green/90 hover:to-green-600/90 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Investir no Robô 4.1.0
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
         </div>
 
         {/* My Investments */}
@@ -1005,6 +1127,7 @@ const Investments = () => {
             onComplete={handleTradingComplete}
           />
         )}
+        </div>
       </div>
     </div>
   );
