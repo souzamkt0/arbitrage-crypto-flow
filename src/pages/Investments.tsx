@@ -536,7 +536,6 @@ const Investments = () => {
     setIsInvestModalOpen(true);
   };
 
-  console.log("Investment component rendering - structure check");
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       {/* Binance-style Background Pattern */}

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+// import { useToast } from '@/hooks/use-toast'; // Temporarily disabled for debugging
 
 interface AuthContextType {
   user: User | null;
@@ -17,11 +17,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // Debug logging to verify component execution
+  console.log('AuthProvider rendering');
+  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  // Temporarily remove useToast to debug
+  // const { toast } = useToast();
 
   const isAdmin = profile?.role === 'admin';
 
@@ -87,11 +91,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Se não conseguir login normal, redirecionar para registro
         if (authError && authError.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Admin não registrado",
-            description: "Faça o registro com este email para criar sua conta admin",
-            variant: "destructive",
-          });
+          // toast({
+          //   title: "Admin não registrado",
+          //   description: "Faça o registro com este email para criar sua conta admin",
+          //   variant: "destructive",
+          // });
+          console.error("Admin não registrado - redirecionando para registro");
           window.location.href = '/register';
           return { error: authError };
         }
@@ -103,18 +108,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          title: "Erro no login",
-          description: error.message,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Erro no login",
+        //   description: error.message,
+        //   variant: "destructive",
+        // });
+        console.error("Erro no login:", error.message);
         return { error };
       }
 
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao Alphabit",
-      });
+      // toast({
+      //   title: "Login realizado com sucesso!",
+      //   description: "Bem-vindo ao Alphabit",
+      // });
+      console.log("Login realizado com sucesso!");
 
       return { error: null };
     } catch (error) {
@@ -138,18 +145,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          title: "Erro no cadastro",
-          description: error.message,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Erro no cadastro",
+        //   description: error.message,
+        //   variant: "destructive",
+        // });
+        console.error("Erro no cadastro:", error.message);
         return { error };
       }
 
-      toast({
-        title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta",
-      });
+      // toast({
+      //   title: "Cadastro realizado!",
+      //   description: "Verifique seu email para confirmar a conta",
+      // });
+      console.log("Cadastro realizado!");
 
       return { error: null };
     } catch (error) {
@@ -163,10 +172,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       setSession(null);
       setProfile(null);
-      toast({
-        title: "Logout realizado",
-        description: "Até logo!",
-      });
+      // toast({
+      //   title: "Logout realizado",
+      //   description: "Até logo!",
+      // });
+      console.log("Logout realizado");
     }
   };
 
