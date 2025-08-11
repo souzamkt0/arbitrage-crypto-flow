@@ -30,7 +30,12 @@ import {
   Activity,
   Zap,
   Sparkles,
-  BarChart3
+  BarChart3,
+  CreditCard,
+  Wallet,
+  ChevronRight,
+  Shield,
+  TrendingDown
 } from "lucide-react";
 import {
   LineChart,
@@ -44,6 +49,7 @@ import {
   Tooltip
 } from "recharts";
 import TradingSimulator from "@/components/TradingSimulator";
+import { useNavigate } from "react-router-dom";
 
 interface Investment {
   id: string;
@@ -95,6 +101,7 @@ const Investments = () => {
   const [selectedInvestmentForTrading, setSelectedInvestmentForTrading] = useState<UserInvestment | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
@@ -530,63 +537,177 @@ const Investments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-trading-green/5" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-50" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-trading-green/10 to-transparent rounded-full blur-3xl opacity-30" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+      {/* Binance-style Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, hsl(var(--primary)) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, hsl(var(--trading-green)) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, hsl(var(--warning)) 0%, transparent 50%)`
+        }} />
+      </div>
       
-      <div className="relative z-10 p-3 sm:p-4 lg:p-6">
-        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-          {/* Enhanced Header */}
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-lg animate-float-glow">
-                <Bot className="h-8 w-8 text-primary-foreground" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-trading-green bg-clip-text text-transparent">
-                  AlphaBot AI
-                </h1>
-                <p className="text-sm sm:text-base text-muted-foreground">
-                  Sistema de Investimento Automatizado
-                </p>
-              </div>
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 opacity-10" style={{
+        backgroundImage: `linear-gradient(hsl(var(--primary)/0.1) 1px, transparent 1px),
+                         linear-gradient(90deg, hsl(var(--primary)/0.1) 1px, transparent 1px)`,
+        backgroundSize: '20px 20px'
+      }} />
+
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-8">
+        {/* Binance-style Header */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-trading-green/20 rounded-full flex items-center justify-center border-2 border-primary/30">
+              <Bot className="h-6 w-6 text-primary" />
             </div>
-            
-            {/* Balance Card */}
-            <Card className="max-w-md mx-auto bg-gradient-to-br from-card via-card to-card/90 border border-primary/20 shadow-xl">
-              <CardContent className="p-6">
-                <div className="text-center space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">Saldo Disponível</div>
-                  <div className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-                    <DollarSign className="h-6 w-6" />
-                    ${userBalance.toLocaleString()}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => window.location.reload()}
-                      className="h-8 w-8 p-0 hover:bg-primary/10"
-                      title="Atualizar saldo"
-                    >
-                      <Activity className="h-4 w-4" />
-                    </Button>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
+              Investimentos
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Trading automatizado com tecnologia de ponta para maximizar seus rendimentos
+          </p>
+        </div>
+
+        {/* Deposit Options - Binance Style */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* DigitoPay Deposit */}
+          <Card className="bg-gradient-to-br from-card to-card/90 border-primary/30 hover:shadow-xl hover:border-primary/50 transition-all duration-300 group cursor-pointer"
+                onClick={() => navigate('/deposit')}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <CreditCard className="h-6 w-6 text-primary" />
                   </div>
-                  <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                    <span>Referrals: {referralCount}</span>
-                    {userBalance === 0 && (
-                      <Badge variant="destructive" className="text-xs">
-                        Adicione saldo
-                      </Badge>
-                    )}
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">Depósito PIX</h3>
+                    <p className="text-sm text-muted-foreground">DigitoPay • Instantâneo</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Taxa</span>
+                  <span className="text-trading-green font-medium">0%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tempo</span>
+                  <span className="text-foreground font-medium">1-5 minutos</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Método</span>
+                  <span className="text-foreground font-medium">PIX • QR Code</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <Shield className="h-4 w-4" />
+                  <span className="font-medium">Seguro e Confiável</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Enhanced Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-slide-in-up">
+          {/* BEP20 USDT Deposit */}
+          <Card className="bg-gradient-to-br from-card to-card/90 border-warning/30 hover:shadow-xl hover:border-warning/50 transition-all duration-300 group cursor-pointer"
+                onClick={() => navigate('/deposit')}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+                    <Wallet className="h-6 w-6 text-warning" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">Depósito USDT</h3>
+                    <p className="text-sm text-muted-foreground">BEP20 • Blockchain</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-warning transition-colors" />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Taxa</span>
+                  <span className="text-trading-green font-medium">0%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tempo</span>
+                  <span className="text-foreground font-medium">5-15 minutos</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Rede</span>
+                  <span className="text-foreground font-medium">BSC (BEP20)</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-warning/5 rounded-lg border border-warning/20">
+                <div className="flex items-center gap-2 text-sm text-warning">
+                  <TrendingDown className="h-4 w-4" />
+                  <span className="font-medium">Taxas Baixas</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Balance and Stats Cards - Binance Style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Total Investido
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">
+                ${totalInvested.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {activeInvestments} investimentos ativos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Ganhos Totais
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-trading-green" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-trading-green">
+                +${totalEarnings.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Rendimento acumulado
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Saldo Disponível
+              </CardTitle>
+              <Wallet className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                ${userBalance.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pronto para investir
+              </p>
+            </CardContent>
+          </Card>
+        </div>
             <Card className="bg-gradient-to-br from-card via-card to-card/90 border-primary/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -651,54 +772,51 @@ const Investments = () => {
             </Card>
           </div>
 
-          {/* Enhanced Investment Plans Section */}
-          <div className="space-y-8">
-            <div className="text-center space-y-3">
-              <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-primary to-trading-green bg-clip-text text-transparent">
-                Planos de Investimento AI
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Escolha o robô e período de investimento ideal para você
-              </p>
-            </div>
+        {/* Investment Plans Section - Binance Style */}
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Planos de Trading
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Escolha o plano ideal para maximizar seus rendimentos com trading automatizado
+            </p>
+          </div>
 
-            {/* Robô 4.0.0 - Enhanced */}
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-primary/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
-              
-              <CardHeader className="text-center relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <Bot className="h-6 w-6 text-primary" />
+          {/* Robô 4.0.0 - Binance Style */}
+          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+            <CardHeader className="border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-primary" />
                   </div>
-                  <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1">
-                    Iniciante
-                  </Badge>
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">
-                  Robô 4.0.0
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Nenhuma recomendação necessária</p>
-              </CardHeader>
-              
-              <CardContent className="relative z-10">
-                <div className="bg-muted/30 rounded-lg p-4 mb-6">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
-                      <div className="text-lg font-bold text-trading-green">2.5%</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Frequência</div>
-                      <div className="text-lg font-bold text-primary">2x/dia</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Duração</div>
-                      <div className="text-lg font-bold text-warning">40 dias</div>
-                    </div>
+                  <div>
+                    <CardTitle className="text-xl text-foreground">Robô 4.0.0</CardTitle>
+                    <p className="text-sm text-muted-foreground">Plano Iniciante</p>
                   </div>
                 </div>
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                  Sem Requisitos
+                </Badge>
+              </div>
+            </CardHeader>
+              
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
+                  <div className="text-lg font-bold text-trading-green">2.5%</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
+                  <div className="text-lg font-bold text-primary">2x/dia</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
+                  <div className="text-lg font-bold text-warning">40 dias</div>
+                </div>
+              </div>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -738,55 +856,52 @@ const Investments = () => {
                   </table>
                 </div>
                 
-                <div className="mt-6 text-center">
-                  <Button 
-                    onClick={() => openInvestModal(investments[0])}
-                    className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Investir no Robô 4.0.0
-                  </Button>
-                </div>
+              <div className="mt-6 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[0])}
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base font-medium transition-colors"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Investir Agora
+                </Button>
+              </div>
               </CardContent>
             </Card>
 
-            {/* Robô 4.0.5 - Enhanced */}
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-warning/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-50" />
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-warning/20 to-transparent rounded-full blur-3xl" />
-              
-              <CardHeader className="text-center relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-warning/10">
-                    <Zap className="h-6 w-6 text-warning" />
+          {/* Robô 4.0.5 - Binance Style */}
+          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+            <CardHeader className="border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-warning" />
                   </div>
-                  <Badge className="bg-warning/20 text-warning border-warning/30 px-3 py-1">
-                    Intermediário
-                  </Badge>
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">
-                  Robô 4.0.5
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Mínimo 10 referrals necessários</p>
-              </CardHeader>
-              
-              <CardContent className="relative z-10">
-                <div className="bg-muted/30 rounded-lg p-4 mb-6">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
-                      <div className="text-lg font-bold text-trading-green">3.0%</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Frequência</div>
-                      <div className="text-lg font-bold text-warning">3x/dia</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Duração</div>
-                      <div className="text-lg font-bold text-primary">40 dias</div>
-                    </div>
+                  <div>
+                    <CardTitle className="text-xl text-foreground">Robô 4.0.5</CardTitle>
+                    <p className="text-sm text-muted-foreground">Plano Intermediário</p>
                   </div>
                 </div>
+                <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+                  10 Referrals
+                </Badge>
+              </div>
+            </CardHeader>
+              
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
+                  <div className="text-lg font-bold text-trading-green">3.0%</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
+                  <div className="text-lg font-bold text-warning">3x/dia</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
+                  <div className="text-lg font-bold text-primary">40 dias</div>
+                </div>
+              </div>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -826,55 +941,52 @@ const Investments = () => {
                   </table>
                 </div>
                 
-                <div className="mt-6 text-center">
-                  <Button 
-                    onClick={() => openInvestModal(investments[1] || investments[0])}
-                    className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Zap className="h-5 w-5 mr-2" />
-                    Investir no Robô 4.0.5
-                  </Button>
-                </div>
+              <div className="mt-6 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[1] || investments[0])}
+                  className="w-full sm:w-auto bg-warning hover:bg-warning/90 text-warning-foreground px-8 py-3 text-base font-medium transition-colors"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Investir Agora
+                </Button>
+              </div>
               </CardContent>
             </Card>
 
-            {/* Robô 4.1.0 - Enhanced */}
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-trading-green/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent opacity-50" />
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-trading-green/20 to-transparent rounded-full blur-3xl" />
-              
-              <CardHeader className="text-center relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-trading-green/10">
-                    <Sparkles className="h-6 w-6 text-trading-green" />
+          {/* Robô 4.1.0 - Binance Style */}
+          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+            <CardHeader className="border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-trading-green/10 rounded-lg flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-trading-green" />
                   </div>
-                  <Badge className="bg-trading-green/20 text-trading-green border-trading-green/30 px-3 py-1">
-                    Premium
-                  </Badge>
-                </div>
-                <CardTitle className="text-2xl text-card-foreground">
-                  Robô 4.1.0
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Mínimo 20 referrals necessários</p>
-              </CardHeader>
-              
-              <CardContent className="relative z-10">
-                <div className="bg-muted/30 rounded-lg p-4 mb-6">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Taxa Diária</div>
-                      <div className="text-lg font-bold text-trading-green">4.0%</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Frequência</div>
-                      <div className="text-lg font-bold text-trading-green">4x/dia</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Duração</div>
-                      <div className="text-lg font-bold text-primary">40 dias</div>
-                    </div>
+                  <div>
+                    <CardTitle className="text-xl text-foreground">Robô 4.1.0</CardTitle>
+                    <p className="text-sm text-muted-foreground">Plano Premium</p>
                   </div>
                 </div>
+                <Badge variant="secondary" className="bg-trading-green/10 text-trading-green border-trading-green/20">
+                  20 Referrals
+                </Badge>
+              </div>
+            </CardHeader>
+              
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
+                  <div className="text-lg font-bold text-trading-green">4.0%</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
+                  <div className="text-lg font-bold text-trading-green">4x/dia</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
+                  <div className="text-lg font-bold text-primary">40 dias</div>
+                </div>
+              </div>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -914,15 +1026,15 @@ const Investments = () => {
                   </table>
                 </div>
                 
-                <div className="mt-6 text-center">
-                  <Button 
-                    onClick={() => openInvestModal(investments[2] || investments[0])}
-                    className="bg-gradient-to-r from-trading-green to-green-600 text-white hover:from-trading-green/90 hover:to-green-600/90 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Investir no Robô 4.1.0
-                  </Button>
-                </div>
+              <div className="mt-6 text-center">
+                <Button 
+                  onClick={() => openInvestModal(investments[2] || investments[0])}
+                  className="w-full sm:w-auto bg-trading-green hover:bg-trading-green/90 text-white px-8 py-3 text-base font-medium transition-colors"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Investir Agora
+                </Button>
+              </div>
               </CardContent>
             </Card>
         </div>
@@ -1127,7 +1239,6 @@ const Investments = () => {
             onComplete={handleTradingComplete}
           />
         )}
-        </div>
       </div>
     </div>
   );
