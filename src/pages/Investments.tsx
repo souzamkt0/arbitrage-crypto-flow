@@ -1223,11 +1223,8 @@ const Investments = () => {
           onComplete={handleTradingComplete}
         />
       )}
-      )}
     </div>
   );
 };
-
-export default Investments;
 
 export default Investments;
