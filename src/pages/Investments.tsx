@@ -977,210 +977,257 @@ const Investments = () => {
             </Card>
         </div>
 
-        {/* My Investments */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">Meus Investimentos</CardTitle>
+        {/* Robô 4.0.5 - Binance Style */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardHeader className="border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-warning" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl text-foreground">Robô 4.0.5</CardTitle>
+                  <p className="text-sm text-muted-foreground">Plano Intermediário</p>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+                10 Referrals
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent>
-            {userInvestments.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {userInvestments.map((investment) => {
-                  const currentOperation = investment.currentOperation;
-                  const planData = investments.find(inv => inv.id === investment.investmentId);
-                  const dailyPercentage24h = planData?.dailyRate || investment.dailyRate;
-                  
-                  // Calcular tempo desde último claim (6 horas = 21600000 ms)
-                  const lastClaimTime = localStorage.getItem(`lastClaim_${investment.id}`);
-                  const now = Date.now();
-                  const sixHoursInMs = 6 * 60 * 60 * 1000;
-                  const canClaim = !lastClaimTime || (now - parseInt(lastClaimTime)) >= sixHoursInMs;
-                  const nextClaimTime = lastClaimTime ? new Date(parseInt(lastClaimTime) + sixHoursInMs) : new Date();
-                  
-                  const handleClaimReward = () => {
-                    if (!canClaim) return;
-                    
-                    // Abrir simulador de trading
-                    setSelectedInvestmentForTrading(investment);
-                    setIsTradingSimulatorOpen(true);
-                  };
-
-
-                  return (
-                     <Card key={investment.id} className="bg-gradient-to-br from-card to-card/80 border-border hover:shadow-lg transition-all duration-300 relative overflow-hidden">
-                       {/* Background Effect */}
-                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-trading-green/5 opacity-50" />
-                       <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-trading-green/20 to-transparent rounded-full blur-2xl" />
-                       
-                       <CardContent className="p-4 space-y-4 relative z-10">
-                         {/* Header com Badge */}
-                         <div className="text-center space-y-2">
-                           <div className="flex items-center justify-center gap-2">
-                             <Badge className="bg-primary/20 text-primary border-primary/30">
-                               <Bot className="h-3 w-3 mr-1" />
-                               {planData?.name || `Bot ${investment.dailyRate}%`}
-                             </Badge>
-                           </div>
-                           <div className="text-sm text-muted-foreground">
-                             <Calendar className="h-3 w-3 inline mr-1" />
-                             Contrato: {planData?.duration || investment.daysRemaining} dias
-                           </div>
-                         </div>
-
-                         {/* Valor Investido e Status */}
-                         <div className="grid grid-cols-2 gap-3">
-                           <div className="bg-card/80 rounded-lg p-3 text-center">
-                             <div className="text-xs text-muted-foreground">Investido</div>
-                             <div className="text-lg font-bold text-primary">${investment.amount}</div>
-                           </div>
-                           <div className="bg-card/80 rounded-lg p-3 text-center">
-                             <div className="text-xs text-muted-foreground">Taxa</div>
-                             <div className="text-lg font-bold text-trading-green">{dailyPercentage24h}%/dia</div>
-                           </div>
-                         </div>
-
-                         {/* Rendimento 6h */}
-                         <div className="text-center bg-gradient-to-r from-trading-green/10 to-primary/10 rounded-lg p-4 border border-trading-green/20">
-                           <div className="flex items-center justify-center gap-2 mb-2">
-                             <Sparkles className="h-4 w-4 text-trading-green" />
-                             <div className="text-sm font-medium text-foreground">Próximo Rendimento (6h)</div>
-                           </div>
-                           <div className="text-3xl font-bold text-trading-green mb-1">
-                             +{(dailyPercentage24h / 4).toFixed(2)}%
-                           </div>
-                           <div className="text-lg font-semibold text-foreground">
-                             ${(investment.amount * (dailyPercentage24h / 100) / 4).toFixed(2)}
-                           </div>
-                         </div>
-
-                         {/* Botão de Claim Melhorado */}
-                         <div className="text-center">
-                           <Button 
-                             onClick={handleClaimReward}
-                             disabled={!canClaim}
-                             className={`w-full py-3 text-base font-semibold transition-all duration-300 ${
-                               canClaim 
-                                 ? 'bg-gradient-to-r from-trading-green to-green-600 hover:from-trading-green/90 hover:to-green-600/90 shadow-lg hover:shadow-xl text-white' 
-                                 : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
-                             }`}
-                           >
-                             {canClaim ? (
-                               <>
-                                 <BarChart3 className="h-5 w-5 mr-2" />
-                                 Executar Trading & Receber
-                               </>
-                             ) : (
-                               <>
-                                 <Timer className="h-4 w-4 mr-2" />
-                                 Próximo em {Math.ceil((nextClaimTime.getTime() - now) / (1000 * 60))}min
-                               </>
-                             )}
-                           </Button>
-                         </div>
-
-                       </CardContent>
-                     </Card>
-                  );
-                })}
+          
+          <CardContent className="p-6">
+            <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
+                <div className="text-lg font-bold text-trading-green">3.0%</div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <PiggyBank className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Você ainda não possui investimentos</p>
-                <p className="text-sm text-muted-foreground mt-2">Escolha um plano acima para começar</p>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
+                <div className="text-lg font-bold text-warning">3x/dia</div>
               </div>
-            )}
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
+                <div className="text-lg font-bold text-primary">40 dias</div>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 rounded-lg">
+                    <th className="text-left p-3 text-foreground font-semibold">Investir</th>
+                    <th className="text-center p-3 text-foreground font-semibold">1 dia</th>
+                    <th className="text-center p-3 text-foreground font-semibold">7 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">15 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">30 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">40 dias</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { amount: 20, returns: [0.60, 4.20, 9.00, 18.00, 24.00] },
+                    { amount: 40, returns: [1.20, 8.40, 18.00, 36.00, 48.00] },
+                    { amount: 60, returns: [1.80, 12.60, 27.00, 54.00, 72.00] },
+                    { amount: 80, returns: [2.40, 16.80, 36.00, 72.00, 96.00] },
+                    { amount: 100, returns: [3.00, 21.00, 45.00, 90.00, 120.00] },
+                  ].map((plan, index) => (
+                    <tr key={index} className="border-b border-border/30 hover:bg-warning/5 transition-colors">
+                      <td className="p-3 font-bold text-warning">${plan.amount}</td>
+                      {plan.returns.map((ret, i) => (
+                        <td key={i} className="p-3 text-center text-trading-green font-medium">
+                          ${ret.toFixed(2)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <Button 
+                onClick={() => openInvestModal(investments[1] || investments[0])}
+                className="w-full sm:w-auto bg-warning hover:bg-warning/90 text-warning-foreground px-8 py-3 text-base font-medium transition-colors"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Investir Agora
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Investment Modal */}
-        <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
-          <DialogContent className="max-w-sm sm:max-w-md mx-4">
-            <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Realizar Investimento</DialogTitle>
-            </DialogHeader>
-            {selectedInvestment && (
-              <div className="space-y-4">
-                <div className="p-3 sm:p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2 text-sm sm:text-base">{selectedInvestment.name}</h3>
-                  <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
-                    <p>Taxa diária: {selectedInvestment.dailyRate}%</p>
-                    <p>Duração: {selectedInvestment.duration} dias</p>
-                    <p>Limite: ${selectedInvestment.minimumAmount.toLocaleString()} - ${selectedInvestment.maximumAmount.toLocaleString()}</p>
-                  </div>
+        {/* Robô 4.1.0 - Binance Style */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardHeader className="border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-trading-green/10 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-trading-green" />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-sm">Valor do Investimento</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="Digite o valor"
-                    value={investmentAmount}
-                    onChange={(e) => setInvestmentAmount(e.target.value)}
-                    min={selectedInvestment.minimumAmount}
-                    max={selectedInvestment.maximumAmount}
-                    className="text-base" // Better touch target on mobile
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Saldo disponível: ${userBalance.toLocaleString()}
-                  </p>
-                </div>
-
-                {investmentAmount && parseFloat(investmentAmount) >= selectedInvestment.minimumAmount && (
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <div className="text-sm space-y-1">
-                      <p className="text-muted-foreground">Projeção de ganhos:</p>
-                      <p className="font-medium">
-                        Ganho diário: ${(parseFloat(investmentAmount) * selectedInvestment.dailyRate / 100).toFixed(2)}
-                      </p>
-                      <p className="font-medium">
-                        Total estimado: ${(parseFloat(investmentAmount) * selectedInvestment.dailyRate / 100 * selectedInvestment.duration).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsInvestModalOpen(false)}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={handleInvest} 
-                    disabled={!investmentAmount}
-                    className="w-full sm:w-auto"
-                  >
-                    Confirmar Investimento
-                  </Button>
+                <div>
+                  <CardTitle className="text-xl text-foreground">Robô 4.1.0</CardTitle>
+                  <p className="text-sm text-muted-foreground">Plano Premium</p>
                 </div>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-        </div>
-
-        {/* Trading Simulator */}
-        {selectedInvestmentForTrading && (
-          <TradingSimulator
-            isOpen={isTradingSimulatorOpen}
-            onClose={() => {
-              setIsTradingSimulatorOpen(false);
-              setSelectedInvestmentForTrading(null);
-            }}
-            investmentAmount={selectedInvestmentForTrading.amount}
-            dailyRate={selectedInvestmentForTrading.dailyRate}
-            planName={selectedInvestmentForTrading.investmentName}
-            totalActiveOperations={getTotalActiveOperations()}
-            onComplete={handleTradingComplete}
-          />
-        )}
+              <Badge variant="secondary" className="bg-trading-green/10 text-trading-green border-trading-green/20">
+                20 Referrals
+              </Badge>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="p-6">
+            <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
+                <div className="text-lg font-bold text-trading-green">4.0%</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
+                <div className="text-lg font-bold text-trading-green">4x/dia</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
+                <div className="text-lg font-bold text-primary">40 dias</div>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 rounded-lg">
+                    <th className="text-left p-3 text-foreground font-semibold">Investir</th>
+                    <th className="text-center p-3 text-foreground font-semibold">1 dia</th>
+                    <th className="text-center p-3 text-foreground font-semibold">7 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">15 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">30 dias</th>
+                    <th className="text-center p-3 text-foreground font-semibold">40 dias</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { amount: 500, returns: [20.00, 140.00, 300.00, 600.00, 800.00] },
+                    { amount: 1000, returns: [40.00, 280.00, 600.00, 1200.00, 1600.00] },
+                    { amount: 1500, returns: [60.00, 420.00, 900.00, 1800.00, 2400.00] },
+                    { amount: 2000, returns: [80.00, 560.00, 1200.00, 2400.00, 3200.00] },
+                    { amount: 2500, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
+                  ].map((plan, index) => (
+                    <tr key={index} className="border-b border-border/30 hover:bg-trading-green/5 transition-colors">
+                      <td className="p-3 font-bold text-trading-green">${plan.amount}</td>
+                      {plan.returns.map((ret, i) => (
+                        <td key={i} className="p-3 text-center text-trading-green font-medium">
+                          ${ret.toFixed(2)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <Button 
+                onClick={() => openInvestModal(investments[2] || investments[0])}
+                className="w-full sm:w-auto bg-trading-green hover:bg-trading-green/90 text-white px-8 py-3 text-base font-medium transition-colors"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Investir Agora
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* My Investments */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-card-foreground">Meus Investimentos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {userInvestments.length > 0 ? (
+            <div className="space-y-4">
+              <p className="text-muted-foreground">Aqui serão exibidos seus investimentos ativos.</p>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Você ainda não possui investimentos</p>
+              <p className="text-sm text-muted-foreground mt-2">Escolha um plano acima para começar</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Investment Modal */}
+      <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
+        <DialogContent className="max-w-sm sm:max-w-md mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">Realizar Investimento</DialogTitle>
+          </DialogHeader>
+          {selectedInvestment && (
+            <div className="space-y-4">
+              <div className="p-3 sm:p-4 bg-secondary rounded-lg">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">{selectedInvestment.name}</h3>
+                <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
+                  <p>Taxa diária: {selectedInvestment.dailyRate}%</p>
+                  <p>Valor mínimo: ${selectedInvestment.minimumAmount}</p>
+                  <p>Valor máximo: ${selectedInvestment.maximumAmount}</p>
+                  <p>Duração: {selectedInvestment.duration} dias</p>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="amount" className="text-sm sm:text-base">Valor do Investimento ($)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  value={investmentAmount}
+                  onChange={(e) => setInvestmentAmount(e.target.value)}
+                  placeholder={`Mínimo: $${selectedInvestment.minimumAmount}`}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsInvestModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleInvest} 
+                  disabled={!investmentAmount}
+                  className="w-full sm:w-auto"
+                >
+                  Confirmar Investimento
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Trading Simulator */}
+      {selectedInvestmentForTrading && (
+        <TradingSimulator
+          isOpen={isTradingSimulatorOpen}
+          onClose={() => {
+            setIsTradingSimulatorOpen(false);
+            setSelectedInvestmentForTrading(null);
+          }}
+          investmentAmount={selectedInvestmentForTrading.amount}
+          dailyRate={selectedInvestmentForTrading.dailyRate}
+          planName={selectedInvestmentForTrading.investmentName}
+          totalActiveOperations={getTotalActiveOperations()}
+          onComplete={handleTradingComplete}
+        />
+      )}
+      )}
     </div>
   );
 };
+
+export default Investments;
 
 export default Investments;
