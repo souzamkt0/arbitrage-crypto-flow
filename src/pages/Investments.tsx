@@ -656,7 +656,7 @@ const Investments = () => {
         </div>
 
         {/* Balance and Stats Cards - Binance Style */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -690,24 +690,6 @@ const Investments = () => {
               </p>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Saldo Disponível
-              </CardTitle>
-              <Wallet className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">
-                ${userBalance.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Pronto para investir
-              </p>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Investment Plans Section - Binance Style */}
         <div className="space-y-8">
@@ -1223,6 +1205,7 @@ const Investments = () => {
         />
       )}
     </div>
+  </div>
   );
 };
 
