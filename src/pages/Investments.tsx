@@ -536,6 +536,7 @@ const Investments = () => {
     setIsInvestModalOpen(true);
   };
 
+  console.log("Investment component rendering - structure check");
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
       {/* Binance-style Background Pattern */}
@@ -708,69 +709,6 @@ const Investments = () => {
             </CardContent>
           </Card>
         </div>
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-primary/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-card-foreground">
-                  Total Investido
-                </CardTitle>
-                <div className="p-2 rounded-full bg-primary/10">
-                  <DollarSign className="h-4 w-4 text-primary" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">
-                  ${totalInvested.toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <Activity className="h-3 w-3" />
-                  Em {activeInvestments} investimentos ativos
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-trading-green/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-card-foreground">
-                  Ganhos Totais
-                </CardTitle>
-                <div className="p-2 rounded-full bg-trading-green/10">
-                  <TrendingUp className="h-4 w-4 text-trading-green" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-2xl sm:text-3xl font-bold text-trading-green">
-                  +${totalEarnings.toFixed(2)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Rendimento acumulado
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-card via-card to-card/90 border-warning/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-card-foreground">
-                  Investimentos Ativos
-                </CardTitle>
-                <div className="p-2 rounded-full bg-warning/10">
-                  <Target className="h-4 w-4 text-warning" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-2xl sm:text-3xl font-bold text-warning">
-                  {activeInvestments}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <Bot className="h-3 w-3" />
-                  Planos em andamento
-                </p>
-              </CardContent>
-            </Card>
-          </div>
 
         {/* Investment Plans Section - Binance Style */}
         <div className="space-y-8">
@@ -1223,6 +1161,7 @@ const Investments = () => {
             )}
           </DialogContent>
         </Dialog>
+        </div>
 
         {/* Trading Simulator */}
         {selectedInvestmentForTrading && (
