@@ -604,16 +604,16 @@ const Investments = () => {
         </div>
 
         {/* Balance and Stats Cards - Binance Style */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
           <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Total Investido
               </CardTitle>
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
+            <CardContent className="pt-0 p-3 sm:p-4">
+              <div className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-foreground">
                 ${totalInvested.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -623,14 +623,14 @@ const Investments = () => {
           </Card>
 
           <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Ganhos Totais
               </CardTitle>
               <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-trading-green" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-trading-green">
+            <CardContent className="pt-0 p-3 sm:p-4">
+              <div className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-trading-green">
                 +${totalEarnings.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -640,14 +640,14 @@ const Investments = () => {
           </Card>
 
           <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Saldo Disponível
               </CardTitle>
               <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-primary">
+            <CardContent className="pt-0 p-3 sm:p-4">
+              <div className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-primary">
                 ${userBalance.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -657,14 +657,14 @@ const Investments = () => {
           </Card>
 
           <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/20 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 DigitoPay
               </CardTitle>
               <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-500">
+            <CardContent className="pt-0 p-3 sm:p-4">
+              <div className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-yellow-500">
                 R$ 0,00
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -674,14 +674,14 @@ const Investments = () => {
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 USDT
               </CardTitle>
               <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-500">
+            <CardContent className="pt-0 p-3 sm:p-4">
+              <div className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-blue-500">
                 $ 0.00
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -692,26 +692,26 @@ const Investments = () => {
         </div>
 
         {/* Deposit Section - Compact and Responsive */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <Card className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 border-yellow-500/20">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-yellow-500" />
+                <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
                   Depósito PIX
                 </CardTitle>
-                <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">
                   DigitoPay
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
+            <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Deposite via PIX com processamento instantâneo
               </p>
               <Button 
                 onClick={() => navigate('/deposit')}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-xs sm:text-sm"
                 size="sm"
               >
                 Depositar via PIX
@@ -720,24 +720,24 @@ const Investments = () => {
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-blue-500" />
+                <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                   Depósito USDT
                 </CardTitle>
-                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs">
                   Crypto
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
+            <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Deposite USDT diretamente na sua carteira
               </p>
               <Button 
                 onClick={() => navigate('/deposit')}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm"
                 size="sm"
               >
                 Depositar USDT
