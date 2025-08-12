@@ -656,7 +656,7 @@ const Investments = () => {
         </div>
 
         {/* Balance and Stats Cards - Binance Style */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -690,6 +690,113 @@ const Investments = () => {
               </p>
             </CardContent>
           </Card>
+
+          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Saldo Disponível
+              </CardTitle>
+              <Wallet className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                ${userBalance.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pronto para investir
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/20 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Saldo DigitoPay
+              </CardTitle>
+              <CreditCard className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-500">
+                R$ 0,00
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                PIX disponível
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20 hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Saldo USDT
+              </CardTitle>
+              <CreditCard className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-500">
+                $ 0.00
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Crypto disponível
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Deposit Section - Compact and Responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 border-yellow-500/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-yellow-500" />
+                  Depósito PIX
+                </CardTitle>
+                <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                  DigitoPay
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Deposite via PIX com processamento instantâneo
+              </p>
+              <Button 
+                onClick={() => navigate('/deposit')}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                size="sm"
+              >
+                Depositar via PIX
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-blue-500" />
+                  Depósito USDT
+                </CardTitle>
+                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                  Crypto
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Deposite USDT diretamente na sua carteira
+              </p>
+              <Button 
+                onClick={() => navigate('/deposit')}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                size="sm"
+              >
+                Depositar USDT
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Investment Plans Section - Binance Style */}
         <div className="space-y-8">
@@ -1205,7 +1312,6 @@ const Investments = () => {
         />
       )}
     </div>
-  </div>
   );
 };
 
