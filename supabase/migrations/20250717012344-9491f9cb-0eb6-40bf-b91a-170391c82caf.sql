@@ -1,0 +1,21 @@
+-- ÍNDICES PARA MELHOR PERFORMANCE
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
+CREATE INDEX IF NOT EXISTS idx_user_investments_user_id ON public.user_investments(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_investments_status ON public.user_investments(status);
+CREATE INDEX IF NOT EXISTS idx_deposits_user_id ON public.deposits(user_id);
+CREATE INDEX IF NOT EXISTS idx_deposits_status ON public.deposits(status);
+CREATE INDEX IF NOT EXISTS idx_withdrawals_user_id ON public.withdrawals(user_id);
+CREATE INDEX IF NOT EXISTS idx_withdrawals_status ON public.withdrawals(status);
+CREATE INDEX IF NOT EXISTS idx_trading_history_user_id ON public.trading_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_trading_history_created_at ON public.trading_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON public.referrals(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred_id ON public.referrals(referred_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_user_id ON public.community_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON public.community_posts(created_at);
+CREATE INDEX IF NOT EXISTS idx_post_interactions_user_id ON public.post_interactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_interactions_post_id ON public.post_interactions(post_id);
+CREATE INDEX IF NOT EXISTS idx_treasure_chests_user_id ON public.treasure_chests(user_id);
+CREATE INDEX IF NOT EXISTS idx_market_data_symbol ON public.market_data(symbol);
+CREATE INDEX IF NOT EXISTS idx_market_data_created_at ON public.market_data(created_at);

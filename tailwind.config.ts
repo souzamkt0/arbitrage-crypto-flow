@@ -52,6 +52,16 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				'trading-green': 'hsl(var(--trading-green))',
+				'trading-red': 'hsl(var(--trading-red))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -88,7 +98,12 @@ export default {
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'glow': 'glow 2s ease-in-out infinite',
+				'slide-in-up': 'slideInUp 0.6s ease-out',
+				'fade-in-scale': 'fadeInScale 0.4s ease-out',
+				'float-glow': 'floatGlow 3s ease-in-out infinite',
+				'market-oscillation': 'marketOscillation 2s ease-in-out infinite'
 			}
 		}
 	},
