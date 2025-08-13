@@ -24,6 +24,7 @@ import Community from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
+
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
 
@@ -223,6 +224,7 @@ const App = () => (
               </AdminRoute>
             }
           />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
         </BrowserRouter>

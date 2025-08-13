@@ -742,7 +742,7 @@ const Withdrawal = () => {
                       <TableCell className="font-medium text-xs sm:text-sm">
                         <div>${withdrawal.amount}</div>
                         <div className="text-xs text-muted-foreground">
-                          R$ {withdrawal.amountBRL.toLocaleString()}
+                          R$ {(withdrawal.amountBRL || 0).toLocaleString()}
                         </div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm hidden sm:table-cell">

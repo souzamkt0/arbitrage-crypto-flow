@@ -213,50 +213,54 @@ export class DigitoPayService {
     description?: string
   ): Promise<DigitoPayWithdrawalResponse> {
     try {
-      if (!(await this.ensureValidToken())) {
-        return { success: false, message: 'Erro na autenticação' };
-      }
-
-      const withdrawalData: DigitoPayWithdrawalRequest = {
-        paymentOptions: ['PIX'],
-        person: {
-          pixKeyTypes: pixKeyType,
-          pixKey: pixKey,
+      console.log('💰 Criando saque via Edge Function...');
+      
+      const response = await supabase.functions.invoke('digitopay-create-withdrawal', {
+        body: {
+          amount: amount,
+          cpf: cpf.replace(/\D/g, ''),
           name: name,
-          cpf: cpf.replace(/\D/g, '')
-        },
-        value: amount,
-        endToEndId: `withdrawal_${Date.now()}`,
-        callbackUrl: callbackUrl,
-        idempotencyKey: `withdrawal_${Date.now()}`
-      };
-
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/withdraw`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        body: JSON.stringify(withdrawalData),
+          pixKey: pixKey,
+          pixKeyType: pixKeyType,
+          callbackUrl: callbackUrl,
+          description: description
+        }
       });
 
-      const data = await response.json();
-      await this.logDebug('createWithdrawal', { request: withdrawalData, response: data });
+      console.log('📡 Resposta da Edge Function withdrawal:', response);
 
-      if (response.ok && data.id) {
+      if (response.error) {
+        await this.logDebug('createWithdrawal_error', response.error);
+        return { 
+          success: false, 
+          message: response.error.message || 'Erro na Edge Function' 
+        };
+      }
+
+      const data = response.data;
+
+      if (data.success && data.id) {
+        await this.logDebug('createWithdrawal_success', { 
+          id: data.id,
+          amount: amount,
+          pixKey: pixKey
+        });
+        
         return {
           success: true,
           id: data.id,
           isSend: data.isSend
         };
       } else {
+        await this.logDebug('createWithdrawal_failure', data);
         return {
           success: false,
-          message: data.message || data.mensagem || 'Erro ao criar saque',
+          message: data.message || 'Erro ao criar saque',
           errors: data.errors
         };
       }
     } catch (error) {
+      console.error('💥 Erro ao criar saque:', error);
       await this.logDebug('createWithdrawal_exception', { error: String(error) });
       return { success: false, message: 'Erro de conexão' };
     }
@@ -364,6 +368,7 @@ export class DigitoPayService {
     gatewayResponse?: any
   ): Promise<any> {
     try {
+      // Salvar na tabela digitopay_transactions
       const { data, error } = await supabase
         .from('digitopay_transactions')
         .insert({
@@ -384,6 +389,35 @@ export class DigitoPayService {
         .single();
 
       if (error) throw error;
+
+      // Se for um saque, também inserir na tabela withdrawals para aprovação do admin
+      if (type === 'withdrawal') {
+        const fee = amountBrl * 0.02; // Taxa de 2% para PIX
+        const netAmount = amountBrl - fee;
+        
+        const { error: withdrawalError } = await supabase
+          .from('withdrawals')
+          .insert({
+            user_id: userId,
+            amount_usd: amount,
+            amount_brl: amountBrl,
+            type: 'pix',
+            status: 'pending', // Pendente para aprovação do admin
+            holder_name: personName,
+            cpf: personCpf,
+            pix_key_type: pixKeyType,
+            pix_key: pixKey,
+            fee: fee,
+            net_amount: netAmount,
+            exchange_rate: amountBrl / amount // Taxa de câmbio USD para BRL
+          });
+
+        if (withdrawalError) {
+          console.error('Erro ao inserir saque na tabela withdrawals:', withdrawalError);
+          // Não vamos falhar a transação por isso, apenas logar o erro
+        }
+      }
+
       return { success: true, data };
     } catch (error) {
       console.error('Erro ao salvar transação:', error);
@@ -461,4 +495,4 @@ export class DigitoPayService {
       return false;
     }
   }
-} 
+}

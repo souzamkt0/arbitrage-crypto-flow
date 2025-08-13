@@ -99,6 +99,7 @@ interface Withdrawal {
   date: string;
   fee: number;
   netAmount: number;
+  source?: string;
 }
 
 interface Deposit {
@@ -283,7 +284,7 @@ const Admin = () => {
           const formattedWithdrawals = withdrawalsData.map(withdrawal => ({
             id: withdrawal.id,
             userId: withdrawal.user_id,
-            userName: 'User', // Simplified since there's no relation
+            userName: 'User',
             amount: withdrawal.amount_usd,
             amountBRL: withdrawal.amount_brl || 0,
             type: withdrawal.type as "pix" | "usdt",
@@ -618,19 +619,115 @@ const Admin = () => {
     }
   };
 
-  const handleWithdrawalAction = (withdrawalId: string, action: "approve" | "reject") => {
-    setWithdrawals(prev =>
-      prev.map(withdrawal =>
-        withdrawal.id === withdrawalId
-          ? { ...withdrawal, status: action === "approve" ? "approved" : "rejected" }
-          : withdrawal
-      )
-    );
-    
-    toast({
-      title: action === "approve" ? "Saque aprovado" : "Saque rejeitado",
-      description: `Saque foi ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso.`,
-    });
+  const handleWithdrawalAction = async (withdrawalId: string, action: "approve" | "reject") => {
+    try {
+      const withdrawal = withdrawals.find(w => w.id === withdrawalId);
+      if (!withdrawal) {
+        toast({
+          title: "Erro",
+          description: "Saque não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const newStatus = action === "approve" ? "processing" : "rejected";
+      
+      // Atualizar no banco de dados
+      const { error } = await supabase
+        .from('withdrawals')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+          ...(action === "reject" && { completed_date: new Date().toISOString() })
+        })
+        .eq('id', withdrawalId);
+
+      if (error) {
+        console.error('Erro ao atualizar saque:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar status do saque.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Se aprovado, processar pagamento via DigitoPay
+      if (action === "approve" && withdrawal.type === "pix") {
+        try {
+          // Chamar a Edge Function REAL para processar o pagamento
+          const { data: paymentResult, error: paymentError } = await supabase.functions.invoke('digitopay-real-withdrawal', {
+            body: {
+              withdrawalId: withdrawalId,
+              amount: withdrawal.amountBRL,
+              pixKey: withdrawal.pixKey,
+              pixKeyType: withdrawal.pixKeyType,
+              holderName: withdrawal.holderName,
+              cpf: withdrawal.cpf
+            }
+          });
+
+          if (paymentError) {
+            console.error('Erro ao processar pagamento:', paymentError);
+            // Reverter status para pending em caso de erro
+            await supabase
+              .from('withdrawals')
+              .update({ status: 'pending' })
+              .eq('id', withdrawalId);
+            
+            toast({
+              title: "Erro no pagamento",
+              description: "Erro ao processar pagamento via DigitoPay. Status revertido para pendente.",
+              variant: "destructive"
+            });
+            return;
+          }
+
+          toast({
+            title: "Saque aprovado e processado",
+            description: "Pagamento enviado via DigitoPay. Aguarde confirmação.",
+          });
+        } catch (paymentError) {
+          console.error('Erro ao processar pagamento:', paymentError);
+          // Reverter status para pending em caso de erro
+          await supabase
+            .from('withdrawals')
+            .update({ status: 'pending' })
+            .eq('id', withdrawalId);
+          
+          toast({
+            title: "Erro no pagamento",
+            description: "Erro ao processar pagamento. Status revertido para pendente.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      // Atualizar estado local
+      setWithdrawals(prev =>
+        prev.map(w =>
+          w.id === withdrawalId
+            ? { ...w, status: newStatus }
+            : w
+        )
+      );
+      
+      if (action === "reject") {
+        toast({
+          title: "Saque rejeitado",
+          description: "Saque foi rejeitado com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao processar ação do saque:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao processar ação.",
+        variant: "destructive"
+      });
+    }
   };
 
   const exportWithdrawalsReport = () => {
@@ -727,7 +824,7 @@ const Admin = () => {
         d.userName,
         d.type.toUpperCase(),
         `$${d.amount}`,
-        `R$ ${d.amountBRL.toLocaleString()}`,
+        `R$ ${(d.amountBRL || 0).toLocaleString()}`,
         d.status,
         d.holderName || d.senderName || ""
       ])
@@ -1094,15 +1191,15 @@ const Admin = () => {
                         </span>
                       </div>
                       <div className="md:hidden mt-1 space-y-1">
-                        <div className="text-xs font-medium">${user.balance.toLocaleString()}</div>
-                        <div className="text-xs text-trading-green">+${user.totalProfit.toLocaleString()}</div>
+                        <div className="text-xs font-medium">${(user.balance || 0).toLocaleString()}</div>
+                      <div className="text-xs text-trading-green">+${(user.totalProfit || 0).toLocaleString()}</div>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell font-medium text-xs sm:text-sm">
-                      ${user.balance.toLocaleString()}
+                      ${(user.balance || 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-trading-green font-medium text-xs sm:text-sm">
-                      +${user.totalProfit.toLocaleString()}
+                      +${(user.totalProfit || 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <Badge variant={user.apiConnected ? "default" : "destructive"} className="text-xs">
@@ -1368,7 +1465,7 @@ const Admin = () => {
                       <TableCell className="font-medium text-xs sm:text-sm">
                         <div>${deposit.amount}</div>
                         <div className="text-xs text-muted-foreground">
-                          R$ {deposit.amountBRL.toLocaleString()}
+                          R$ {(deposit.amountBRL || 0).toLocaleString()}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -1695,7 +1792,7 @@ const Admin = () => {
                       <TableCell className="font-medium text-xs sm:text-sm">
                         <div>${withdrawal.amount}</div>
                         <div className="text-xs text-muted-foreground">
-                          R$ {withdrawal.amountBRL.toLocaleString()}
+                          R$ {(withdrawal.amountBRL || 0).toLocaleString()}
                         </div>
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm text-destructive">
@@ -2162,11 +2259,11 @@ const Admin = () => {
                           </div>
                           <div>
                             <span className="text-muted-foreground">Valor Mín:</span>
-                            <div className="font-medium">${plan.minimumAmount.toLocaleString()}</div>
+                            <div className="font-medium">${(plan.minimumAmount || 0).toLocaleString()}</div>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Valor Máx:</span>
-                            <div className="font-medium">${plan.maximumAmount.toLocaleString()}</div>
+                            <div className="font-medium">${(plan.maximumAmount || 0).toLocaleString()}</div>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Duração:</span>
@@ -2357,11 +2454,11 @@ const Admin = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Saldo</Label>
-                    <p className="text-sm font-semibold text-trading-green">${selectedUser.balance.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-trading-green">${(selectedUser.balance || 0).toLocaleString()}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Lucro Total</Label>
-                    <p className="text-sm font-semibold text-primary">+${selectedUser.totalProfit.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-primary">+${(selectedUser.totalProfit || 0).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { DigitoPayService } from '@/services/digitopayService';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Wallet, ArrowUpRight } from 'lucide-react';
 
 interface DigitoPayWithdrawalProps {
@@ -72,55 +73,83 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
     setLoading(true);
 
     try {
-      // URL de callback para webhook
-      const callbackUrl = `${window.location.origin}/api/digitopay/webhook/withdrawal`;
+      // Calcular taxa e valor líquido
+      const fee = amountValue * 0.02; // Taxa de 2% para PIX
+      const netAmount = amountValue - fee;
+      
+      console.log('Dados do saque:', {
+        user_id: user.id,
+        amount_usd: amountValue,
+        amount_brl: amountValue,
+        type: 'pix',
+        status: 'pending',
+        holder_name: profile.display_name || profile.username || 'Usuário',
+        cpf: cpf.replace(/\D/g, ''),
+        pix_key_type: pixKeyType,
+        pix_key: pixKey,
+        fee: fee,
+        net_amount: netAmount,
+        exchange_rate: 1
+      });
+      
+      // Salvar saque na tabela withdrawals para aprovação do administrador
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .insert({
+          user_id: user.id,
+          amount_usd: amountValue, // Assumindo que o valor inserido é em USD
+          amount_brl: amountValue, // Por enquanto, usando o mesmo valor
+          type: 'pix',
+          status: 'pending', // Pendente para aprovação do admin
+          holder_name: profile.display_name || profile.username || 'Usuário',
+          cpf: cpf.replace(/\D/g, ''), // Remove formatação do CPF
+          pix_key_type: pixKeyType.toUpperCase(),
+          pix_key: pixKey,
+          fee: fee,
+          net_amount: netAmount,
+          exchange_rate: 1 // Taxa de câmbio temporária
+        })
+        .select()
+        .single();
 
-      // Criar saque no DigitoPay
-      const result = await DigitoPayService.createWithdrawal(
-        amountValue,
-        cpf,
-        `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-        pixKey,
-        pixKeyType as 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM',
-        callbackUrl
-      );
-
-      if (result.success && result.id) {
-        // Salvar transação no banco
-        const saveResult = await DigitoPayService.saveTransaction(
-          user.id,
-          result.id,
-          'withdrawal',
-          amountValue,
-          amountValue, // Valor em BRL
-          undefined,
-          undefined,
-          pixKey,
-          pixKeyType,
-          `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-          cpf,
-          result
-        );
-
-        if (saveResult.success) {
-          toast({
-            title: 'Saque solicitado!',
-            description: 'Aguarde a confirmação do pagamento',
-          });
-
-          // Limpar formulário
-          setAmount('');
-          setPixKey('');
-          setPixKeyType('');
-          setCpf('');
-
-          onSuccess?.();
-        } else {
-          throw new Error('Erro ao salvar transação');
-        }
-      } else {
-        throw new Error(result.message || 'Erro ao criar saque');
+      if (error) {
+        console.error('Erro detalhado ao salvar saque:', error);
+        console.error('Código do erro:', error.code);
+        console.error('Mensagem do erro:', error.message);
+        console.error('Detalhes do erro:', error.details);
+        throw new Error(`Erro ao salvar solicitação de saque: ${error.message}`);
       }
+
+      // Atualizar saldo do usuário (debitar o valor)
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ 
+          balance: (profile.balance || 0) - amountValue 
+        })
+        .eq('user_id', user.id);
+
+      if (balanceError) {
+        console.error('Erro ao atualizar saldo:', balanceError);
+        // Reverter a inserção do saque se não conseguir atualizar o saldo
+        await supabase
+          .from('withdrawals')
+          .delete()
+          .eq('id', data.id);
+        throw new Error('Erro ao processar saque');
+      }
+
+      toast({
+        title: 'Saque solicitado!',
+        description: 'Sua solicitação foi enviada para aprovação do administrador',
+      });
+
+      // Limpar formulário
+      setAmount('');
+      setPixKey('');
+      setPixKeyType('');
+      setCpf('');
+
+      onSuccess?.();
     } catch (error) {
       console.error('Erro ao criar saque:', error);
       toast({
@@ -145,8 +174,6 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-
-
         <div className="space-y-2">
           <Label htmlFor="amount">Valor (R$)</Label>
           <Input
@@ -219,10 +246,11 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>• Valor mínimo: R$ 10,00</p>
-          <p>• Processamento: 1-2 dias úteis</p>
-          <p>• Taxa: Gratuita</p>
+          <p>• Aprovação: Análise administrativa</p>
+          <p>• Processamento: 1-2 dias úteis após aprovação</p>
+          <p>• Taxa: 2% sobre o valor</p>
         </div>
       </CardContent>
     </Card>
   );
-}; 
+};

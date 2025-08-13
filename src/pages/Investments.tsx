@@ -988,7 +988,7 @@ const Investments = () => {
                         { amount: 5000, returns: [200.00, 1400.00, 3000.00, 6000.00, 8000.00] }
                       ].map((plan, index) => (
                         <tr key={index} className="border-b border-border/30 hover:bg-trading-green/5 transition-colors">
-                          <td className="p-2 sm:p-3 font-bold text-trading-green">${plan.amount.toLocaleString()}</td>
+                          <td className="p-2 sm:p-3 font-bold text-trading-green">${(plan.amount || 0).toLocaleString()}</td>
                           {plan.returns.map((ret, i) => (
                             <td key={i} className="p-2 sm:p-3 text-center text-trading-green font-medium">
                               ${ret.toLocaleString()}

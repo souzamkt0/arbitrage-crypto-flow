@@ -19,12 +19,14 @@ import {
   Users,
   Copy,
   Link,
-  Bot
+  Bot,
+  RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
+import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -44,14 +46,9 @@ const Dashboard = () => {
   const [cryptoNews, setCryptoNews] = useState([]);
   const [performance24h, setPerformance24h] = useState({ percentage: 2.34, symbol: 'BTC', price: 43250 });
   const [lastPerformanceUpdate, setLastPerformanceUpdate] = useState(null);
-  const [alphabotTrades, setAlphabotTrades] = useState([]);
-  const [alphabotProgress, setAlphabotProgress] = useState(0);
-  const [alphabotLastUpdate, setAlphabotLastUpdate] = useState(() => Date.now());
-  const [alphabotBalances, setAlphabotBalances] = useState({
-    btc: 0,
-    usdt: 0,
-    real: 0
-  });
+  const [alphabotData, setAlphabotData] = useState<AlphaBotUpdate | null>(null);
+   const [isUpdatingAlphabot, setIsUpdatingAlphabot] = useState(false);
+   const [timeUntilUpdate, setTimeUntilUpdate] = useState({ hours: 24, minutes: 0 });
   const [communityMessages, setCommunityMessages] = useState([
     {
       id: 1,
@@ -102,90 +99,85 @@ const Dashboard = () => {
 
 
 
-  // Gerar negociações de arbitragem do Alphabot
-  useEffect(() => {
-    const generateAlphabotTrades = () => {
-      const cryptoPairs = [
-        { symbol: "BTC/USDT", basePrice: 43000 },
-        { symbol: "ETH/USDT", basePrice: 2500 },
-        { symbol: "BNB/USDT", basePrice: 385 },
-        { symbol: "SOL/USDT", basePrice: 98 },
-        { symbol: "ADA/USDT", basePrice: 0.45 },
-        { symbol: "XRP/USDT", basePrice: 0.62 },
-        { symbol: "DOT/USDT", basePrice: 7.8 },
-        { symbol: "LINK/USDT", basePrice: 14.5 },
-        { symbol: "MATIC/USDT", basePrice: 0.95 },
-        { symbol: "AVAX/USDT", basePrice: 32.5 }
-      ];
-
-      return cryptoPairs.map((pair) => {
-        const priceVariation = (Math.random() - 0.5) * 0.1; // ±5%
-        const buyPrice = pair.basePrice * (1 + priceVariation);
-        const sellPrice = buyPrice * (1 + (Math.random() * 0.015 + 0.002)); // 0.2% a 1.7% acima
-        const profit = sellPrice - buyPrice;
-        const volume = Math.random() * 1000 + 100; // Volume entre 100 e 1100
-        
-        return {
-          id: Math.random().toString(36).substring(7),
-          pair: pair.symbol,
-          buyPrice,
-          sellPrice,
-          profit,
-          volume,
-          time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-          exchange1: "Spot Exchange",
-          exchange2: "Futures Exchange"
-        };
+  // Função para atualizar o AlphaBot usando dados reais da CoinMarketCap
+  const updateAlphaBot = async () => {
+    setIsUpdatingAlphabot(true);
+    try {
+      const data = await realCoinMarketCapService.updateAlphaBot();
+      setAlphabotData(data);
+      toast({
+        title: "AlphaBot Atualizado",
+        description: "Dados atualizados com sucesso via CoinMarketCap API",
       });
-    };
-
-    // Gerar trades se estiver vazio (primeira carga)
-    if (alphabotTrades.length === 0) {
-      const trades = generateAlphabotTrades();
-      setAlphabotTrades(trades);
-      setAlphabotLastUpdate(Date.now());
-      setAlphabotProgress(0);
-      
-      // Calcular saldos
-      const totalProfit = trades.reduce((acc, trade) => acc + trade.profit, 0);
-      const btcPrice = 43000; // Preço fixo do BTC
-      const brlRate = 5.40; // Taxa USD/BRL
-      
-      setAlphabotBalances({
-        btc: totalProfit / btcPrice,
-        usdt: totalProfit,
-        real: totalProfit * brlRate
+    } catch (error) {
+      console.error('Erro ao atualizar AlphaBot:', error);
+      toast({
+        title: "Erro na Atualização",
+        description: "Não foi possível atualizar os dados do AlphaBot",
+        variant: "destructive",
       });
+    } finally {
+      setIsUpdatingAlphabot(false);
     }
+  };
 
-    // Atualizar barra de progresso a cada minuto
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - alphabotLastUpdate;
-      const percent = Math.min((elapsed / (24 * 60 * 60 * 1000)) * 100, 100);
-      setAlphabotProgress(percent);
+  // Função para forçar atualização manual
+  const forceUpdateAlphaBot = async () => {
+    setIsUpdatingAlphabot(true);
+    try {
+      const data = await realCoinMarketCapService.forceUpdate();
+      setAlphabotData(data);
+      toast({
+        title: "AlphaBot Atualizado Manualmente",
+        description: "Nova atualização forçada com dados da CoinMarketCap",
+      });
+    } catch (error) {
+      console.error('Erro ao forçar atualização:', error);
+      toast({
+        title: "Erro na Atualização",
+        description: "Não foi possível forçar a atualização",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingAlphabot(false);
+    }
+  };
 
-      // Se passou 24h, gera novas operações
-      if (elapsed >= 24 * 60 * 60 * 1000) {
-        const trades = generateAlphabotTrades();
-        setAlphabotTrades(trades);
-        setAlphabotLastUpdate(Date.now());
-        setAlphabotProgress(0);
-        
-        // Recalcular saldos
-        const totalProfit = trades.reduce((acc, trade) => acc + trade.profit, 0);
-        const btcPrice = 43000;
-        const brlRate = 5.40;
-        
-        setAlphabotBalances({
-          btc: totalProfit / btcPrice,
-          usdt: totalProfit,
-          real: totalProfit * brlRate
-        });
-      }
-    }, 1000 * 60);
-
-    return () => clearInterval(interval);
-  }, [alphabotTrades.length, alphabotLastUpdate]);
+  // Carregar dados do AlphaBot na inicialização
+   useEffect(() => {
+     updateAlphaBot();
+     
+     // Atualizar contador de tempo a cada minuto
+     const timeInterval = setInterval(() => {
+       const timeLeft = realCoinMarketCapService.getTimeUntilNextUpdate();
+       setTimeUntilUpdate(timeLeft);
+     }, 60000);
+     
+     // Verificar se precisa atualizar a cada 5 minutos
+     const updateInterval = setInterval(() => {
+       const currentData = realCoinMarketCapService.getCurrentAlphaBotData();
+       if (currentData) {
+         const now = Date.now();
+         const elapsed = now - currentData.lastUpdate;
+         const progress = Math.min((elapsed / (24 * 60 * 60 * 1000)) * 100, 100);
+         
+         setAlphabotData({
+           ...currentData,
+           progress
+         });
+         
+         // Se passou 24h, atualizar automaticamente
+         if (elapsed >= 24 * 60 * 60 * 1000) {
+           updateAlphaBot();
+         }
+       }
+     }, 5 * 60 * 1000);
+     
+     return () => {
+       clearInterval(timeInterval);
+       clearInterval(updateInterval);
+     };
+   }, []);
 
   // Carregar dados reais do usuário
   useEffect(() => {
@@ -376,17 +368,17 @@ const Dashboard = () => {
   };
 
   // Usar dados reais do usuário em vez de valores simulados
-  const userBalance = balance; // Saldo real do usuário
-  const userTotalProfit = totalProfit; // Lucro total real do usuário
-  const userDailyProfit = dailyProfit; // Lucro diário real do usuário
+  const userBalance = balance || 0; // Saldo real do usuário
+  const userTotalProfit = totalProfit || 0; // Lucro total real do usuário
+  const userDailyProfit = dailyProfit || 0; // Lucro diário real do usuário
 
   // Saldo em BTC: baseado no lucro total real
   const btcPrice = 43000;
-  const btcBalance = userTotalProfit / btcPrice;
+  const btcBalance = (userTotalProfit || 0) / btcPrice;
 
   // Saldo em BRL: lucro do dia convertido para real (cotação fixa 1 USD = 5.40 BRL)
   const brlRate = 5.40;
-  const brlBalance = userDailyProfit * brlRate;
+  const brlBalance = (userDailyProfit || 0) * brlRate;
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -450,7 +442,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-trading-green">
-                +${userDailyProfit.toFixed(2)}
+                +${(userDailyProfit || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 +15.3% desde ontem
@@ -467,7 +459,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                +${userTotalProfit.toFixed(2)}
+                +${(userTotalProfit || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Desde o início
@@ -484,7 +476,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-trading-green">
-                +${tradingBalance.toFixed(2)}
+                +${(tradingBalance || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 De operações
@@ -542,85 +534,124 @@ const Dashboard = () => {
                   <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Lucro BTC</span>
-                      <span className="text-lg font-bold text-primary">{alphabotBalances.btc.toFixed(6)} BTC</span>
+                      <span className="text-lg font-bold text-primary">
+                        {alphabotData?.totalProfitBTC?.toFixed(6) || '0.000000'} BTC
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                    <div className="text-xs text-muted-foreground mt-1">Dados reais da CoinMarketCap</div>
                   </div>
                   <div className="p-3 bg-trading-green/10 rounded-lg border border-trading-green/20">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Lucro USDT</span>
-                      <span className="text-lg font-bold text-trading-green">${alphabotBalances.usdt.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-trading-green">
+                        ${(alphabotData?.totalProfitUSDT || 0).toFixed(2)}
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                    <div className="text-xs text-muted-foreground mt-1">Dados reais da CoinMarketCap</div>
                   </div>
                   <div className="p-3 bg-warning/10 rounded-lg border border-warning/20">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Lucro Real</span>
-                      <span className="text-lg font-bold text-warning">R$ {alphabotBalances.real.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-warning">
+                        R$ ${(alphabotData?.totalProfitBRL || 0).toFixed(2)}
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Sincronizado com operações do dia</div>
+                    <div className="text-xs text-muted-foreground mt-1">Dados reais da CoinMarketCap</div>
                   </div>
                 </div>
 
-               {/* Cronômetro e Barra de Progresso */}
-               <div className="space-y-2">
-                 <div className="flex items-center justify-between">
-                   <span className="text-sm text-muted-foreground">Próxima atualização em 24h</span>
-                   <span className="text-sm text-muted-foreground">
-                     {Math.floor((24 - (alphabotProgress/100)*24))}h {Math.floor(((24 - (alphabotProgress/100)*24) % 1) * 60)}min
-                   </span>
-                 </div>
-                 <div className="w-full bg-secondary rounded-full h-2">
-                   <div 
-                     className="bg-gradient-to-r from-primary to-trading-green h-2 rounded-full transition-all duration-300" 
-                     style={{ width: `${alphabotProgress}%` }}
-                   ></div>
-                 </div>
-               </div>
+               {/* Contador e Controles */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">
+                        Próxima atualização em: {timeUntilUpdate.hours}h {timeUntilUpdate.minutes}min
+                      </span>
+                    </div>
+                    <Button 
+                      onClick={forceUpdateAlphaBot} 
+                      disabled={isUpdatingAlphabot}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isUpdatingAlphabot ? 'animate-spin' : ''}`} />
+                      {isUpdatingAlphabot ? 'Atualizando...' : 'Atualizar'}
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Progresso da atualização (24h)</span>
+                      <span>{(alphabotData?.progress || 0).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-primary to-trading-green h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${alphabotData?.progress || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    Última atualização: {alphabotData?.lastUpdate ? new Date(alphabotData.lastUpdate).toLocaleString('pt-BR') : 'Nunca'}
+                  </div>
+                </div>
 
                {/* Negociações de Arbitragem */}
                <div className="space-y-3">
                  <div className="flex items-center justify-between">
                    <h3 className="text-sm font-medium text-foreground">Negociações de Arbitragem (CoinMarketCap)</h3>
                    <Badge variant="outline" className="text-xs">
-                     {alphabotTrades.length} operações
+                     {alphabotData?.trades?.length || 0} operações
                    </Badge>
                  </div>
                  
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                   {alphabotTrades.slice(0, 10).map((trade) => (
-                     <div key={trade.id} className="p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
-                       <div className="flex items-center justify-between mb-2">
-                         <span className="text-xs text-muted-foreground">{trade.time}</span>
-                         <Badge variant="default" className="text-xs">ARBITRAGEM</Badge>
+                 {alphabotData?.trades && alphabotData.trades.length > 0 ? (
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                     {alphabotData.trades.slice(0, 10).map((trade) => (
+                       <div key={trade.id} className="p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
+                         <div className="flex items-center justify-between mb-2">
+                           <span className="text-xs text-muted-foreground">{trade.time}</span>
+                           <Badge variant="default" className="text-xs">ARBITRAGEM</Badge>
+                         </div>
+                         <div className="font-medium text-sm mb-2">{trade.pair}</div>
+                         <div className="space-y-1 text-xs">
+                           <div className="flex justify-between">
+                             <span className="text-muted-foreground">Preço Atual:</span>
+                             <span className="font-mono">${(trade.currentPrice || 0).toFixed(2)}</span>
+                           </div>
+                           <div className="flex justify-between">
+                             <span className="text-muted-foreground">Variação 24h:</span>
+                             <span className={`font-mono ${(trade.change24h || 0) >= 0 ? 'text-trading-green' : 'text-trading-red'}`}>
+                               {(trade.change24h || 0) >= 0 ? '+' : ''}{(trade.change24h || 0).toFixed(2)}%
+                             </span>
+                           </div>
+                           <div className="flex justify-between">
+                             <span className="text-muted-foreground">Volume 24h:</span>
+                             <span className="font-mono">${((trade.volume24h || 0) / 1000000).toFixed(1)}M</span>
+                           </div>
+                           <div className="flex justify-between">
+                             <span className="text-muted-foreground">Market Cap:</span>
+                             <span className="font-mono">${((trade.marketCap || 0) / 1000000000).toFixed(1)}B</span>
+                           </div>
+                         </div>
+                         <div className="mt-2 pt-2 border-t border-border">
+                           <div className="text-xs text-muted-foreground">
+                             Rank #{trade.rank} • CoinMarketCap
+                           </div>
+                         </div>
                        </div>
-                       <div className="font-medium text-sm mb-2">{trade.pair}</div>
-                       <div className="space-y-1 text-xs">
-                         <div className="flex justify-between">
-                           <span className="text-muted-foreground">Compra:</span>
-                           <span className="font-mono">${trade.buyPrice.toFixed(2)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span className="text-muted-foreground">Venda:</span>
-                           <span className="font-mono">${trade.sellPrice.toFixed(2)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span className="text-muted-foreground">Volume:</span>
-                           <span className="font-mono">${trade.volume.toFixed(0)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span className="text-muted-foreground">Lucro:</span>
-                           <span className="font-bold text-trading-green">+${trade.profit.toFixed(2)}</span>
-                         </div>
-                       </div>
-                       <div className="mt-2 pt-2 border-t border-border">
-                         <div className="text-xs text-muted-foreground">
-                           {trade.exchange1} → {trade.exchange2}
-                         </div>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
+                     ))}
+                   </div>
+                 ) : (
+                   <div className="text-center py-8 text-muted-foreground">
+                     <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                     <p className="text-sm">
+                       {isUpdatingAlphabot ? 'Carregando dados da CoinMarketCap...' : 'Nenhuma operação disponível'}
+                     </p>
+                   </div>
+                 )}
                </div>
              </div>
            </CardContent>
@@ -650,7 +681,7 @@ const Dashboard = () => {
                    <div className="text-xs text-muted-foreground">Pessoas indicadas</div>
                  </div>
                  <div className="text-center p-3 bg-warning/10 rounded-lg">
-                   <div className="text-lg font-bold text-warning">${referralBalance.toFixed(2)}</div>
+                   <div className="text-lg font-bold text-warning">${(referralBalance || 0).toFixed(2)}</div>
                    <div className="text-xs text-muted-foreground">Total em comissões</div>
                  </div>
                </div>
@@ -676,13 +707,13 @@ const Dashboard = () => {
                     : 'bg-trading-red/10 border-trading-red/20'
                 }`}>
                   <div className={`text-2xl font-bold ${
-                    performance24h.percentage >= 0 ? 'text-trading-green' : 'text-trading-red'
+                    (performance24h.percentage || 0) >= 0 ? 'text-trading-green' : 'text-trading-red'
                   }`}>
-                    {performance24h.percentage >= 0 ? '+' : ''}{performance24h.percentage.toFixed(2)}%
+                    {(performance24h.percentage || 0) >= 0 ? '+' : ''}{(performance24h.percentage || 0).toFixed(2)}%
                   </div>
                   <div className="text-sm text-muted-foreground">Performance 24h</div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {performance24h.symbol}/USDT • ${performance24h.price.toLocaleString()}
+                    {performance24h.symbol}/USDT • ${(performance24h.price || 0).toLocaleString()}
                   </div>
                 </div>
                 
@@ -691,9 +722,9 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-muted-foreground">{performance24h.symbol}/USDT</span>
                     <span className={`text-xs font-medium ${
-                      performance24h.percentage >= 0 ? 'text-trading-green' : 'text-trading-red'
+                      (performance24h.percentage || 0) >= 0 ? 'text-trading-green' : 'text-trading-red'
                     }`}>
-                      {performance24h.percentage >= 0 ? '+' : ''}{performance24h.percentage.toFixed(2)}%
+                      {(performance24h.percentage || 0) >= 0 ? '+' : ''}{(performance24h.percentage || 0).toFixed(2)}%
                     </span>
                   </div>
                   
@@ -732,12 +763,12 @@ const Dashboard = () => {
                       <div className={`font-mono ${
                         performance24h.percentage >= 0 ? 'text-trading-green' : 'text-trading-red'
                       }`}>
-                        ${performance24h.price.toLocaleString()}
+                        ${(performance24h.price || 0).toLocaleString()}
                       </div>
                     </div>
                     <div className="absolute bottom-0 left-0 text-xs">
                       <div className="text-muted-foreground font-mono">
-                        ${(performance24h.price * (1 - Math.abs(performance24h.percentage) / 100)).toLocaleString()}
+                        ${((performance24h.price || 0) * (1 - Math.abs((performance24h.percentage || 0)) / 100)).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -747,7 +778,7 @@ const Dashboard = () => {
                     <div className="flex items-center space-x-1">
                       <div className="w-1 h-1 bg-trading-green rounded-full"></div>
                       <span className="text-muted-foreground">
-                        Entrada: ${(performance24h.price * (1 - Math.abs(performance24h.percentage) / 100)).toLocaleString()}
+                        Entrada: ${((performance24h.price || 0) * (1 - Math.abs((performance24h.percentage || 0)) / 100)).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -755,7 +786,7 @@ const Dashboard = () => {
                         performance24h.percentage >= 0 ? 'bg-primary' : 'bg-trading-red'
                       }`}></div>
                       <span className="text-muted-foreground">
-                        Atual: ${performance24h.price.toLocaleString()}
+                        Atual: ${(performance24h.price || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>
