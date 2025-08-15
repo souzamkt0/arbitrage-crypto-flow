@@ -2,176 +2,124 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { Lock, Mail, TrendingUp, Bitcoin, DollarSign, Zap } from "lucide-react";
-
-// Componente de animação de criptomoedas flutuantes
-const FloatingCrypto = ({ icon: Icon, delay = 0, duration = 20 }: { icon: any, delay?: number, duration?: number }) => {
-  const size = Math.random() * 30 + 25;
-  const opacity = Math.random() * 0.3 + 0.1;
-  
-  return (
-    <div 
-      className="absolute text-primary animate-float-crypto"
-      style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${delay}s`,
-        animationDuration: `${duration}s`,
-        opacity,
-        transform: 'translateZ(0)'
-      }}
-    >
-      <Icon 
-        size={size} 
-        className="drop-shadow-lg filter" 
-        style={{
-          filter: 'drop-shadow(0 0 10px hsl(45 100% 50% / 0.3))'
-        }}
-      />
-    </div>
-  );
-};
-
-// Componente de partículas flutuantes
-const FloatingParticles = () => {
-  const cryptoIcons = [Bitcoin, DollarSign, TrendingUp, Zap];
-  const particles = Array.from({ length: 15 }, (_, i) => {
-    const Icon = cryptoIcons[Math.floor(Math.random() * cryptoIcons.length)];
-    return (
-      <FloatingCrypto 
-        key={i} 
-        icon={Icon} 
-        delay={Math.random() * 10} 
-        duration={15 + Math.random() * 10}
-      />
-    );
-  });
-  
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {particles}
-    </div>
-  );
-};
+import { Lock, Mail, TrendingUp } from "lucide-react";
 
 const Login = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+  const { signIn, user } = useAuth();
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        console.error("Erro no login:", error.message);
-        // Aqui você pode adicionar um toast ou alert para mostrar o erro
-      } else {
-        console.log("Login realizado com sucesso!");
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error("Erro inesperado:", error);
-    } finally {
-      setIsLoading(false);
+    const { error } = await signIn(email, password);
+    
+    if (!error) {
+      navigate("/dashboard");
     }
+    
+    setIsLoading(false);
   };
 
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 relative overflow-hidden">
-      <FloatingParticles />
-      
-      {/* Efeito de brilho no fundo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-pulse" />
-      
-      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-background/95 border-primary/20 shadow-2xl animate-shimmer">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Alphabit Login
-          </CardTitle>
-          <CardDescription className="text-muted-foreground/80">
-            Entre com suas credenciais para acessar sua conta de trading
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
-                <Mail className="h-4 w-4 text-primary" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border-primary/20 focus:border-primary transition-colors"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
-                <Lock className="h-4 w-4 text-primary" />
-                Senha
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="border-primary/20 focus:border-primary transition-colors"
-                required
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 transform hover:scale-[1.02] shadow-lg" 
-              disabled={isLoading}
-            >
-              <div className="flex items-center gap-2">
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                    Entrando...
-                  </>
-                ) : (
-                  <>
-                    <TrendingUp className="h-4 w-4" />
-                    Entrar na Plataforma
-                  </>
-                )}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary flex items-center justify-center p-3 md:p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-6 md:mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <TrendingUp className="h-8 w-8 md:h-12 md:w-12 text-primary mr-2" />
+            <h1 className="text-3xl md:text-4xl font-bold text-primary">Alphabit</h1>
+          </div>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Sistema de Arbitragem Automatizada
+          </p>
+        </div>
+
+        <Card className="bg-card border-border shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-center text-card-foreground">
+              Entrar na sua conta
+            </CardTitle>
+            <p className="text-center text-sm text-muted-foreground">
+              Digite suas credenciais para acessar
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="pl-9"
+                    required
+                  />
+                </div>
               </div>
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <div className="text-sm text-muted-foreground/80">
-              Não tem uma conta?{" "}
-              <Link to="/register" className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors">
-                Cadastre-se agora
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-9"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+
+            {/* Register Button */}
+            <div className="mt-6 pt-4 border-t border-border">
+              <p className="text-center text-sm text-muted-foreground mb-3">
+                Ainda não tem uma conta?
+              </p>
+              <Link to="/register">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                >
+                  Criar conta
+                </Button>
               </Link>
             </div>
-            <div className="mt-3 text-xs text-muted-foreground/60">
-              🚀 Plataforma de Trading de Criptomoedas
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
