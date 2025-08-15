@@ -31,11 +31,23 @@ git push origin main || git push origin master
 
 if [ $? -eq 0 ]; then
     echo "✅ Repositório atualizado com sucesso!"
-    echo "🌐 O Vercel irá detectar automaticamente as mudanças e fazer o deploy"
-    echo "📱 Acesse: https://vercel.com/dashboard para acompanhar o deploy"
+    
+    # Deploy direto no Vercel para garantir atualização imediata
+    echo "🚀 Fazendo deploy direto no Vercel..."
+    vercel --prod --yes
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Deploy no Vercel concluído com sucesso!"
+        echo "🌐 Suas mudanças já estão online!"
+    else
+        echo "⚠️  Deploy automático falhou, mas o repositório foi atualizado"
+        echo "🌐 O Vercel irá detectar automaticamente as mudanças"
+    fi
+    
+    echo "📱 Acesse: https://vercel.com/dashboard para acompanhar"
 else
     echo "❌ Erro ao fazer push para o repositório"
     exit 1
 fi
 
-echo "🎉 Deploy iniciado com sucesso!"
+echo "🎉 Deploy finalizado!"
