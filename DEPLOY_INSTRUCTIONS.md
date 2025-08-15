@@ -20,7 +20,8 @@ npm run deploy
 2. **Adiciona** todas as mudanças (`git add .`)
 3. **Faz commit** automaticamente com timestamp se houver mudanças
 4. **Envia** as mudanças para o repositório (`git push`)
-5. **Informa** que o Vercel detectará automaticamente as mudanças
+5. **Faz deploy direto** no Vercel (`vercel --prod --yes`)
+6. **Confirma** que as mudanças estão online imediatamente
 
 ## 📱 Acompanhar o Deploy
 
