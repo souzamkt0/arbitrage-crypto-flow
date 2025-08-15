@@ -74,6 +74,7 @@ const Community = () => {
 const [users] = useState<UserProfileData[]>(communityUsers);
   const [isUploading, setIsUploading] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const { toast } = useToast();
 
   // Current user data - load from localStorage if exists
@@ -143,6 +144,10 @@ const [users] = useState<UserProfileData[]>(communityUsers);
   // Função para carregar posts do banco de dados
   const loadPosts = async () => {
     try {
+      // Adicionar timeout para evitar travamentos
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
       const { data: postsData, error } = await supabase
         .from('community_posts')
         .select(`
@@ -157,10 +162,15 @@ const [users] = useState<UserProfileData[]>(communityUsers);
           user_id
         `)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(20)
+        .abortSignal(controller.signal);
+
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('Erro ao carregar posts:', error);
+        // Em caso de erro, usar posts de exemplo como fallback
+        setPosts(examplePosts);
         return;
       }
 
@@ -224,10 +234,31 @@ const [users] = useState<UserProfileData[]>(communityUsers);
         }));
 
       setPosts(formattedPosts);
+      setIsOfflineMode(false); // Desativar modo offline quando dados são carregados com sucesso
     } catch (error) {
       console.error('Erro ao carregar posts:', error);
-      // Em caso de erro, definir posts como array vazio para evitar crashes
-      setPosts([]);
+      
+      // Verificar se é erro de conectividade
+      if (error.name === 'AbortError') {
+        console.warn('Timeout na conexão com o banco de dados');
+        setIsOfflineMode(true);
+        toast({
+          title: "Conexão lenta",
+          description: "A conexão está lenta. Usando dados locais.",
+          variant: "default"
+        });
+      } else {
+        console.warn('Erro de conectividade:', error.message);
+        setIsOfflineMode(true);
+        toast({
+          title: "Problema de conexão",
+          description: "Verifique sua conexão com a internet.",
+          variant: "destructive"
+        });
+      }
+      
+      // Em caso de erro, usar posts de exemplo como fallback
+      setPosts(examplePosts);
     } finally {
       setLoadingPosts(false);
     }
@@ -239,7 +270,40 @@ const [users] = useState<UserProfileData[]>(communityUsers);
   }, []);
 
   // Posts de exemplo para fallback
-  const examplePosts: TwitterPostData[] = [];
+  const examplePosts: TwitterPostData[] = [
+    {
+      id: "example-1",
+      author: currentUser,
+      content: "🚀 Bem-vindos à comunidade ALPHABIT! Aqui você pode compartilhar suas experiências com arbitragem de criptomoedas. #ALPHABIT #Crypto",
+      timestamp: "há 2 horas",
+      likes: 15,
+      retweets: 3,
+      replies: 7,
+      shares: 2,
+      liked: false,
+      retweeted: false,
+      hashtags: ["ALPHABIT", "Crypto"]
+    },
+    {
+      id: "example-2",
+      author: {
+        ...currentUser,
+        id: "system",
+        username: "alphabit_oficial",
+        displayName: "ALPHABIT Oficial",
+        verified: true,
+        bio: "Plataforma oficial de arbitragem de criptomoedas"
+      },
+      content: "💡 Dica do dia: Sempre monitore as diferenças de preços entre exchanges para identificar oportunidades de arbitragem. A velocidade é fundamental! ⚡",
+      timestamp: "há 4 horas",
+      likes: 28,
+      retweets: 12,
+      replies: 5,
+      shares: 8,
+      liked: true,
+      retweeted: false
+    }
+  ];
 
   const [leaderboard] = useState<LeaderboardUser[]>([
     { name: "CryptoMaster", earnings: 2450.75, level: 8, change: "+12%" },
@@ -831,6 +895,29 @@ const [users] = useState<UserProfileData[]>(communityUsers);
            </div>
         </div>
       </header>
+      
+      {/* Indicador de Modo Offline */}
+      {isOfflineMode && (
+        <div className="bg-yellow-900/20 border-b border-yellow-500/30 px-4 py-2">
+          <div className="max-w-7xl mx-auto flex items-center justify-center space-x-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm text-yellow-200">
+              Modo offline ativo - Exibindo dados locais
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setIsOfflineMode(false);
+                loadPosts();
+              }}
+              className="text-yellow-500 hover:text-yellow-400 text-xs px-2 py-1 h-auto"
+            >
+              Tentar reconectar
+            </Button>
+          </div>
+        </div>
+      )}
       
       <div className="w-full max-w-7xl mx-auto flex gap-0 sm:gap-2 lg:gap-4 pt-2 sm:pt-4 px-2 sm:px-4 lg:px-6 overflow-x-hidden min-h-screen">
         {/* Sidebar Esquerda - Hidden on Mobile */}
