@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ProfileImageUpload from "@/components/ProfileImageUpload";
 import { 
   Camera, 
   ArrowLeft, 
@@ -17,10 +18,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Estados do perfil
   const [profileData, setProfileData] = useState({
@@ -137,14 +140,21 @@ const EditProfile = () => {
           <div className="relative">
             {/* Cover Image */}
             <div className="h-48 bg-gradient-to-r from-primary/20 to-secondary/20 relative">
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className="absolute top-4 right-4 rounded-full"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Editar capa
-              </Button>
+              {profileData.coverImage && (
+                <img 
+                  src={profileData.coverImage} 
+                  alt="Foto de capa" 
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute top-4 right-4">
+                <ProfileImageUpload 
+                  type="cover"
+                  currentImageUrl={profileData.coverImage}
+                  onImageUpdate={(url) => handleInputChange('coverImage', url)}
+                  userId={user?.id}
+                />
+              </div>
             </div>
             
             {/* Avatar */}
@@ -156,14 +166,14 @@ const EditProfile = () => {
                     {profileData.displayName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0"
-                  onClick={() => setShowAvatarPicker(true)}
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
+                <div className="absolute bottom-0 right-0">
+                  <ProfileImageUpload 
+                    type="profile"
+                    currentImageUrl={profileData.avatar}
+                    onImageUpdate={(url) => handleInputChange('avatar', url)}
+                    userId={user?.id}
+                  />
+                </div>
               </div>
             </div>
           </div>

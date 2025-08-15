@@ -90,22 +90,22 @@ const Deposit = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary p-2 sm:p-4 overflow-x-hidden">
+        <div className="max-w-4xl mx-auto h-full">
         {/* Header */}
-        <div className="flex items-center space-x-4 mb-6 animate-fade-in">
+        <div className="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6 animate-fade-in">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
-            className="hover-scale"
+            className="hover-scale p-2"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
+            <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="text-sm sm:text-base">Voltar</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Depósito</h1>
-            <p className="text-muted-foreground">Adicione fundos à sua conta</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Depósito</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Adicione fundos à sua conta</p>
           </div>
         </div>
 
@@ -140,20 +140,24 @@ const Deposit = () => {
                 </div>
 
                 {user ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <DigitoPayDeposit onSuccess={() => {
-                      toast({
-                        title: "Sucesso!",
-                        description: "Depósito processado com sucesso",
-                      });
-                    }} />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="order-1">
+                      <DigitoPayDeposit onSuccess={() => {
+                        toast({
+                          title: "Sucesso!",
+                          description: "Depósito processado com sucesso",
+                        });
+                      }} />
+                    </div>
                     
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4 order-2">
                       <div className="flex items-center gap-2">
-                        <History className="h-5 w-5" />
-                        <h3 className="font-semibold">Histórico de Transações</h3>
+                        <History className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <h3 className="text-sm sm:text-base font-semibold">Histórico de Transações</h3>
                       </div>
-                      <DigitoPayHistory />
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        <DigitoPayHistory />
+                      </div>
                     </div>
                   </div>
                 ) : (

@@ -8,60 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Alphabit Theme - Dark with Gold accents */
-    --background: 220 13% 9%;
-    --foreground: 0 0% 95%;
+    /* Alphabit Theme - Complete Black with White and Yellow accents */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 220 13% 12%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 13% 12%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 45 100% 51%;
-    --primary-foreground: 220 13% 9%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 220 13% 15%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 13% 15%;
+    --muted: 0 0% 10%;
     --muted-foreground: 0 0% 70%;
 
-    --accent: 45 100% 51%;
-    --accent-foreground: 220 13% 9%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 0 0% 0%;
 
-    --success: 120 100% 40%;
-    --success-foreground: 0 0% 100%;
+    --success: 120 100% 50%;
+    --success-foreground: 0 0% 0%;
 
-    --warning: 45 100% 51%;
-    --warning-foreground: 220 13% 9%;
+    --warning: 45 100% 50%;
+    --warning-foreground: 0 0% 0%;
 
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 20%;
-    --input: 220 13% 20%;
-    --ring: 45 100% 51%;
+    --border: 0 0% 20%;
+    --input: 0 0% 10%;
+    --ring: 45 100% 50%;
 
-    --trading-green: 120 100% 40%;
+    --trading-green: 120 100% 50%;
     --trading-red: 0 75% 60%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(45 100% 51%), hsl(45 100% 60%));
-    --gradient-dark: linear-gradient(135deg, hsl(220 13% 9%), hsl(220 13% 12%));
+    --gradient-primary: linear-gradient(135deg, hsl(45 100% 50%), hsl(45 100% 60%));
+    --gradient-dark: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 5%));
     
-    --shadow-glow: 0 0 20px hsl(45 100% 51% / 0.3);
-    --shadow-card: 0 4px 20px hsl(220 13% 5% / 0.5);
+    /* Facebook-style colors - Black theme */
+    --facebook-blue: 45 100% 50%;
+    --facebook-light-blue: 45 100% 60%;
+    --facebook-gray: 0 0% 10%;
+    --facebook-dark-gray: 0 0% 5%;
+    --facebook-border: 0 0% 20%;
+    
+    --shadow-glow: 0 0 20px hsl(45 100% 50% / 0.3);
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.8);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 13% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 220 13% 9%;
-    --sidebar-accent: 220 13% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 45 100% 51%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 45 100% 50%;
   }
 
   .dark {
@@ -141,6 +148,40 @@ All colors MUST be HSL.
     }
   }
 
+  /* Animações customizadas para criptomoedas */
+  @keyframes float-crypto {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-20px) rotate(90deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(180deg);
+    }
+    75% {
+      transform: translateY(-30px) rotate(270deg);
+    }
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(45 100% 50% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(45 100% 50% / 0.6), 0 0 60px hsl(45 100% 50% / 0.3);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
   @keyframes fadeInScale {
     from {
       opacity: 0;
@@ -162,6 +203,36 @@ All colors MUST be HSL.
       filter: drop-shadow(0 10px 25px hsl(45 100% 51% / 0.5));
     }
   }
+  
+  /* Facebook-style timeline - Complete Black Theme */
+  .facebook-post {
+    @apply bg-black border border-gray-800 rounded-lg shadow-lg mb-4 p-4 text-white;
+  }
+  
+  .facebook-header {
+    @apply bg-black border-b border-gray-800 px-4 py-3 sticky top-0 z-50 text-white;
+  }
+  
+  .facebook-sidebar {
+    @apply bg-black min-h-screen text-white;
+  }
+  
+  .facebook-feed {
+    @apply bg-black min-h-screen;
+  }
+  
+  .facebook-button {
+    @apply bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg transition-colors font-semibold;
+  }
+  
+  .facebook-button:hover {
+    @apply bg-yellow-600;
+  }
+  
+  .facebook-button.active {
+    color: hsl(var(--background));
+    background-color: hsl(var(--facebook-blue));
+  }
 }
 
 @layer base {
@@ -170,6 +241,101 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-black text-white;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+  }
+  
+  html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+  
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Garantir responsividade total */
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Evitar overflow horizontal */
+  body, html {
+    overflow-x: hidden;
+  }
+  
+  /* Centralização para mobile */
+  @media (max-width: 768px) {
+    .max-w-7xl {
+      max-width: 100% !important;
+    }
+  }
+  
+  /* Global black theme overrides */
+  * {
+    @apply border-gray-800;
+  }
+  
+  .bg-white {
+    @apply !bg-black;
+  }
+  
+  .bg-gray-50 {
+    @apply !bg-gray-900;
+  }
+  
+  .bg-gray-100 {
+    @apply !bg-black;
+  }
+  
+  .text-gray-900 {
+    @apply !text-white;
+  }
+  
+  .text-gray-800 {
+    @apply !text-gray-200;
+  }
+  
+  .text-gray-700 {
+    @apply !text-gray-300;
+  }
+  
+  .text-gray-600 {
+    @apply !text-gray-400;
+  }
+  
+  .border-gray-200 {
+    @apply !border-gray-800;
+  }
+  
+  .border-gray-300 {
+    @apply !border-gray-700;
+  }
+
+  /* Classes utilitárias para animações de criptomoedas */
+  .animate-float-crypto {
+    animation: float-crypto 6s ease-in-out infinite;
+  }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(45 100% 50% / 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
   }
 }

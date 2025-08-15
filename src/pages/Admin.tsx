@@ -1108,11 +1108,10 @@ const Admin = () => {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="deposits">Depósitos</TabsTrigger>
             <TabsTrigger value="withdrawals">Saques</TabsTrigger>
-            <TabsTrigger value="bonus">Bônus</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="trading">Trading</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
@@ -2509,118 +2508,7 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="bonus" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Bônus</CardTitle>
-                <CardDescription>
-                  Configure os baús de tesouro e prêmios disponíveis
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="minBonusDeposit">Depósito Mínimo para Bônus ($)</Label>
-                    <Input
-                      id="minBonusDeposit"
-                      type="number"
-                      defaultValue="50"
-                      min="1"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="chestsPerDay">Baús por Dia</Label>
-                    <Input
-                      id="chestsPerDay"
-                      type="number"
-                      defaultValue="3"
-                      min="1"
-                      max="10"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Prêmios Disponíveis ($)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {[1, 2, 3, 5, 8, 10, 15, 20, 25, 30, 50, 100].map((prize) => (
-                      <div key={prize} className="flex items-center space-x-2">
-                        <Checkbox id={`prize-${prize}`} defaultChecked={prize <= 30} />
-                        <Label htmlFor={`prize-${prize}`} className="text-sm">${prize}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Button>Salvar Configurações</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Estatísticas de Bônus</CardTitle>
-                <CardDescription>
-                  Acompanhe o uso dos baús de tesouro
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">1,247</div>
-                    <div className="text-sm text-blue-600">Baús Abertos Hoje</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">$12,580</div>
-                    <div className="text-sm text-green-600">Prêmios Pagos Hoje</div>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">456</div>
-                    <div className="text-sm text-purple-600">Usuários Ativos</div>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">$10.50</div>
-                    <div className="text-sm text-orange-600">Prêmio Médio</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Histórico de Bônus</CardTitle>
-                <CardDescription>
-                  Últimas aberturas de baús
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { user: "João Silva", prize: 25, time: "2 min atrás", chest: 1 },
-                    { user: "Maria Santos", prize: 10, time: "5 min atrás", chest: 3 },
-                    { user: "Pedro Costa", prize: 50, time: "8 min atrás", chest: 2 },
-                    { user: "Ana Oliveira", prize: 15, time: "12 min atrás", chest: 1 },
-                    { user: "Carlos Lima", prize: 5, time: "15 min atrás", chest: 3 }
-                  ].map((bonus, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                          🎁
-                        </div>
-                        <div>
-                          <div className="font-medium">{bonus.user}</div>
-                          <div className="text-sm text-muted-foreground">Baú #{bonus.chest}</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-600">${bonus.prize}</div>
-                        <div className="text-sm text-muted-foreground">{bonus.time}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {/* Seção de Bônus removida */}
 
           <TabsContent value="transactions" className="space-y-6">
             <Card className="bg-card border-border">

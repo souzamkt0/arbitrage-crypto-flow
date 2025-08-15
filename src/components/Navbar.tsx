@@ -35,7 +35,7 @@ const Navbar = () => {
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/market", label: "Mercado", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
-    { path: "/bonus", label: "Bônus", icon: Gift },
+    // { path: "/bonus", label: "Bônus", icon: Gift }, // Página removida
     { path: "/community", label: "Comunidade", icon: MessageSquare },
     { path: "/referrals", label: "Indicações", icon: Users },
     { path: "/history", label: "Histórico", icon: History },

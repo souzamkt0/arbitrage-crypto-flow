@@ -20,7 +20,8 @@ import {
   Copy,
   Link,
   Bot,
-  RefreshCw
+  RefreshCw,
+  Heart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,53 +50,43 @@ const Dashboard = () => {
   const [alphabotData, setAlphabotData] = useState<AlphaBotUpdate | null>(null);
    const [isUpdatingAlphabot, setIsUpdatingAlphabot] = useState(false);
    const [timeUntilUpdate, setTimeUntilUpdate] = useState({ hours: 24, minutes: 0 });
-  const [communityMessages, setCommunityMessages] = useState([
-    {
-      id: 1,
-      user: "João Silva",
-      avatar: "JS",
-      message: "Acabei de fazer um lucro de $2,500 com BTC! O bot está funcionando perfeitamente! 🚀",
-      time: "2 min atrás",
-      likes: 12,
-      isVerified: true
-    },
-    {
-      id: 2,
-      user: "Maria Santos",
-      avatar: "MS",
-      message: "Primeira semana usando o sistema e já estou com +15% de lucro. Recomendo demais! 💎",
-      time: "8 min atrás",
-      likes: 8,
-      isVerified: true
-    },
-    {
-      id: 3,
-      user: "Pedro Costa",
-      avatar: "PC",
-      message: "Alguém mais está vendo essa oportunidade em ETH? Parece promissora! 📈",
-      time: "15 min atrás",
-      likes: 5,
-      isVerified: false
-    },
-    {
-      id: 4,
-      user: "Ana Oliveira",
-      avatar: "AO",
-      message: "Consegui pagar minhas contas do mês só com os lucros do trading! Obrigada comunidade! 🙏",
-      time: "22 min atrás",
-      likes: 18,
-      isVerified: true
-    },
-    {
-      id: 5,
-      user: "Carlos Lima",
-      avatar: "CL",
-      message: "Dica: sempre configurem o stop loss, salvou minha operação hoje! ⚠️",
-      time: "35 min atrás",
-      likes: 14,
-      isVerified: true
+  const [communityMessages, setCommunityMessages] = useState([]);
+
+  // Carregar mensagens da comunidade
+  const loadCommunityMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Erro ao carregar mensagens da comunidade:', error);
+        return;
+      }
+
+      // Formatar mensagens para o formato esperado
+      const formattedMessages = data?.map(post => ({
+        id: post.id,
+        user: post.author_name || 'Usuário Anônimo',
+        avatar: post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U',
+        message: post.content,
+        time: new Date(post.created_at).toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: post.likes_count || 0,
+        isVerified: false // Por enquanto todos como não verificados
+      })) || [];
+
+      setCommunityMessages(formattedMessages);
+    } catch (error) {
+      console.error('Erro ao carregar mensagens da comunidade:', error);
     }
-  ]);
+  };
 
 
 
@@ -178,6 +169,40 @@ const Dashboard = () => {
        clearInterval(updateInterval);
      };
    }, []);
+
+  // Carregar mensagens da comunidade e configurar sincronização em tempo real
+  useEffect(() => {
+    // Carregar mensagens iniciais
+    loadCommunityMessages();
+
+    // Configurar listener para atualizações em tempo real
+    const channel = supabase
+      .channel('community_posts_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escutar todos os eventos (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'community_posts'
+        },
+        (payload) => {
+          console.log('Nova atualização na comunidade:', payload);
+          // Recarregar mensagens quando houver mudanças
+          loadCommunityMessages();
+        }
+      )
+      .subscribe();
+
+    // Atualizar mensagens a cada 30 segundos como fallback
+    const messageInterval = setInterval(() => {
+      loadCommunityMessages();
+    }, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(messageInterval);
+    };
+  }, []);
 
   // Carregar dados reais do usuário
   useEffect(() => {
@@ -798,9 +823,19 @@ const Dashboard = () => {
           {/* Mensagens da Comunidade */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center text-card-foreground">
-                <Users className="h-5 w-5 mr-2 text-primary" />
-                Mensagens da Comunidade
+              <CardTitle className="flex items-center justify-between text-card-foreground">
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-primary" />
+                  Mensagens da Comunidade
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={loadCommunityMessages}
+                  className="text-primary hover:text-primary/80"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -809,45 +844,61 @@ const Dashboard = () => {
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium text-foreground">Últimas Mensagens</span>
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary">
+                      Ao vivo
+                    </Badge>
                   </div>
                   <Badge variant="outline" className="text-xs text-primary border-primary">
-                    {communityMessages.length} ativas
+                    {communityMessages.length} mensagens
                   </Badge>
                 </div>
                 
                 <div className="space-y-3">
-                  {communityMessages.slice(0, 3).map((message) => (
-                    <div key={message.id} className="flex items-start space-x-3 p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">{message.avatar}</span>
+                  {communityMessages.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Nenhuma mensagem ainda...</p>
+                      <p className="text-xs mt-1">Seja o primeiro a postar na comunidade!</p>
+                    </div>
+                  ) : (
+                    communityMessages.slice(0, 3).map((message) => (
+                      <div key={message.id} className="flex items-start space-x-3 p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">{message.avatar}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-sm font-medium text-foreground">{message.user}</span>
-                          {message.isVerified && (
-                            <div className="w-4 h-4 bg-trading-green rounded-full flex items-center justify-center">
-                              <span className="text-[10px] text-white">✓</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-sm font-medium text-foreground">{message.user}</span>
+                            {message.isVerified && (
+                              <div className="w-4 h-4 bg-trading-green rounded-full flex items-center justify-center">
+                                <span className="text-[10px] text-white">✓</span>
+                              </div>
+                            )}
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className="text-xs text-muted-foreground">{message.time}</span>
+                          </div>
+                          <p className="text-sm text-foreground mb-2 line-clamp-2">{message.message}</p>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1">
+                              <Heart className="w-4 h-4 text-red-500" />
+                              <span className="text-xs text-muted-foreground">{message.likes}</span>
                             </div>
-                          )}
-                          <span className="text-xs text-muted-foreground">•</span>
-                          <span className="text-xs text-muted-foreground">{message.time}</span>
-                        </div>
-                        <p className="text-sm text-foreground mb-2">{message.message}</p>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex items-center space-x-1">
-                            <div className="w-4 h-4 text-trading-green">❤️</div>
-                            <span className="text-xs text-muted-foreground">{message.likes}</span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
                 
                 <div className="pt-3 border-t border-border">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                    onClick={() => window.location.href = '/community'}
+                  >
                     <Users className="h-4 w-4 mr-2" />
                     Ver Todas as Mensagens
                   </Button>

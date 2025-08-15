@@ -131,6 +131,7 @@ export type Database = {
           created_at: string | null
           hashtags: string[] | null
           id: string
+          image_url: string | null
           likes_count: number | null
           mentions: string[] | null
           replies_count: number | null
@@ -146,6 +147,7 @@ export type Database = {
           created_at?: string | null
           hashtags?: string[] | null
           id?: string
+          image_url?: string | null
           likes_count?: number | null
           mentions?: string[] | null
           replies_count?: number | null
@@ -161,6 +163,7 @@ export type Database = {
           created_at?: string | null
           hashtags?: string[] | null
           id?: string
+          image_url?: string | null
           likes_count?: number | null
           mentions?: string[] | null
           replies_count?: number | null
@@ -772,7 +775,6 @@ export type Database = {
           days_remaining: number | null
           end_date: string
           id: string
-          investment_plan_id: string
           operations_completed: number | null
           start_date: string | null
           status: string | null
@@ -791,7 +793,6 @@ export type Database = {
           days_remaining?: number | null
           end_date: string
           id?: string
-          investment_plan_id: string
           operations_completed?: number | null
           start_date?: string | null
           status?: string | null
@@ -810,7 +811,6 @@ export type Database = {
           days_remaining?: number | null
           end_date?: string
           id?: string
-          investment_plan_id?: string
           operations_completed?: number | null
           start_date?: string | null
           status?: string | null
@@ -820,15 +820,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_investments_investment_plan_id_fkey"
-            columns: ["investment_plan_id"]
-            isOneToOne: false
-            referencedRelation: "investment_plans"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       withdrawals: {
         Row: {

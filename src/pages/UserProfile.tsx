@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,114 +21,22 @@ import {
 } from "lucide-react";
 import TwitterPost, { TwitterPostData } from "@/components/TwitterPost";
 import { UserProfileData } from "@/components/UserProfile";
+import { communityUsers } from "@/data/communityUsers";
 
 const UserProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const [isAdmin] = useState(true);
+  const { user: currentUser } = useAuth();
+  // Para demonstração, definindo como true - em produção usar: currentUser?.role === 'admin'
+  const isAdmin = true;
   const [user, setUser] = useState<UserProfileData | null>(null);
   const [userPosts, setUserPosts] = useState<TwitterPostData[]>([]);
   const [activeTab, setActiveTab] = useState("posts");
 
-  // Dados mockados - em produção viriam de uma API
-  const mockUsers: UserProfileData[] = [
-    {
-      id: "maria",
-      username: "mariasantos",
-      displayName: "Maria Santos",
-      bio: "Especialista em trading de alta frequência 📈 | Educadora financeira | Mentora de traders iniciantes",
-      avatar: "/avatars/maria.jpg",
-      verified: true,
-      followers: 2847,
-      following: 156,
-      posts: 289,
-      joinDate: "janeiro de 2024",
-      location: "Rio de Janeiro, Brasil",
-      website: "https://mariasantos-trader.com",
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 24.50,
-      level: 8,
-      badge: "Pro Trader"
-    },
-    {
-      id: "carlos",
-      username: "carlosoliveira",
-      displayName: "Carlos Oliveira",
-      bio: "Analista técnico e educador financeiro 🚀 | 10+ anos no mercado | Criador do curso TradePro",
-      avatar: "/avatars/carlos.jpg",
-      verified: true,
-      followers: 5672,
-      following: 234,
-      posts: 456,
-      joinDate: "dezembro de 2023",
-      location: "Belo Horizonte, Brasil",
-      website: "https://carlosanalise.com",
-      isFollowing: true,
-      isBlocked: false,
-      earnings: 21.80,
-      level: 7,
-      badge: "Analista Expert"
-    },
-    {
-      id: "ana",
-      username: "anacosta",
-      displayName: "Ana Costa",
-      bio: "Jovem trader em ascensão 🚀 | DeFi enthusiast | Criptomoedas e NFTs",
-      avatar: "/avatars/ana.jpg",
-      verified: false,
-      followers: 1234,
-      following: 89,
-      posts: 167,
-      joinDate: "abril de 2024",
-      location: "Porto Alegre, Brasil",
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 18.90,
-      level: 6,
-      badge: "Rising Star"
-    }
-  ];
+  // Usar os dados reais da comunidade
+  const mockUsers: UserProfileData[] = communityUsers;
 
-  const mockPosts: TwitterPostData[] = [
-    {
-      id: "p1",
-      author: mockUsers[0],
-      content: "Análise do BTC/USDT: Rompimento da resistência em $45.2k! 📈 Próximo alvo: $48k. Stop em $44k. #Bitcoin #TradingTips",
-      timestamp: "2h",
-      likes: 156,
-      retweets: 45,
-      replies: 28,
-      shares: 12,
-      liked: false,
-      retweeted: false,
-      hashtags: ["Bitcoin", "TradingTips"]
-    },
-    {
-      id: "p2",
-      author: mockUsers[0],
-      content: "Pessoal, acabei de publicar um novo tutorial sobre análise de candlesticks! Link na bio. Quem quiser, postem suas dúvidas nos comentários 👇",
-      timestamp: "1d",
-      likes: 234,
-      retweets: 67,
-      replies: 45,
-      shares: 23,
-      liked: true,
-      retweeted: false
-    },
-    {
-      id: "p3",
-      author: mockUsers[0],
-      content: "Lembrete importante: NUNCA invistam mais do que podem perder! Risk management é a base de tudo no trading. 💡",
-      timestamp: "2d",
-      likes: 89,
-      retweets: 34,
-      replies: 15,
-      shares: 8,
-      liked: false,
-      retweeted: false
-    }
-  ];
+  const mockPosts: TwitterPostData[] = [];
 
   useEffect(() => {
     // Buscar dados do usuário baseado no username
@@ -180,6 +89,28 @@ const UserProfilePage = () => {
   const handleReply = (postId: string, content: string) => {
     // Adicionar reply - em produção seria uma chamada de API
     console.log("Reply:", postId, content);
+  };
+
+  const handleEdit = (postId: string, newContent: string) => {
+    setUserPosts(posts => posts.map(post => {
+      if (post.id === postId) {
+        return { ...post, content: newContent };
+      }
+      return post;
+    }));
+  };
+
+  const handleDelete = (postId: string) => {
+    setUserPosts(posts => posts.filter(post => post.id !== postId));
+  };
+
+  const handleDeleteImage = (postId: string) => {
+    setUserPosts(posts => posts.map(post => {
+      if (post.id === postId) {
+        return { ...post, imageUrl: undefined };
+      }
+      return post;
+    }));
   };
 
   const handleUserClick = (clickedUser: UserProfileData) => {
@@ -360,12 +291,18 @@ const UserProfilePage = () => {
               userPosts.map((post) => (
                 <div key={post.id} className="border-b border-border p-3 sm:p-4">
                   <TwitterPost
+                    key={post.id}
                     post={post}
                     onLike={handleLike}
                     onRetweet={handleRetweet}
                     onReply={handleReply}
                     onUserClick={handleUserClick}
-                    currentUserId="current"
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onDeleteImage={handleDeleteImage}
+                    currentUserId={currentUser?.id || "current"}
+                    canEdit={post.author.id === currentUser?.id}
+                    canDelete={post.author.id === currentUser?.id || isAdmin}
                   />
                 </div>
               ))
@@ -384,8 +321,32 @@ const UserProfilePage = () => {
         </TabsContent>
 
         <TabsContent value="media" className="mt-0">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhuma mídia ainda</p>
+          <div className="pb-16 lg:pb-0">
+            {userPosts.filter(post => post.imageUrl).length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 sm:p-4">
+                {userPosts
+                  .filter(post => post.imageUrl)
+                  .map((post) => (
+                    <div key={post.id} className="relative aspect-square group cursor-pointer">
+                      <img
+                        src={post.imageUrl}
+                        alt="Post media"
+                        className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium">
+                          {post.likes} curtidas
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Nenhuma mídia ainda</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 

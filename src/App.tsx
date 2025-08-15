@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import Login from "./pages/Login";
+import Login from "./pages/login";
 import Register from "./pages/Register";
 import AdminRegister from "./pages/AdminRegister";
 import ApiConnection from "./pages/ApiConnection";
@@ -17,11 +17,13 @@ import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 import Market from "./pages/Market";
 import Admin from "./pages/Admin";
-import Bonus from "./pages/Bonus";
+// import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
 import Referrals from "./pages/Referrals";
 import Community from "./pages/Community";
+// import Social from "./pages/Social"; // Página removida
 import UserProfilePage from "./pages/UserProfile";
+import FacebookProfile from "./pages/FacebookProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
@@ -62,10 +64,12 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Layout Component with Navbar
 const Layout = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen bg-background">
+  <div className="min-h-screen bg-background w-full">
     <Navbar />
     <PriceTicker />
-    {children}
+    <div className="w-full">
+      {children}
+    </div>
   </div>
 );
 
@@ -144,16 +148,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/bonus"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Bonus />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
+          {/* Rota do Bonus removida */}
           <Route
             path="/simulation"
             element={
@@ -194,12 +189,23 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          {/* Rota Social removida - usar apenas Community */}
           <Route
             path="/community/user/:username"
             element={
               <ProtectedRoute>
                 <Layout>
                   <UserProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:username"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <FacebookProfile />
                 </Layout>
               </ProtectedRoute>
             }

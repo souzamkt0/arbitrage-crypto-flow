@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { DigitoPayService } from '@/services/digitopayService';
 import { useAuth } from '@/hooks/useAuth';
-import { Copy, Download, QrCode } from 'lucide-react';
+import { Copy, Download, QrCode, DollarSign } from 'lucide-react';
+import { CurrencyDisplay, ExchangeRateInfo } from '@/components/CurrencyDisplay';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DigitoPayDepositProps {
   onSuccess?: () => void;
@@ -15,6 +17,7 @@ interface DigitoPayDepositProps {
 export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess }) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const { convertBRLToUSD, formatBRL, formatUSD, convertUSDToBRL, exchangeRate } = useCurrency();
   const [amount, setAmount] = useState('');
   const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,6 +25,8 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
     trxId: string;
     pixCode: string;
     qrCodeBase64: string;
+    usdAmount?: number;
+    brlAmount?: number;
   } | null>(null);
 
   // Função para formatar CPF
@@ -79,11 +84,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       return;
     }
 
-    const amountValue = parseFloat(amount);
-    if (amountValue < 2) {
+    const usdAmount = parseFloat(amount);
+    if (usdAmount < 2) {
       toast({
         title: 'Valor mínimo',
-        description: 'O valor mínimo é R$ 2,00',
+        description: 'O valor mínimo é $2.00',
         variant: 'destructive',
       });
       return;
@@ -92,6 +97,16 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
     setLoading(true);
 
     try {
+       // Converter USD para BRL para criar o PIX
+       const conversion = await convertUSDToBRL(usdAmount);
+       const brlAmount = conversion.brlAmount;
+       
+       console.log('💱 Conversão de moeda:', {
+         usd: usdAmount,
+         brl: brlAmount,
+         rate: conversion.exchangeRate
+       });
+
       // URL de callback para webhook
       const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook`;
 
@@ -100,7 +115,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
       // Criar depósito no DigitoPay via Edge Function
       // A Edge Function já salva a transação automaticamente
       const result = await DigitoPayService.createDeposit(
-        amountValue,
+        brlAmount, // Valor em BRL para o PIX
         cpf,
         profile.display_name || profile.username || 'Nome não informado',
         callbackUrl
@@ -114,13 +129,17 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
           trxId: result.id,
           pixCode: result.pixCopiaECola || '',
           qrCodeBase64: result.qrCodeBase64 || '',
+          usdAmount: usdAmount,
+          brlAmount: brlAmount,
         });
 
         console.log('📱 Dados do depósito configurados:', {
           trxId: result.id,
           hasPixCode: !!result.pixCopiaECola,
           hasQrCode: !!result.qrCodeBase64,
-          qrCodeLength: result.qrCodeBase64?.length || 0
+          qrCodeLength: result.qrCodeBase64?.length || 0,
+          usdAmount: usdAmount,
+          brlAmount: brlAmount
         });
 
         toast({
@@ -224,132 +243,183 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <QrCode className="h-5 w-5" />
+    <Card className="w-full max-w-md mx-auto h-fit max-h-[80vh] overflow-hidden">
+      <CardHeader className="pb-3 px-4">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
           Depósito PIX
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm leading-relaxed">
           Faça um depósito via PIX para adicionar saldo à sua conta
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-
+      <CardContent className="space-y-3 px-4 pb-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+        {/* Informação da cotação atual */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+            <span className="text-xs sm:text-sm font-medium text-blue-800">Conversão Automática</span>
+          </div>
+          <p className="text-xs text-blue-700 mb-2 leading-relaxed">
+            Digite o valor em dólares e o PIX será gerado automaticamente em reais.
+          </p>
+          <div className="text-xs sm:text-sm">
+            <ExchangeRateInfo className="text-blue-600" />
+          </div>
+        </div>
 
         {!depositData ? (
           <>
             <div className="space-y-2">
-              <Label htmlFor="amount">Valor (R$)</Label>
+              <Label htmlFor="amount" className="text-sm font-medium">Valor (USD)</Label>
               <Input
                 id="amount"
                 type="number"
-                placeholder="0,00"
+                placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 min="2"
                 step="0.01"
+                className="text-base"
               />
+              {/* Mostrar conversão em tempo real */}
+              {amount && parseFloat(amount) > 0 && (
+                <div className="mt-2 p-2 sm:p-3 bg-gray-50 rounded-lg border">
+                  <div className="text-xs text-muted-foreground mb-2">Valor do PIX em reais:</div>
+                  <CurrencyDisplay 
+                    usdAmount={parseFloat(amount)}
+                    size="sm"
+                    orientation="horizontal"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cpf">CPF</Label>
+              <Label htmlFor="cpf" className="text-sm font-medium">CPF</Label>
               <Input
                 id="cpf"
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={(e) => setCpf(formatCPF(e.target.value))}
                 maxLength={14}
+                className="text-base"
               />
             </div>
 
             <Button
               onClick={handleCreateDeposit}
               disabled={loading || !amount || !cpf}
-              className="w-full"
+              className="w-full text-sm sm:text-base py-2 sm:py-3"
             >
               {loading ? 'Criando depósito...' : 'Criar Depósito'}
             </Button>
           </>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="text-center">
-              <h3 className="font-semibold mb-2">Pagamento PIX</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-2">Pagamento PIX</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2 leading-relaxed">
                 Escaneie o QR Code ou copie o código PIX
               </p>
+              
+              {/* Mostrar valores do depósito */}
+              {depositData.brlAmount && depositData.usdAmount && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3 mb-3">
+                  <div className="text-xs sm:text-sm font-medium text-green-800 mb-2">Detalhes do Depósito</div>
+                  <div className="space-y-1 sm:space-y-2">
+                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                      <span className="text-green-700">Valor PIX:</span>
+                      <span className="font-semibold text-green-800">{formatBRL(depositData.brlAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                      <span className="text-green-700">Crédito USD:</span>
+                      <span className="font-semibold text-green-800">{formatUSD(depositData.usdAmount)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {depositData.qrCodeBase64 && (
-              <div className="flex justify-center">
-                <img
-                  src={depositData.qrCodeBase64.startsWith('data:') 
-                    ? depositData.qrCodeBase64 
-                    : `data:image/png;base64,${depositData.qrCodeBase64}`}
-                  alt="QR Code PIX"
-                  className="border rounded-lg"
-                  width={200}
-                  height={200}
-                  onError={(e) => {
-                    console.error('❌ Erro ao carregar QR Code:', e);
-                    console.log('📄 QR Code data:', depositData.qrCodeBase64?.substring(0, 100) + '...');
-                  }}
-                  onLoad={() => {
-                    console.log('✅ QR Code carregado com sucesso');
-                  }}
-                />
+              <div className="flex justify-center py-2">
+                <div className="bg-white p-2 sm:p-3 rounded-lg border shadow-sm max-w-full">
+                  <img
+                    src={depositData.qrCodeBase64.startsWith('data:') 
+                      ? depositData.qrCodeBase64 
+                      : `data:image/png;base64,${depositData.qrCodeBase64}`}
+                    alt="QR Code PIX"
+                    className="rounded-md w-full h-auto"
+                    style={{ 
+                      width: '160px', 
+                      height: '160px', 
+                      maxWidth: '100%',
+                      minWidth: '120px'
+                    }}
+                    onError={(e) => {
+                      console.error('❌ Erro ao carregar QR Code:', e);
+                      console.log('📄 QR Code data:', depositData.qrCodeBase64?.substring(0, 100) + '...');
+                    }}
+                    onLoad={() => {
+                      console.log('✅ QR Code carregado com sucesso');
+                    }}
+                  />
+                </div>
               </div>
             )}
 
             {depositData.pixCode && (
               <div className="space-y-2">
-                <Label>Código PIX</Label>
+                <Label className="text-xs sm:text-sm font-medium">Código PIX</Label>
                 <div className="flex gap-2">
                   <Input
                     value={depositData.pixCode}
                     readOnly
-                    className="font-mono text-sm"
+                    className="font-mono text-xs leading-relaxed bg-gray-50"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={copyPixCode}
                     title="Copiar código PIX"
+                    className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={downloadQRCode}
+                  className="flex-1 text-xs sm:text-sm py-2"
+                  disabled={!depositData.qrCodeBase64}
+                >
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                  <span className="truncate">Baixar QR</span>
+                </Button>
+                <Button
+                  onClick={checkStatus}
+                  className="flex-1 text-xs sm:text-sm py-2"
+                >
+                  <span className="truncate">Verificar Status</span>
+                </Button>
+              </div>
+
               <Button
                 variant="outline"
-                onClick={downloadQRCode}
-                className="flex-1"
-                disabled={!depositData.qrCodeBase64}
+                onClick={() => setDepositData(null)}
+                className="w-full text-xs sm:text-sm py-2"
               >
-                <Download className="h-4 w-4 mr-2" />
-                Baixar QR Code
-              </Button>
-              <Button
-                onClick={checkStatus}
-                className="flex-1"
-              >
-                Verificar Status
+                Novo Depósito
               </Button>
             </div>
-
-            <Button
-              variant="outline"
-              onClick={() => setDepositData(null)}
-              className="w-full"
-            >
-              Novo Depósito
-            </Button>
           </div>
         )}
       </CardContent>
     </Card>
   );
-}; 
+};

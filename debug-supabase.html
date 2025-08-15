@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Debug Supabase Connection</h1>
+    <div id="results"></div>
+    
+    <script>
+        const SUPABASE_URL = 'https://cbwpghrkfvczjqzefvix.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message, isError = false) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.style.color = isError ? 'red' : 'green';
+            resultsDiv.appendChild(p);
+            console.log(message);
+        }
+        
+        async function testSupabase() {
+            log('🔍 Iniciando testes do Supabase...');
+            
+            // Teste 1: Conectividade básica
+            try {
+                log('\n1. Testando conectividade básica...');
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Erro na conectividade: ${error.message}`, true);
+                    log(`Código: ${error.code}`, true);
+                    log(`Detalhes: ${error.details}`, true);
+                } else {
+                    log('✅ Conectividade básica OK');
+                }
+            } catch (err) {
+                log(`❌ Erro crítico: ${err.message}`, true);
+            }
+            
+            // Teste 2: Tabela investment_plans
+            try {
+                log('\n2. Testando tabela investment_plans...');
+                const { data, error } = await supabase
+                    .from('investment_plans')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Erro na tabela investment_plans: ${error.message}`, true);
+                    log(`Código: ${error.code}`, true);
+                    log(`Detalhes: ${error.details}`, true);
+                    log(`Hint: ${error.hint}`, true);
+                } else {
+                    log(`✅ Tabela investment_plans OK - ${data?.length || 0} registros`);
+                    if (data && data.length > 0) {
+                        log(`Primeiro registro: ${JSON.stringify(data[0], null, 2)}`);
+                    }
+                }
+            } catch (err) {
+                log(`❌ Erro crítico na tabela: ${err.message}`, true);
+            }
+            
+            // Teste 3: Planos ativos
+            try {
+                log('\n3. Testando planos ativos...');
+                const { data, error } = await supabase
+                    .from('investment_plans')
+                    .select('*')
+                    .eq('status', 'active');
+                
+                if (error) {
+                    log(`❌ Erro nos planos ativos: ${error.message}`, true);
+                    log(`Código: ${error.code}`, true);
+                    log(`Detalhes: ${error.details}`, true);
+                } else {
+                    log(`✅ Planos ativos OK - ${data?.length || 0} registros`);
+                    data?.forEach((plan, index) => {
+                        log(`Plano ${index + 1}: ${plan.name} - ${plan.daily_rate}% - R$ ${plan.minimum_amount}-${plan.maximum_amount}`);
+                    });
+                }
+            } catch (err) {
+                log(`❌ Erro crítico nos planos: ${err.message}`, true);
+            }
+            
+            log('\n🏁 Testes concluídos!');
+        }
+        
+        // Executar testes quando a página carregar
+        window.addEventListener('load', testSupabase);
+    </script>
+</body>
+</html>
