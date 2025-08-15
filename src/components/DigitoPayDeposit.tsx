@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DigitoPayService } from '@/services/digitopayService';
 import { useAuth } from '@/hooks/useAuth';
 import { Copy, Download, QrCode, DollarSign } from 'lucide-react';
-import { CurrencyDisplay, ExchangeRateInfo } from '@/components/CurrencyDisplay';
+import { CurrencyDisplay } from '@/components/CurrencyDisplay';
 import { useCurrency } from '@/hooks/useCurrency';
 
 interface DigitoPayDepositProps {
@@ -254,17 +254,20 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({ onSuccess })
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pb-4 overflow-y-auto max-h-[calc(80vh-120px)]">
-        {/* Informação da cotação atual */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-            <span className="text-xs sm:text-sm font-medium text-blue-800">Conversão Automática</span>
-          </div>
-          <p className="text-xs text-blue-700 mb-2 leading-relaxed">
-            Digite o valor em dólares e o PIX será gerado automaticamente em reais.
-          </p>
-          <div className="text-xs sm:text-sm">
-            <ExchangeRateInfo className="text-blue-600" />
+        {/* Valor para depósito - Box estilizado */}
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border-2 border-primary/20 shadow-md">
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <QrCode className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <h4 className="font-semibold text-sm sm:text-base text-primary">Valor para Depósito</h4>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-primary/10 shadow-inner">
+              {amount && parseFloat(amount) > 0 ? (
+                <CurrencyDisplay usdAmount={parseFloat(amount)} size="md" orientation="vertical" />
+              ) : (
+                <div className="text-xs sm:text-sm text-muted-foreground">Informe o valor em USD para ver o total em reais</div>
+              )}
+            </div>
           </div>
         </div>
 

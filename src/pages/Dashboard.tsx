@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
 import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
+import { executeSupabaseOperation, connectionMonitor } from "@/services/connectionMonitor";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -51,23 +52,27 @@ const Dashboard = () => {
    const [isUpdatingAlphabot, setIsUpdatingAlphabot] = useState(false);
    const [timeUntilUpdate, setTimeUntilUpdate] = useState({ hours: 24, minutes: 0 });
   const [communityMessages, setCommunityMessages] = useState([]);
+  const [connectionStatus, setConnectionStatus] = useState({ isOnline: true, consecutiveFailures: 0 });
 
   // Carregar mensagens da comunidade
   const loadCommunityMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('community_posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      const result = await executeSupabaseOperation(async () => {
+        const { data, error } = await supabase
+          .from('community_posts')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-      if (error) {
-        console.error('Erro ao carregar mensagens da comunidade:', error);
-        return;
-      }
+        if (error) {
+          throw new Error(`Supabase error: ${error.message}`);
+        }
+
+        return data;
+      });
 
       // Formatar mensagens para o formato esperado
-      const formattedMessages = data?.map(post => ({
+      const formattedMessages = result?.map(post => ({
         id: post.id,
         user: post.author_name || 'Usuário Anônimo',
         avatar: post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U',
@@ -83,8 +88,57 @@ const Dashboard = () => {
       })) || [];
 
       setCommunityMessages(formattedMessages);
+      
+      // Cache dos dados para uso offline
+      localStorage.setItem('community_messages_cache', JSON.stringify(formattedMessages));
+      
     } catch (error) {
       console.error('Erro ao carregar mensagens da comunidade:', error);
+      
+      // Usar dados em cache quando houver erro
+      console.log('🔄 Usando dados em cache devido a problema de conexão');
+      const cachedMessages = localStorage.getItem('community_messages_cache');
+      if (cachedMessages) {
+        setCommunityMessages(JSON.parse(cachedMessages));
+        toast({
+          title: "Modo Offline",
+          description: "Exibindo dados em cache. Tentando reconectar...",
+          variant: "default"
+        });
+      } else {
+        // Dados padrão se não houver cache
+        setCommunityMessages([
+          {
+            id: 'default-1',
+            user: 'Sistema',
+            avatar: 'S',
+            message: 'Bem-vindo à comunidade AlphaBit! 🚀 Conectando...',
+            time: new Date().toLocaleString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            likes: 0,
+            isVerified: true
+          }
+        ]);
+        
+        toast({
+          title: "Problema de Conexão",
+          description: "Tentando reconectar com o servidor...",
+          variant: "destructive"
+        });
+      }
+      
+      // Tentar reconectar após 5 segundos
+      setTimeout(() => {
+        connectionMonitor.forceCheck().then(isOnline => {
+          if (isOnline) {
+            loadCommunityMessages();
+          }
+        });
+      }, 5000);
     }
   };
 
@@ -175,34 +229,52 @@ const Dashboard = () => {
     // Carregar mensagens iniciais
     loadCommunityMessages();
 
-    // Configurar listener para atualizações em tempo real
-    const channel = supabase
-      .channel('community_posts_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Escutar todos os eventos (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'community_posts'
-        },
-        (payload) => {
-          console.log('Nova atualização na comunidade:', payload);
-          // Recarregar mensagens quando houver mudanças
-          loadCommunityMessages();
-        }
-      )
-      .subscribe();
+    // Monitorar status de conexão
+    const unsubscribeConnection = connectionMonitor.onStatusChange((status) => {
+      setConnectionStatus(status);
+      
+      // Se a conexão foi restaurada, recarregar mensagens
+      if (status.isOnline && status.consecutiveFailures === 0) {
+        loadCommunityMessages();
+      }
+    });
 
-    // Atualizar mensagens a cada 30 segundos como fallback
+    // Configurar listener para atualizações em tempo real (apenas se online)
+    let channel: any = null;
+    if (connectionStatus.isOnline) {
+      channel = supabase
+        .channel('community_posts_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Escutar todos os eventos (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'community_posts'
+          },
+          (payload) => {
+            console.log('Nova atualização na comunidade:', payload);
+            // Recarregar mensagens quando houver mudanças
+            loadCommunityMessages();
+          }
+        )
+        .subscribe();
+    }
+
+    // Atualizar mensagens a cada 60 segundos como fallback (apenas se online)
     const messageInterval = setInterval(() => {
-      loadCommunityMessages();
-    }, 30000);
+      if (connectionStatus.isOnline) {
+        loadCommunityMessages();
+      }
+    }, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribeConnection();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
       clearInterval(messageInterval);
     };
-  }, []);
+  }, [connectionStatus.isOnline]);
 
   // Carregar dados reais do usuário
   useEffect(() => {
@@ -827,15 +899,36 @@ const Dashboard = () => {
                 <div className="flex items-center">
                   <Users className="h-5 w-5 mr-2 text-primary" />
                   Mensagens da Comunidade
+                  {/* Indicador de status de conexão */}
+                  <div className={`w-2 h-2 rounded-full ml-2 ${
+                    connectionStatus.isOnline 
+                      ? 'bg-green-500' 
+                      : connectionStatus.consecutiveFailures > 0 
+                      ? 'bg-yellow-500' 
+                      : 'bg-red-500'
+                  }`} title={connectionStatus.isOnline ? 'Online' : 'Offline'} />
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={loadCommunityMessages}
-                  className="text-primary hover:text-primary/80"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {!connectionStatus.isOnline && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => connectionMonitor.forceCheck()}
+                      className="text-yellow-600 hover:text-yellow-700"
+                      title="Tentar reconectar"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={loadCommunityMessages}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>

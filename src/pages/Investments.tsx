@@ -54,7 +54,7 @@ import {
 } from "recharts";
 import TradingSimulator from "@/components/TradingSimulator";
 import { useNavigate } from "react-router-dom";
-import { CurrencyDisplay, ExchangeRateInfo } from "@/components/CurrencyDisplay";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { useCurrency } from "@/hooks/useCurrency";
 
 interface Investment {
@@ -1789,36 +1789,28 @@ const Investments = () => {
                 </div>
               </div>
 
-              {/* Informação da cotação atual */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">Cotação Atual</span>
+              {/* Valor para depósito - Box estilizado */}
+              <div className="p-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border-2 border-primary/20 shadow-md">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Wallet className="h-5 w-5 text-primary" />
+                  <h4 className="font-bold text-base text-primary">Valor para Depósito</h4>
                 </div>
-                <ExchangeRateInfo className="text-blue-600" />
-                <p className="text-xs text-blue-700 mt-2">
-                  Os valores são em dólares e convertidos automaticamente para depósito em reais.
-                </p>
-              </div>
-
-              {/* Informações sobre depósito necessário */}
-              <div className="p-3 sm:p-4 bg-primary/10 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Wallet className="h-4 w-4 text-primary" />
-                  <h4 className="font-semibold text-sm text-primary">Valor para Depósito</h4>
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
-                  Para ativar este plano, você precisará depositar o valor do investimento em sua conta.
-                </p>
-                <div className="bg-background/50 rounded p-3">
-                  <div className="text-center mb-2">
-                    <span className="text-xs text-muted-foreground">Valor necessário:</span>
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-primary/10 shadow-inner">
+                  <div className="text-center space-y-2">
+                    <div className="text-sm text-muted-foreground font-medium">
+                      Valor necessário para ativar este plano:
+                    </div>
+                    <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                      <CurrencyDisplay 
+                        usdAmount={parseFloat(investmentAmount) || selectedInvestment.minimumAmount}
+                        size="md"
+                        orientation="vertical"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Faça o depósito na página de depósitos para ativar seu investimento
+                    </p>
                   </div>
-                  <CurrencyDisplay 
-                    usdAmount={parseFloat(investmentAmount) || selectedInvestment.minimumAmount}
-                    size="sm"
-                    orientation="vertical"
-                  />
                 </div>
               </div>
 
