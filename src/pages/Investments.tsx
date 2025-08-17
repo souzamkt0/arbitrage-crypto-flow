@@ -364,7 +364,11 @@ const Investments = () => {
             id,
             amount,
             created_at,
-            user_id
+            user_id,
+            operations_completed,
+            total_earned,
+            daily_rate,
+            status
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
@@ -379,18 +383,18 @@ const Investments = () => {
             investmentId: 'basic-plan',
             investmentName: 'Plano Básico',
             amount: inv.amount,
-            dailyRate: 2.5,
+            dailyRate: inv.daily_rate || 2.5,
             startDate: inv.created_at?.split('T')[0] || '',
             endDate: '',
-            totalEarned: 0,
-            status: "active" as "active" | "completed",
+            totalEarned: inv.total_earned || 0,
+            status: (inv.status as "active" | "completed") || "active",
             daysRemaining: 30,
             currentDayProgress: 0,
             todayEarnings: 0,
-            dailyTarget: (inv.amount * 2.5) / 100,
+            dailyTarget: (inv.amount * (inv.daily_rate || 2.5)) / 100,
             currentOperation: undefined,
-            operationsCompleted: 0,
-            totalOperations: 15
+            operationsCompleted: inv.operations_completed || 0,
+            totalOperations: 2
           }));
           setUserInvestments(formattedInvestments);
           
@@ -666,6 +670,11 @@ const Investments = () => {
         return newBalance;
       });
 
+      // Recarregar investimentos para atualizar o contador de operações
+      setTimeout(async () => {
+        await loadUserData();
+      }, 1000);
+
       // Buscar dados atuais do usuário no Supabase
       const { data: currentProfile } = await supabase
         .from('profiles')
@@ -676,11 +685,33 @@ const Investments = () => {
       const newBalance = (currentProfile?.balance || 0) + profit;
       const newTotalProfit = (currentProfile?.total_profit || 0) + profit;
 
-      // Registrar operação de trading na tabela trading_history
-      if (selectedInvestmentForTrading) {
-        const operationId = `OP_${Date.now()}_${selectedInvestmentForTrading.investmentName}`;
-        const buyPrice = 43000 + (Math.random() - 0.5) * 1000; // Preço base com variação
-        const sellPrice = buyPrice * (1 + (Math.random() * 0.002 + 0.001)); // 0.1% a 0.3% lucro
+              // Atualizar investimento no banco de dados
+        if (selectedInvestmentForTrading && user) {
+          const newOperationsCompleted = selectedInvestmentForTrading.operationsCompleted + 1;
+          const newTotalEarned = selectedInvestmentForTrading.totalEarned + profit;
+          
+          const { error: updateError } = await supabase
+            .from('user_investments')
+            .update({
+              operations_completed: newOperationsCompleted,
+              total_earned: newTotalEarned,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', selectedInvestmentForTrading.id)
+            .eq('user_id', user.id);
+
+          if (updateError) {
+            console.error('Erro ao atualizar investimento no banco:', updateError);
+          } else {
+            console.log('✅ Investimento atualizado no banco de dados');
+          }
+        }
+
+        // Registrar operação de trading na tabela trading_history
+        if (selectedInvestmentForTrading) {
+          const operationId = `OP_${Date.now()}_${selectedInvestmentForTrading.investmentName}`;
+          const buyPrice = 43000 + (Math.random() - 0.5) * 1000; // Preço base com variação
+          const sellPrice = buyPrice * (1 + (Math.random() * 0.002 + 0.001)); // 0.1% a 0.3% lucro
         
         await supabase
           .from('trading_history')
@@ -1706,7 +1737,7 @@ const Investments = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Máx:</span>
-                  <span className="text-white font-bold">$999 USDT</span>
+                  <span className="text-white font-bold">$5,000 USDT</span>
                 </div>
               </div>
               
@@ -1761,7 +1792,21 @@ const Investments = () => {
                         { amount: 70, returns: [1.75, 12.25, 26.25, 52.50, 70.00] },
                         { amount: 80, returns: [2.00, 14.00, 30.00, 60.00, 80.00] },
                         { amount: 90, returns: [2.25, 15.75, 33.75, 67.50, 90.00] },
-                        { amount: 100, returns: [2.50, 17.50, 37.50, 75.00, 100.00] }
+                        { amount: 100, returns: [2.50, 17.50, 37.50, 75.00, 100.00] },
+                        { amount: 200, returns: [5.00, 35.00, 75.00, 150.00, 200.00] },
+                        { amount: 300, returns: [7.50, 52.50, 112.50, 225.00, 300.00] },
+                        { amount: 400, returns: [10.00, 70.00, 150.00, 300.00, 400.00] },
+                        { amount: 500, returns: [12.50, 87.50, 187.50, 375.00, 500.00] },
+                        { amount: 750, returns: [18.75, 131.25, 281.25, 562.50, 750.00] },
+                        { amount: 1000, returns: [25.00, 175.00, 375.00, 750.00, 1000.00] },
+                        { amount: 1500, returns: [37.50, 262.50, 562.50, 1125.00, 1500.00] },
+                        { amount: 2000, returns: [50.00, 350.00, 750.00, 1500.00, 2000.00] },
+                        { amount: 2500, returns: [62.50, 437.50, 937.50, 1875.00, 2500.00] },
+                        { amount: 3000, returns: [75.00, 525.00, 1125.00, 2250.00, 3000.00] },
+                        { amount: 3500, returns: [87.50, 612.50, 1312.50, 2625.00, 3500.00] },
+                        { amount: 4000, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
+                        { amount: 4500, returns: [112.50, 787.50, 1687.50, 3375.00, 4500.00] },
+                        { amount: 5000, returns: [125.00, 875.00, 1875.00, 3750.00, 5000.00] }
                       ].map((plan, index) => (
                         <tr key={index} className="border-b border-border/30 hover:bg-primary/5 transition-colors">
                           <td className={`${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} font-bold text-primary`}>${plan.amount}</td>
@@ -1875,7 +1920,7 @@ const Investments = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Máx:</span>
-                  <span className="text-white font-bold">$4,999 USDT</span>
+                  <span className="text-white font-bold">$5,000 USDT</span>
                 </div>
               </div>
               
@@ -1934,7 +1979,20 @@ const Investments = () => {
                         { amount: 140, returns: [4.20, 29.40, 63.00, 126.00, 168.00] },
                         { amount: 160, returns: [4.80, 33.60, 72.00, 144.00, 192.00] },
                         { amount: 180, returns: [5.40, 37.80, 81.00, 162.00, 216.00] },
-                        { amount: 200, returns: [6.00, 42.00, 90.00, 180.00, 240.00] }
+                        { amount: 200, returns: [6.00, 42.00, 90.00, 180.00, 240.00] },
+                        { amount: 300, returns: [9.00, 63.00, 135.00, 270.00, 360.00] },
+                        { amount: 400, returns: [12.00, 84.00, 180.00, 360.00, 480.00] },
+                        { amount: 500, returns: [15.00, 105.00, 225.00, 450.00, 600.00] },
+                        { amount: 750, returns: [22.50, 157.50, 337.50, 675.00, 900.00] },
+                        { amount: 1000, returns: [30.00, 210.00, 450.00, 900.00, 1200.00] },
+                        { amount: 1500, returns: [45.00, 315.00, 675.00, 1350.00, 1800.00] },
+                        { amount: 2000, returns: [60.00, 420.00, 900.00, 1800.00, 2400.00] },
+                        { amount: 2500, returns: [75.00, 525.00, 1125.00, 2250.00, 3000.00] },
+                        { amount: 3000, returns: [90.00, 630.00, 1350.00, 2700.00, 3600.00] },
+                        { amount: 3500, returns: [105.00, 735.00, 1575.00, 3150.00, 4200.00] },
+                        { amount: 4000, returns: [120.00, 840.00, 1800.00, 3600.00, 4800.00] },
+                        { amount: 4500, returns: [135.00, 945.00, 2025.00, 4050.00, 5400.00] },
+                        { amount: 5000, returns: [150.00, 1050.00, 2250.00, 4500.00, 6000.00] }
                       ].map((plan, index) => (
                         <tr key={index} className="border-b border-border/30 hover:bg-warning/5 transition-colors">
                           <td className="p-2 sm:p-3 font-bold text-warning">${plan.amount}</td>

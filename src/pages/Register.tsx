@@ -200,7 +200,7 @@ const Register = () => {
         lastName: formData.lastName,
         username: formData.username,
         cpf: formData.cpf,
-        whatsapp: formData.whatsapp,
+      whatsapp: formData.whatsapp,
         referralCode: referralCode
       });
       
@@ -255,8 +255,8 @@ const Register = () => {
           });
           
           // Redirect to login if auto-login failed
-          setTimeout(() => {
-            navigate('/login');
+      setTimeout(() => {
+        navigate('/login');
           }, 3000);
         }
       }, 3000); // Aguardar 3 segundos antes de tentar o login
@@ -318,7 +318,7 @@ const Register = () => {
           <div className="absolute left-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-400"></div>
           <div className="absolute right-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-1200"></div>
         </div>
-        
+
         {/* Binance-style particles */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-16 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
@@ -409,7 +409,7 @@ const Register = () => {
               )}
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleRegister} className="space-y-4">
+                <form onSubmit={handleRegister} className="space-y-4">
                 {/* Name Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animation-delay-600">
                   {/* First Name */}
@@ -533,7 +533,7 @@ const Register = () => {
                   {errors.whatsapp && (
                     <p className="text-red-400 text-xs">{errors.whatsapp}</p>
                   )}
-                </div>
+                  </div>
                   
                 {/* Password Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animation-delay-1100">
@@ -613,9 +613,9 @@ const Register = () => {
                 </div>
 
                                 {/* Register Button */}
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
                   className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-4 rounded-2xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 animate-fade-in-up animation-delay-1300 text-lg disabled:opacity-50 disabled:cursor-not-allowed" 
                 >
                   {isLoading ? (
