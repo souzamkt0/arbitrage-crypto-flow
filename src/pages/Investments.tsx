@@ -222,6 +222,17 @@ const Investments = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  // Função para calcular o lucro do dia atual
+  const calculateTodayEarnings = (investment: UserInvestment) => {
+    // Cada operação rende 1.25% (metade da taxa diária de 2.5%)
+    const operationRate = 1.25;
+    const earningsPerOperation = (investment.amount * operationRate) / 100;
+    
+    // Lucro do dia = operações realizadas hoje × ganho por operação
+    const todayEarnings = earningsPerOperation * investment.operationsCompleted;
+    return todayEarnings;
+  };
+
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
 
   // Função para calcular operações de um plano
@@ -1351,6 +1362,11 @@ const Investments = () => {
                             <span className="font-bold text-green-400">+${investment.totalEarned.toFixed(2)}</span>
                           </div>
                           
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Lucro do Dia</span>
+                            <span className="font-bold text-yellow-400">+${calculateTodayEarnings(investment).toFixed(2)}</span>
+                          </div>
+                          
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-400">Dias Restantes</span>
@@ -2175,7 +2191,7 @@ const Investments = () => {
           </div>
 
           {/* ESTATÍSTICAS GERAIS */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
             <div className="text-center">
               <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Investido</div>
               <div className="text-base sm:text-lg font-bold text-foreground">${totalInvested.toFixed(2)}</div>
@@ -2192,6 +2208,12 @@ const Investments = () => {
               <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações Hoje</div>
               <div className="text-base sm:text-lg font-bold text-warning">
                 {userInvestments.reduce((total, inv) => total + inv.operationsCompleted, 0)}/{getTotalActiveOperations()}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">Lucro do Dia</div>
+              <div className="text-base sm:text-lg font-bold text-yellow-400">
+                +${userInvestments.reduce((total, inv) => total + calculateTodayEarnings(inv), 0).toFixed(2)}
               </div>
             </div>
           </div>
