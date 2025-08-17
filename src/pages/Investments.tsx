@@ -39,7 +39,9 @@ import {
   TrendingDown,
   CheckCircle,
   PlayCircle,
-  Users
+  Users,
+  ChevronDown,
+  Lock
 } from "lucide-react";
 import {
   LineChart,
@@ -231,6 +233,16 @@ const Investments = () => {
     // Lucro do dia = operações realizadas hoje × ganho por operação
     const todayEarnings = earningsPerOperation * investment.operationsCompleted;
     return todayEarnings;
+  };
+
+  // Função para ativar um plano
+  const handleActivatePlan = (planId: string) => {
+    console.log('Ativando plano:', planId);
+    // Aqui você pode implementar a lógica de ativação do plano
+    toast({
+      title: "🎉 Plano Ativado!",
+      description: `O plano ${planId} foi ativado com sucesso!`,
+    });
   };
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", "MATIC/USDT"];
@@ -1698,8 +1710,216 @@ const Investments = () => {
             </div>
           </div>
 
-          {/* Dynamic Plan Display based on currentPlanIndex and referral level */}
-          {currentPlanIndex === 0 && (
+          {/* Todos os Planos em Boxes Expansíveis */}
+          <div className="space-y-6">
+            {/* Estado para controlar expansão dos planos */}
+            {(() => {
+              const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
+              
+              const togglePlan = (planId: string) => {
+                setExpandedPlans(prev => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(planId)) {
+                    newSet.delete(planId);
+                  } else {
+                    newSet.add(planId);
+                  }
+                  return newSet;
+                });
+              };
+
+              const isPlanQualified = (planLevel: number) => {
+                const currentLevel = getCurrentLevelFromReferrals();
+                return currentLevel >= planLevel;
+              };
+
+              return (
+                <>
+                  {/* Robô 4.0.0 - Iniciante */}
+                  <div className={`transition-all duration-300 ${isPlanQualified(0) ? 'opacity-100' : 'opacity-50 grayscale'}`}>
+                    <Card className={`${isPlanQualified(0) 
+                      ? 'bg-gradient-to-br from-gray-900 to-gray-800 border border-yellow-500/30 hover:shadow-2xl' 
+                      : 'bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/30 opacity-75'
+                    } transition-all duration-300 overflow-hidden relative`}>
+                      
+                      {/* Background pattern */}
+                      <div className={`absolute inset-0 ${isPlanQualified(0) ? 'bg-gradient-to-r from-yellow-500/5 to-transparent' : 'bg-gradient-to-r from-gray-500/5 to-transparent'}`}></div>
+                      <div className={`absolute top-0 right-0 w-32 h-32 ${isPlanQualified(0) ? 'bg-yellow-500/10' : 'bg-gray-500/10'} rounded-full -translate-y-16 translate-x-16`}></div>
+                      
+                      <CardHeader className={`border-b ${isPlanQualified(0) ? 'border-yellow-500/20' : 'border-gray-600/20'} p-4 sm:p-6 relative z-10 cursor-pointer`} onClick={() => togglePlan('robo-4-0-0')}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`w-12 h-12 ${isPlanQualified(0) ? 'bg-gradient-to-br from-yellow-400 to-yellow-500' : 'bg-gradient-to-br from-gray-400 to-gray-500'} rounded-xl flex items-center justify-center shadow-lg`}>
+                              <Bot className={`h-6 w-6 ${isPlanQualified(0) ? 'text-black' : 'text-gray-300'} font-bold`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className={`text-xl font-bold mb-1 ${isPlanQualified(0) ? 'text-white' : 'text-gray-400'}`}>
+                                🤖 Robô 4.0.0
+                              </CardTitle>
+                              <p className={`text-sm ${isPlanQualified(0) ? 'text-yellow-300/80' : 'text-gray-500'}`}>
+                                2 operações por dia - Taxa diária: 2,5%
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={`${isPlanQualified(0) 
+                              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                              : 'bg-gradient-to-r from-gray-500 to-gray-600 text-gray-300'
+                            } border-0 font-bold`}>
+                              {isPlanQualified(0) ? 'Disponível' : 'Bloqueado'}
+                            </Badge>
+                            <div className="text-right">
+                              <div className={`text-2xl font-bold ${isPlanQualified(0) ? 'text-yellow-400' : 'text-gray-500'}`}>2.5%</div>
+                              <div className="text-xs text-gray-400">diário</div>
+                            </div>
+                            <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${expandedPlans.has('robo-4-0-0') ? 'rotate-180' : ''} ${isPlanQualified(0) ? 'text-yellow-400' : 'text-gray-500'}`} />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      {/* Conteúdo Expansível */}
+                      {expandedPlans.has('robo-4-0-0') && (
+                        <CardContent className="p-6 relative z-10">
+                          {!isPlanQualified(0) && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Lock className="h-5 w-5 text-red-400" />
+                                <span className="text-red-400 font-medium">Plano Bloqueado</span>
+                              </div>
+                              <p className="text-sm text-gray-400">
+                                Você precisa ter pelo menos 0 indicações para acessar este plano.
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Métricas */}
+                          <div className="grid grid-cols-3 gap-4 mb-6">
+                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                              <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
+                              <div className={`text-lg font-bold ${isPlanQualified(0) ? 'text-yellow-400' : 'text-gray-500'}`}>2.5%</div>
+                              <div className={`text-xs ${isPlanQualified(0) ? 'text-green-400' : 'text-gray-500'}`}>+2.5% BTC</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                              <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
+                              <div className={`text-lg font-bold ${isPlanQualified(0) ? 'text-blue-400' : 'text-gray-500'}`}>2x</div>
+                              <div className="text-xs text-gray-400">por dia</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                              <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Período</div>
+                              <div className={`text-lg font-bold ${isPlanQualified(0) ? 'text-orange-400' : 'text-gray-500'}`}>40</div>
+                              <div className="text-xs text-gray-400">dias</div>
+                            </div>
+                          </div>
+                          
+                          {/* Range de Investimento */}
+                          <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-lg p-4 mb-6 border border-gray-600/30">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm text-gray-300">Range de Investimento</span>
+                              <Badge className={`${isPlanQualified(0) ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'} border`}>
+                                Iniciante
+                              </Badge>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Mín:</span>
+                              <span className={`font-bold ${isPlanQualified(0) ? 'text-white' : 'text-gray-500'}`}>$10 USDT</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Máx:</span>
+                              <span className={`font-bold ${isPlanQualified(0) ? 'text-white' : 'text-gray-500'}`}>$5,000 USDT</span>
+                            </div>
+                          </div>
+                          
+                          {/* Características */}
+                          <div className={`bg-gradient-to-r ${isPlanQualified(0) ? 'from-yellow-500/10 to-orange-500/10 border-yellow-500/30' : 'from-gray-500/10 to-gray-600/10 border-gray-500/30'} border rounded-lg p-4 mb-6`}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className={`w-6 h-6 ${isPlanQualified(0) ? 'bg-yellow-500' : 'bg-gray-500'} rounded-full flex items-center justify-center`}>
+                                <Shield className={`h-3 w-3 ${isPlanQualified(0) ? 'text-black' : 'text-gray-300'}`} />
+                              </div>
+                              <h4 className={`text-sm font-bold ${isPlanQualified(0) ? 'text-yellow-400' : 'text-gray-400'}`}>Características do Bot</h4>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
+                              <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <div className={`w-1.5 h-1.5 ${isPlanQualified(0) ? 'bg-green-400' : 'bg-gray-500'} rounded-full`}></div>
+                                <span><strong className={isPlanQualified(0) ? 'text-white' : 'text-gray-400'}>Disponível para todos</strong> - Sem restrições</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <div className={`w-1.5 h-1.5 ${isPlanQualified(0) ? 'bg-green-400' : 'bg-gray-500'} rounded-full`}></div>
+                                <span><strong className={isPlanQualified(0) ? 'text-white' : 'text-gray-400'}>2 operações automáticas</strong> por dia (1,25% cada)</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <div className={`w-1.5 h-1.5 ${isPlanQualified(0) ? 'bg-green-400' : 'bg-gray-500'} rounded-full`}></div>
+                                <span><strong className={isPlanQualified(0) ? 'text-white' : 'text-gray-400'}>Taxa total diária:</strong> 2,5%</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-300">
+                                <div className={`w-1.5 h-1.5 ${isPlanQualified(0) ? 'bg-green-400' : 'bg-gray-500'} rounded-full`}></div>
+                                <span><strong className={isPlanQualified(0) ? 'text-white' : 'text-gray-400'}>Ideal para iniciantes</strong> no trading automatizado</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Tabela de Investimento */}
+                          <div className="overflow-x-auto">
+                            <table className={`w-full ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+                              <thead>
+                                <tr className="border-b border-gray-700">
+                                  <th className="text-left py-2 px-2 text-gray-400 font-medium">Investir</th>
+                                  <th className="text-center py-2 px-2 text-gray-400 font-medium">1 dia</th>
+                                  <th className="text-center py-2 px-2 text-gray-400 font-medium">7 dias</th>
+                                  <th className="text-center py-2 px-2 text-gray-400 font-medium">15 dias</th>
+                                  <th className="text-center py-2 px-2 text-gray-400 font-medium">40 dias</th>
+                                  <th className="text-center py-2 px-2 text-gray-400 font-medium">40 dias</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {[
+                                  { amount: 10, returns: [0.25, 1.75, 3.75, 7.50, 10.00] },
+                                  { amount: 20, returns: [0.50, 3.50, 7.50, 15.00, 20.00] },
+                                  { amount: 30, returns: [0.75, 5.25, 11.25, 22.50, 30.00] },
+                                  { amount: 40, returns: [1.00, 7.00, 15.00, 30.00, 40.00] },
+                                  { amount: 50, returns: [1.25, 8.75, 18.75, 37.50, 50.00] },
+                                  { amount: 100, returns: [2.50, 17.50, 37.50, 75.00, 100.00] },
+                                  { amount: 200, returns: [5.00, 35.00, 75.00, 150.00, 200.00] },
+                                  { amount: 300, returns: [7.50, 52.50, 112.50, 225.00, 300.00] },
+                                  { amount: 400, returns: [10.00, 70.00, 150.00, 300.00, 400.00] },
+                                  { amount: 500, returns: [12.50, 87.50, 187.50, 375.00, 500.00] },
+                                  { amount: 1000, returns: [25.00, 175.00, 375.00, 750.00, 1000.00] },
+                                  { amount: 2000, returns: [50.00, 350.00, 750.00, 1500.00, 2000.00] },
+                                  { amount: 3000, returns: [75.00, 525.00, 1125.00, 2250.00, 3000.00] },
+                                  { amount: 4000, returns: [100.00, 700.00, 1500.00, 3000.00, 4000.00] },
+                                  { amount: 5000, returns: [125.00, 875.00, 1875.00, 3750.00, 5000.00] }
+                                ].map((row, index) => (
+                                  <tr key={index} className="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
+                                    <td className="py-2 px-2 font-medium text-white">${row.amount}</td>
+                                    {row.returns.map((returnValue, returnIndex) => (
+                                      <td key={returnIndex} className={`py-2 px-2 text-center ${isPlanQualified(0) ? 'text-green-400' : 'text-gray-500'}`}>
+                                        ${returnValue.toFixed(2)}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          
+                          {/* Botão de Ativação */}
+                          {isPlanQualified(0) && (
+                            <div className="mt-6">
+                              <Button 
+                                onClick={() => handleActivatePlan('robo-4-0-0')}
+                                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 text-lg transition-all duration-300 transform hover:scale-[1.02]"
+                              >
+                                🚀 Ativar Robô 4.0.0
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      )}
+                    </Card>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
           <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border border-yellow-500/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
             {/* Binance-style background pattern */}
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent"></div>
