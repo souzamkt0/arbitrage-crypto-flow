@@ -78,7 +78,6 @@ interface InvestmentPlan {
   name: string;
   dailyRate: number;
   minimumAmount: number;
-  maximumAmount: number;
   duration: number;
   description: string;
   status: "active" | "inactive";
@@ -233,7 +232,6 @@ const Admin = () => {
             name: plan.name,
             dailyRate: plan.daily_rate,
             minimumAmount: plan.minimum_amount,
-            maximumAmount: plan.maximum_amount,
             duration: plan.duration_days,
             description: plan.description || '',
             status: plan.status as "active" | "inactive",
@@ -533,11 +531,9 @@ const Admin = () => {
               name: selectedPlan.name,
               daily_rate: selectedPlan.dailyRate,
               minimum_amount: selectedPlan.minimumAmount,
-              maximum_amount: selectedPlan.maximumAmount,
               duration_days: selectedPlan.duration,
               description: selectedPlan.description,
-              status: selectedPlan.status,
-              required_referrals: selectedPlan.requiredReferrals
+              status: selectedPlan.status
             }])
             .select()
             .single();
@@ -557,7 +553,6 @@ const Admin = () => {
               name: data.name,
               dailyRate: data.daily_rate,
               minimumAmount: data.minimum_amount,
-              maximumAmount: data.maximum_amount,
               duration: data.duration_days,
               description: data.description || '',
               status: data.status as "active" | "inactive",
@@ -577,11 +572,9 @@ const Admin = () => {
               name: selectedPlan.name,
               daily_rate: selectedPlan.dailyRate,
               minimum_amount: selectedPlan.minimumAmount,
-              maximum_amount: selectedPlan.maximumAmount,
               duration_days: selectedPlan.duration,
               description: selectedPlan.description,
-              status: selectedPlan.status,
-              required_referrals: selectedPlan.requiredReferrals
+              status: selectedPlan.status
             })
             .eq('id', selectedPlan.id);
 

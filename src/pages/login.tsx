@@ -14,9 +14,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
 
+  // Debug: verificar se o componente está carregando
+  useEffect(() => {
+    console.log("🔍 Login component loaded - User:", user);
+  }, [user]);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
+      console.log("🔄 User authenticated, redirecting to dashboard");
       navigate("/dashboard");
     }
   }, [user, navigate]);
@@ -25,10 +31,15 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    console.log("🔐 Attempting login with:", { email });
+    
     const { error } = await signIn(email, password);
     
     if (!error) {
+      console.log("✅ Login successful, redirecting to dashboard");
       navigate("/dashboard");
+    } else {
+      console.log("❌ Login failed:", error);
     }
     
     setIsLoading(false);
