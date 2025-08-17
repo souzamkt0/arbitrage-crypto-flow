@@ -1,40 +1,33 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, User, TrendingUp, MapPin, Building, Phone, Users } from "lucide-react";
-import AvatarSVG from "@/components/AvatarSVG";
+import { Lock, Mail, User, CreditCard, Eye, EyeOff, ArrowLeft, Phone } from "lucide-react";
 
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [referralInfo, setReferralInfo] = useState<{code: string, referrerName: string} | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState("avatar1");
-  const [referralCode, setReferralCode] = useState("");
-  const [referralError, setReferralError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     username: "",
+    cpf: "",
     email: "",
-    password: "",
     whatsapp: "",
-    city: "",
-    state: ""
+    password: "",
+    confirmPassword: ""
   });
-
-  const avatarOptions = [
-    "avatar1", "avatar2", "avatar3", "avatar4", 
-    "avatar5", "avatar6", "avatar7", "avatar8"
-  ];
+  const [referralCode, setReferralCode] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, user } = useAuth();
-  const { referralCode: urlReferralCode } = useParams();
+  const { user, signUp, signIn } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -43,319 +36,719 @@ const Register = () => {
     }
   }, [user, navigate]);
 
-  // Verificar código de referência no banco
-  const checkReferralCode = async (code: string) => {
-    if (!code) {
-      setReferralInfo(null);
-      setReferralError("");
-      return;
+  // Capturar código de indicação da URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+      console.log('🎯 Código de indicação capturado:', refCode);
     }
+  }, []);
 
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('display_name, username')
-        .eq('username', code.toLowerCase())
-        .single();
-
-      if (error || !profile) {
-        setReferralInfo(null);
-        setReferralError("Código de referência inválido");
-      } else {
-        setReferralInfo({ 
-          code: code, 
-          referrerName: profile.display_name || profile.username
-        });
-        setReferralError("");
-      }
-    } catch (error) {
-      setReferralInfo(null);
-      setReferralError("Código de referência inválido");
-    }
+  // CPF mask function
+  const formatCPF = (value: string) => {
+    const cpf = value.replace(/\D/g, '');
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
-  useEffect(() => {
-    if (urlReferralCode) {
-      setReferralCode(urlReferralCode);
-      checkReferralCode(urlReferralCode);
+  // WhatsApp mask function
+  const formatWhatsApp = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  // Validation functions
+  const validateCPF = (cpf: string) => {
+    const cleanCPF = cpf.replace(/\D/g, '');
+    if (cleanCPF.length !== 11) return false;
+    
+    // Check for repeated digits
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    
+    // Validate first digit
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
     }
-    // Set default referral code to souzamkt0
-    else {
-      setReferralCode("souzamkt0");
-      checkReferralCode("souzamkt0");
+    let remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.charAt(9))) return false;
+    
+    // Validate second digit
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
     }
-  }, [urlReferralCode]);
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.charAt(10))) return false;
+    
+    return true;
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "Nome é obrigatório";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Sobrenome é obrigatório";
+    }
+
+    if (!formData.username.trim()) {
+      newErrors.username = "Nome de usuário é obrigatório";
+    } else if (formData.username.length < 3) {
+      newErrors.username = "Nome de usuário deve ter pelo menos 3 caracteres";
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = "Nome de usuário deve conter apenas letras, números e _";
+    }
+
+    if (!formData.cpf) {
+      newErrors.cpf = "CPF é obrigatório";
+    } else if (!validateCPF(formData.cpf)) {
+      newErrors.cpf = "CPF inválido";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email é obrigatório";
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = "Email inválido";
+    }
+
+    if (!formData.whatsapp) {
+      newErrors.whatsapp = "WhatsApp é obrigatório";
+    } else if (!/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.whatsapp)) {
+      newErrors.whatsapp = "WhatsApp deve estar no formato (11) 99999-9999";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Senha é obrigatória";
+    } else if (!validatePassword(formData.password)) {
+      newErrors.password = "Senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirme sua senha";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Senhas não coincidem";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (field: string, value: string) => {
+    let processedValue = value;
+    
+    // Apply CPF mask
+    if (field === 'cpf') {
+      processedValue = formatCPF(value);
+    }
+    
+    // Apply WhatsApp mask
+    if (field === 'whatsapp') {
+      processedValue = formatWhatsApp(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: processedValue
     }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }));
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!referralInfo) {
-      setReferralError("Código de referência é obrigatório");
+    if (!validateForm()) {
+      toast({
+        title: "❌ Erro na validação",
+        description: "Por favor, corrija os campos em vermelho",
+        variant: "destructive"
+      });
       return;
     }
     
     setIsLoading(true);
     
-    const { error } = await signUp(formData.email, formData.password, referralCode);
-    
-    if (!error) {
-      toast({
-        title: "Cadastro realizado!",
-        description: `Indicado por: ${referralInfo.referrerName}`,
+    try {
+      console.log('🔄 Iniciando cadastro real...', formData);
+      
+      const { error } = await signUp(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
+        cpf: formData.cpf,
+        whatsapp: formData.whatsapp,
+        referralCode: referralCode
       });
+      
+      if (error) {
+        console.error('❌ Erro no cadastro:', error);
+        toast({
+          title: "❌ Erro no cadastro",
+          description: error.message || "Erro interno do sistema",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "✅ Cadastro realizado com sucesso!",
+        description: "Sua conta foi criada. Tentando fazer login automático...",
+      });
+      
+      // Tentar fazer login automático após um pequeno delay
+      setTimeout(async () => {
+        try {
+          console.log('🔄 Tentando login automático...');
+          const { error: loginError } = await signIn(formData.email, formData.password);
+          
+          if (!loginError) {
+            toast({
+              title: "🎉 Login automático realizado!",
+              description: "Você foi logado automaticamente e será redirecionado para o dashboard.",
+            });
+            
+            // Redirect to dashboard after successful auto-login
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 1000);
+          } else {
+            console.log('⚠️ Login automático falhou:', loginError);
+            toast({
+              title: "✅ Cadastro realizado!",
+              description: "Sua conta foi criada. Por favor, faça login manualmente.",
+            });
+            
+            // Redirect to login if auto-login failed
+            setTimeout(() => {
+              navigate('/login');
+            }, 3000);
+          }
+        } catch (error) {
+          console.log('⚠️ Erro no login automático:', error);
+          toast({
+            title: "✅ Cadastro realizado!",
+            description: "Sua conta foi criada. Por favor, faça login manualmente.",
+          });
+          
+          // Redirect to login if auto-login failed
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+        }
+      }, 3000); // Aguardar 3 segundos antes de tentar o login
+
+    } catch (error: any) {
+      console.error('❌ Erro no cadastro:', error);
+      
+      toast({
+        title: "❌ Erro no cadastro",
+        description: error.message || "Erro interno do sistema",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary flex items-center justify-center p-3 md:p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-6 md:mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <TrendingUp className="h-8 w-8 md:h-12 md:w-12 text-primary mr-2" />
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">Alphabit</h1>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-800">
+      {/* Binance-inspired Background */}
+      <div className="absolute inset-0">
+        {/* Main gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
+        
+        {/* Geometric patterns */}
+        <div className="absolute inset-0 opacity-20">
+          {/* Large diamond shapes */}
+          <div className="absolute top-20 left-20 w-32 h-32 border-2 border-yellow-400 transform rotate-45 animate-pulse"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 border-2 border-yellow-400 transform rotate-45 animate-pulse animation-delay-400"></div>
+          <div className="absolute bottom-32 left-1/3 w-28 h-28 border-2 border-yellow-400 transform rotate-45 animate-pulse animation-delay-800"></div>
+          
+          {/* Hexagonal patterns */}
+          <div className="absolute top-1/4 left-1/2 w-16 h-16 border-2 border-yellow-400 transform rotate-12 animate-spin-slow"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-20 h-20 border-2 border-yellow-400 transform -rotate-12 animate-spin-slow animation-delay-600"></div>
+        </div>
+        
+        {/* Floating geometric elements */}
+        <div className="absolute inset-0">
+          {/* Yellow accent shapes */}
+          <div className="absolute top-16 left-1/4 w-4 h-4 bg-yellow-400 transform rotate-45 animate-float"></div>
+          <div className="absolute top-32 right-1/3 w-3 h-3 bg-yellow-400 rounded-full animate-float animation-delay-200"></div>
+          <div className="absolute bottom-40 left-1/5 w-5 h-5 bg-yellow-400 transform rotate-45 animate-float animation-delay-400"></div>
+          <div className="absolute bottom-24 right-1/5 w-3 h-3 bg-yellow-400 rounded-full animate-float animation-delay-600"></div>
+          
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="grid grid-cols-12 gap-8 h-full">
+              {Array.from({ length: 48 }).map((_, i) => (
+                <div key={i} className="border border-yellow-400/20 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}></div>
+              ))}
+            </div>
           </div>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Sistema de Arbitragem Automatizada
-          </p>
+        </div>
+        
+        {/* Dynamic lines */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-30 animate-pulse"></div>
+          <div className="absolute bottom-1/3 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-30 animate-pulse animation-delay-800"></div>
+          <div className="absolute left-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-400"></div>
+          <div className="absolute right-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-1200"></div>
+        </div>
+        
+        {/* Binance-style particles */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-16 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+          <div className="absolute top-48 right-20 w-1 h-1 bg-yellow-400 rounded-full animate-ping animation-delay-300"></div>
+          <div className="absolute bottom-32 left-24 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping animation-delay-600"></div>
+          <div className="absolute bottom-48 right-32 w-1 h-1 bg-yellow-400 rounded-full animate-ping animation-delay-900"></div>
         </div>
 
-        <Card className="bg-card border-border shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-center text-card-foreground">
-              Criar conta - Indicação obrigatória
-            </CardTitle>
-            <p className="text-center text-sm text-muted-foreground">
-              É necessário um código de indicação para se cadastrar
-            </p>
-            {referralInfo && (
-              <div className="text-center mt-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <p className="text-sm text-primary font-medium">
-                  ✅ Indicado por: <strong>{referralInfo.referrerName}</strong>
-                </p>
-                <p className="text-xs text-primary/80 mt-1">
-                  Código válido! Pode prosseguir com o cadastro.
-                </p>
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
               </div>
-            )}
-            {referralError && (
-              <div className="text-center mt-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                <p className="text-sm text-destructive font-medium">
-                  ❌ {referralError}
-                </p>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          {/* Back to Login Button */}
+          <div className="mb-6 animate-fade-in-up">
+            <Link to="/login">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/5 transition-all duration-200 transform hover:scale-[1.02] text-sm font-medium flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar ao Login
+              </Button>
+            </Link>
               </div>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="w-full">
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4 text-center">Cadastro</h3>
-                
-                {/* Código de Referência - Obrigatório */}
-                <div className="space-y-2 mb-6">
-                  <Label htmlFor="referral">Código de Indicação *</Label>
+
+          {/* Crypto Finance Logo */}
+          <div className="text-center mb-8 animate-fade-in-up">
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                {/* Binance-inspired Logo Container */}
+                <div className="w-24 h-24 bg-gradient-to-br from-gray-900 to-black rounded-2xl flex items-center justify-center border-2 border-yellow-400/30 shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                  {/* Binance-style Diamond Pattern */}
                   <div className="relative">
-                    <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    {/* Main diamond shape */}
+                    <div className="w-12 h-12 relative">
+                      {/* Outer diamond */}
+                      <div className="absolute inset-0 border-2 border-yellow-400 transform rotate-45 animate-pulse"></div>
+                      {/* Inner diamond */}
+                      <div className="absolute inset-2 border-2 border-yellow-400 transform rotate-45 opacity-60"></div>
+                      {/* Center dot */}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+                      
+                      {/* Corner accents */}
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                      <div className="absolute top-1/2 -left-1 transform -translate-y-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                      <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating elements */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 transform rotate-45 animate-float"></div>
+                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+                
+                {/* Connection lines */}
+                <div className="absolute top-1/2 -left-8 w-6 h-0.5 bg-gradient-to-r from-transparent to-yellow-400 opacity-60 animate-pulse"></div>
+                <div className="absolute top-1/2 -right-8 w-6 h-0.5 bg-gradient-to-l from-transparent to-yellow-400 opacity-60 animate-pulse animation-delay-400"></div>
+              </div>
+            </div>
+            
+            {/* Brand Name */}
+            <div className="mb-2">
+              <h1 className="text-2xl font-bold text-white tracking-wider">
+                <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
+                  ALPHABIT
+                </span>
+              </h1>
+              <p className="text-gray-400 text-sm mt-1">Criar Nova Conta</p>
+            </div>
+          </div>
+
+          {/* Register Card */}
+          <Card className="bg-gradient-to-b from-gray-900/80 to-black/80 backdrop-blur-xl border-white/10 shadow-2xl animate-fade-in-up animation-delay-400 rounded-3xl overflow-hidden">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-white text-xl font-semibold">
+                Cadastro de Usuário
+              </CardTitle>
+              {referralCode && (
+                <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-yellow-400 text-xs">
+                    🎯 Cadastro via indicação: <span className="font-mono font-bold">{referralCode}</span>
+                  </p>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleRegister} className="space-y-4">
+                {/* Name Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animation-delay-600">
+                  {/* First Name */}
+                  <div className="space-y-2">
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        placeholder="Nome"
+                        className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.firstName ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                        required
+                      />
+                    </div>
+                    {errors.firstName && (
+                      <p className="text-red-400 text-xs">{errors.firstName}</p>
+                    )}
+                  </div>
+
+                  {/* Last Name */}
+                  <div className="space-y-2">
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="Sobrenome"
+                        className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.lastName ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                        required
+                      />
+                    </div>
+                    {errors.lastName && (
+                      <p className="text-red-400 text-xs">{errors.lastName}</p>
+                    )}
+                    </div>
+                  </div>
+
+                {/* Username Field */}
+                <div className="space-y-2 animate-fade-in-up animation-delay-700">
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                        <Input
+                      id="username"
+                      name="username"
+                          type="text"
+                      value={formData.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                      placeholder="Nome de usuário"
+                      className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.username ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                          required
+                        />
+                      </div>
+                  {errors.username && (
+                    <p className="text-red-400 text-xs">{errors.username}</p>
+                  )}
+                    </div>
+                    
+                {/* CPF Field */}
+                <div className="space-y-2 animate-fade-in-up animation-delay-800">
+                  <div className="relative group">
+                    <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                        <Input
+                      id="cpf"
+                      name="cpf"
+                          type="text"
+                      value={formData.cpf}
+                      onChange={(e) => handleInputChange('cpf', e.target.value)}
+                      placeholder="CPF (000.000.000-00)"
+                      maxLength={14}
+                      className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.cpf ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                          required
+                        />
+                      </div>
+                  {errors.cpf && (
+                    <p className="text-red-400 text-xs">{errors.cpf}</p>
+                  )}
+                    </div>
+
+                                {/* Email Field */}
+                <div className="space-y-2 animate-fade-in-up animation-delay-900">
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                     <Input
-                      id="referral"
-                      type="text"
-                      placeholder="Digite o código de indicação"
-                      className="pl-9"
-                      value={referralCode}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setReferralCode(value);
-                        checkReferralCode(value);
-                      }}
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="Email"
+                      className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.email ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
                       required
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Use: souzamkt0 (padrão) ou peça um código para quem te indicou.
-                  </p>
+                  {errors.email && (
+                    <p className="text-red-400 text-xs">{errors.email}</p>
+                  )}
                 </div>
 
-                <form onSubmit={handleRegister} className="space-y-4">
-                  {/* Foto de Perfil */}
-                  <div className="space-y-2">
-                    <Label>Foto de Perfil</Label>
-                    <div className="flex items-center space-x-4">
-                      <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-primary bg-background">
-                        <AvatarSVG type={selectedAvatar} />
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {avatarOptions.map((avatar) => (
-                          <button
-                            key={avatar}
-                            type="button"
-                            onClick={() => setSelectedAvatar(avatar)}
-                            className={`relative rounded-full overflow-hidden border-2 transition-all ${
-                              selectedAvatar === avatar 
-                                ? "border-primary shadow-lg" 
-                                : "border-muted hover:border-primary/50"
-                            }`}
-                          >
-                            <div className="h-8 w-8">
-                              <AvatarSVG type={avatar} />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                {/* WhatsApp Field */}
+                <div className="space-y-2 animate-fade-in-up animation-delay-1000">
+                  <div className="relative group">
+                    <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                    <Input
+                      id="whatsapp"
+                      name="whatsapp"
+                      type="text"
+                      value={formData.whatsapp}
+                      onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                      placeholder="WhatsApp (11) 99999-9999"
+                      maxLength={15}
+                      className={`pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 ${errors.whatsapp ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                      required
+                    />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome Completo</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="name"
-                          type="text"
-                          placeholder="João Silva"
-                          className="pl-9"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="username">Usuário</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-3 text-sm text-muted-foreground">@</span>
-                        <Input
-                          id="username"
-                          type="text"
-                          placeholder="joaosilva"
-                          className="pl-8"
-                          value={formData.username}
-                          onChange={(e) => handleInputChange('username', e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  {errors.whatsapp && (
+                    <p className="text-red-400 text-xs">{errors.whatsapp}</p>
+                  )}
+                </div>
                   
+                {/* Password Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up animation-delay-1100">
+                  {/* Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                       <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="joao@email.com"
-                        className="pl-9"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp">WhatsApp *</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="whatsapp"
-                        type="tel"
-                        placeholder="(11) 99999-9999"
-                        className="pl-9"
-                        value={formData.whatsapp}
-                        onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Cidade *</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="city"
-                          type="text"
-                          placeholder="São Paulo"
-                          className="pl-9"
-                          value={formData.city}
-                          onChange={(e) => handleInputChange('city', e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="state">Estado *</Label>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="state"
-                          type="text"
-                          placeholder="SP"
-                          className="pl-9"
-                          value={formData.state}
-                          onChange={(e) => handleInputChange('state', e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Senha *</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-9"
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
                         value={formData.password}
                         onChange={(e) => handleInputChange('password', e.target.value)}
+                        placeholder="Senha"
+                        className={`pl-12 pr-12 py-3 bg-transparent border-0 border-b-2 ${errors.password ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
+                    {errors.password && (
+                      <p className="text-red-400 text-xs">{errors.password}</p>
+                    )}
                   </div>
                   
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-primary hover:bg-primary/90" 
-                    disabled={isLoading || !referralInfo}
-                  >
-                    {isLoading ? "Criando conta..." : "Criar conta"}
+                  {/* Confirm Password */}
+                  <div className="space-y-2">
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                        placeholder="Confirmar Senha"
+                        className={`pl-12 pr-12 py-3 bg-transparent border-0 border-b-2 ${errors.confirmPassword ? 'border-red-500' : 'border-white/20'} text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-400 text-xs">{errors.confirmPassword}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Terms and Conditions */}
+                <div className="flex items-start space-x-2 animate-fade-in-up animation-delay-1200">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    className="mt-1 rounded border-white/20 bg-transparent text-yellow-400 focus:ring-yellow-400"
+                    required
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-300">
+                    Concordo com os{" "}
+                    <a href="#" className="text-yellow-400 hover:text-yellow-300 underline">
+                      Termos de Uso
+                    </a>{" "}
+                    e{" "}
+                    <a href="#" className="text-yellow-400 hover:text-yellow-300 underline">
+                      Política de Privacidade
+                    </a>
+                  </label>
+                </div>
+
+                                {/* Register Button */}
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-4 rounded-2xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 animate-fade-in-up animation-delay-1300 text-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
+                      Criando conta...
+                    </span>
+                  ) : (
+                    "Criar Conta"
+                  )}
                   </Button>
                 </form>
 
-                <div className="mt-6 pt-4 border-t border-border">
-                  <p className="text-center text-sm text-muted-foreground mb-3">
+              {/* Login Link */}
+              <div className="mt-6 pt-6 border-t border-white/10 animate-fade-in-up animation-delay-1400">
+                <p className="text-center text-gray-400 mb-4 text-sm">
                     Já tem uma conta?
                   </p>
                   <Link to="/login">
                     <Button 
-                      variant="outline" 
-                      className="w-full"
+                    variant="ghost" 
+                    className="w-full text-white hover:bg-white/5 transition-all duration-200 transform hover:scale-[1.02] text-sm font-medium"
                     >
                       Fazer Login
                     </Button>
                   </Link>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+      </div>
+
+      <style>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes gradient-x {
+          0%, 100% {
+            background-size: 200% 200%;
+            background-position: left center;
+          }
+          50% {
+            background-size: 200% 200%;
+            background-position: right center;
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        
+        .animate-gradient-x {
+          animation: gradient-x 3s ease infinite;
+        }
+        
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+        
+        .animation-delay-400 {
+          animation-delay: 0.4s;
+        }
+        
+        .animation-delay-600 {
+          animation-delay: 0.6s;
+        }
+        
+        .animation-delay-700 {
+          animation-delay: 0.7s;
+        }
+        
+        .animation-delay-800 {
+          animation-delay: 0.8s;
+        }
+        
+        .animation-delay-900 {
+          animation-delay: 0.9s;
+        }
+        
+        .animation-delay-1000 {
+          animation-delay: 1.0s;
+        }
+        
+        .animation-delay-1100 {
+          animation-delay: 1.1s;
+        }
+        
+        .animation-delay-1200 {
+          animation-delay: 1.2s;
+        }
+        
+        .animation-delay-1300 {
+          animation-delay: 1.3s;
+        }
+        
+        .animation-delay-1400 {
+          animation-delay: 1.4s;
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(45deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(45deg);
+          }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes spin-slow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 20s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };

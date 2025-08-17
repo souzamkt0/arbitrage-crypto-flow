@@ -26,7 +26,8 @@ import {
   UserCheck,
   UserX,
   Filter,
-  Eye
+  Eye,
+  MessageCircle
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResidualEarnings from "@/components/ResidualEarnings";
@@ -55,6 +56,7 @@ const Referrals = () => {
     totalCommission: 0,
     pendingCommission: 0
   });
+  const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -63,40 +65,109 @@ const Referrals = () => {
       if (!user) return;
 
       try {
-        // Get user profile with username for referral link
-        const { data: profile } = await supabase
+        console.log('🔍 Debug Referrals - User ID:', user.id);
+        
+        // Get user profile with referral code for referral link
+        const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
-          .select('username, referral_balance')
+          .select('username, referral_code, referral_balance')
           .eq('user_id', user.id)
           .single();
 
-        if (profile?.username) {
-          setReferralLink(`${window.location.origin}/register?ref=${profile.username}`);
+        console.log('🔍 Debug Referrals - Profile:', userProfile);
+        console.log('🔍 Debug Referrals - Profile Error:', profileError);
+
+        setProfile(userProfile);
+
+        if (userProfile?.referral_code) {
+          setReferralLink(`${window.location.origin}/register?ref=${userProfile.referral_code}`);
+        } else if (userProfile?.username) {
+          setReferralLink(`${window.location.origin}/register?ref=${userProfile.username}`);
         }
 
-        // Get referral data
-        const { data: referrals } = await supabase
-          .from('referrals')
+        // Get referral data - buscar usuários que foram indicados por este usuário
+        console.log('🔍 Debug Referrals - Buscando usuários indicados por:', user.id);
+        
+        // Buscar usuários que têm este usuário como referência (referred_by)
+        // Primeiro, buscar pelo user_id
+        let { data: referredUsers, error: referralsError } = await supabase
+          .from('profiles')
           .select(`
-            *,
-            referred_profile:profiles!referrals_referred_id_fkey(username, display_name, email)
+            user_id,
+            username, 
+            display_name, 
+            email, 
+            whatsapp, 
+            city, 
+            state, 
+            created_at,
+            status,
+            balance,
+            total_profit
           `)
-          .eq('referrer_id', user.id);
+          .eq('referred_by', user.id)
+          .order('created_at', { ascending: false });
 
-        if (referrals) {
+        // Se não encontrar pelo user_id, tentar pelo referral_code
+        if ((!referredUsers || referredUsers.length === 0) && userProfile?.referral_code) {
+          console.log('🔍 Tentando buscar por referral_code:', userProfile.referral_code);
+          const { data: referredByCode, error: codeError } = await supabase
+            .from('profiles')
+            .select(`
+              user_id,
+              username, 
+              display_name, 
+              email, 
+              whatsapp, 
+              city, 
+              state, 
+              created_at,
+              status,
+              balance,
+              total_profit
+            `)
+            .eq('referred_by', userProfile.referral_code)
+            .order('created_at', { ascending: false });
+
+          if (referredByCode && referredByCode.length > 0) {
+            referredUsers = referredByCode;
+            referralsError = codeError;
+          }
+        }
+
+        console.log('🔍 Debug Referrals - Usuários encontrados:', referredUsers);
+        console.log('🔍 Debug Referrals - Error:', referralsError);
+
+        console.log('📊 Dados de usuários indicados:', referredUsers);
+        console.log('❌ Erro:', referralsError);
+
+        if (referredUsers && referredUsers.length > 0) {
           // Calculate stats based on real data
-          const totalCommission = referrals.reduce((sum, ref) => sum + (ref.total_commission || 0), 0);
-          const activeReferrals = referrals.filter(ref => ref.status === 'active').length;
+          const activeReferrals = referredUsers.filter(user => user.status === 'active').length;
+          const totalCommission = referredUsers.reduce((sum, user) => sum + (user.total_profit || 0) * 0.1, 0); // 10% commission
           
           setStats({
-            totalReferrals: referrals.length,
+            totalReferrals: referredUsers.length,
             activeReferrals,
             totalCommission,
-            pendingCommission: 0 // Set to 0 since everything is zeroed
+            pendingCommission: 0
           });
 
-          // For now, keep the mock data format but with zero values
-          setReferredUsers([]);
+          // Convert to the expected format
+          const convertedUsers: ReferredUser[] = referredUsers.map((user) => ({
+            id: user.user_id,
+            name: user.display_name || user.username || 'Usuário',
+            email: user.email || '',
+            whatsapp: user.whatsapp || '',
+            plan: 'Alphabot Básico',
+            investmentAmount: user.balance || 0,
+            commission: (user.total_profit || 0) * 0.1, // 10% commission
+            status: user.status as "active" | "inactive",
+            joinDate: user.created_at,
+            lastActivity: user.created_at
+          }));
+
+          setReferredUsers(convertedUsers);
         } else {
           // Reset all stats to zero
           setStats({
@@ -105,72 +176,20 @@ const Referrals = () => {
             totalCommission: 0,
             pendingCommission: 0
           });
+          setReferredUsers([]);
         }
       } catch (error) {
         console.error('Erro ao carregar dados de referência:', error);
       }
     };
 
-    // Generate fallback referral code if no username
-    const userCode = Math.random().toString(36).substring(2, 15);
-    setReferralLink(`${window.location.origin}/register?ref=${userCode}`);
+          // Generate fallback referral code if no username or referral_code
+      const userCode = Math.random().toString(36).substring(2, 15);
+      setReferralLink(`${window.location.origin}/register?ref=${userCode}`);
     
     loadReferralData();
 
-    // Keep mock data structure but with zero values - remove for production
-    const mockReferredUsers: ReferredUser[] = [
-      {
-        id: "1",
-        name: "Maria Silva",
-        email: "maria@email.com",
-        whatsapp: "+55 11 99999-1234",
-        plan: "Alphabot Básico",
-        investmentAmount: 500,
-        commission: 25,
-        status: "active",
-        joinDate: "2024-06-15",
-        lastActivity: "2024-07-13"
-      },
-      {
-        id: "2", 
-        name: "João Santos",
-        email: "joao@email.com",
-        whatsapp: "+55 11 99999-5678",
-        plan: "Alphabot Intermediário",
-        investmentAmount: 2000,
-        commission: 100,
-        status: "active",
-        joinDate: "2024-06-20",
-        lastActivity: "2024-07-14"
-      },
-      {
-        id: "3",
-        name: "Ana Costa",
-        email: "ana@email.com", 
-        whatsapp: "+55 11 99999-9012",
-        plan: "Alphabot Avançado",
-        investmentAmount: 5000,
-        commission: 250,
-        status: "inactive",
-        joinDate: "2024-07-01",
-        lastActivity: "2024-07-10"
-      },
-      {
-        id: "4",
-        name: "Pedro Oliveira",
-        email: "pedro@email.com",
-        whatsapp: "+55 11 99999-3456",
-        plan: "Alphabot Premium",
-        investmentAmount: 8000,
-        commission: 400,
-        status: "active",
-        joinDate: "2024-07-05",
-        lastActivity: "2024-07-14"
-      }
-    ];
-
-    // Set empty array to show no referrals
-    setReferredUsers([]);
+    // Remove mock data - use real data from database
   }, [user]);
 
   const copyToClipboard = async () => {
@@ -208,6 +227,55 @@ const Referrals = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const sendWelcomeMessage = (whatsapp: string, userName: string) => {
+    if (!whatsapp) {
+      toast({
+        title: "❌ WhatsApp não disponível",
+        description: "Este usuário não possui WhatsApp cadastrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Remover formatação do WhatsApp
+    const cleanWhatsApp = whatsapp.replace(/\D/g, '');
+    
+    // Mensagem de boas-vindas personalizada
+    const welcomeMessage = `Olá ${userName}! 
+
+Bem-vindo(a) ao Alphabit!
+
+Sou o ${profile?.display_name || profile?.username || 'Souza'} e estou muito feliz em ter você conosco!
+
+O que você ganha aqui:
+• Sistema de arbitragem automática
+• Investimentos seguros e lucrativos
+• Suporte 24/7
+• Comunidade exclusiva de traders
+
+Dica: Comece explorando o Dashboard e veja como nosso sistema funciona. Estou aqui para te ajudar em cada passo!
+
+Precisa de ajuda? Me chama aqui mesmo!
+
+Abraços e sucesso!
+${profile?.display_name || profile?.username || 'Souza'}
+Alphabit Team`;
+
+    // Codificar a mensagem para URL
+    const encodedMessage = encodeURIComponent(welcomeMessage);
+    
+    // Criar link do WhatsApp
+    const whatsappUrl = `https://wa.me/55${cleanWhatsApp}?text=${encodedMessage}`;
+    
+    // Abrir WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "✅ Mensagem enviada!",
+      description: `Mensagem de boas-vindas enviada para ${userName}`,
+    });
   };
 
   return (
@@ -311,7 +379,38 @@ const Referrals = () => {
                   Seu Link de Indicação
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Código de Indicação */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                      Seu Código de Indicação
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-secondary border border-border rounded-md px-3 py-2">
+                        <span className="text-lg font-mono font-bold text-primary">
+                          {profile?.referral_code || profile?.username || 'N/A'}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          navigator.clipboard.writeText(profile?.referral_code || profile?.username || '');
+                          toast({
+                            title: "Código copiado!",
+                            description: "Seu código de indicação foi copiado.",
+                          });
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Link Completo */}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={referralLink}
@@ -393,9 +492,25 @@ const Referrals = () => {
                             {user.email}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            <div className="flex items-center text-sm">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {user.whatsapp}
+                            <div className="flex items-center gap-2">
+                              {user.whatsapp ? (
+                                <>
+                                  <div className="flex items-center text-sm">
+                                    📞 {user.whatsapp}
+                                  </div>
+                                  <Button
+                                    onClick={() => sendWelcomeMessage(user.whatsapp, user.name)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                                    title="Enviar mensagem de boas-vindas"
+                                  >
+                                    📱
+                                  </Button>
+                                </>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">Não informado</span>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -414,11 +529,7 @@ const Referrals = () => {
                               variant={user.status === "active" ? "default" : "secondary"}
                               className={user.status === "active" ? "bg-trading-green" : ""}
                             >
-                              {user.status === "active" ? (
-                                <><UserCheck className="h-3 w-3 mr-1" />Ativo</>
-                              ) : (
-                                <><UserX className="h-3 w-3 mr-1" />Inativo</>
-                              )}
+                              {user.status === "active" ? "Ativo" : "Inativo"}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">

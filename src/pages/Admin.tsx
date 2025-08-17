@@ -54,7 +54,9 @@ import {
   Download,
   Wallet,
   CreditCard,
-  ArrowDown
+  ArrowDown,
+  RefreshCw,
+  Crown
 } from "lucide-react";
 
 interface User {
@@ -182,7 +184,33 @@ const Admin = () => {
   // Estados para Trading
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
   const [tradingAction, setTradingAction] = useState("reset");
+  const [deleteInvestmentEmail, setDeleteInvestmentEmail] = useState("");
+  const [deleteInvestmentReason, setDeleteInvestmentReason] = useState("");
+  const [isDeleteInvestmentModalOpen, setIsDeleteInvestmentModalOpen] = useState(false);
+  const [activeInvestments, setActiveInvestments] = useState<any[]>([]);
+  const [isLoadingInvestments, setIsLoadingInvestments] = useState(false);
+  const [selectedInvestmentForDeletion, setSelectedInvestmentForDeletion] = useState<any>(null);
+  const [isIndividualDeleteModalOpen, setIsIndividualDeleteModalOpen] = useState(false);
   
+  // Estados para sistema de sócios
+  const [partners, setPartners] = useState<any[]>([]);
+  const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+  const [isNewPartner, setIsNewPartner] = useState(false);
+  const [partnerCommission, setPartnerCommission] = useState(1.0);
+  const [totalDeposits, setTotalDeposits] = useState(0);
+  const [partnerEarnings, setPartnerEarnings] = useState(0);
+  
+  // Estados para lista de usuários
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isUserSelectionModalOpen, setIsUserSelectionModalOpen] = useState(false);
+  
+  // Estados para seleção de sócio com comissão
+  const [selectedUserForPartner, setSelectedUserForPartner] = useState<any>(null);
+  const [customCommission, setCustomCommission] = useState(1.0);
+  const [isPartnerSelectionModalOpen, setIsPartnerSelectionModalOpen] = useState(false);
+
   const { toast } = useToast();
 
   // Load investment plans from Supabase
@@ -486,7 +514,7 @@ const Admin = () => {
       dailyRate: 1.0,
       minimumAmount: 100,
       maximumAmount: 1000,
-      duration: 30,
+      duration: 40,
       description: "",
       status: "active",
       requiredReferrals: 0
@@ -977,6 +1005,174 @@ const Admin = () => {
       });
     }
   };
+
+  // Função para excluir investimentos por email
+  const handleDeleteInvestmentByEmail = async () => {
+    console.log('🔍 Iniciando exclusão de investimentos...');
+    console.log('📧 Email:', deleteInvestmentEmail);
+    console.log('📝 Motivo:', deleteInvestmentReason);
+    
+    if (!deleteInvestmentEmail.trim()) {
+      console.log('❌ Email vazio');
+      toast({
+        title: "Erro",
+        description: "Digite o email do usuário.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!deleteInvestmentReason.trim()) {
+      console.log('❌ Motivo vazio');
+      toast({
+        title: "Erro",
+        description: "Digite o motivo da exclusão.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      console.log('🔍 Buscando usuário no banco...');
+      // Primeiro, buscar o usuário pelo email
+      const { data: userProfile, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email, display_name')
+        .eq('email', deleteInvestmentEmail.trim())
+        .single();
+
+      console.log('👤 Resultado da busca:', { userProfile, userError });
+
+      if (userError || !userProfile) {
+        console.log('❌ Usuário não encontrado:', userError);
+        toast({
+          title: "Usuário não encontrado",
+          description: "Email não encontrado no sistema.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Usuário encontrado:', userProfile);
+
+      // Buscar todos os investimentos do usuário
+      console.log('🔍 Buscando investimentos do usuário...');
+      const { data: investments, error: investmentsError } = await supabase
+        .from('user_investments')
+        .select('*')
+        .eq('user_id', userProfile.user_id);
+
+      console.log('💰 Investimentos encontrados:', { investments, investmentsError });
+
+      if (investmentsError) {
+        console.error('❌ Erro ao buscar investimentos:', investmentsError);
+        toast({
+          title: "Erro",
+          description: "Erro ao buscar investimentos do usuário.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!investments || investments.length === 0) {
+        console.log('❌ Nenhum investimento encontrado');
+        toast({
+          title: "Nenhum investimento encontrado",
+          description: "Este usuário não possui investimentos ativos.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log(`🗑️ Excluindo ${investments.length} investimentos...`);
+      
+      // Tentar excluir usando uma abordagem diferente
+      let deleteError = null;
+      
+      // Método 1: Exclusão direta
+      const { error: directDeleteError } = await supabase
+        .from('user_investments')
+        .delete()
+        .eq('user_id', userProfile.user_id);
+
+      if (directDeleteError) {
+        console.log('❌ Erro na exclusão direta:', directDeleteError);
+        
+        // Método 2: Exclusão por IDs individuais
+        console.log('🔄 Tentando exclusão por IDs individuais...');
+        const investmentIds = investments.map(inv => inv.id);
+        
+        for (const id of investmentIds) {
+          const { error: singleDeleteError } = await supabase
+            .from('user_investments')
+            .delete()
+            .eq('id', id);
+          
+          if (singleDeleteError) {
+            console.log(`❌ Erro ao excluir investimento ${id}:`, singleDeleteError);
+            deleteError = singleDeleteError;
+            break;
+          }
+        }
+      }
+
+      console.log('🗑️ Resultado da exclusão:', { deleteError });
+
+      if (deleteError) {
+        console.error('❌ Erro ao excluir investimentos:', deleteError);
+        toast({
+          title: "Erro",
+          description: `Erro ao excluir investimentos: ${deleteError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Investimentos excluídos com sucesso!');
+
+      // Registrar a ação administrativa
+      if (user) {
+        console.log('📝 Registrando ação administrativa...');
+        const { error: transactionError } = await supabase
+          .from('admin_balance_transactions')
+          .insert([{
+            user_id: userProfile.user_id,
+            admin_user_id: user.id,
+            amount_before: 0,
+            amount_after: 0,
+            amount_changed: 0,
+            transaction_type: 'investment_deletion',
+            reason: `Exclusão de investimentos: ${deleteInvestmentReason}. ${investments.length} investimentos removidos.`
+          }]);
+
+        if (transactionError) {
+          console.error('❌ Erro ao registrar transação administrativa:', transactionError);
+          // Não bloquear a operação se falhar o registro
+        } else {
+          console.log('✅ Ação administrativa registrada');
+        }
+      }
+
+      toast({
+        title: "Investimentos Excluídos",
+        description: `${investments.length} investimentos de ${userProfile.display_name || userProfile.email} foram excluídos com sucesso.`,
+      });
+
+      // Limpar campos
+      setDeleteInvestmentEmail("");
+      setDeleteInvestmentReason("");
+      setIsDeleteInvestmentModalOpen(false);
+
+    } catch (error) {
+      console.error('❌ Erro geral ao excluir investimentos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao excluir investimentos.",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     const savedSettings = localStorage.getItem("alphabit_admin_settings");
     if (savedSettings) {
@@ -1013,6 +1209,1981 @@ const Admin = () => {
   useEffect(() => {
     localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
   }, [adminSettings]);
+
+  // Carregar dados dos sócios quando necessário
+  useEffect(() => {
+    loadPartners();
+    calculatePartnerEarnings();
+    loadAllUsers();
+  }, []);
+
+  // Carregar investimentos ativos quando a aba de Trading for aberta
+  useEffect(() => {
+    // Verificar se estamos na aba de Trading antes de carregar
+    const checkAndLoadInvestments = async () => {
+      console.log('🔄 Verificando se deve carregar investimentos...');
+      loadActiveInvestments();
+    };
+    
+    checkAndLoadInvestments();
+  }, []);
+
+  // Funções para sistema de sócios
+  const loadPartners = async () => {
+    try {
+      console.log('👥 Carregando sócios da tabela partners...');
+      
+      // Buscar sócios da tabela partners
+      const { data: partnerUsers, error } = await supabase
+        .from('partners')
+        .select('id, user_id, email, display_name, commission_percentage, total_earnings, total_deposits, status, created_at')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      console.log('📊 Query de sócios executada:', { partnerUsers, error });
+
+      if (error) {
+        console.error('❌ Erro ao carregar sócios:', error);
+        console.error('❌ Detalhes do erro:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        // Fallback para a tabela profiles se a tabela partners não existir
+        console.log('🔄 Tentando fallback para tabela profiles...');
+        const { data: fallbackPartners, error: fallbackError } = await supabase
+          .from('profiles')
+          .select('user_id, email, display_name, username, role, created_at, balance')
+          .eq('role', 'partner')
+          .order('created_at', { ascending: false });
+
+        if (fallbackError) {
+          toast({
+            title: "Erro",
+            description: "Erro ao carregar sócios.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('✅ Sócios carregados (fallback):', fallbackPartners);
+        setPartners(fallbackPartners || []);
+        return;
+      }
+
+      console.log('✅ Sócios carregados:', partnerUsers);
+      console.log('📊 Quantidade de sócios:', partnerUsers?.length || 0);
+      
+      // Verificar se Admin Souza está na lista
+      if (partnerUsers) {
+        const adminSouza = partnerUsers.find(p => p.email === 'souzamkt0@gmail.com');
+        console.log('🔍 Admin Souza na lista de sócios:', adminSouza);
+      }
+      
+      setPartners(partnerUsers || []);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar sócios:', error);
+      console.error('❌ Tipo do erro:', typeof error);
+      console.error('❌ Mensagem do erro:', error?.message);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao carregar sócios.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const calculatePartnerEarnings = async () => {
+    try {
+      // Calcular total de depósitos aprovados
+      const { data: depositsData, error: depositsError } = await supabase
+        .from('deposits')
+        .select('amount_usd')
+        .eq('status', 'paid');
+
+      if (depositsError) {
+        console.error('❌ Erro ao calcular depósitos:', depositsError);
+        return;
+      }
+
+      const totalDepositsAmount = depositsData?.reduce((sum, deposit) => sum + (deposit.amount_usd || 0), 0) || 0;
+      setTotalDeposits(totalDepositsAmount);
+
+      // Calcular ganhos dos sócios (1% do total de depósitos)
+      const totalEarnings = totalDepositsAmount * (partnerCommission / 100);
+      setPartnerEarnings(totalEarnings);
+
+      console.log('💰 Cálculos de sócios:', {
+        totalDeposits: totalDepositsAmount,
+        commission: partnerCommission,
+        totalEarnings
+      });
+
+    } catch (error) {
+      console.error('❌ Erro ao calcular ganhos:', error);
+    }
+  };
+
+  const addPartner = async () => {
+    console.log('🔍 Iniciando adição de sócio...');
+    console.log('📧 Email do sócio:', selectedPartner?.email);
+    console.log('💰 Comissão:', selectedPartner?.commission || partnerCommission);
+    
+    if (!selectedPartner?.email) {
+      console.log('❌ Email não fornecido');
+      toast({
+        title: "Erro",
+        description: "Digite o email do sócio.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Buscar usuário pelo email
+    console.log('🔍 Buscando usuário...');
+    const { data: user, error: userError } = await supabase
+      .from('profiles')
+      .select('user_id, email, role, display_name')
+      .eq('email', selectedPartner.email)
+      .single();
+
+    if (userError) {
+      console.log('❌ Erro ao buscar usuário:', userError);
+      toast({
+        title: "Erro ao buscar usuário",
+        description: `Erro: ${userError.message}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      console.log('❌ Usuário não encontrado');
+      toast({
+        title: "Usuário não encontrado",
+        description: "Email não encontrado no sistema.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('✅ Usuário encontrado:', user);
+
+    // Verificar se o usuário já é sócio
+    if (user.role === 'partner') {
+      console.log('⚠️ Usuário já é sócio');
+      toast({
+        title: "Usuário já é sócio",
+        description: `${user.display_name || user.email} já possui status de sócio.`,
+        variant: "default"
+      });
+      return;
+    }
+
+    // Tentar atualizar role para partner
+    console.log('🔄 Tentando atualizar role para partner...');
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ role: 'partner' })
+      .eq('user_id', user.user_id);
+
+    if (updateError) {
+      console.log('❌ Erro no update:', updateError);
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: `Erro: ${updateError.message}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('✅ Sócio adicionado com sucesso!');
+    toast({
+      title: "Sócio Adicionado",
+      description: `${user.display_name || user.email} foi adicionado como sócio com ${selectedPartner.commission || partnerCommission}% de comissão.`,
+    });
+
+    setIsPartnerModalOpen(false);
+    setSelectedPartner(null);
+    loadPartners();
+  };
+
+  // Função para adicionar sócio selecionando da lista
+  const addPartnerFromList = async (userId: string, userEmail: string, userName: string) => {
+    try {
+      console.log('🔍 Adicionando sócio da lista:', { userId, userEmail, userName });
+      
+      // Verificar se o usuário já é sócio
+      const user = allUsers.find(u => u.user_id === userId);
+      if (user?.role === 'partner') {
+        toast({
+          title: "Usuário já é sócio",
+          description: `${userName || userEmail} já possui status de sócio.`,
+          variant: "default"
+        });
+        return;
+      }
+
+      // Tentar atualizar role para partner
+      console.log('🔄 Atualizando role para partner...');
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.log('❌ Erro no update:', updateError);
+        toast({
+          title: "Erro ao adicionar sócio",
+          description: `Erro: ${updateError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Sócio adicionado com sucesso!');
+      toast({
+        title: "Sócio Adicionado",
+        description: `${userName || userEmail} foi adicionado como sócio com ${partnerCommission}% de comissão.`,
+      });
+
+      // Recarregar listas
+      loadPartners();
+      loadAllUsers();
+      
+    } catch (error) {
+      console.error('❌ Erro ao adicionar sócio da lista:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao adicionar sócio.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para abrir modal de seleção de sócio com comissão
+  const openPartnerSelectionModal = (user: any) => {
+    setSelectedUserForPartner(user);
+    setCustomCommission(partnerCommission); // Usar comissão padrão como inicial
+    setIsPartnerSelectionModalOpen(true);
+  };
+
+  // Função para adicionar sócio com comissão personalizada
+  const addPartnerWithCustomCommission = async () => {
+    if (!selectedUserForPartner) {
+      toast({
+        title: "Erro",
+        description: "Nenhum usuário selecionado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      console.log('🔍 Adicionando sócio com comissão personalizada:', {
+        user: selectedUserForPartner,
+        commission: customCommission
+      });
+
+      // Verificar se o usuário já é sócio
+      if (selectedUserForPartner.role === 'partner') {
+        toast({
+          title: "Usuário já é sócio",
+          description: `${selectedUserForPartner.display_name || selectedUserForPartner.email} já possui status de sócio.`,
+          variant: "default"
+        });
+        return;
+      }
+
+      // Aviso especial para admins
+      if (selectedUserForPartner.role === 'admin') {
+        console.log('⚠️ Transformando admin em sócio:', selectedUserForPartner);
+      }
+
+      // Preparar dados para atualização
+      const updateData: any = { role: 'partner' };
+      
+      // Tentar adicionar comissão personalizada se a coluna existir
+      try {
+        updateData.partner_commission = customCommission;
+      } catch (e) {
+        console.log('⚠️ Coluna partner_commission não disponível');
+      }
+
+      console.log('📊 Dados para atualização:', updateData);
+      console.log('🆔 User ID:', selectedUserForPartner.user_id);
+
+      // Atualizar usuário para sócio
+      console.log('🔄 Atualizando para sócio com comissão:', customCommission);
+      const { data: updateResult, error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('user_id', selectedUserForPartner.user_id)
+        .select();
+
+      console.log('📊 Resultado do update:', { updateResult, updateError });
+
+      if (updateError) {
+        console.log('❌ Erro no update:', updateError);
+        console.log('❌ Detalhes do erro:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        
+        toast({
+          title: "Erro ao adicionar sócio",
+          description: `Erro: ${updateError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Sócio adicionado com sucesso!');
+      console.log('✅ Resultado:', updateResult);
+      
+      toast({
+        title: "Sócio Adicionado",
+        description: `${selectedUserForPartner.display_name || selectedUserForPartner.email} foi adicionado como sócio com ${customCommission}% de comissão.`,
+      });
+
+      // Fechar modal e recarregar listas
+      setIsPartnerSelectionModalOpen(false);
+      setSelectedUserForPartner(null);
+      
+      // Forçar recarregamento das listas
+      console.log('🔄 Recarregando listas...');
+      await loadPartners();
+      await loadAllUsers();
+      
+      // Verificar se o sócio foi adicionado
+      setTimeout(async () => {
+        console.log('🔍 Verificando se sócio foi adicionado...');
+        const { data: checkPartners, error: checkError } = await supabase
+          .from('profiles')
+          .select('user_id, email, role')
+          .eq('user_id', selectedUserForPartner.user_id);
+        
+        console.log('📊 Verificação pós-adicionar:', { checkPartners, checkError });
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Erro ao adicionar sócio com comissão:', error);
+      console.error('❌ Tipo do erro:', typeof error);
+      console.error('❌ Mensagem do erro:', error?.message);
+      console.error('❌ Stack trace:', error?.stack);
+      
+      toast({
+        title: "Erro",
+        description: "Erro interno ao adicionar sócio.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const removePartner = async (partnerId: string, partnerName: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'user' })
+        .eq('user_id', partnerId);
+
+      if (error) {
+        console.error('❌ Erro ao remover sócio:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao remover sócio.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Sócio Removido",
+        description: `${partnerName} foi removido como sócio.`,
+      });
+
+      loadPartners();
+      
+    } catch (error) {
+      console.error('❌ Erro ao remover sócio:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao remover sócio.",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+
+  // Função de teste para verificar acesso à tabela
+  const testTableAccess = async () => {
+    try {
+      console.log('🧪 Testando acesso à tabela user_investments...');
+      
+      // Teste 1: Contar registros
+      const { count, error: countError } = await supabase
+        .from('user_investments')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('📊 Total de investimentos:', { count, countError });
+      
+      // Teste 2: Buscar um registro específico
+      const { data: testData, error: testError } = await supabase
+        .from('user_investments')
+        .select('*')
+        .limit(1);
+      
+      console.log('🔍 Teste de busca:', { testData, testError });
+      
+      // Teste 3: Verificar estrutura da tabela
+      const { data: structure, error: structureError } = await supabase
+        .rpc('get_table_structure', { table_name: 'user_investments' });
+      
+      console.log('🏗️ Estrutura da tabela:', { structure, structureError });
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de acesso:', error);
+    }
+  };
+
+  // Função de teste para exclusão direta
+  const testDirectDeletion = async () => {
+    try {
+      console.log('🧪 Testando exclusão direta...');
+      
+      if (!deleteInvestmentEmail.trim()) {
+        console.log('❌ Email vazio para teste');
+        return;
+      }
+
+      // Buscar usuário primeiro
+      const { data: userProfile, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email')
+        .eq('email', deleteInvestmentEmail.trim())
+        .single();
+
+      if (userError || !userProfile) {
+        console.log('❌ Usuário não encontrado para teste:', userError);
+        return;
+      }
+
+      console.log('✅ Usuário encontrado para teste:', userProfile);
+
+      // Tentar excluir diretamente
+      const { error: deleteError } = await supabase
+        .from('user_investments')
+        .delete()
+        .eq('user_id', userProfile.user_id);
+
+      console.log('🗑️ Resultado da exclusão direta:', { deleteError });
+
+      if (deleteError) {
+        console.error('❌ Erro na exclusão direta:', deleteError);
+        toast({
+          title: "Erro no Teste",
+          description: `Erro: ${deleteError.message}`,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Exclusão direta bem-sucedida!');
+        toast({
+          title: "Teste Bem-sucedido",
+          description: "Exclusão direta funcionou!",
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de exclusão direta:', error);
+    }
+  };
+
+  // Função de teste simples para verificar se a tabela existe
+  const simpleTest = async () => {
+    try {
+      console.log('🧪 Teste simples - verificando acesso à tabela...');
+      
+      // Teste 1: Verificar se a tabela existe
+      const { data: tableExists, error: tableError } = await supabase
+        .from('user_investments')
+        .select('id')
+        .limit(1);
+      
+      console.log('🔍 Tabela existe:', { tableExists, tableError });
+      
+      if (tableError) {
+        console.error('❌ Tabela não existe ou erro de acesso:', tableError);
+        toast({
+          title: "Erro",
+          description: `Tabela não acessível: ${tableError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Teste 2: Contar registros
+      const { count, error: countError } = await supabase
+        .from('user_investments')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('📊 Total de investimentos:', { count, countError });
+      
+      if (countError) {
+        console.error('❌ Erro ao contar investimentos:', countError);
+        toast({
+          title: "Erro no Teste",
+          description: `Erro ao acessar tabela: ${countError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Teste 2: Buscar um registro
+      const { data: sample, error: sampleError } = await supabase
+        .from('user_investments')
+        .select('id, user_id, amount')
+        .limit(1);
+      
+      console.log('🔍 Amostra de investimento:', { sample, sampleError });
+      
+      if (sampleError) {
+        console.error('❌ Erro ao buscar amostra:', sampleError);
+        toast({
+          title: "Erro no Teste",
+          description: `Erro ao buscar dados: ${sampleError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (sample && sample.length > 0) {
+        console.log('✅ Tabela acessível, tentando exclusão de teste...');
+        
+        // Teste 3: Tentar excluir o primeiro registro
+        const { error: deleteError } = await supabase
+          .from('user_investments')
+          .delete()
+          .eq('id', sample[0].id);
+        
+        console.log('🗑️ Resultado da exclusão de teste:', { deleteError });
+        
+        if (deleteError) {
+          console.error('❌ Erro na exclusão de teste:', deleteError);
+          toast({
+            title: "Erro no Teste",
+            description: `Erro na exclusão: ${deleteError.message}`,
+            variant: "destructive"
+          });
+        } else {
+          console.log('✅ Exclusão de teste bem-sucedida!');
+          toast({
+            title: "Teste Bem-sucedido",
+            description: "Exclusão funcionou! Tabela acessível.",
+          });
+        }
+      } else {
+        console.log('ℹ️ Nenhum investimento encontrado para teste');
+        toast({
+          title: "Teste Concluído",
+          description: "Tabela acessível, mas sem dados para testar exclusão.",
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no teste simples:', error);
+      toast({
+        title: "Erro no Teste",
+        description: `Erro geral: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para verificar RLS e estrutura da tabela
+  const checkTableStructure = async () => {
+    try {
+      console.log('🔍 Verificando estrutura da tabela user_investments...');
+      
+      // Verificar se RLS está habilitado
+      const { data: rlsInfo, error: rlsError } = await supabase
+        .rpc('check_rls_status', { table_name: 'user_investments' });
+      
+      console.log('🔒 Status RLS:', { rlsInfo, rlsError });
+      
+      // Verificar estrutura da tabela
+      const { data: columns, error: columnsError } = await supabase
+        .rpc('get_table_columns', { table_name: 'user_investments' });
+      
+      console.log('🏗️ Colunas da tabela:', { columns, columnsError });
+      
+      // Verificar políticas
+      const { data: policies, error: policiesError } = await supabase
+        .rpc('get_table_policies', { table_name: 'user_investments' });
+      
+      console.log('📋 Políticas da tabela:', { policies, policiesError });
+      
+    } catch (error) {
+      console.error('❌ Erro ao verificar estrutura:', error);
+    }
+  };
+
+  // Função para testar estrutura da tabela profiles
+  const testProfilesStructure = async () => {
+    try {
+      console.log('🔍 Testando estrutura da tabela profiles...');
+      
+      // Verificar se as colunas de sócio existem
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, partner_commission, partner_earnings, partner_total_deposits')
+        .limit(1);
+      
+      if (error) {
+        console.log('❌ Erro ao acessar profiles:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao verificar estrutura da tabela profiles.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ Estrutura da tabela profiles:', profiles);
+      
+      // Verificar se a tabela partner_commissions existe
+      const { data: commissions, error: commissionsError } = await supabase
+        .from('partner_commissions')
+        .select('*')
+        .limit(1);
+      
+      if (commissionsError) {
+        console.log('⚠️ Tabela partner_commissions não existe ou não acessível:', commissionsError);
+        toast({
+          title: "Aviso",
+          description: "Tabela de comissões de sócios não encontrada. Execute a migração.",
+          variant: "default"
+        });
+      } else {
+        console.log('✅ Tabela partner_commissions existe');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao testar estrutura:', error);
+    }
+  };
+
+  // Função para testar update na tabela profiles
+  const testProfilesUpdate = async () => {
+    try {
+      console.log('🧪 Testando update na tabela profiles...');
+      
+      // Buscar um usuário para testar
+      const { data: testUser, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role')
+        .limit(1)
+        .single();
+      
+      if (userError || !testUser) {
+        console.log('❌ Erro ao buscar usuário para teste:', userError);
+        toast({
+          title: "Erro no Teste",
+          description: "Não foi possível encontrar usuário para teste.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ Usuário para teste encontrado:', testUser);
+      
+      // Tentar fazer um update simples
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: testUser.role }) // Atualizar com o mesmo valor
+        .eq('user_id', testUser.user_id);
+      
+      if (updateError) {
+        console.log('❌ Erro no update de teste:', updateError);
+        toast({
+          title: "Erro no Teste",
+          description: `Update falhou: ${updateError.message}`,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Update de teste bem-sucedido!');
+        toast({
+          title: "Teste Bem-sucedido",
+          description: "Update na tabela profiles funcionando.",
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de update:', error);
+    }
+  };
+
+  // Função para testar adição de sócio específica
+  const testAddPartner = async () => {
+    try {
+      console.log('🧪 Testando adição de sócio específica...');
+      
+      // Simular o email que está sendo usado
+      const testEmail = 'souzamkt0@gmail.com';
+      console.log('📧 Testando com email:', testEmail);
+      
+      // Buscar usuário pelo email
+      const { data: user, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', testEmail)
+        .single();
+
+      if (userError || !user) {
+        console.log('❌ Usuário não encontrado:', { userError, user });
+        toast({
+          title: "Teste - Usuário não encontrado",
+          description: `Email ${testEmail} não encontrado no sistema.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Usuário encontrado:', user);
+
+      // Verificar se já é sócio
+      if (user.role === 'partner') {
+        console.log('⚠️ Usuário já é sócio');
+        toast({
+          title: "Teste - Já é sócio",
+          description: `${user.display_name || user.email} já possui status de sócio.`,
+          variant: "default"
+        });
+        return;
+      }
+
+      // Tentar atualizar para partner
+      console.log('🔄 Tentando atualizar role para partner...');
+      const { data: updateResult, error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('user_id', user.user_id)
+        .select();
+
+      console.log('📊 Resultado do teste:', { updateResult, updateError });
+
+      if (updateError) {
+        console.log('❌ Erro no update:', updateError);
+        console.log('❌ Detalhes do erro:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        
+        toast({
+          title: "Teste - Erro no Update",
+          description: `Erro: ${updateError.message}`,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Update bem-sucedido!');
+        console.log('✅ Resultado:', updateResult);
+        
+        toast({
+          title: "Teste - Sucesso",
+          description: `${user.display_name || user.email} foi promovido a sócio!`,
+        });
+        
+        // Recarregar lista de sócios
+        await loadPartners();
+        
+        // Verificar se apareceu na lista
+        setTimeout(async () => {
+          console.log('🔍 Verificando se sócio apareceu na lista...');
+          const { data: checkPartners, error: checkError } = await supabase
+            .from('profiles')
+            .select('user_id, email, role')
+            .eq('role', 'partner');
+          
+          console.log('📊 Sócios após adição:', { checkPartners, checkError });
+        }, 1000);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de adição de sócio:', error);
+      console.error('❌ Tipo do erro:', typeof error);
+      console.error('❌ Mensagem do erro:', error?.message);
+      
+      toast({
+        title: "Teste - Erro",
+        description: `Erro interno: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para carregar todos os usuários
+  const loadAllUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      console.log('👥 Carregando todos os usuários...');
+      
+      const { data: users, error } = await supabase
+        .from('profiles')
+        .select('user_id, email, display_name, username, role, created_at, balance')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Erro ao carregar usuários:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar lista de usuários.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Usuários carregados:', users?.length || 0);
+      setAllUsers(users || []);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar usuários:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao carregar usuários.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // Função para testar acesso básico à tabela profiles
+  const testBasicProfilesAccess = async () => {
+    try {
+      console.log('🔍 Testando acesso básico à tabela profiles...');
+      
+      // Teste 1: Verificar se conseguimos acessar a tabela
+      const { data: allProfiles, error: accessError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role')
+        .limit(5);
+      
+      if (accessError) {
+        console.log('❌ Erro ao acessar tabela profiles:', accessError);
+        toast({
+          title: "Erro de Acesso",
+          description: `Não foi possível acessar a tabela profiles: ${accessError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ Acesso à tabela profiles OK:', allProfiles);
+      
+      // Teste 2: Verificar se o email específico existe
+      const testEmail = 'souzamkt0@gmail.com';
+      const userExists = allProfiles?.some(profile => profile.email === testEmail);
+      
+      console.log(`📧 Email ${testEmail} existe:`, userExists);
+      
+      if (!userExists) {
+        console.log('❌ Email não encontrado na lista');
+        toast({
+          title: "Email não encontrado",
+          description: `O email ${testEmail} não foi encontrado no sistema.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Teste 3: Tentar buscar o usuário específico
+      const { data: specificUser, error: specificError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', testEmail)
+        .single();
+      
+      if (specificError) {
+        console.log('❌ Erro ao buscar usuário específico:', specificError);
+        toast({
+          title: "Erro ao buscar usuário",
+          description: `Erro: ${specificError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ Usuário específico encontrado:', specificUser);
+      
+      toast({
+        title: "Teste de Acesso OK",
+        description: `Acesso à tabela profiles funcionando. Usuário ${specificUser.email} encontrado.`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de acesso básico:', error);
+      toast({
+        title: "Erro no Teste",
+        description: `Erro interno: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para testar se a constraint foi corrigida
+  const testRoleConstraint = async () => {
+    try {
+      console.log('🔍 Testando constraint da coluna role...');
+      
+      // Buscar o usuário admin
+      const { data: adminUser, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+
+      if (userError || !adminUser) {
+        console.log('❌ Usuário admin não encontrado:', { userError, adminUser });
+        toast({
+          title: "Erro",
+          description: "Usuário admin não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Usuário admin encontrado:', adminUser);
+
+      // Tentar atualizar role para 'partner' (teste da constraint)
+      console.log('🔄 Testando update role para partner...');
+      const { data: updateResult, error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('user_id', adminUser.user_id)
+        .select();
+
+      console.log('📊 Resultado do teste de constraint:', { updateResult, updateError });
+
+      if (updateError) {
+        console.log('❌ Erro na constraint:', updateError);
+        console.log('❌ Detalhes do erro:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        
+        toast({
+          title: "Erro na Constraint",
+          description: `Constraint não permite 'partner': ${updateError.message}`,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Constraint OK - update funcionou!');
+        console.log('✅ Resultado:', updateResult);
+        
+        // Reverter para admin
+        console.log('🔄 Revertendo para admin...');
+        const { error: revertError } = await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('user_id', adminUser.user_id);
+
+        if (revertError) {
+          console.log('⚠️ Erro ao reverter para admin:', revertError);
+        } else {
+          console.log('✅ Revertido para admin com sucesso');
+        }
+        
+        toast({
+          title: "Constraint OK",
+          description: "A constraint permite o valor 'partner'. Update funcionou!",
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no teste de constraint:', error);
+      toast({
+        title: "Erro no Teste",
+        description: `Erro interno: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para verificar se há sócios na tabela
+  const checkPartnersInDatabase = async () => {
+    try {
+      console.log('🔍 Verificando sócios no banco de dados...');
+      
+      // Verificar todos os usuários e seus roles
+      const { data: allUsers, error: allUsersError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .order('created_at', { ascending: false });
+
+      if (allUsersError) {
+        console.log('❌ Erro ao buscar todos os usuários:', allUsersError);
+        toast({
+          title: "Erro",
+          description: "Erro ao buscar usuários.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('📊 Todos os usuários:', allUsers);
+      
+      // Filtrar sócios
+      const partners = allUsers?.filter(user => user.role === 'partner') || [];
+      console.log('👥 Sócios encontrados:', partners);
+      console.log('📊 Quantidade de sócios:', partners.length);
+      
+      // Mostrar todos os roles únicos
+      const uniqueRoles = [...new Set(allUsers?.map(user => user.role) || [])];
+      console.log('🏷️ Roles únicos na tabela:', uniqueRoles);
+      
+      toast({
+        title: "Verificação Concluída",
+        description: `Encontrados ${partners.length} sócios de ${allUsers?.length || 0} usuários. Roles: ${uniqueRoles.join(', ')}`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro na verificação:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na verificação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função específica para verificar o Admin Souza
+  const checkAdminSouza = async () => {
+    try {
+      console.log('🔍 Verificando especificamente o Admin Souza...');
+      
+      // Buscar o Admin Souza pelo email
+      const { data: adminSouza, error: adminError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name, username, created_at, balance')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+
+      if (adminError) {
+        console.log('❌ Erro ao buscar Admin Souza:', adminError);
+        toast({
+          title: "Erro",
+          description: "Erro ao buscar Admin Souza.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Admin Souza encontrado:', adminSouza);
+      console.log('🏷️ Role atual:', adminSouza.role);
+      
+      // Verificar se é sócio
+      const isPartner = adminSouza.role === 'partner';
+      console.log('👥 É sócio?', isPartner);
+      
+      // Buscar sócios diretamente
+      const { data: directPartners, error: directError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('role', 'partner');
+
+      console.log('📊 Sócios diretos da query:', directPartners);
+      console.log('❌ Erro da query direta:', directError);
+      
+      // Verificar se Admin Souza está na lista de sócios
+      const adminInPartners = directPartners?.some(p => p.user_id === adminSouza.user_id);
+      console.log('🔍 Admin Souza está na lista de sócios?', adminInPartners);
+      
+      // Comparar com o estado local
+      console.log('📊 Estado local de sócios:', partners);
+      const adminInLocalState = partners.some(p => p.user_id === adminSouza.user_id);
+      console.log('🔍 Admin Souza está no estado local?', adminInLocalState);
+      
+      toast({
+        title: "Verificação Admin Souza",
+        description: `Role: ${adminSouza.role} | É sócio: ${isPartner} | Na query: ${adminInPartners} | No estado: ${adminInLocalState}`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro na verificação do Admin Souza:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na verificação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para verificar constraint
+  const checkConstraint = async () => {
+    try {
+      console.log('🔍 Verificando constraint da coluna role...');
+      
+      // 1. Verificar se Admin Souza é partner
+      const { data: adminSouza, error: adminError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+      
+      if (adminError) {
+        console.log('❌ Erro ao buscar Admin Souza:', adminError);
+      } else {
+        console.log('✅ Admin Souza encontrado:', adminSouza);
+        console.log('🏷️ Role atual:', adminSouza.role);
+        
+        if (adminSouza.role === 'partner') {
+          console.log('✅ Admin Souza é partner!');
+          toast({
+            title: "Sucesso!",
+            description: "Admin Souza é partner!",
+          });
+          
+          // Recarregar listas
+          await loadPartners();
+          await loadAllUsers();
+        } else {
+          console.log('❌ Admin Souza não é partner');
+          toast({
+            title: "Ainda não é partner",
+            description: "Admin Souza ainda tem role: " + adminSouza.role,
+            variant: "destructive"
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro na verificação da constraint:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na verificação da constraint.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para adicionar sócio por email
+  const addPartnerByEmail = async () => {
+    try {
+      const email = prompt('Digite o email do usuário para adicionar como sócio:');
+      if (!email) return;
+
+      const commission = prompt('Digite a porcentagem de comissão (ex: 1.50 para 1.5%):', '1.00');
+      if (!commission) return;
+
+      console.log('🔄 Adicionando sócio por email...');
+      console.log('📧 Email:', email);
+      console.log('💰 Comissão:', commission);
+
+      const { data: result, error } = await supabase
+        .rpc('add_partner_by_email', {
+          partner_email: email,
+          commission_percentage: parseFloat(commission)
+        });
+
+      if (error) {
+        console.log('❌ Erro ao adicionar sócio:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao adicionar sócio: " + error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Resultado:', result);
+        
+        if (result.success) {
+          toast({
+            title: "Sucesso!",
+            description: result.message,
+          });
+          
+          // Recarregar listas
+          await loadPartners();
+          await loadAllUsers();
+        } else {
+          toast({
+            title: "Erro",
+            description: result.error,
+            variant: "destructive"
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao adicionar sócio:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao adicionar sócio.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para atualizar comissão de sócio
+  const updatePartnerCommission = async () => {
+    try {
+      const email = prompt('Digite o email do sócio:');
+      if (!email) return;
+
+      const commission = prompt('Digite a nova porcentagem de comissão (ex: 2.50 para 2.5%):');
+      if (!commission) return;
+
+      console.log('🔄 Atualizando comissão de sócio...');
+      console.log('📧 Email:', email);
+      console.log('💰 Nova comissão:', commission);
+
+      const { data: result, error } = await supabase
+        .rpc('update_partner_commission', {
+          partner_email: email,
+          new_commission_percentage: parseFloat(commission)
+        });
+
+      if (error) {
+        console.log('❌ Erro ao atualizar comissão:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar comissão: " + error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Resultado:', result);
+        
+        if (result.success) {
+          toast({
+            title: "Sucesso!",
+            description: result.message,
+          });
+          
+          // Recarregar listas
+          await loadPartners();
+        } else {
+          toast({
+            title: "Erro",
+            description: result.error,
+            variant: "destructive"
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar comissão:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao atualizar comissão.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para remover sócio
+  const removePartnerByEmail = async () => {
+    try {
+      const email = prompt('Digite o email do sócio para remover:');
+      if (!email) return;
+
+      const confirm = window.confirm(`Tem certeza que deseja remover o sócio ${email}?`);
+      if (!confirm) return;
+
+      console.log('🔄 Removendo sócio...');
+      console.log('📧 Email:', email);
+
+      const { data: result, error } = await supabase
+        .rpc('remove_partner', {
+          partner_email: email
+        });
+
+      if (error) {
+        console.log('❌ Erro ao remover sócio:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao remover sócio: " + error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Resultado:', result);
+        
+        if (result.success) {
+          toast({
+            title: "Sucesso!",
+            description: result.message,
+          });
+          
+          // Recarregar listas
+          await loadPartners();
+          await loadAllUsers();
+        } else {
+          toast({
+            title: "Erro",
+            description: result.error,
+            variant: "destructive"
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao remover sócio:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao remover sócio.",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+
+  // Função para confirmar emails de usuários existentes (versão simplificada)
+  const confirmarEmailsExistentes = async () => {
+    try {
+      const confirm = window.confirm('Confirmar emails de todos os usuários não confirmados?');
+      if (!confirm) return;
+
+      console.log('🔄 Confirmando emails de usuários existentes...');
+
+      // Usar RPC para confirmar todos os emails
+      const { data: result, error } = await supabase
+        .rpc('confirm_all_emails');
+
+      if (error) {
+        console.log('❌ Erro ao confirmar emails:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao confirmar emails: " + error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Resultado da confirmação:', result);
+      
+      if (result.success) {
+        toast({
+          title: "✅ Sucesso!",
+          description: `${result.affected_count} emails confirmados com sucesso!`,
+        });
+        
+        // Recarregar lista de usuários
+        await loadAllUsers();
+      } else {
+        toast({
+          title: "Erro",
+          description: result.error,
+          variant: "destructive"
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao confirmar emails:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao confirmar emails.",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+
+  // Função simples para atualizar Admin Souza
+  const simpleUpdateAdminSouza = async () => {
+    try {
+      console.log('🔄 Tentativa simples de atualizar Admin Souza...');
+      
+      // 1. Buscar Admin Souza
+      const { data: adminSouza, error: adminError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+
+      if (adminError) {
+        console.log('❌ Erro ao buscar Admin Souza:', adminError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível encontrar o Admin Souza.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Admin Souza encontrado:', adminSouza);
+      console.log('🏷️ Role atual:', adminSouza.role);
+
+      // 2. Tentar update simples
+      console.log('🔄 Executando update simples...');
+      const { data: updateResult, error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('email', 'souzamkt0@gmail.com')
+        .select();
+
+      console.log('📊 Resultado do update:', updateResult);
+      console.log('❌ Erro do update:', updateError);
+
+      if (updateError) {
+        console.log('❌ Update falhou:', updateError);
+        
+        // 3. Tentar com upsert
+        console.log('🔄 Tentando com upsert...');
+        const { data: upsertResult, error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({
+            user_id: adminSouza.user_id,
+            email: 'souzamkt0@gmail.com',
+            role: 'partner'
+          }, {
+            onConflict: 'user_id'
+          })
+          .select();
+
+        console.log('📊 Resultado do upsert:', upsertResult);
+        console.log('❌ Erro do upsert:', upsertError);
+
+        if (upsertError) {
+          toast({
+            title: "Erro na Atualização",
+            description: "Não foi possível atualizar o Admin Souza.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      // 4. Recarregar listas
+      console.log('🔄 Recarregando listas...');
+      await loadPartners();
+      await loadAllUsers();
+
+      // 5. Verificar se funcionou
+      setTimeout(async () => {
+        const { data: checkResult, error: checkError } = await supabase
+          .from('profiles')
+          .select('user_id, email, role')
+          .eq('email', 'souzamkt0@gmail.com')
+          .single();
+
+        console.log('🔍 Verificação final:', checkResult);
+        
+        if (checkResult && checkResult.role === 'partner') {
+          console.log('✅ Admin Souza atualizado com sucesso!');
+          toast({
+            title: "Sucesso!",
+            description: "Admin Souza foi atualizado para partner!",
+          });
+        } else {
+          console.log('❌ Admin Souza não foi atualizado');
+          toast({
+            title: "Erro",
+            description: "Admin Souza não foi atualizado. Role atual: " + (checkResult?.role || 'desconhecido'),
+            variant: "destructive"
+          });
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Erro na atualização simples:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na atualização simples.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para forçar a atualização do Admin Souza para partner
+  const forceUpdateAdminSouza = async () => {
+    try {
+      console.log('🔄 Forçando atualização do Admin Souza para partner...');
+      
+      // 1. Buscar Admin Souza
+      const { data: adminSouza, error: adminError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+
+      if (adminError) {
+        console.log('❌ Erro ao buscar Admin Souza:', adminError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível encontrar o Admin Souza.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Admin Souza encontrado:', adminSouza);
+      console.log('🏷️ Role atual:', adminSouza.role);
+
+      // 2. Tentar update simples
+      console.log('🔄 Executando update simples...');
+      const { data: updateResult, error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('email', 'souzamkt0@gmail.com')
+        .select();
+
+      console.log('📊 Resultado do update:', updateResult);
+      console.log('❌ Erro do update:', updateError);
+
+      if (updateError) {
+        console.log('❌ Update falhou:', updateError);
+        console.log('📋 Detalhes do erro:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        
+        // 3. Tentar com RPC
+        console.log('🔄 Tentando via RPC...');
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc('update_user_role', {
+            user_id_param: adminSouza.user_id,
+            new_role: 'partner'
+          });
+
+        console.log('📊 Resultado do RPC:', rpcResult);
+        console.log('❌ Erro do RPC:', rpcError);
+
+        if (rpcError) {
+          console.log('❌ RPC falhou:', rpcError);
+          
+          // 4. Tentar com SQL direto
+          console.log('🔄 Tentando com SQL direto...');
+          const { data: sqlResult, error: sqlError } = await supabase
+            .rpc('exec_sql', {
+              sql: `UPDATE profiles SET role = 'partner' WHERE email = 'souzamkt0@gmail.com'`
+            });
+
+          console.log('📊 Resultado do SQL:', sqlResult);
+          console.log('❌ Erro do SQL:', sqlError);
+
+          if (sqlError) {
+            console.log('❌ SQL falhou:', sqlError);
+            
+            // 5. Última tentativa: inserir novo registro
+            console.log('🔄 Tentativa final: inserir novo registro...');
+            const { data: insertResult, error: insertError } = await supabase
+              .from('profiles')
+              .upsert({
+                user_id: adminSouza.user_id,
+                email: 'souzamkt0@gmail.com',
+                role: 'partner',
+                display_name: 'Admin Souza',
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'user_id'
+              })
+              .select();
+
+            console.log('📊 Resultado do insert:', insertResult);
+            console.log('❌ Erro do insert:', insertError);
+
+            if (insertError) {
+              toast({
+                title: "Erro na Atualização",
+                description: "Não foi possível atualizar o Admin Souza. Verifique os logs.",
+                variant: "destructive"
+              });
+              return;
+            }
+          }
+        }
+      }
+
+      // 6. Recarregar listas
+      console.log('🔄 Recarregando listas...');
+      await loadPartners();
+      await loadAllUsers();
+
+      // 7. Verificar se funcionou
+      setTimeout(async () => {
+        const { data: checkResult, error: checkError } = await supabase
+          .from('profiles')
+          .select('user_id, email, role')
+          .eq('email', 'souzamkt0@gmail.com')
+          .single();
+
+        console.log('🔍 Verificação final:', checkResult);
+        
+        if (checkResult && checkResult.role === 'partner') {
+          console.log('✅ Admin Souza atualizado com sucesso!');
+          toast({
+            title: "Sucesso!",
+            description: "Admin Souza foi atualizado para partner!",
+          });
+        } else {
+          console.log('❌ Admin Souza não foi atualizado');
+          toast({
+            title: "Erro",
+            description: "Admin Souza não foi atualizado. Role atual: " + (checkResult?.role || 'desconhecido'),
+            variant: "destructive"
+          });
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error('❌ Erro na força atualização:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na força atualização.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para forçar atualização da lista de sócios
+  const forceRefreshPartners = async () => {
+    try {
+      console.log('🔄 Forçando atualização da lista de sócios...');
+      
+      // Limpar estado atual
+      setPartners([]);
+      console.log('🗑️ Estado limpo');
+      
+      // Aguardar um pouco
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Recarregar sócios
+      await loadPartners();
+      console.log('✅ Lista recarregada');
+      
+      // Verificar novamente
+      setTimeout(async () => {
+        console.log('🔍 Verificação pós-força refresh...');
+        const { data: checkPartners, error: checkError } = await supabase
+          .from('profiles')
+          .select('user_id, email, role, display_name')
+          .eq('role', 'partner');
+        
+        console.log('📊 Sócios após força refresh:', { checkPartners, checkError });
+        
+        toast({
+          title: "Força Refresh Concluído",
+          description: `Encontrados ${checkPartners?.length || 0} sócios após força refresh.`,
+        });
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Erro no força refresh:', error);
+      toast({
+        title: "Erro",
+        description: "Erro no força refresh.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para aplicar migrações e corrigir problemas
+  const applyMigrationsAndFix = async () => {
+    try {
+      console.log('🔧 Aplicando migrações e corrigindo problemas...');
+      
+      // 1. Verificar se Admin Souza existe
+      console.log('👤 Verificando Admin Souza...');
+      const { data: adminSouza, error: adminError } = await supabase
+        .from('profiles')
+        .select('user_id, email, role, display_name')
+        .eq('email', 'souzamkt0@gmail.com')
+        .single();
+      
+      if (adminError) {
+        console.log('❌ Erro ao buscar Admin Souza:', adminError);
+        toast({
+          title: "Erro",
+          description: "Não foi possível encontrar o Admin Souza.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ Admin Souza encontrado:', adminSouza);
+      console.log('🏷️ Role atual:', adminSouza.role);
+      
+      // 2. Tentar update direto primeiro (mais simples)
+      console.log('🔄 Tentando update direto...');
+      const { data: directUpdate, error: directError } = await supabase
+        .from('profiles')
+        .update({ role: 'partner' })
+        .eq('user_id', adminSouza.user_id)
+        .select();
+      
+      console.log('📊 Resultado do update direto:', directUpdate);
+      console.log('❌ Erro do update direto:', directError);
+      
+      if (!directError && directUpdate && directUpdate.length > 0) {
+        console.log('✅ Update direto bem-sucedido!');
+        
+        // 3. Recarregar listas
+        await loadPartners();
+        await loadAllUsers();
+        
+        toast({
+          title: "Sucesso!",
+          description: "Admin Souza foi atualizado para partner com sucesso!",
+        });
+        
+        // 4. Verificar se apareceu na lista
+        setTimeout(async () => {
+          const { data: checkPartners, error: checkError } = await supabase
+            .from('profiles')
+            .select('user_id, email, role, display_name')
+            .eq('role', 'partner');
+          
+          console.log('🔍 Verificação pós-update:', { checkPartners, checkError });
+          console.log('📊 Quantidade de sócios após update:', checkPartners?.length || 0);
+          
+          if (checkPartners && checkPartners.some(p => p.user_id === adminSouza.user_id)) {
+            console.log('✅ Admin Souza confirmado na lista de sócios!');
+          } else {
+            console.log('❌ Admin Souza não apareceu na lista de sócios');
+          }
+        }, 1000);
+        
+      } else {
+        console.log('❌ Update direto falhou, tentando RPC...');
+        
+        // 5. Tentar função RPC como fallback
+        const { data: rpcUpdate, error: rpcError } = await supabase
+          .rpc('update_user_role', {
+            user_id_param: adminSouza.user_id,
+            new_role: 'partner'
+          });
+        
+        console.log('📊 Resultado do RPC:', rpcUpdate);
+        console.log('❌ Erro do RPC:', rpcError);
+        
+        if (!rpcError) {
+          await loadPartners();
+          await loadAllUsers();
+          
+          toast({
+            title: "Sucesso via RPC!",
+            description: "Admin Souza foi atualizado para partner via RPC!",
+          });
+        } else {
+          // 6. Última tentativa: SQL direto
+          console.log('🔄 Tentando SQL direto...');
+          const { data: sqlResult, error: sqlError } = await supabase
+            .rpc('exec_sql', {
+              sql: `UPDATE profiles SET role = 'partner' WHERE user_id = '${adminSouza.user_id}'`
+            });
+          
+          console.log('📊 Resultado do SQL:', sqlResult);
+          console.log('❌ Erro do SQL:', sqlError);
+          
+          if (!sqlError) {
+            await loadPartners();
+            await loadAllUsers();
+            
+            toast({
+              title: "Sucesso via SQL!",
+              description: "Admin Souza foi atualizado para partner via SQL!",
+            });
+          } else {
+            toast({
+              title: "Erro na Atualização",
+              description: "Não foi possível atualizar o Admin Souza para partner. Verifique os logs.",
+              variant: "destructive"
+            });
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro na aplicação de migrações:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno na aplicação de migrações.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para carregar todos os investimentos ativos
+  const loadActiveInvestments = async () => {
+    setIsLoadingInvestments(true);
+    try {
+      console.log('📊 Carregando investimentos ativos...');
+      
+      // Primeiro, tentar uma consulta simples para verificar se a tabela existe
+      const { data: simpleTest, error: simpleError } = await supabase
+        .from('user_investments')
+        .select('*')
+        .limit(1);
+      
+      console.log('🔍 Teste simples da tabela:', { simpleTest, simpleError });
+      
+      if (simpleError) {
+        console.error('❌ Erro no teste simples:', simpleError);
+        toast({
+          title: "Erro",
+          description: `Erro ao acessar tabela: ${simpleError.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Agora tentar a consulta completa
+      const { data: investments, error } = await supabase
+        .from('user_investments')
+        .select(`
+          id,
+          user_id,
+          amount,
+          daily_rate,
+          status,
+          created_at,
+          updated_at,
+          profiles!user_investments_user_id_fkey(
+            email,
+            display_name,
+            username
+          )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      console.log('📊 Resultado da consulta completa:', { investments, error });
+
+      if (error) {
+        console.error('❌ Erro ao carregar investimentos:', error);
+        
+        // Tentar consulta sem joins para ver se o problema é nas relações
+        console.log('🔄 Tentando consulta sem joins...');
+        const { data: investmentsSimple, error: simpleError2 } = await supabase
+          .from('user_investments')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+        
+        console.log('📊 Resultado da consulta simples:', { investmentsSimple, simpleError2 });
+        
+        if (simpleError2) {
+          toast({
+            title: "Erro",
+            description: `Erro ao carregar investimentos: ${simpleError2.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Se a consulta simples funcionou, usar esses dados
+        setActiveInvestments(investmentsSimple || []);
+        toast({
+          title: "Aviso",
+          description: "Investimentos carregados (sem dados de usuário).",
+        });
+        return;
+      }
+
+      console.log('✅ Investimentos carregados com sucesso:', investments);
+      setActiveInvestments(investments || []);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar investimentos:', error);
+      toast({
+        title: "Erro",
+        description: `Erro interno: ${error.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingInvestments(false);
+    }
+  };
+
+  // Função para excluir investimento individual
+  const deleteIndividualInvestment = async (investmentId: string, userEmail: string, investmentName: string) => {
+    try {
+      console.log('🗑️ Excluindo investimento individual:', { investmentId, userEmail, investmentName });
+      
+      const { error } = await supabase
+        .from('user_investments')
+        .delete()
+        .eq('id', investmentId);
+
+      if (error) {
+        console.error('❌ Erro ao excluir investimento:', error);
+        toast({
+          title: "Erro",
+          description: `Erro ao excluir investimento: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Investimento excluído com sucesso!');
+      
+      // Registrar ação administrativa
+      if (user) {
+        const { error: transactionError } = await supabase
+          .from('admin_balance_transactions')
+          .insert([{
+            user_id: investmentId, // Usar o ID do investimento como referência
+            admin_user_id: user.id,
+            amount_before: 0,
+            amount_after: 0,
+            amount_changed: 0,
+            transaction_type: 'individual_investment_deletion',
+            reason: `Exclusão de investimento individual: ${investmentName} do usuário ${userEmail}`
+          }]);
+
+        if (transactionError) {
+          console.error('❌ Erro ao registrar transação:', transactionError);
+        }
+      }
+
+      toast({
+        title: "Investimento Excluído",
+        description: `Investimento "${investmentName}" de ${userEmail} foi excluído com sucesso.`,
+      });
+
+      // Recarregar lista
+      loadActiveInvestments();
+      
+    } catch (error) {
+      console.error('❌ Erro ao excluir investimento individual:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao excluir investimento.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Função para abrir modal de confirmação de exclusão individual
+  const openIndividualDeleteModal = (investment: any) => {
+    setSelectedInvestmentForDeletion(investment);
+    setIsIndividualDeleteModalOpen(true);
+  };
+
+  // Função para confirmar exclusão individual
+  const confirmIndividualDeletion = async () => {
+    if (!selectedInvestmentForDeletion) return;
+
+          await deleteIndividualInvestment(
+        selectedInvestmentForDeletion.id,
+        selectedInvestmentForDeletion.profiles?.email || `ID: ${selectedInvestmentForDeletion.user_id}`,
+        'Plano de Investimento'
+      );
+
+    setIsIndividualDeleteModalOpen(false);
+    setSelectedInvestmentForDeletion(null);
+  };
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -1108,14 +3279,15 @@ const Admin = () => {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="deposits">Depósitos</TabsTrigger>
-            <TabsTrigger value="withdrawals">Saques</TabsTrigger>
-            <TabsTrigger value="transactions">Transações</TabsTrigger>
-            <TabsTrigger value="trading">Trading</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-          </TabsList>
+                  <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="deposits">Depósitos</TabsTrigger>
+          <TabsTrigger value="withdrawals">Saques</TabsTrigger>
+          <TabsTrigger value="transactions">Transações</TabsTrigger>
+          <TabsTrigger value="trading">Trading</TabsTrigger>
+          <TabsTrigger value="partners">Sócios</TabsTrigger>
+          <TabsTrigger value="settings">Configurações</TabsTrigger>
+        </TabsList>
 
           <TabsContent value="users" className="space-y-6">
             {/* Search and Filter */}
@@ -2453,33 +4625,353 @@ const Admin = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Saldo</Label>
-                    <p className="text-sm font-semibold text-trading-green">${(selectedUser.balance || 0).toLocaleString()}</p>
+                    <p className="text-sm font-medium text-trading-green">${selectedUser.balance.toLocaleString()}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Lucro Total</Label>
-                    <p className="text-sm font-semibold text-primary">+${(selectedUser.totalProfit || 0).toLocaleString()}</p>
+                    <p className="text-sm font-medium text-primary">+${selectedUser.totalProfit.toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Data de Cadastro</Label>
-                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.joinDate).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.joinDate}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Último Login</Label>
-                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.lastLogin).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.lastLogin}</p>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">API Status</Label>
-                  <div className="mt-1">
-                    <Badge variant={selectedUser.apiConnected ? "default" : "destructive"}>
-                      {selectedUser.apiConnected ? "Conectada" : "Desconectada"}
-                    </Badge>
-                  </div>
+                  <Label className="text-sm font-medium">API Conectada</Label>
+                  <Badge variant={selectedUser.apiConnected ? "default" : "destructive"}>
+                    {selectedUser.apiConnected ? "Conectada" : "Desconectada"}
+                  </Badge>
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Investment Confirmation Modal */}
+        <Dialog open={isDeleteInvestmentModalOpen} onOpenChange={setIsDeleteInvestmentModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-destructive">
+                <Trash2 className="h-5 w-5 mr-2" />
+                Confirmar Exclusão de Investimentos
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-destructive">Ação Irreversível</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Você está prestes a excluir TODOS os investimentos do usuário <strong>{deleteInvestmentEmail}</strong>.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Motivo:</strong> {deleteInvestmentReason}
+                    </p>
+                    <p className="text-sm text-destructive font-medium">
+                      ⚠️ Esta ação não pode ser desfeita!
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Digite "CONFIRMAR" para prosseguir:</Label>
+                <Input
+                  placeholder="CONFIRMAR"
+                  onChange={(e) => {
+                    console.log('🔤 Texto digitado:', e.target.value);
+                    if (e.target.value === "CONFIRMAR") {
+                      console.log('✅ Confirmação digitada, executando exclusão...');
+                      handleDeleteInvestmentByEmail();
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log('❌ Modal cancelado');
+                    setIsDeleteInvestmentModalOpen(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    console.log('🚀 Botão de exclusão clicado');
+                    handleDeleteInvestmentByEmail();
+                  }}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Investimentos
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Partner Selection Modal with Commission */}
+        <Dialog open={isPartnerSelectionModalOpen} onOpenChange={setIsPartnerSelectionModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-purple-600">
+                <Crown className="h-5 w-5 mr-2" />
+                Adicionar Sócio com Comissão
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Informações do usuário selecionado */}
+              {selectedUserForPartner && (
+                <div className="p-4 bg-muted/30 rounded-lg border">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      selectedUserForPartner.role === 'admin' ? 'bg-red-500' : 'bg-green-500'
+                    }`}></div>
+                    <div>
+                      <div className="font-medium">
+                        {selectedUserForPartner.display_name || selectedUserForPartner.username || 'Usuário'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {selectedUserForPartner.email}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Saldo: ${selectedUserForPartner.balance || 0}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={selectedUserForPartner.role === 'admin' ? 'destructive' : 'secondary'}>
+                      {selectedUserForPartner.role === 'admin' ? 'Admin' : 'Usuário'}
+                    </Badge>
+                    {selectedUserForPartner.role === 'admin' && (
+                      <Badge variant="outline" className="text-orange-600 border-orange-600">
+                        Será transformado em Sócio
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Configuração de comissão */}
+              <div className="space-y-2">
+                <Label htmlFor="customCommission">Comissão Personalizada (%)</Label>
+                <Input
+                  id="customCommission"
+                  type="number"
+                  min="0.1"
+                  max="10"
+                  step="0.1"
+                  placeholder="1.0"
+                  value={customCommission}
+                  onChange={(e) => setCustomCommission(parseFloat(e.target.value) || 1.0)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Percentual de comissão sobre cada depósito aprovado
+                </p>
+              </div>
+
+              {/* Aviso especial para admins */}
+              {selectedUserForPartner?.role === 'admin' && (
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg dark:bg-orange-950 dark:border-orange-800">
+                  <h4 className="text-sm font-medium mb-2 text-orange-800 dark:text-orange-200">
+                    ⚠️ Aviso Importante
+                  </h4>
+                  <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
+                    <li>• Este usuário é um <strong>Administrador</strong></li>
+                    <li>• Será transformado em <strong>Sócio</strong></li>
+                    <li>• Manterá acesso ao painel admin</li>
+                    <li>• Receberá comissões como sócio</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* Informações sobre comissão */}
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950 dark:border-purple-800">
+                <h4 className="text-sm font-medium mb-2 text-purple-800 dark:text-purple-200">
+                  💡 Como Funciona
+                </h4>
+                <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                  <li>• Sócio ganha {customCommission}% de cada depósito aprovado</li>
+                  <li>• Comissão é calculada automaticamente</li>
+                  <li>• Ganhos são creditados no saldo do sócio</li>
+                  <li>• Sistema rastreia todas as transações</li>
+                </ul>
+              </div>
+
+              {/* Exemplo de cálculo */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950 dark:border-blue-800">
+                <h4 className="text-sm font-medium mb-2 text-blue-800 dark:text-blue-200">
+                  📊 Exemplo de Cálculo
+                </h4>
+                <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                  <p>• Depósito de $1.000 aprovado</p>
+                  <p>• Comissão: {customCommission}% = ${(1000 * customCommission / 100).toFixed(2)}</p>
+                  <p>• Sócio recebe automaticamente no saldo</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsPartnerSelectionModalOpen(false);
+                    setSelectedUserForPartner(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={addPartnerWithCustomCommission}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {selectedUserForPartner?.role === 'admin' ? 'Transformar em Sócio' : 'Adicionar como Sócio'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Partner Management Modal */}
+        <Dialog open={isPartnerModalOpen} onOpenChange={setIsPartnerModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-purple-600">
+                <Crown className="h-5 w-5 mr-2" />
+                {isNewPartner ? "Adicionar Novo Sócio" : "Editar Sócio"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="modalPartnerEmail">Email do Usuário</Label>
+                <Input
+                  id="modalPartnerEmail"
+                  type="email"
+                  placeholder="usuario@exemplo.com"
+                  value={selectedPartner?.email || ''}
+                  onChange={(e) => setSelectedPartner({
+                    ...selectedPartner,
+                    email: e.target.value
+                  })}
+                  disabled={!isNewPartner}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="modalPartnerCommission">Comissão (%)</Label>
+                <Input
+                  id="modalPartnerCommission"
+                  type="number"
+                  min="0.1"
+                  max="10"
+                  step="0.1"
+                  placeholder="1.0"
+                  value={selectedPartner?.commission || partnerCommission}
+                  onChange={(e) => setSelectedPartner({
+                    ...selectedPartner,
+                    commission: parseFloat(e.target.value) || 1.0
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Percentual de comissão sobre cada depósito aprovado
+                </p>
+              </div>
+
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950 dark:border-purple-800">
+                <h4 className="text-sm font-medium mb-2 text-purple-800 dark:text-purple-200">
+                  💡 Como Funciona
+                </h4>
+                <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                  <li>• Sócio ganha {selectedPartner?.commission || partnerCommission}% de cada depósito aprovado</li>
+                  <li>• Comissão é calculada automaticamente</li>
+                  <li>• Ganhos são creditados no saldo do sócio</li>
+                  <li>• Sistema rastreia todas as transações</li>
+                </ul>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsPartnerModalOpen(false);
+                    setSelectedPartner(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={addPartner}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  {isNewPartner ? "Adicionar Sócio" : "Salvar Alterações"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Individual Investment Delete Confirmation Modal */}
+        <Dialog open={isIndividualDeleteModalOpen} onOpenChange={setIsIndividualDeleteModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-destructive">
+                <Trash2 className="h-5 w-5 mr-2" />
+                Confirmar Exclusão de Investimento
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedInvestmentForDeletion && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-destructive">Excluir Investimento Individual</h4>
+                      <div className="space-y-1 text-sm">
+                        <p><strong>Plano:</strong> Plano de Investimento</p>
+                        <p><strong>Usuário:</strong> {selectedInvestmentForDeletion.profiles?.display_name || selectedInvestmentForDeletion.profiles?.email || 'Usuário Desconhecido'}</p>
+                        <p><strong>Valor:</strong> ${(selectedInvestmentForDeletion.amount || 0).toLocaleString()}</p>
+                        <p><strong>Taxa:</strong> {(selectedInvestmentForDeletion.daily_rate || 0)}%</p>
+                      </div>
+                      <p className="text-sm text-destructive font-medium mt-2">
+                        ⚠️ Esta ação não pode ser desfeita!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsIndividualDeleteModalOpen(false);
+                    setSelectedInvestmentForDeletion(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={confirmIndividualDeletion}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Investimento
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
           </TabsContent>
@@ -2692,6 +5184,632 @@ const Admin = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Exclusão de Investimentos */}
+                <div className="border rounded-lg p-4 border-destructive/20 bg-destructive/5">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-destructive">
+                    <Trash2 className="h-5 w-5 mr-2" />
+                    Exclusão de Investimentos
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="deleteInvestmentEmail" className="text-sm font-medium">
+                          Email do Usuário
+                        </Label>
+                        <Input
+                          id="deleteInvestmentEmail"
+                          type="email"
+                          placeholder="usuario@exemplo.com"
+                          value={deleteInvestmentEmail}
+                          onChange={(e) => setDeleteInvestmentEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="deleteInvestmentReason" className="text-sm font-medium">
+                          Motivo da Exclusão
+                        </Label>
+                        <Input
+                          id="deleteInvestmentReason"
+                          placeholder="Ex: Violação de termos, fraude, etc."
+                          value={deleteInvestmentReason}
+                          onChange={(e) => setDeleteInvestmentReason(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Button 
+                        onClick={() => {
+                          console.log('🔓 Abrindo modal de exclusão...');
+                          console.log('📧 Email:', deleteInvestmentEmail);
+                          console.log('📝 Motivo:', deleteInvestmentReason);
+                          setIsDeleteInvestmentModalOpen(true);
+                        }}
+                        variant="destructive"
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir Investimentos
+                      </Button>
+                      <Button 
+                        onClick={testTableAccess}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🧪 Testar Acesso
+                      </Button>
+                      <Button 
+                        onClick={testDirectDeletion}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🗑️ Testar Exclusão
+                      </Button>
+                      <Button 
+                        onClick={checkTableStructure}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Verificar Estrutura
+                      </Button>
+                      <Button 
+                        onClick={simpleTest}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🧪 Teste Simples
+                      </Button>
+                      <Button 
+                        onClick={testProfilesStructure}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Testar Estrutura Profiles
+                      </Button>
+                      <Button 
+                        onClick={testProfilesUpdate}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🧪 Testar Update Profiles
+                      </Button>
+                      <Button 
+                        onClick={testAddPartner}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🧪 Testar Adicionar Sócio
+                      </Button>
+                      <Button 
+                        onClick={testBasicProfilesAccess}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Testar Acesso Profiles
+                      </Button>
+                      <Button 
+                        onClick={testRoleConstraint}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Testar Constraint Role
+                      </Button>
+                      <Button 
+                        onClick={checkPartnersInDatabase}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Verificar Sócios no BD
+                      </Button>
+                      <Button 
+                        onClick={checkAdminSouza}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Verificar Admin Souza
+                      </Button>
+                      <Button 
+                        onClick={checkConstraint}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔍 Verificar Partner
+                      </Button>
+
+                      <Button 
+                        onClick={confirmarEmailsExistentes}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        ✅ Confirmar Emails
+                      </Button>
+                      <Button 
+                        onClick={confirmarEmailsExistentes}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        ✅ Confirmar Emails
+                      </Button>
+                      <Button 
+                        onClick={addPartnerByEmail}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        ➕ Adicionar Sócio
+                      </Button>
+                      <Button 
+                        onClick={updatePartnerCommission}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        💰 Ajustar Comissão
+                      </Button>
+                      <Button 
+                        onClick={removePartnerByEmail}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🗑️ Remover Sócio
+                      </Button>
+                      <Button 
+                        onClick={loadActiveInvestments}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        🔄 Recarregar Planos
+                      </Button>
+                      <div className="text-xs text-muted-foreground">
+                        ⚠️ Esta ação é irreversível e excluirá TODOS os investimentos do usuário
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Planos Ativos */}
+                <div className="border rounded-lg p-4 border-primary/20 bg-primary/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold flex items-center text-primary">
+                      <Bot className="h-5 w-5 mr-2" />
+                      Planos Ativos ({activeInvestments.length})
+                    </h3>
+                    <Button 
+                      onClick={loadActiveInvestments}
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoadingInvestments}
+                      className="text-xs"
+                    >
+                      {isLoadingInvestments ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary mr-2"></div>
+                          Carregando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3 w-3 mr-2" />
+                          Atualizar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {isLoadingInvestments ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <span className="ml-2 text-muted-foreground">Carregando investimentos...</span>
+                    </div>
+                  ) : activeInvestments.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Nenhum plano ativo encontrado</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {activeInvestments.map((investment) => (
+                        <div 
+                          key={investment.id} 
+                          className="flex items-center justify-between p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 rounded-full bg-trading-green"></div>
+                              <div>
+                                <div className="font-medium text-sm">
+                                  Plano de Investimento
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {investment.profiles?.display_name || investment.profiles?.email || `ID: ${investment.user_id}`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-2 grid grid-cols-3 gap-4 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Valor:</span>
+                                <div className="font-medium text-trading-green">
+                                  ${(investment.amount || 0).toLocaleString()}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Taxa:</span>
+                                <div className="font-medium text-primary">
+                                  {(investment.daily_rate || 0)}%
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Status:</span>
+                                <div className="font-medium">
+                                  <Badge variant="default" className="text-xs">
+                                    {investment.status || 'Ativo'}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 ml-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openIndividualDeleteModal(investment)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="partners" className="space-y-6">
+            {/* Dashboard VIP/Sócio */}
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/20">
+              <CardHeader>
+                <CardTitle className="flex items-center text-purple-600">
+                  <Crown className="h-6 w-6 mr-2" />
+                  🏆 Você é VIP - Dashboard de Sócio
+                </CardTitle>
+                <CardDescription>
+                  Gerencie sócios e acompanhe ganhos baseados no faturamento total
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-600">Total de Depósitos</p>
+                          <p className="text-3xl font-bold text-green-600">${totalDeposits.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">Faturamento total aprovado</p>
+                        </div>
+                        <DollarSign className="h-8 w-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-blue-600">Comissão Padrão</p>
+                          <p className="text-3xl font-bold text-blue-600">{partnerCommission}%</p>
+                          <p className="text-xs text-muted-foreground">Por depósito aprovado</p>
+                        </div>
+                        <Percent className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border-purple-500/20">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-purple-600">Ganhos Totais</p>
+                          <p className="text-3xl font-bold text-purple-600">${partnerEarnings.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">Distribuído entre sócios</p>
+                        </div>
+                        <TrendingUp className="h-8 w-8 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Gerenciamento de Sócios */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Lista de Usuários */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center">
+                          <Users className="h-5 w-5 mr-2" />
+                          Todos os Usuários ({allUsers.length})
+                        </CardTitle>
+                        <Button 
+                          onClick={loadAllUsers}
+                          variant="outline"
+                          size="sm"
+                          disabled={isLoadingUsers}
+                        >
+                          <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingUsers ? 'animate-spin' : ''}`} />
+                          Atualizar
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {isLoadingUsers ? (
+                        <div className="text-center py-8">
+                          <RefreshCw className="h-8 w-8 mx-auto mb-4 animate-spin" />
+                          <p className="text-muted-foreground">Carregando usuários...</p>
+                        </div>
+                      ) : allUsers.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Nenhum usuário encontrado</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                          {allUsers.map((user) => (
+                            <div 
+                              key={user.user_id} 
+                              className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  user.role === 'partner' ? 'bg-purple-500' : 
+                                  user.role === 'admin' ? 'bg-red-500' : 'bg-green-500'
+                                }`}></div>
+                                <div>
+                                  <div className="font-medium">
+                                    {user.display_name || user.username || 'Usuário'}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {user.email}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Saldo: ${user.balance || 0}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Badge variant={
+                                  user.role === 'partner' ? 'default' :
+                                  user.role === 'admin' ? 'destructive' : 'secondary'
+                                }>
+                                  {user.role === 'partner' ? 'Sócio' :
+                                   user.role === 'admin' ? 'Admin' : 'Usuário'}
+                                </Badge>
+                                
+                                {user.role !== 'partner' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openPartnerSelectionModal(user)}
+                                    className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
+                                    title={user.role === 'admin' ? "Tornar Admin Sócio" : "Selecionar como sócio e definir comissão"}
+                                  >
+                                    <Crown className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Configurações */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Settings className="h-5 w-5 mr-2" />
+                        Configurações de Comissão
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="defaultCommission">Comissão Padrão (%)</Label>
+                        <Input
+                          id="defaultCommission"
+                          type="number"
+                          min="0.1"
+                          max="10"
+                          step="0.1"
+                          value={partnerCommission}
+                          onChange={(e) => setPartnerCommission(parseFloat(e.target.value) || 1.0)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Comissão padrão aplicada a novos sócios
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={calculatePartnerEarnings}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Recalcular Ganhos
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => {
+                          setSelectedUserForPartner(null);
+                          setCustomCommission(partnerCommission);
+                          setIsPartnerSelectionModalOpen(true);
+                        }}
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Crown className="h-4 w-4 mr-2" />
+                        Adicionar Sócio Manualmente
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Lista de Sócios */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center">
+                        <Users className="h-5 w-5 mr-2" />
+                        Sócios Ativos ({partners.length})
+                      </CardTitle>
+                      <Button 
+                        onClick={loadPartners}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Atualizar
+                      </Button>
+                      <Button 
+                        onClick={checkPartnersInDatabase}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🔍 Verificar BD
+                      </Button>
+                      <Button 
+                        onClick={checkAdminSouza}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🔍 Admin Souza
+                      </Button>
+                      <Button 
+                        onClick={simpleUpdateAdminSouza}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🎯 Update Simples
+                      </Button>
+                      <Button 
+                        onClick={forceRefreshPartners}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🔄 Força Refresh
+                      </Button>
+                      <Button 
+                        onClick={applyMigrationsAndFix}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🔧 Aplicar Migrações
+                      </Button>
+                      <Button 
+                        onClick={forceUpdateAdminSouza}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🔄 Forçar Update Souza
+                      </Button>
+                      <Button 
+                        onClick={simpleUpdateAdminSouza}
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        🎯 Update Simples
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {partners.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Nenhum sócio encontrado</p>
+                        <p className="text-sm">Adicione usuários como sócios para começar</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {partners.map((partner) => (
+                          <div 
+                            key={partner.user_id} 
+                            className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                              <div>
+                                <div className="font-medium">
+                                  {partner.display_name || partner.username || 'Usuário'}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {partner.email}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <div className="font-medium text-purple-600">
+                                  {partnerCommission}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Comissão Padrão
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPartner(partner);
+                                    setIsNewPartner(false);
+                                    setIsPartnerModalOpen(true);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removePartner(partner.user_id, partner.display_name || partner.email)}
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </TabsContent>

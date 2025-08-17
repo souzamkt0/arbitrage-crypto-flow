@@ -23,6 +23,7 @@ import {
   Target,
   Sparkles
 } from "lucide-react";
+import { TradingProfitsService } from "@/services/tradingProfitsService";
 
 interface Exchange {
   name: string;
@@ -61,16 +62,49 @@ const TradingSimulator = ({
   const [isRunning, setIsRunning] = useState(false);
   const [totalProfit, setTotalProfit] = useState(0);
   const [completedOperations, setCompletedOperations] = useState(0);
+  const [startTime, setStartTime] = useState<number>(0);
 
   const exchangeList = [
-    { name: "Binance", logo: "🟡" },
-    { name: "Coinbase Pro", logo: "🔵" },
-    { name: "Kraken", logo: "🟣" },
-    { name: "KuCoin", logo: "🟢" },
-    { name: "Huobi", logo: "🔴" },
-    { name: "Bybit", logo: "🟠" },
-    { name: "OKX", logo: "⚫" },
-    { name: "Gate.io", logo: "🟤" }
+    { 
+      name: "Binance", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNGM0JBMkYiLz4KPHBhdGggZD0iTTEwLjU4IDE0LjU4TDE2IDE5TDIxLjQyIDE0LjU4TDE5IDEyLjE2TDE2IDEzVjlIMTRWMTNMMTEgMTIuMTZMMTAuNTggMTQuNThaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+      color: "#F3BA2F"
+    },
+    { 
+      name: "Coinbase", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMwMDUyRkYiLz4KPHBhdGggZD0iTTE2IDIyQzE5LjMxIDIyIDIyIDE5LjMxIDIyIDE2QzIyIDEyLjY5IDE5LjMxIDEwIDE2IDEwQzEyLjY5IDEwIDEwIDEyLjY5IDEwIDE2QzEwIDE5LjMxIDEyLjY5IDIyIDE2IDIyWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#0052FF"
+    },
+    { 
+      name: "Kraken", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM1NzMzRkYiLz4KPHBhdGggZD0iTTE2IDEwSDEwVjIySDEzVjE4SDE2QzE4LjIxIDE4IDIwIDE2LjIxIDIwIDE0QzIwIDExLjc5IDE4LjIxIDEwIDE2IDEwWk0xNiAxNUgxM1YxM0gxNkMxNi41NSAxMyAxNyAxMy40NSAxNyAxNEMxNyAxNC41NSAxNi41NSAxNSAxNiAxNVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
+      color: "#5733FF"
+    },
+    { 
+      name: "KuCoin", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMyNEQzNjYiLz4KPHBhdGggZD0iTTEyIDEwSDEwVjE0SDE0VjEySDEyVjEwWk0yMiAxOEgyMFYyMkgxOFYyMEgxNlYxOEgxOFYxNkgyMFYxOEgyMlpNMTQgMTRIMTZWMTZIMTRWMTRaTTE4IDE0SDE2VjE2SDE4VjE0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#24D366"
+    },
+    { 
+      name: "Huobi", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxNjc2RjMiLz4KPHBhdGggZD0iTTEwIDEwSDEzVjE2SDEwVjEwWk0xOSAxMEgyMlYxNkgxOVYxMFpNMTMgMTlIMTlWMjJIMTNWMTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+      color: "#1676F3"
+    },
+    { 
+      name: "Bybit", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNGN0EzM0EiLz4KPHBhdGggZD0iTTEwIDEwSDEzVjEzSDEwVjEwWk0xNiAxMEgxOVYxM0gxNlYxMFpNMTAgMTZIMTNWMTlIMTBWMTZaTTE2IDE2SDE5VjE5SDE2VjE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#F7A33A"
+    },
+    { 
+      name: "OKX", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMwMDAwMDAiLz4KPHBhdGggZD0iTTEwIDEwSDEzVjEzSDEwVjEwWk0xMy41IDEzLjVIMTYuNVYxNi41SDEzLjVWMTMuNVpNMTYuNSAxNi41SDE5LjVWMTkuNUgxNi41VjE2LjVaTTE5IDE5SDIyVjIyUDE5VjE5WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#000000"
+    },
+    { 
+      name: "Gate.io", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzOTZGRkYiLz4KPHBhdGggZD0iTTE2IDEwQzEyLjY5IDEwIDEwIDEyLjY5IDEwIDE2QzEwIDE5LjMxIDEyLjY5IDIyIDE2IDIyQzE5LjMxIDIyIDIyIDE5LjMxIDIyIDE2QzIyIDEyLjY5IDE5LjMxIDEwIDE2IDEwWk0xNiAyMEMxMy43OSAyMCAxMiAxOC4yMSAxMiAxNkMxMiAxMy43OSAxMy43OSAxMiAxNiAxMkMxOC4yMSAxMiAyMCAxMy43OSAyMCAxNkMyMCAxOC4yMSAxOC4yMSAyMCAxNiAyMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
+      color: "#396FFF"
+    }
   ];
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT"];
@@ -99,7 +133,9 @@ const TradingSimulator = ({
       const buyPrice = basePrice;
       const sellPrice = basePrice * (1 + spread);
       const volume = Math.random() * 1000000 + 100000;
-      const profit = (investmentAmount * (dailyRate / 100)) / numExchanges; // Dividir pelo número correto
+      // Calcular lucro baseado na taxa diária real (2.5% = 0.025)
+      const dailyProfitRate = dailyRate / 100; // Converter porcentagem para decimal
+      const profit = (investmentAmount * dailyProfitRate) / numExchanges; // Lucro total dividido pelo número de exchanges
 
       return {
         name: exchange.name,
@@ -172,15 +208,51 @@ const TradingSimulator = ({
     setTotalProfit(newTotalProfit);
 
     if (completedCount === exchanges.length && exchanges.length > 0) {
+      // Registrar ganho no Supabase
+      const recordProfit = async () => {
+        try {
+          const profitData = {
+            investment_amount: investmentAmount,
+            daily_rate: dailyRate,
+            plan_name: planName,
+            total_profit: newTotalProfit,
+            exchanges_count: exchanges.length,
+            completed_operations: completedCount,
+            execution_time_seconds: Math.floor((Date.now() - startTime) / 1000),
+            profit_per_exchange: newTotalProfit / exchanges.length,
+            metadata: {
+              exchanges: exchanges.map(ex => ({
+                name: ex.name,
+                pair: ex.pair,
+                profit: ex.profit,
+                status: ex.status
+              }))
+            }
+          };
+
+          const recordedProfit = await TradingProfitsService.recordProfit(profitData);
+          if (recordedProfit) {
+            console.log('Ganho registrado com sucesso:', recordedProfit);
+          } else {
+            console.error('Erro ao registrar ganho');
+          }
+        } catch (error) {
+          console.error('Erro ao registrar ganho de trading:', error);
+        }
+      };
+
+      recordProfit();
+
       setTimeout(() => {
         onComplete(newTotalProfit);
         onClose();
       }, 2000);
     }
-  }, [exchanges, onComplete, onClose]);
+  }, [exchanges, onComplete, onClose, investmentAmount, dailyRate, planName]);
 
   const handleStart = () => {
     setIsRunning(true);
+    setStartTime(Date.now());
   };
 
   const getStatusColor = (status: string) => {
@@ -215,211 +287,263 @@ const TradingSimulator = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-auto bg-gradient-to-br from-background via-background/95 to-primary/5 border-2 border-primary/20">
-        <DialogHeader className="relative">
-          {/* Background decorativo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-trading-green/10 rounded-t-lg -z-10" />
-          
-          <DialogTitle className="flex items-center gap-3 text-xl font-bold">
-            <div className="relative">
-              <Bot className="h-6 w-6 text-primary animate-pulse" />
-              <Sparkles className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1 animate-bounce" />
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto bg-black border border-green-400/30 shadow-2xl shadow-green-400/10">
+        {/* Trading Terminal Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,0,0.03)_1px,transparent_1px)] bg-[size:20px_20px] rounded-lg" />
+        {/* Market Data Stream Effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(0,255,0,0.05)_0%,transparent_50%),radial-gradient(circle_at_90%_80%,rgba(255,215,0,0.05)_0%,transparent_50%)] rounded-lg" />
+        
+        <DialogHeader className="relative z-10">
+          {/* Terminal Header Bar */}
+          <div className="bg-gray-900/90 border-b border-green-400/30 p-4 rounded-t-lg">
+            {/* Terminal Dots */}
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="ml-4 text-green-400 font-mono text-sm">
+                CRYPTO_ARBITRAGE_TERMINAL_v4.0.0
+              </div>
             </div>
-            <span className="bg-gradient-to-r from-primary to-trading-green bg-clip-text text-transparent">
-              Trading Automatizado - {planName}
-            </span>
+            
+            <DialogTitle className="font-mono text-green-400 text-lg flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white">SISTEMA:</span>
+                <span className="text-green-400">ATIVO</span>
+              </div>
+              <div className="text-yellow-400">|</div>
+              <div className="text-gray-300">
+                PLANO: <span className="text-yellow-400">{planName}</span>
+              </div>
             {totalActiveOperations > 0 && (
-              <Badge variant="secondary" className="text-xs bg-gradient-to-r from-primary/20 to-trading-green/20 border-primary/30 animate-pulse">
-                <Target className="h-3 w-3 mr-1" />
-                +{Math.floor(totalActiveOperations / 2)} operações extras
-              </Badge>
+                <>
+                  <div className="text-yellow-400">|</div>
+                  <div className="text-blue-400">
+                    BOOST: +{Math.floor(totalActiveOperations / 2)}
+                  </div>
+                </>
             )}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground mt-2">
-            Sistema de arbitragem em tempo real conectado às principais exchanges
-          </p>
+          </div>
+          
+          {/* Market Status Bar */}
+          <div className="bg-black/80 border-b border-green-400/20 p-3">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <div className="flex items-center gap-6">
+                <div className="text-green-400">
+                  ● EXCHANGES: <span className="text-white">{exchanges.length}</span>
+                </div>
+                <div className="text-yellow-400">
+                  ● LATÊNCIA: <span className="text-white">12ms</span>
+                </div>
+                <div className="text-blue-400">
+                  ● STATUS: <span className="text-white">CONECTADO</span>
+                </div>
+              </div>
+              <div className="text-green-400">
+                {new Date().toLocaleTimeString()} UTC
+              </div>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Resumo Aprimorado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:scale-105">
-              <CardContent className="p-4 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-                <DollarSign className="h-5 w-5 text-primary mx-auto mb-2" />
-                <div className="text-xs text-muted-foreground mb-1">Investimento</div>
-                <div className="text-xl font-bold text-primary">${investmentAmount}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-trading-green/10 to-trading-green/5 border-trading-green/20 hover:border-trading-green/40 transition-all duration-300 hover:scale-105">
-              <CardContent className="p-4 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent" />
-                <TrendingUp className="h-5 w-5 text-trading-green mx-auto mb-2" />
-                <div className="text-xs text-muted-foreground mb-1">Taxa Diária</div>
-                <div className="text-xl font-bold text-trading-green">{dailyRate}%</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 hover:scale-105">
-              <CardContent className="p-4 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent" />
-                <Activity className="h-5 w-5 text-blue-400 mx-auto mb-2" />
-                <div className="text-xs text-muted-foreground mb-1">Operações</div>
-                <div className="text-xl font-bold text-foreground">{completedOperations}/{exchanges.length}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300 hover:scale-105">
-              <CardContent className="p-4 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent" />
-                <Zap className="h-5 w-5 text-yellow-400 mx-auto mb-2 animate-pulse" />
-                <div className="text-xs text-muted-foreground mb-1">Lucro Total</div>
-                <div className="text-xl font-bold text-trading-green animate-pulse">+${totalProfit.toFixed(2)}</div>
-              </CardContent>
-            </Card>
+        <div className="space-y-6 relative z-10 p-4">
+          {/* Market Data Dashboard */}
+          <div className="bg-black/60 border border-green-400/30 rounded-lg p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
+              {/* Capital */}
+              <div className="bg-black/80 border border-yellow-400/30 p-3">
+                <div className="text-xs text-yellow-400 mb-1">CAPITAL</div>
+                <div className="text-xl font-bold text-white">${investmentAmount}</div>
+                <div className="text-xs text-gray-500">USD</div>
+              </div>
+              
+              {/* Daily Rate */}
+              <div className="bg-black/80 border border-green-400/30 p-3">
+                <div className="text-xs text-green-400 mb-1">TAXA DIÁRIA</div>
+                <div className="text-xl font-bold text-green-400">+{dailyRate}%</div>
+                <div className="text-xs text-gray-500">APY</div>
+              </div>
+              
+              {/* Operations */}
+              <div className="bg-black/80 border border-blue-400/30 p-3">
+                <div className="text-xs text-blue-400 mb-1">OPERAÇÕES</div>
+                <div className="text-xl font-bold text-white">{completedOperations}/{exchanges.length}</div>
+                <div className="text-xs text-gray-500">EXEC</div>
+              </div>
+              
+              {/* PNL */}
+              <div className="bg-black/80 border border-green-400/30 p-3">
+                <div className="text-xs text-green-400 mb-1">PNL</div>
+                <div className="text-xl font-bold text-green-400">+${totalProfit.toFixed(2)}</div>
+                <div className="text-xs text-gray-500">USD</div>
+              </div>
+            </div>
           </div>
 
-          {/* Botão de Iniciar Aprimorado */}
+          {/* Terminal Execute Button */}
           {!isRunning && completedOperations === 0 && (
             <div className="text-center py-4">
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-trading-green rounded-lg blur-lg opacity-30 animate-pulse" />
+              <div className="bg-black/80 border border-green-400/30 rounded-lg p-6">
+                <div className="font-mono text-green-400 text-sm mb-4">
+                  {'>'} READY TO EXECUTE ARBITRAGE OPERATIONS
+                </div>
+                
                 <Button 
                   onClick={handleStart} 
-                  className="relative bg-gradient-to-r from-primary to-trading-green hover:from-primary/90 hover:to-trading-green/90 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-green-400/20 hover:bg-green-400/30 border border-green-400 text-green-400 font-mono font-bold py-3 px-8 rounded transition-all duration-200 hover:shadow-lg hover:shadow-green-400/20"
                   size="lg"
                 >
-                  <Play className="h-5 w-5 mr-3 animate-pulse" />
-                  <span className="text-lg">Iniciar Trading Automatizado</span>
-                  <Sparkles className="h-4 w-4 ml-3 animate-bounce" />
+                  <Play className="h-4 w-4 mr-2" />
+                  EXECUTE TRADING_BOT.sh
                 </Button>
+                
+                <div className="mt-4 font-mono text-xs text-gray-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
+                    <span>ALGORITHMS LOADED</span>
+                    <div className="text-green-400">●</div>
+                    <span>EXCHANGES CONNECTED</span>
+                    <div className="text-green-400">●</div>
+                    <span>LATENCY: 12MS</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-3 max-w-md mx-auto">
-                O sistema irá conectar-se às exchanges e executar operações de arbitragem em tempo real
-              </p>
             </div>
           )}
 
-          {/* Lista de Exchanges Aprimorada */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Exchange Market Data */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {exchanges.map((exchange, index) => (
-              <Card 
+              <div 
                 key={index} 
-                className={`relative overflow-hidden transition-all duration-500 transform hover:scale-102 ${
+                className={`bg-black/80 border font-mono rounded transition-all duration-300 ${
                   exchange.status === 'completed' 
-                    ? 'bg-gradient-to-br from-trading-green/20 to-trading-green/5 border-trading-green/30 shadow-lg shadow-trading-green/20' 
+                    ? 'border-green-400/50 shadow-lg shadow-green-400/20' 
                     : exchange.status === 'analyzing'
-                    ? 'bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 border-yellow-500/30 shadow-lg shadow-yellow-500/20'
+                    ? 'border-yellow-400/50 shadow-lg shadow-yellow-400/20'
                     : exchange.status === 'buying'
-                    ? 'bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/30 shadow-lg shadow-blue-500/20'
-                    : 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 shadow-lg shadow-primary/20'
+                    ? 'border-blue-400/50 shadow-lg shadow-blue-400/20'
+                    : 'border-red-400/50 shadow-lg shadow-red-400/20'
                 }`}
               >
-                {/* Efeito de brilho animado */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer" />
-                
-                <CardHeader className="pb-3">
+                                {/* Terminal Header */}
+                <div className="bg-gray-900/50 border-b border-gray-700/50 p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <span className="text-2xl drop-shadow-lg">{exchange.logo}</span>
-                        {exchange.status === 'completed' && (
-                          <div className="absolute -top-1 -right-1 h-3 w-3 bg-trading-green rounded-full animate-ping" />
-                        )}
+                      <div className="w-8 h-8 rounded bg-black/60 border border-gray-600/50 flex items-center justify-center">
+                        <img 
+                          src={exchange.logo} 
+                          alt={exchange.name}
+                          className="w-6 h-6 rounded object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<span class="text-xs">${
+                                exchange.name === 'Binance' ? '🟡' :
+                                exchange.name === 'Coinbase' ? '🔵' :
+                                exchange.name === 'Kraken' ? '🟣' :
+                                exchange.name === 'KuCoin' ? '🟢' :
+                                exchange.name === 'Huobi' ? '🔴' :
+                                exchange.name === 'Bybit' ? '🟠' :
+                                exchange.name === 'OKX' ? '⚫' :
+                                '🟤'
+                              }</span>`;
+                            }
+                          }}
+                        />
                       </div>
                       <div>
-                        <div className="font-bold text-base">{exchange.name}</div>
-                        <div className="text-sm text-muted-foreground font-mono">{exchange.pair}</div>
+                        <div className="text-white text-sm font-bold">{exchange.name}</div>
+                        <div className="text-gray-400 text-xs">{exchange.pair}</div>
                       </div>
                     </div>
-                    <Badge className={`text-xs font-semibold px-3 py-1 ${getStatusColor(exchange.status)} animate-pulse`}>
-                      {getStatusIcon(exchange.status)}
-                      <span className="ml-2">{getStatusText(exchange.status)}</span>
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Preços com design aprimorado */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
-                      <div className="text-xs text-red-400 mb-1 flex items-center">
-                        <TrendingDown className="h-3 w-3 mr-1" />
-                        Compra
-                      </div>
-                      <div className="font-bold text-red-400 text-lg">${exchange.buyPrice.toFixed(2)}</div>
-                    </div>
-                    <div className="bg-trading-green/10 rounded-lg p-3 border border-trading-green/20">
-                      <div className="text-xs text-trading-green mb-1 flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        Venda
-                      </div>
-                      <div className="font-bold text-trading-green text-lg">${exchange.sellPrice.toFixed(2)}</div>
+                    <div className={`px-2 py-1 text-xs font-mono ${
+                      exchange.status === 'completed' 
+                        ? 'text-green-400' 
+                        : exchange.status === 'analyzing'
+                        ? 'text-yellow-400 animate-pulse'
+                        : exchange.status === 'buying'
+                        ? 'text-blue-400'
+                        : 'text-red-400'
+                    }`}>
+                      [{getStatusText(exchange.status).toUpperCase()}]
                     </div>
                   </div>
-
-                  {/* Spread e Volume com ícones */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
-                      <div className="text-xs text-primary mb-1 flex items-center">
-                        <ArrowUpDown className="h-3 w-3 mr-1" />
-                        Spread
-                      </div>
-                      <div className="font-bold text-primary">{exchange.spread.toFixed(3)}%</div>
+                </div>
+                {/* Market Data Content */}
+                <div className="p-3 space-y-3">
+                  {/* Price Data */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-black/60 p-2 border border-red-500/30">
+                      <div className="text-red-400 mb-1">BID</div>
+                      <div className="text-white font-mono">${exchange.buyPrice.toFixed(2)}</div>
                     </div>
-                    <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
-                      <div className="text-xs text-blue-400 mb-1 flex items-center">
-                        <Activity className="h-3 w-3 mr-1" />
-                        Volume 24h
-                      </div>
-                      <div className="font-bold text-blue-400">${(exchange.volume / 1000).toFixed(0)}K</div>
+                    <div className="bg-black/60 p-2 border border-green-500/30">
+                      <div className="text-green-400 mb-1">ASK</div>
+                      <div className="text-white font-mono">${exchange.sellPrice.toFixed(2)}</div>
                     </div>
                   </div>
 
-                  {/* Progresso com animação */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm font-medium">
-                      <span className="text-foreground">Progresso da Operação</span>
-                      <span className="text-primary">{exchange.progress.toFixed(0)}%</span>
+                  {/* Market Stats */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-black/60 p-2 border border-yellow-500/30">
+                      <div className="text-yellow-400 mb-1">SPREAD</div>
+                      <div className="text-white font-mono">{exchange.spread.toFixed(3)}%</div>
                     </div>
-                    <div className="relative">
-                      <Progress 
-                        value={exchange.progress} 
-                        className="h-3 bg-muted/30" 
+                    <div className="bg-black/60 p-2 border border-blue-500/30">
+                      <div className="text-blue-400 mb-1">VOL_24H</div>
+                      <div className="text-white font-mono">${(exchange.volume / 1000).toFixed(0)}K</div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="bg-black/60 p-2 border border-gray-500/30">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-400">PROGRESS</span>
+                      <span className="text-white font-mono">{exchange.progress.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-800 h-2 rounded">
+                      <div 
+                        className={`h-2 rounded transition-all duration-300 ${
+                          exchange.status === 'completed' 
+                            ? 'bg-green-400' 
+                            : exchange.status === 'analyzing'
+                            ? 'bg-yellow-400 animate-pulse'
+                            : exchange.status === 'buying'
+                            ? 'bg-blue-400'
+                            : 'bg-red-400'
+                        }`}
+                        style={{ width: `${exchange.progress}%` }}
                       />
-                      {exchange.progress > 0 && exchange.progress < 100 && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse rounded-full" />
-                      )}
                     </div>
                   </div>
 
-                  {/* Lucro Esperado com destaque */}
-                  <div className="text-center bg-trading-green/10 rounded-lg p-3 border border-trading-green/20">
-                    <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
-                      <DollarSign className="h-3 w-3 mr-1" />
-                      Lucro Esperado
-                    </div>
-                    <div className="font-bold text-trading-green text-xl">+${exchange.profit.toFixed(2)}</div>
+                  {/* PNL */}
+                  <div className="bg-black/60 p-2 border border-green-500/30 text-center">
+                    <div className="text-green-400 text-xs mb-1">EST_PNL</div>
+                    <div className="text-green-400 font-mono font-bold">+${exchange.profit.toFixed(2)}</div>
                   </div>
 
-                  {/* Tempo Restante com animação */}
-                  {exchange.status !== 'completed' && (
-                    <div className="text-center bg-muted/20 rounded-lg p-2">
-                      <div className="text-xs text-muted-foreground flex items-center justify-center">
-                        <Timer className="h-3 w-3 mr-1 animate-spin" />
-                        <span className="animate-pulse">{exchange.timeRemaining}s restantes</span>
+                  {/* Status/Timer */}
+                  {exchange.status !== 'completed' ? (
+                    <div className="bg-black/60 p-2 border border-gray-500/30 text-center">
+                      <div className="text-gray-400 font-mono text-xs">
+                        TIME_REMAINING: {exchange.timeRemaining.toFixed(0)}s
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-black/60 p-2 border border-green-500/30 text-center">
+                      <div className="text-green-400 font-mono text-xs font-bold">
+                        [OPERATION_COMPLETED]
                       </div>
                     </div>
                   )}
-                  
-                  {/* Indicador de conclusão */}
-                  {exchange.status === 'completed' && (
-                    <div className="text-center bg-trading-green/20 rounded-lg p-3 border border-trading-green/30">
-                      <div className="text-sm text-trading-green font-bold flex items-center justify-center">
-                        <Zap className="h-4 w-4 mr-2 animate-bounce" />
-                        Operação Concluída!
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
@@ -468,11 +592,28 @@ const TradingSimulator = ({
           )}
         </div>
         
-        {/* Footer com informações adicionais */}
-        <div className="mt-6 pt-4 border-t border-border/50">
-          <div className="text-center text-xs text-muted-foreground space-y-1">
-            <p>🔒 Conexão segura com as principais exchanges mundiais</p>
-            <p>⚡ Execução automatizada em tempo real • 🎯 Algoritmos de arbitragem avançados</p>
+        {/* Terminal Footer */}
+        <div className="mt-6 pt-4 border-t border-green-400/30 relative z-10">
+          <div className="bg-black/60 p-3 rounded font-mono text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-green-400">SYSTEM_STATUS:</div>
+                <div className="flex items-center gap-1">
+                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-green-400">ONLINE</span>
+                </div>
+                <div className="text-yellow-400">|</div>
+                <div className="text-blue-400">CONNECTIONS: {exchanges.length}</div>
+                <div className="text-yellow-400">|</div>
+                <div className="text-gray-400">LATENCY: 12MS</div>
+              </div>
+              <div className="text-green-400">
+                {new Date().toISOString().split('T')[0]} {new Date().toLocaleTimeString()}
+              </div>
+            </div>
+            <div className="mt-2 text-gray-500 text-center">
+              CRYPTO_ARBITRAGE_BOT © 2024 - PROFESSIONAL TRADING SYSTEM
+            </div>
           </div>
         </div>
       </DialogContent>

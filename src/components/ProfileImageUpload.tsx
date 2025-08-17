@@ -4,21 +4,24 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Camera, Upload, Trash2, Loader2 } from "lucide-react";
+import { Camera, Upload, Trash2, Loader2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ProfileImageUploadProps {
   currentProfileImage?: string;
   currentCoverImage?: string;
   onProfileImageUpdate?: (url: string) => void;
   onCoverImageUpdate?: (url: string) => void;
+  onClose?: () => void;
 }
 
 const ProfileImageUpload = ({
   currentProfileImage,
   currentCoverImage,
   onProfileImageUpdate,
-  onCoverImageUpdate
+  onCoverImageUpdate,
+  onClose
 }: ProfileImageUploadProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -204,9 +207,26 @@ const ProfileImageUpload = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Foto de Capa */}
-      <Card className="bg-gray-900 border-gray-700">
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            Editar Fotos do Perfil
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          {/* Foto de Capa */}
+          <Card className="bg-gray-900 border-gray-700">
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Foto de Capa</h3>
           <div className="relative">
@@ -336,7 +356,9 @@ const ProfileImageUpload = ({
           </p>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

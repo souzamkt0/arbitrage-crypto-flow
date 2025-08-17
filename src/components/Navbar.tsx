@@ -15,7 +15,7 @@ import {
   Shield,
   PiggyBank,
   MessageSquare,
-
+  Crown,
   Wallet,
   ArrowDown,
   Gift
@@ -30,7 +30,6 @@ const Navbar = () => {
 
   const baseNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-
     { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/market", label: "Mercado", icon: TrendingUp },
@@ -42,10 +41,15 @@ const Navbar = () => {
     { path: "/settings", label: "Configurações", icon: Settings },
   ];
 
+  // Adicionar item de sócio se o usuário for sócio
+  const navItemsWithPartner = profile?.role === 'partner' 
+    ? [...baseNavItems.slice(0, -1), { path: "/partners", label: "Sócio", icon: Crown }, baseNavItems[baseNavItems.length - 1]]
+    : baseNavItems;
+
   // Add admin item only for administrators
   const navItems = isAdmin 
-    ? [...baseNavItems.slice(0, -1), { path: "/admin", label: "Admin", icon: Shield }, baseNavItems[baseNavItems.length - 1]]
-    : baseNavItems;
+    ? [...navItemsWithPartner.slice(0, -1), { path: "/admin", label: "Admin", icon: Shield }, navItemsWithPartner[navItemsWithPartner.length - 1]]
+    : navItemsWithPartner;
 
   const handleLogout = async () => {
     await signOut();

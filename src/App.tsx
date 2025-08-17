@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AdminRegister from "./pages/AdminRegister";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 
@@ -19,7 +18,9 @@ import Market from "./pages/Market";
 import Admin from "./pages/Admin";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
+import ActivePlansPage from "./pages/ActivePlansPage";
 import Referrals from "./pages/Referrals";
+import Partners from "./pages/Partners";
 import Community from "./pages/Community";
 // import Social from "./pages/Social"; // Página removida
 import UserProfilePage from "./pages/UserProfile";
@@ -29,6 +30,7 @@ import NotFound from "./pages/NotFound";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -62,14 +64,15 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Layout Component with Navbar
+// Layout Component with Navbar and Footer
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen bg-background w-full">
     <Navbar />
     <PriceTicker />
-    <div className="w-full">
+    <div className="w-full pb-20 md:pb-0">
       {children}
     </div>
+    <Footer />
   </div>
 );
 
@@ -84,8 +87,6 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-           <Route path="/register/:referralCode" element={<Register />} />
-           <Route path="/admin-register" element={<AdminRegister />} />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"
@@ -170,11 +171,31 @@ const App = () => (
             }
           />
           <Route
+            path="/active-plans"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ActivePlansPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/referrals"
             element={
               <ProtectedRoute>
                 <Layout>
                   <Referrals />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/partners"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Partners />
                 </Layout>
               </ProtectedRoute>
             }

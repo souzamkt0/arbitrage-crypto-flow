@@ -53,6 +53,7 @@ import {
   Tooltip
 } from "recharts";
 import TradingSimulator from "@/components/TradingSimulator";
+import { TradingHistory } from "@/components/TradingHistory";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -98,6 +99,7 @@ const Investments = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
+  const [activeTab, setActiveTab] = useState<'investments' | 'history'>('investments');
   const [investmentAmount, setInvestmentAmount] = useState("");
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
@@ -118,6 +120,40 @@ const Investments = () => {
   const [isTradingSimulatorOpen, setIsTradingSimulatorOpen] = useState(false);
   const [selectedInvestmentForTrading, setSelectedInvestmentForTrading] = useState<UserInvestment | null>(null);
   const [currentPlanIndex, setCurrentPlanIndex] = useState(0);
+  const [sliderProgress, setSliderProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isActivated, setIsActivated] = useState(false);
+  const [showExecutionPopup, setShowExecutionPopup] = useState(false);
+  const [executionProgress, setExecutionProgress] = useState(0);
+  const [executionStep, setExecutionStep] = useState('');
+
+
+  const [showActivePlans, setShowActivePlans] = useState(false);
+  const [dailyResetTimers, setDailyResetTimers] = useState<Record<string, number>>({});
+  const [timerIntervals, setTimerIntervals] = useState<Record<string, NodeJS.Timeout>>({});
+
+  const [showOperationHistory, setShowOperationHistory] = useState(false);
+  const [operationHistory, setOperationHistory] = useState<Array<{
+    id: string;
+    investmentId: string;
+    investmentName: string;
+    timestamp: string;
+    operationType: string;
+    pair: string;
+    amount: number;
+    profit: number;
+    spread: number;
+    exchanges: string[];
+    duration: number;
+    buyPrice?: number;
+    sellPrice?: number;
+    details?: {
+      buyExchange: string;
+      sellExchange: string;
+      spreadPercent: number;
+      volumeTraded: number;
+    };
+  }>>([]);
   
   // Definir requisitos de indicações para cada nível
   const referralRequirements = {
@@ -129,28 +165,28 @@ const Investments = () => {
   // Definir informações dos planos
   const planDetails = {
     '4.0.0': {
-      name: 'Robô 4.0.0',
+      name: '🤖 Robô 4.0.0',
       dailyRate: 2.5,
       minimumAmount: 10,
       referralsRequired: 0,
       contractFee: 0,
-      description: 'Plano inicial sem necessidade de indicações'
+      description: '1 iniciação de operação - Taxa diária: 2,5%'
     },
     '4.0.5': {
-      name: 'Robô 4.0.5',
+      name: '🚀 Robô 4.0.5',
       dailyRate: 3.0,
       minimumAmount: 20,
       referralsRequired: 10,
       contractFee: 10,
-      description: 'Plano intermediário com 10 indicações ativas'
+      description: 'Indicações necessárias: 10 ativos - Taxa diária: 3,0% - Investimento mínimo: $20 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
     },
     '4.1.0': {
-      name: 'Robô 4.1.0',
+      name: '💎 Robô 4.1.0',
       dailyRate: 4.0,
       minimumAmount: 500,
       referralsRequired: 20,
       contractFee: 10,
-      description: 'Plano premium com 20 indicações ativas'
+      description: 'Indicações necessárias: 20 ativos - Taxa diária: 4,0% - Investimento mínimo: $500 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
     }
   };
   
@@ -357,6 +393,11 @@ const Investments = () => {
             totalOperations: 15
           }));
           setUserInvestments(formattedInvestments);
+          
+          // Iniciar timers de liberação para investimentos ativos
+          formattedInvestments.forEach(investment => {
+            // Investimento ativo carregado
+          });
         }
 
         // Fetch referral count
@@ -382,6 +423,8 @@ const Investments = () => {
     loadUserData();
     loadInvestmentPlans();
   }, [user]);
+
+
 
   // Update progress every second for active investments
   useEffect(() => {
@@ -453,9 +496,177 @@ const Investments = () => {
   const activeInvestments = userInvestments.filter(inv => inv.status === "active").length;
   const completedInvestments = userInvestments.filter(inv => inv.status === "completed").length;
 
+  // Função para iniciar timer de 24h para um investimento específico
+  const startDailyResetTimer = (investmentId: string) => {
+    // Limpar timer existente se houver
+    if (timerIntervals[investmentId]) {
+      clearInterval(timerIntervals[investmentId]);
+    }
+
+    // Iniciar novo timer com 24 horas (86400 segundos)
+    const startTime = Date.now();
+    const duration = 24 * 60 * 60 * 1000; // 24 horas em millisegundos
+    
+    setDailyResetTimers(prev => ({
+      ...prev,
+      [investmentId]: 24 * 60 * 60 // 24 horas em segundos
+    }));
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+      
+      setDailyResetTimers(prev => ({
+        ...prev,
+        [investmentId]: remaining
+      }));
+
+      if (remaining <= 0) {
+        // Reset do investimento
+        setUserInvestments(prevInvestments => 
+          prevInvestments.map(inv => {
+            if (inv.id === investmentId) {
+              return {
+                ...inv,
+                operationsCompleted: 0,
+                currentDayProgress: 0,
+                todayEarnings: 0
+              };
+            }
+            return inv;
+          })
+        );
+
+        // Limpar timer
+        clearInterval(interval);
+        setTimerIntervals(prev => {
+          const newIntervals = { ...prev };
+          delete newIntervals[investmentId];
+          return newIntervals;
+        });
+        
+        setDailyResetTimers(prev => {
+          const newTimers = { ...prev };
+          delete newTimers[investmentId];
+          return newTimers;
+        });
+
+        toast({
+          title: "🔄 Ciclo Diário Reiniciado!",
+          description: "Suas operações diárias foram resetadas. Você pode iniciar novas operações.",
+        });
+      }
+    }, 1000);
+
+    setTimerIntervals(prev => ({
+      ...prev,
+      [investmentId]: interval
+    }));
+  };
+
+  // Função para formatar tempo restante
+  const formatTimeRemaining = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+
+
+  // Limpar todos os timers ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      Object.values(timerIntervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [timerIntervals]);
+
   const handleTradingComplete = async (profit: number) => {
     try {
-      // Buscar dados atuais do usuário
+      console.log('🎉 Trading completo! Profit:', profit);
+      
+      // Atualizar investimento primeiro
+      if (selectedInvestmentForTrading) {
+        setUserInvestments(prev => prev.map(inv => {
+          if (inv.id === selectedInvestmentForTrading.id) {
+            const newOperationsCompleted = inv.operationsCompleted + 1;
+            const newTotalEarned = inv.totalEarned + profit;
+            const newProgress = (newOperationsCompleted / 2) * 100;
+            
+            console.log('📊 Atualizando investimento:', {
+              id: inv.id,
+              operationsCompleted: newOperationsCompleted,
+              totalEarned: newTotalEarned,
+              progress: newProgress
+            });
+            
+            // Se completou 2 operações, iniciar timer de 24h
+            if (newOperationsCompleted >= 2) {
+              console.log('⏰ Iniciando timer de 24h para investimento:', inv.id);
+              startDailyResetTimer(inv.id);
+            }
+            
+            return {
+              ...inv,
+              operationsCompleted: newOperationsCompleted,
+              totalEarned: newTotalEarned,
+              todayEarnings: inv.todayEarnings + profit,
+              currentDayProgress: newProgress
+            };
+          }
+          return inv;
+        }));
+        
+        // Registrar no histórico
+        const newOperation = {
+          id: `${Date.now()}-${selectedInvestmentForTrading.operationsCompleted + 1}`,
+          investmentId: selectedInvestmentForTrading.id,
+          investmentName: selectedInvestmentForTrading.investmentName,
+          timestamp: new Date().toISOString(),
+          operationType: `Arbitragem ${selectedInvestmentForTrading.operationsCompleted + 1}/2`,
+          pair: 'BTC/USDT',
+          amount: selectedInvestmentForTrading.amount / 2,
+          profit: profit,
+          spread: 0.5,
+          exchanges: ['Binance', 'Kraken'],
+          duration: 60,
+          buyPrice: 43250.50,
+          sellPrice: 43480.30,
+          details: {
+            buyExchange: 'Binance',
+            sellExchange: 'Kraken',
+            spreadPercent: 0.5,
+            volumeTraded: selectedInvestmentForTrading.amount / 2
+          }
+        };
+        
+        setOperationHistory(prev => [newOperation, ...prev]);
+        
+        // Toast de sucesso
+        const remaining = 2 - (selectedInvestmentForTrading.operationsCompleted + 1);
+        if (remaining > 0) {
+          toast({
+            title: "✅ Arbitragem Executada!",
+            description: `+$${profit.toFixed(2)} ganhos. ${remaining} operação restante hoje.`,
+          });
+        } else {
+          toast({
+            title: "🎉 Operações Completas!",
+            description: `+$${profit.toFixed(2)} ganhos. Próximas operações em 24h.`,
+          });
+        }
+      }
+
+      // Atualizar saldo
+      setUserBalance(prev => {
+        const newBalance = prev + profit;
+        console.log('💰 Atualizando saldo:', prev, '+', profit, '=', newBalance);
+        return newBalance;
+      });
+
+      // Buscar dados atuais do usuário no Supabase
       const { data: currentProfile } = await supabase
         .from('profiles')
         .select('balance, total_profit')
@@ -489,9 +700,12 @@ const Investments = () => {
             type: 'investment_trading',
             strategy: selectedInvestmentForTrading.investmentName
           });
+        
+        // Salvar último claim
+        localStorage.setItem(`lastClaim_${selectedInvestmentForTrading.id}`, Date.now().toString());
       }
 
-      // Atualizar saldo do usuário
+      // Atualizar saldo do usuário no Supabase
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -501,20 +715,6 @@ const Investments = () => {
         .eq('user_id', user?.id);
         
       if (error) throw error;
-      
-      // Salvar último claim
-      if (selectedInvestmentForTrading) {
-        localStorage.setItem(`lastClaim_${selectedInvestmentForTrading.id}`, Date.now().toString());
-      }
-      
-      // Atualizar estado local
-      setUserBalance(newBalance);
-      
-      toast({
-        title: "✅ Rendimento Creditado!",
-        description: `+$${profit.toFixed(2)} foi adicionado ao seu saldo disponível. Novo saldo: $${newBalance.toFixed(2)}`,
-        variant: "default"
-      });
       
     } catch (error) {
       console.error('Erro ao processar rendimento:', error);
@@ -700,11 +900,11 @@ const Investments = () => {
       setInvestmentAmount("");
       setSelectedInvestment(null);
 
-      toast({
-        title: "✅ Plano Ativado com Sucesso!",
-        description: `${investmentPlan.name} foi ativado com investimento de $${amount.toFixed(2)}. O robô começará a operar automaticamente.`,
-        variant: "default"
-      });
+
+      
+      // Mostrar popup de execução e simular
+      setShowExecutionPopup(true);
+      simulateInvestmentExecution(investmentPlan.name, amount);
 
     } catch (error) {
       console.error('Erro geral ao processar investimento:', error);
@@ -716,9 +916,59 @@ const Investments = () => {
     }
   };
 
+  const simulateInvestmentExecution = (planName: string, amount: number) => {
+    const steps = [
+      'Conectando ao robô de arbitragem...',
+      'Analisando oportunidades de mercado...',
+      'Configurando parâmetros de trading...',
+      'Iniciando operações automáticas...',
+      'Plano ativado com sucesso!'
+    ];
+    
+    let currentStep = 0;
+    setExecutionProgress(0);
+    setExecutionStep(steps[0]);
+    
+    const interval = setInterval(() => {
+      currentStep++;
+      const progress = (currentStep / steps.length) * 100;
+      setExecutionProgress(progress);
+      
+      if (currentStep < steps.length) {
+        setExecutionStep(steps[currentStep]);
+      } else {
+        setExecutionStep('Plano ativado com sucesso!');
+        setTimeout(() => {
+          setShowExecutionPopup(false);
+          toast({
+            title: "✅ Plano Ativado com Sucesso!",
+            description: `${planName} foi ativado com investimento de $${amount.toFixed(2)}. Você pode executar operações quando quiser.`,
+            variant: "default"
+          });
+        }, 2000);
+        clearInterval(interval);
+      }
+    }, 1500);
+  };
+
+
+
+
+
+
+
   const openInvestModal = (investment: Investment) => {
     setSelectedInvestment(investment);
     setIsInvestModalOpen(true);
+    // Reset slider state
+    setSliderProgress(0);
+    setIsDragging(false);
+    setIsActivated(false);
+    // Reset execution popup state
+    setShowExecutionPopup(false);
+    setExecutionProgress(0);
+    setExecutionStep('');
+    // Reset timer state
   };
 
   return (
@@ -781,6 +1031,36 @@ const Investments = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 bg-black/20 rounded-lg p-1 border border-gray-700/50 max-w-md mx-auto">
+          <Button
+            variant={activeTab === 'investments' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('investments')}
+            className={`flex-1 ${
+              activeTab === 'investments' 
+                ? 'bg-green-400/20 text-green-400 border-green-400/30' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+            size="sm"
+          >
+            <Bot className="h-4 w-4 mr-2" />
+            Investimentos
+          </Button>
+          <Button
+            variant={activeTab === 'history' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 ${
+              activeTab === 'history' 
+                ? 'bg-green-400/20 text-green-400 border-green-400/30' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+            size="sm"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Histórico
+          </Button>
         </div>
 
         {/* Compact Deposit Section - Binance Style */}
@@ -961,7 +1241,228 @@ const Investments = () => {
           </Card>
         </div>
 
-        {/* Investment Plans Section - Binance Style */}
+        {/* Active Plans Toggle Button */}
+        <div className="flex justify-center mb-6">
+          <Button
+            onClick={() => setShowActivePlans(!showActivePlans)}
+            className={`${
+              showActivePlans 
+                ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' 
+                : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+            } text-white font-bold px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl`}
+            size="lg"
+          >
+            <Activity className="h-5 w-5 mr-2" />
+            {showActivePlans ? 'Ver Planos de Investimento' : 'Ver Planos Ativos'}
+          </Button>
+        </div>
+
+        {showActivePlans ? (
+          /* Active Plans View */
+          <div className="space-y-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-green-400">
+                🟢 PLANOS ATIVOS
+              </h2>
+              <p className="text-gray-600">
+                {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'} gerando rendimentos automaticamente
+              </p>
+            </div>
+
+            {userInvestments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userInvestments
+                  .filter(investment => investment.status === "active")
+                  .map((investment) => (
+                    <div key={investment.id} className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-700/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-lg">
+                      {/* Background pattern */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"></div>
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-10 translate-x-10"></div>
+                      
+                      {/* Header */}
+                      <div className="border-b border-blue-700/30 p-4 relative z-10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="text-2xl font-bold text-white">
+                              {investment.investmentName.includes('4.0.0') && '🤖'}
+                              {investment.investmentName.includes('4.0.5') && '🚀'}
+                              {investment.investmentName.includes('4.1.0') && '💎'}
+                              {!investment.investmentName.includes('4.0') && '📈'}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-lg text-white font-bold truncate">
+                                {investment.investmentName.includes('4.0.0') && 'Robô 4.0.0'}
+                                {investment.investmentName.includes('4.0.5') && 'Robô 4.0.5'}
+                                {investment.investmentName.includes('4.1.0') && 'Robô 4.1.0'}
+                                {!investment.investmentName.includes('4.0') && investment.investmentName}
+                              </div>
+                              <p className="text-sm text-gray-400 truncate">
+                                {getDailyOperationsFromPlan(investment.investmentName)} operações diárias
+                              </p>
+                            </div>
+                          </div>
+                          <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 font-bold">
+                            Ativo
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4 relative z-10">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Valor Investido</span>
+                            <span className="font-bold text-white">${investment.amount.toFixed(2)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Ganhos Atuais</span>
+                            <span className="font-bold text-green-400">+${investment.totalEarned.toFixed(2)}</span>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Dias Restantes</span>
+                              <span className="text-white font-medium">40 de 40 dias</span>
+                            </div>
+                            <Progress value={100} className="h-2" />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Progresso Diário</span>
+                              <span className="text-white font-medium">{investment.currentDayProgress.toFixed(1)}%</span>
+                            </div>
+                            <Progress value={investment.currentDayProgress} className="h-2" />
+                          </div>
+                          
+                          <div className="pt-4 border-t border-gray-700/50 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-400">Operações Hoje</span>
+                              <span className="font-medium text-white text-sm">
+                                {investment.operationsCompleted}/2
+                              </span>
+                            </div>
+                            
+
+                            
+                            {/* Timer de Reset Diário */}
+                            {dailyResetTimers[investment.id] && (
+                              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-orange-400 font-medium">⏰ Próximas Operações</span>
+                                  <div className="text-orange-400 text-xl font-bold">
+                                    {formatTimeRemaining(dailyResetTimers[investment.id])}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  Aguarde 24h para executar novas operações de arbitragem
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Status quando operações estão disponíveis */}
+                            {!dailyResetTimers[investment.id] && investment.operationsCompleted < 2 && (
+                              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                  <span className="text-sm text-green-400 font-medium">
+                                    🚀 Arbitragem disponível
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-1">
+                                  Você pode executar {2 - investment.operationsCompleted} operações de arbitragem hoje
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  
+                                  console.log('🎯 Abrindo Simulador de Trading...');
+                                  
+                                  // Verificar se já executou 2 operações hoje
+                                  if (investment.operationsCompleted >= 2) {
+                                    toast({
+                                      title: "⏰ Operações Limitadas",
+                                      description: "Você já executou 2 operações hoje. Aguarde 24h para novas operações.",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  
+                                  // Verificar se há timer ativo
+                                  if (dailyResetTimers[investment.id]) {
+                                    toast({
+                                      title: "⏰ Aguarde o Timer",
+                                      description: "Aguarde o timer de 24h terminar para executar novas operações.",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  
+                                  // Abrir simulador de trading
+                                  setSelectedInvestmentForTrading(investment);
+                                  setIsTradingSimulatorOpen(true);
+                                  
+                                  toast({
+                                    title: "🚀 Abrindo Simulador",
+                                    description: "Buscando melhores oportunidades de arbitragem no mercado...",
+                                  });
+                                }}
+                                disabled={
+                                  investment.operationsCompleted >= 2 || // Bloqueado quando 2 operações completas
+                                  !!dailyResetTimers[investment.id] // Bloqueado durante timer de 24h
+                                }
+                                className="flex-1 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                size="sm"
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                {dailyResetTimers[investment.id] 
+                                  ? `⏰ ${formatTimeRemaining(dailyResetTimers[investment.id])}` 
+                                  : investment.operationsCompleted >= 2 
+                                    ? 'Operações Completas' 
+                                    : `Executar Arbitragem (${investment.operationsCompleted}/2)`
+                                }
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowOperationHistory(true)}
+                                className="px-3 text-sm hover:bg-green-500 hover:text-white transition-colors"
+                                size="sm"
+                                title="Ver histórico de operações"
+                              >
+                                <BarChart3 className="h-4 w-4" />
+                              </Button>
+                              
+
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-bold text-gray-400 mb-2">Nenhum plano ativo</h3>
+                <p className="text-gray-500 mb-4">Ative um plano de investimento para começar a gerar rendimentos</p>
+                <Button
+                  onClick={() => setShowActivePlans(false)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Ver Planos Disponíveis
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Investment Plans Section - Binance Style */
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
           <div className="text-center space-y-2 sm:space-y-3 md:space-y-4">
             <h2 className={`${isMobile ? 'text-lg' : 'text-xl sm:text-2xl md:text-3xl'} font-bold text-foreground`}>
@@ -1042,9 +1543,9 @@ const Investments = () => {
               
               {/* Plan Names */}
               <div className="flex items-center justify-between text-xs text-muted-foreground px-2">
-                <span className="text-primary font-medium">Robô 4.0.0</span>
-                <span className="text-primary font-medium">Robô 4.0.5</span>
-                <span className="text-primary font-medium">Robô 4.1.0</span>
+                <span className="text-primary font-medium">🤖 Robô 4.0.0</span>
+                <span className="text-primary font-medium">🚀 Robô 4.0.5</span>
+                <span className="text-primary font-medium">💎 Robô 4.1.0</span>
               </div>
               
               {/* Navigation Buttons */}
@@ -1142,59 +1643,99 @@ const Investments = () => {
 
           {/* Dynamic Plan Display based on currentPlanIndex and referral level */}
           {currentPlanIndex === 0 && (
-          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
-            <CardHeader className={`border-b border-border/50 p-3 sm:p-4 md:p-6`}>
+          <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border border-yellow-500/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+            {/* Binance-style background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-400/5 rounded-full translate-y-12 -translate-x-12"></div>
+            
+            <CardHeader className="border-b border-yellow-500/20 p-4 sm:p-6 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8 sm:w-10 sm:h-10'} bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0`}>
-                    <Bot className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4 sm:h-5 sm:w-5'} text-primary`} />
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <Bot className="h-6 w-6 text-black font-bold" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg md:text-xl'} text-foreground truncate`}>Robô 4.0.0</CardTitle>
-                    <p className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground truncate`}>Plano Iniciante - Sem Requisitos</p>
+                    <CardTitle className="text-xl font-bold text-white mb-1">🤖 Robô 4.0.0</CardTitle>
+                    <p className="text-sm text-yellow-300/80">2 operações por dia - Taxa diária: 2,5%</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className={`bg-primary/10 text-primary border-primary/20 ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} ml-2 flex-shrink-0`}>
-                  {isMobile ? 'Livre' : 'Sem Requisitos'}
+                <div className="flex flex-col items-end gap-2">
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 font-bold">
+                    Sem Requisitos
                 </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-yellow-400">2.5%</div>
+                    <div className="text-xs text-gray-400">diário</div>
+                  </div>
+                </div>
               </div>
             </CardHeader>
               
-            <CardContent className={`p-3 sm:p-4 md:p-6`}>
-              <div className="text-center mb-3 sm:mb-4 md:mb-6">
-                <div className={`grid ${isMobile ? 'grid-cols-1 gap-2' : 'grid-cols-3 gap-2 sm:gap-4'} p-2 sm:p-3 md:p-4 bg-muted/30 rounded-lg`}>
-                  <div className="text-center">
-                    <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground uppercase tracking-wider`}>Taxa Diária</div>
-                    <div className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'} font-bold text-trading-green`}>2.5%</div>
+            <CardContent className="p-6 relative z-10">
+              {/* Binance-style metrics grid */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
+                  <div className="text-lg font-bold text-yellow-400">2.5%</div>
+                  <div className="text-xs text-green-400">+2.5% BTC</div>
                   </div>
-                  <div className="text-center">
-                    <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground uppercase tracking-wider`}>Operações</div>
-                    <div className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'} font-bold text-primary`}>2x/dia</div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
+                  <div className="text-lg font-bold text-blue-400">2x</div>
+                  <div className="text-xs text-gray-400">por dia</div>
                   </div>
-                  <div className="text-center">
-                    <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground uppercase tracking-wider`}>Duração</div>
-                    <div className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'} font-bold text-warning`}>40 dias</div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Período</div>
+                  <div className="text-lg font-bold text-orange-400">40</div>
+                  <div className="text-xs text-gray-400">dias</div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-sm px-4 py-2">
-                    Plano Básico
+              
+              {/* Investment range */}
+              <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-lg p-4 mb-6 border border-gray-600/30">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-300">Range de Investimento</span>
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                    Iniciante
                   </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Mín:</span>
+                  <span className="text-white font-bold">$10 USDT</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Máx:</span>
+                  <span className="text-white font-bold">$999 USDT</span>
                 </div>
               </div>
               
-              {/* Regras específicas do Robô 4.0.0 */}
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-primary" />
-                  <h4 className="text-sm font-semibold text-primary">Características do Plano</h4>
+              {/* Binance-style features */}
+              <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Shield className="h-3 w-3 text-black" />
                 </div>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>🚀 <strong>Disponível para todos</strong> - Sem restrições</li>
-                  <li>📈 Taxa diária: <strong>2,5%</strong></li>
-                  <li>💰 Investimento mínimo: <strong>$10 USDT</strong> | Máximo: $100</li>
-                  <li>✅ Ideal para iniciantes no trading automatizado</li>
-                </ul>
+                  <h4 className="text-sm font-bold text-yellow-400">Características do Bot</h4>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                    <span><strong className="text-white">Disponível para todos</strong> - Sem restrições</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                    <span><strong className="text-white">2 operações automáticas</strong> por dia (1,25% cada)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                    <span><strong className="text-white">Taxa total diária:</strong> 2,5%</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                    <span><strong className="text-white">Ideal para iniciantes</strong> no trading automatizado</span>
+                  </div>
+                </div>
               </div>
                 
                 <div className="overflow-x-auto">
@@ -1205,7 +1746,7 @@ const Investments = () => {
                         <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold ${isMobile ? 'hidden' : ''}`}>1 dia</th>
                         <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold`}>7 dias</th>
                         <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold ${isMobile ? 'hidden' : ''}`}>15 dias</th>
-                        <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold`}>30 dias</th>
+                        <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold`}>40 dias</th>
                         <th className={`text-center ${isMobile ? 'p-1.5' : 'p-2 sm:p-3'} text-foreground font-semibold`}>40 dias</th>
                       </tr>
                     </thead>
@@ -1245,7 +1786,7 @@ const Investments = () => {
                   </table>
                 </div>
                 
-              <div className="mt-6 px-4">
+              <div className="mt-6">
                 <Button 
                   onClick={() => {
                     const plan = investments.find(inv => inv.name.includes('4.0.0')) || investments[0];
@@ -1259,11 +1800,10 @@ const Investments = () => {
                       });
                     }
                   }}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold py-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-yellow-400/50 hover:border-yellow-300"
                   size="lg"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Investir Agora
+                  <span className="text-lg">Ativar Plano</span>
                 </Button>
               </div>
               </CardContent>
@@ -1272,60 +1812,103 @@ const Investments = () => {
 
           {/* Robô 4.0.5 - Binance Style */}
           {currentPlanIndex === 1 && getCurrentLevelFromReferrals() >= 1 && (
-          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
-            <CardHeader className="border-b border-border/50 p-4 sm:p-6">
+          <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border border-orange-500/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+            {/* Binance-style background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-400/5 rounded-full translate-y-12 -translate-x-12"></div>
+            
+            <CardHeader className="border-b border-orange-500/20 p-4 sm:p-6 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-warning/10 rounded-lg flex items-center justify-center">
-                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <Zap className="h-6 w-6 text-black font-bold" />
                   </div>
-                  <div>
-                    <CardTitle className="text-lg sm:text-xl text-foreground">Robô 4.0.5</CardTitle>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Plano Intermediário - 10 Referrals</p>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-xl font-bold text-white mb-1">🚀 Robô 4.0.5</CardTitle>
+                    <p className="text-sm text-orange-300/80">3 operações por dia - Taxa diária: 3,0%</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20 text-xs sm:text-sm">
-                  10 Referrals
+                <div className="flex flex-col items-end gap-2">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 font-bold">
+                    10 Indicações
                 </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-orange-400">3.0%</div>
+                    <div className="text-xs text-gray-400">diário</div>
+                  </div>
+                </div>
               </div>
             </CardHeader>
               
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-center mb-4 sm:mb-6">
-                <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Taxa Diária</div>
-                    <div className="text-base sm:text-lg font-bold text-trading-green">3.0%</div>
+            <CardContent className="p-6 relative z-10">
+              {/* Binance-style metrics grid */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
+                  <div className="text-lg font-bold text-orange-400">3.0%</div>
+                  <div className="text-xs text-green-400">+3.0% BTC</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Operações</div>
-                    <div className="text-base sm:text-lg font-bold text-warning">3x/dia</div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
+                  <div className="text-lg font-bold text-blue-400">3x</div>
+                  <div className="text-xs text-gray-400">por dia</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Duração</div>
-                    <div className="text-base sm:text-lg font-bold text-primary">40 dias</div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Período</div>
+                  <div className="text-lg font-bold text-orange-400">40</div>
+                  <div className="text-xs text-gray-400">dias</div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20 text-sm px-4 py-2">
-                    Plano Intermediário
+              
+              {/* Investment range */}
+              <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-lg p-4 mb-6 border border-gray-600/30">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-300">Range de Investimento</span>
+                  <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                    Intermediário
                   </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Mín:</span>
+                  <span className="text-white font-bold">$20 USDT</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Máx:</span>
+                  <span className="text-white font-bold">$4,999 USDT</span>
                 </div>
               </div>
               
-              {/* Regras específicas do Robô 4.0.5 */}
-              <div className="bg-warning/5 border border-warning/20 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-warning" />
-                  <h4 className="text-sm font-semibold text-warning">Características do Plano</h4>
+              {/* Binance-style features */}
+              <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                    <Shield className="h-3 w-3 text-black" />
                 </div>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>👥 <strong>Requer 10 indicações ativas</strong></li>
-                  <li>📈 Taxa diária: <strong>3,0%</strong></li>
-                  <li>💰 Investimento mínimo: <strong>$20 USDT</strong> | Máximo: $200</li>
-                  <li>📋 Taxa de contrato: <strong>$10 USDT</strong></li>
-                  <li>⚡ Plano intermediário com excelente rentabilidade</li>
-                </ul>
+                  <h4 className="text-sm font-bold text-orange-400">Características do Bot</h4>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span><strong className="text-white">Requer 10 indicações</strong> ativas</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span><strong className="text-white">3 operações automáticas</strong> por dia (1,0% cada)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span><strong className="text-white">Taxa total diária:</strong> 3,0%</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span><strong className="text-white">Taxa de contrato:</strong> $10 USDT</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <span><strong className="text-white">Plano intermediário</strong> com excelente rentabilidade</span>
+                  </div>
+                </div>
               </div>
                 
                 <div className="overflow-x-auto">
@@ -1336,7 +1919,7 @@ const Investments = () => {
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">1 dia</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">7 dias</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">15 dias</th>
-                        <th className="text-center p-2 sm:p-3 text-foreground font-semibold">30 dias</th>
+                        <th className="text-center p-2 sm:p-3 text-foreground font-semibold">40 dias</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">40 dias</th>
                       </tr>
                     </thead>
@@ -1380,11 +1963,10 @@ const Investments = () => {
                       });
                     }
                   }}
-                  className="w-full bg-warning hover:bg-warning/90 text-warning-foreground font-semibold py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-black font-bold py-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-orange-400/50 hover:border-orange-300"
                   size="lg"
                 >
-                  <Zap className="h-5 w-5 mr-2" />
-                  Investir Agora
+                  <span className="text-lg">Ativar Plano</span>
                 </Button>
               </div>
               </CardContent>
@@ -1393,21 +1975,32 @@ const Investments = () => {
 
           {/* Robô 4.1.0 - Binance Style */}
           {currentPlanIndex === 2 && getCurrentLevelFromReferrals() >= 2 && (
-          <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
-            <CardHeader className="border-b border-border/50 p-4 sm:p-6">
+          <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border border-purple-500/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative">
+            {/* Binance-style background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-400/5 rounded-full translate-y-12 -translate-x-12"></div>
+            
+            <CardHeader className="border-b border-purple-500/20 p-4 sm:p-6 relative z-10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-trading-green/10 rounded-lg flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-trading-green" />
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-6 w-6 text-black font-bold" />
                   </div>
-                  <div>
-                    <CardTitle className="text-lg sm:text-xl text-foreground">Robô 4.1.0</CardTitle>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Plano Premium - 20 Referrals</p>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-xl font-bold text-white mb-1">💎 Robô 4.1.0</CardTitle>
+                    <p className="text-sm text-purple-300/80">5 operações por dia - Taxa diária: 4,0%</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-trading-green/10 text-trading-green border-trading-green/20 text-xs sm:text-sm">
-                  20 Referrals
+                <div className="flex flex-col items-end gap-2">
+                  <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 font-bold">
+                    20 Indicações
                 </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-purple-400">4.0%</div>
+                    <div className="text-xs text-gray-400">diário</div>
+                  </div>
+                </div>
               </div>
             </CardHeader>
               
@@ -1457,7 +2050,7 @@ const Investments = () => {
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">1 dia</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">7 dias</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">15 dias</th>
-                        <th className="text-center p-2 sm:p-3 text-foreground font-semibold">30 dias</th>
+                        <th className="text-center p-2 sm:p-3 text-foreground font-semibold">40 dias</th>
                         <th className="text-center p-2 sm:p-3 text-foreground font-semibold">40 dias</th>
                       </tr>
                     </thead>
@@ -1512,8 +2105,7 @@ const Investments = () => {
             </Card>
           )}
         </div>
-
-        {/* SEÇÃO DE INVESTIMENTOS REORGANIZADA */}
+        )}
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
           <div className="flex items-center justify-between">
             <h2 className={`${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'} font-bold text-foreground`}>
@@ -1546,142 +2138,13 @@ const Investments = () => {
             </div>
           </div>
 
+
+
+
+
           {userInvestments.length > 0 ? (
             <>
-              {/* CONTAINER PARA INVESTIMENTOS ATIVOS */}
-              {activeInvestments > 0 && (
-                <div className="bg-gradient-to-br from-trading-green/5 to-trading-green/10 border-2 border-trading-green/30 rounded-xl p-4 sm:p-6 space-y-4">
-                  <div className="text-center py-2">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <CheckCircle className="h-5 w-5 text-trading-green" />
-                      <h3 className="text-lg sm:text-xl font-bold text-trading-green">
-                        🟢 INVESTIMENTOS ATIVOS
-                      </h3>
-                    </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'} gerando rendimentos automaticamente
-                    </p>
-                  </div>
 
-                  <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}`}>
-                    {userInvestments
-                      .filter(investment => investment.status === "active")
-                      .map((investment) => (
-                        <Card key={investment.id} className="bg-card border-border hover:shadow-lg transition-all duration-300 relative">
-                          {/* Indicador visual de ativo */}
-                          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-trading-green to-trading-green/60 rounded-t-lg"></div>
-                          
-                          <CardHeader className={`border-b border-border/50 p-3 sm:p-4 md:p-6`}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8 sm:w-10 sm:h-10'} bg-trading-green/10 rounded-lg flex items-center justify-center flex-shrink-0`}>
-                                  <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4 sm:h-5 sm:w-5'} text-trading-green`} />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <CardTitle className={`${isMobile ? 'text-sm' : 'text-base sm:text-lg'} text-foreground truncate`}>
-                                    {investment.investmentName}
-                                  </CardTitle>
-                                  <p className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground truncate`}>
-                                    Ativo desde {investment.startDate}
-                                  </p>
-                                </div>
-                              </div>
-                              <Badge className="bg-trading-green text-white ml-2 flex-shrink-0 text-xs">
-                                <PlayCircle className="h-3 w-3 mr-1" />
-                                Ativo
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          
-                          <CardContent className={`p-3 sm:p-4 md:p-6`}>
-                            <div className={`space-y-2 sm:space-y-3 md:space-y-4`}>
-                              <div className="flex justify-between items-center">
-                                <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground`}>Valor Investido</span>
-                                <span className={`font-bold ${isMobile ? 'text-sm' : 'text-sm sm:text-base'} text-foreground`}>${investment.amount.toFixed(2)}</span>
-                              </div>
-                              
-                              <div className="flex justify-between items-center">
-                                <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground`}>Ganhos Atuais</span>
-                                <span className={`font-bold ${isMobile ? 'text-sm' : 'text-sm sm:text-base'} text-trading-green`}>+${investment.totalEarned.toFixed(2)}</span>
-                              </div>
-                              
-                              <div className="space-y-1 sm:space-y-2">
-                                <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
-                                  <span className="text-muted-foreground">Progresso Diário</span>
-                                  <span className="text-foreground font-medium">{investment.currentDayProgress.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={investment.currentDayProgress} className="h-2" />
-                              </div>
-                              
-                              {/* Seção de Operações Diárias */}
-                              <div className={`${isMobile ? 'pt-2' : 'pt-3 sm:pt-4'} border-t border-border/50 space-y-2 sm:space-y-3`}>
-                                <div className="flex justify-between items-center">
-                                  <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground`}>Operações Hoje</span>
-                                  <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-foreground`}>
-                                    {investment.operationsCompleted}/{getDailyOperationsFromPlan(investment.investmentName)}
-                                  </span>
-                                </div>
-                                
-                                {/* Botão de Play para iniciar operações */}
-                                <div className="flex gap-2">
-                                  <Button
-                                    onClick={() => {
-                                      setSelectedInvestmentForTrading(investment);
-                                      setIsTradingSimulatorOpen(true);
-                                    }}
-                                    className={`flex-1 bg-trading-green hover:bg-trading-green/90 text-white ${isMobile ? 'text-xs py-1.5' : 'text-sm py-2'}`}
-                                    size={isMobile ? "sm" : "default"}
-                                  >
-                                    <Play className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1 sm:mr-2`} />
-                                    Iniciar Operações
-                                  </Button>
-                                  
-                                  <Button
-                                    variant="outline"
-                                    className={`px-2 sm:px-3 ${isMobile ? 'text-xs' : 'text-sm'}`}
-                                    size={isMobile ? "sm" : "default"}
-                                  >
-                                    <Activity className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                                  </Button>
-                                </div>
-                                
-                                {/* Status da operação atual */}
-                                {investment.currentOperation && (
-                                  <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                                    <div className="flex justify-between items-center mb-1">
-                                      <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} font-medium text-foreground`}>
-                                        {investment.currentOperation.pair}
-                                      </span>
-                                      <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-trading-green font-medium`}>
-                                        +${investment.currentOperation.profit.toFixed(2)}
-                                      </span>
-                                    </div>
-                                    <Progress value={investment.currentOperation.progress} className="h-1.5 mb-1" />
-                                    <div className="flex justify-between items-center">
-                                      <span className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
-                                        {Math.floor(investment.currentOperation.timeRemaining / 60)}:{(investment.currentOperation.timeRemaining % 60).toString().padStart(2, '0')}
-                                      </span>
-                                      <span className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
-                                        {investment.currentOperation.progress.toFixed(0)}%
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <div className="flex justify-between items-center">
-                                <span className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'} text-muted-foreground`}>Dias Restantes</span>
-                                <span className={`font-bold ${isMobile ? 'text-sm' : 'text-base sm:text-lg'} text-primary`}>
-                                  {investment.daysRemaining} dias
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                </div>
-              )}
 
               {/* CONTAINER PARA INVESTIMENTOS CONCLUÍDOS (se houver) */}
               {completedInvestments > 0 && (
@@ -1757,120 +2220,595 @@ const Investments = () => {
         </div>
       </div>
 
-      {/* Investment Modal */}
-      <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
-        <DialogContent className="max-w-sm sm:max-w-md mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Realizar Investimento</DialogTitle>
+      {/* Operation History Modal */}
+      <Dialog open={showOperationHistory} onOpenChange={setShowOperationHistory}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-800 text-white">
+          <DialogHeader className="border-b border-gray-800 pb-4">
+            <DialogTitle className="text-xl text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-green-400" />
+              Histórico de Operações
+            </DialogTitle>
           </DialogHeader>
-          {selectedInvestment && (
-            <div className="space-y-4">
-              <div className="p-3 sm:p-4 bg-secondary rounded-lg">
-                <h3 className="font-semibold mb-2 text-sm sm:text-base">{selectedInvestment.name}</h3>
-                <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                  <p>Taxa diária: {selectedInvestment.dailyRate}%</p>
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">Valor mínimo:</p>
-                    <CurrencyDisplay 
-                      usdAmount={selectedInvestment.minimumAmount} 
-                      size="sm" 
-                      orientation="horizontal"
-                    />
+          
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            {/* Resumo Geral */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">
+                    {operationHistory.length}
                   </div>
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">Valor máximo:</p>
-                    <CurrencyDisplay 
-                      usdAmount={selectedInvestment.maximumAmount} 
-                      size="sm" 
-                      orientation="horizontal"
-                    />
-                  </div>
-                  <p>Duração: {selectedInvestment.duration} dias</p>
+                  <div className="text-sm text-gray-400">Total de Operações</div>
                 </div>
               </div>
-
-              {/* Valor para depósito - Box estilizado */}
-              <div className="p-4 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border-2 border-primary/20 shadow-md">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Wallet className="h-5 w-5 text-primary" />
-                  <h4 className="font-bold text-base text-primary">Valor para Depósito</h4>
+              
+              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">
+                    ${operationHistory.reduce((sum, op) => sum + op.profit, 0).toFixed(2)}
+                  </div>
+                  <div className="text-sm text-gray-400">Lucro Total</div>
                 </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-primary/10 shadow-inner">
-                  <div className="text-center space-y-2">
-                    <div className="text-sm text-muted-foreground font-medium">
-                      Valor necessário para ativar este plano:
+              </div>
+              
+              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">
+                    {operationHistory.length > 0 ? (operationHistory.reduce((sum, op) => sum + op.spread, 0) / operationHistory.length).toFixed(3) : '0.000'}%
+                  </div>
+                  <div className="text-sm text-gray-400">Spread Médio</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de Operações */}
+            {operationHistory.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-bold text-gray-400 mb-2">Nenhuma operação realizada</h3>
+                <p className="text-gray-500">Execute operações para ver o histórico detalhado aqui</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {operationHistory.map((operation) => (
+                  <div key={operation.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <ArrowUpDown className="h-5 w-5 text-green-400" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white text-lg">{operation.pair}</div>
+                          <div className="text-sm text-gray-400">
+                            {operation.investmentName} • {operation.operationType}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-green-400">
+                          +${operation.profit.toFixed(2)}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {new Date(operation.timestamp).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                      <CurrencyDisplay 
-                        usdAmount={parseFloat(investmentAmount) || selectedInvestment.minimumAmount}
-                        size="md"
-                        orientation="vertical"
-                      />
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-400">Valor Operado</div>
+                        <div className="text-white font-medium">${operation.amount.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Spread</div>
+                        <div className="text-yellow-400 font-medium">{operation.spread.toFixed(3)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Duração</div>
+                        <div className="text-blue-400 font-medium">{operation.duration}s</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Exchanges</div>
+                        <div className="text-purple-400 font-medium text-xs">
+                          {operation.exchanges.join(' ↔ ')}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Faça o depósito na página de depósitos para ativar seu investimento
+                    
+                    {/* Indicador de rentabilidade */}
+                    <div className="mt-3 pt-3 border-t border-gray-700">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Rentabilidade:</span>
+                        <span className="text-green-400 font-medium">
+                          +{((operation.profit / operation.amount) * 100).toFixed(3)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="border-t border-gray-800 pt-4 flex justify-end">
+            <Button
+              onClick={() => setShowOperationHistory(false)}
+              className="bg-gray-700 hover:bg-gray-600"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Investment Modal - Dark Theme Improved */}
+      <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
+        <DialogContent className="max-w-sm sm:max-w-md mx-4 bg-gray-900 border-gray-800 text-white">
+          <DialogHeader className="border-b border-gray-800 pb-4">
+            <DialogTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              Ativar Investimento
+            </DialogTitle>
+          </DialogHeader>
+          {selectedInvestment && (
+            <div className="space-y-6">
+              {/* Plan Info Card - Dark */}
+              <div className="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">{selectedInvestment.name}</h3>
+                    <p className="text-sm text-gray-400">Plano de Investimento</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-400 text-xs uppercase tracking-wide">Taxa Diária</p>
+                    <p className="text-primary font-bold text-lg">
+                      {selectedInvestment?.name?.includes('4.0.0') ? '2.5' : selectedInvestment.dailyRate}%
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <p className="text-gray-400 text-xs uppercase tracking-wide">Duração</p>
+                    <p className="text-white font-bold text-lg">
+                      {selectedInvestment?.name?.includes('4.0.0') ? '40' : selectedInvestment.duration} dias
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Descrição da ativação */}
-              <div className="p-3 sm:p-4 bg-trading-green/10 rounded-lg border border-trading-green/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Play className="h-4 w-4 text-trading-green" />
-                  <h4 className="font-semibold text-sm text-trading-green">Como funciona a ativação</h4>
+              {/* Investment Amount Input - Dark */}
+              <div className="space-y-3">
+                <Label htmlFor="amount" className="text-white font-medium">Valor do Investimento</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={investmentAmount}
+                    onChange={(e) => setInvestmentAmount(e.target.value)}
+                    placeholder={`Mínimo: $${selectedInvestment.minimumAmount}`}
+                    className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-primary"
+                    min={selectedInvestment.minimumAmount}
+                    max={selectedInvestment.maximumAmount}
+                    step="0.01"
+                  />
                 </div>
-                <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                  <p>• <strong>1º Passo:</strong> Confirme o investimento clicando no botão abaixo</p>
-                  <p>• <strong>2º Passo:</strong> Faça o depósito do valor na página de depósitos</p>
-                  <p>• <strong>3º Passo:</strong> Seu plano será ativado automaticamente após confirmação</p>
-                  <p>• <strong>Resultado:</strong> O robô começará a operar e gerar rendimentos diários</p>
+                
+                {/* Quick Amount Buttons */}
+                <div className="flex gap-2">
+                  {[selectedInvestment.minimumAmount, 50, 100, 500].filter(amount => amount <= selectedInvestment.maximumAmount).map((amount) => (
+                    <Button
+                      key={amount}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInvestmentAmount(amount.toString())}
+                      className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                    >
+                      ${amount}
+                    </Button>
+                  ))}
                 </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="amount" className="text-sm sm:text-base">Valor do Investimento (USD)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={investmentAmount}
-                  onChange={(e) => setInvestmentAmount(e.target.value)}
-                  placeholder={`Mínimo: $${selectedInvestment.minimumAmount}`}
-                  className="mt-1"
-                  min={selectedInvestment.minimumAmount}
-                  max={selectedInvestment.maximumAmount}
-                  step="0.01"
-                />
-                {/* Mostrar conversão em tempo real */}
+
+                {/* Conversion Preview */}
                 {investmentAmount && parseFloat(investmentAmount) > 0 && (
-                  <div className="mt-2 p-2 bg-gray-50 rounded border">
-                    <div className="text-xs text-muted-foreground mb-1">Valor para depósito em PIX:</div>
-                    <div className="font-medium text-primary">
-                      {formatBRL(parseFloat(investmentAmount) * 5.5)} {/* Estimativa rápida */}
+                  <div className="p-3 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400 mb-1">Valor para depósito em PIX:</p>
+                      <p className="text-primary font-bold text-lg">
+                        {formatBRL(parseFloat(investmentAmount) * 5.5)}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* Drag to Activate Slider */}
+               <div className="space-y-4">
+                 <div className="text-center">
+                   <p className="text-gray-400 text-sm mb-2">
+                     {isActivated ? "✅ Investimento Ativado!" : "Arraste para ativar o investimento"}
+                   </p>
+                 </div>
+                 
+                 <div className="relative">
+                   <div className="h-14 bg-gray-800 rounded-full border-2 border-gray-700 overflow-hidden relative">
+                     {/* Progress background */}
+                     <div 
+                       className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/40 transition-all duration-300"
+                       style={{ width: `${sliderProgress}%` }}
+                     ></div>
+                     
+                     {/* Background gradient */}
+                     <div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-primary/5 to-primary/10"></div>
+                     
+                     {/* Slider track */}
+                     <div className="relative h-full flex items-center px-2">
+                       <div 
+                         className={`h-10 w-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${
+                           isActivated 
+                             ? 'bg-green-500 cursor-default' 
+                             : isDragging 
+                               ? 'bg-primary/90 cursor-grabbing scale-110' 
+                               : 'bg-primary cursor-grab hover:scale-105'
+                         }`}
+                         style={{ 
+                           transform: `translateX(${sliderProgress * 2.8}px)`,
+                           transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+                         }}
+                         onMouseDown={(e) => {
+                           if (isActivated) return;
+                           setIsDragging(true);
+                           const startX = e.clientX;
+                           const slider = e.currentTarget.parentElement?.parentElement;
+                           if (!slider) return;
+                           
+                           const handleMouseMove = (moveEvent: MouseEvent) => {
+                             const rect = slider.getBoundingClientRect();
+                             const deltaX = moveEvent.clientX - startX;
+                             const maxWidth = rect.width - 48; // Account for button width
+                             const progress = Math.min(Math.max((deltaX / maxWidth) * 100, 0), 100);
+                             setSliderProgress(progress);
+                             
+                             if (progress >= 85) {
+                               setIsActivated(true);
+                               setSliderProgress(100);
+                               setTimeout(() => {
+                                 handleInvest();
+                               }, 500);
+                               document.removeEventListener('mousemove', handleMouseMove);
+                               document.removeEventListener('mouseup', handleMouseUp);
+                             }
+                           };
+                           
+                           const handleMouseUp = () => {
+                             setIsDragging(false);
+                             if (!isActivated && sliderProgress < 85) {
+                               setSliderProgress(0);
+                             }
+                             document.removeEventListener('mousemove', handleMouseMove);
+                             document.removeEventListener('mouseup', handleMouseUp);
+                           };
+                           
+                           document.addEventListener('mousemove', handleMouseMove);
+                           document.addEventListener('mouseup', handleMouseUp);
+                         }}
+                         onTouchStart={(e) => {
+                           if (isActivated) return;
+                           setIsDragging(true);
+                           const startX = e.touches[0].clientX;
+                           const slider = e.currentTarget.parentElement?.parentElement;
+                           if (!slider) return;
+                           
+                           const handleTouchMove = (moveEvent: TouchEvent) => {
+                             const rect = slider.getBoundingClientRect();
+                             const deltaX = moveEvent.touches[0].clientX - startX;
+                             const maxWidth = rect.width - 48;
+                             const progress = Math.min(Math.max((deltaX / maxWidth) * 100, 0), 100);
+                             setSliderProgress(progress);
+                             
+                             if (progress >= 85) {
+                               setIsActivated(true);
+                               setSliderProgress(100);
+                               setTimeout(() => {
+                                 handleInvest();
+                               }, 500);
+                               document.removeEventListener('touchmove', handleTouchMove);
+                               document.removeEventListener('touchend', handleTouchEnd);
+                             }
+                           };
+                           
+                           const handleTouchEnd = () => {
+                             setIsDragging(false);
+                             if (!isActivated && sliderProgress < 85) {
+                               setSliderProgress(0);
+                             }
+                             document.removeEventListener('touchmove', handleTouchMove);
+                             document.removeEventListener('touchend', handleTouchEnd);
+                           };
+                           
+                           document.addEventListener('touchmove', handleTouchMove);
+                           document.addEventListener('touchend', handleTouchEnd);
+                         }}
+                       >
+                         {isActivated ? (
+                           <CheckCircle className="h-5 w-5 text-white" />
+                         ) : (
+                           <ChevronRight className="h-5 w-5 text-white" />
+                         )}
+                       </div>
+                       
+                       {/* Text overlay */}
+                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         <span className={`font-medium text-sm transition-all duration-300 ${
+                           sliderProgress > 50 ? 'text-white' : 'text-gray-400'
+                         }`}>
+                           {isActivated ? '✅ Ativado!' : sliderProgress > 50 ? 'Continue arrastando →' : 'Arraste para ativar →'}
+                         </span>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+              {/* Steps Info - Dark */}
+              <div className="p-4 bg-gray-800/30 rounded-xl border border-gray-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Play className="h-4 w-4 text-primary" />
+                  <h4 className="font-semibold text-primary">Como funciona</h4>
+                </div>
+                <div className="space-y-2 text-xs text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-primary text-xs font-bold">1</span>
+                    </div>
+                    <p>Arraste o botão para confirmar o investimento</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-primary text-xs font-bold">2</span>
+                    </div>
+                    <p>Faça o depósito do valor na página de depósitos</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-primary text-xs font-bold">3</span>
+                    </div>
+                    <p>Seu plano será ativado automaticamente</p>
+                  </div>
+                </div>
+              </div>
               
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              {/* Action Buttons - Dark */}
+              <div className="flex gap-3 pt-2">
                 <Button 
                   variant="outline" 
                   onClick={() => setIsInvestModalOpen(false)}
-                  className="w-full sm:w-auto"
+                  className="flex-1 bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
                 >
                   Cancelar
                 </Button>
                 <Button 
                   onClick={handleInvest} 
                   disabled={!investmentAmount}
-                  className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+                  className="flex-1 font-semibold bg-primary hover:bg-primary/90 text-white"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Confirmar Investimento
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Confirmar
+                    </>
                 </Button>
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Execution Popup */}
+      <Dialog open={showExecutionPopup} onOpenChange={setShowExecutionPopup}>
+        <DialogContent className="max-w-sm mx-4 bg-gray-900 border-gray-800 text-white">
+          <div className="text-center space-y-6 py-4">
+            {/* Header */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center animate-pulse">
+                <Bot className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Ativando Plano</h3>
+            </div>
+
+            {/* Progress */}
+            <div className="space-y-4">
+              <div className="relative">
+                <Progress 
+                  value={executionProgress} 
+                  className="h-3 bg-gray-800"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/40 rounded-full opacity-50 animate-pulse" />
+              </div>
+              
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}} />
+                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <p className="text-gray-300 text-sm font-medium">{executionStep}</p>
+              <p className="text-xs text-gray-500">Aguarde enquanto configuramos seu investimento...</p>
+            </div>
+
+            {/* Progress Percentage */}
+            <div className="text-2xl font-bold text-primary">
+              {Math.round(executionProgress)}%
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Operation History Modal */}
+      <Dialog open={showOperationHistory} onOpenChange={setShowOperationHistory}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-800 text-white">
+          <DialogHeader className="border-b border-gray-800 pb-4">
+            <DialogTitle className="text-xl text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-green-400" />
+              Histórico Completo de Arbitragem
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            {/* Resumo Geral */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">
+                    {operationHistory.length}
+                  </div>
+                  <div className="text-sm text-gray-400">Total de Operações</div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">
+                    ${operationHistory.reduce((sum, op) => sum + op.profit, 0).toFixed(2)}
+                  </div>
+                  <div className="text-sm text-gray-400">Lucro Total</div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">
+                    {operationHistory.length > 0 ? (operationHistory.reduce((sum, op) => sum + op.spread, 0) / operationHistory.length).toFixed(3) : '0.000'}%
+                  </div>
+                  <div className="text-sm text-gray-400">Spread Médio</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de Operações Detalhada */}
+            {operationHistory.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-bold text-gray-400 mb-2">Nenhuma operação realizada</h3>
+                <p className="text-gray-500">Execute operações para ver o histórico detalhado aqui</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {operationHistory.map((operation) => (
+                  <div key={operation.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <ArrowUpDown className="h-6 w-6 text-green-400" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white text-xl">{operation.pair}</div>
+                          <div className="text-sm text-gray-400">
+                            {operation.investmentName} • {operation.operationType}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-green-400">
+                          +${operation.profit.toFixed(2)}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {new Date(operation.timestamp).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detalhes da Arbitragem */}
+                    <div className="bg-gray-900/50 rounded-lg p-4 mb-4">
+                      <div className="text-sm font-medium text-yellow-400 mb-3">🔍 Detalhes da Arbitragem</div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Compra */}
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            <span className="text-blue-400 font-medium text-sm">COMPRA</span>
+                          </div>
+                          <div className="text-white font-bold">{operation.exchanges[0]}</div>
+                          <div className="text-blue-200">
+                            ${operation.buyPrice ? operation.buyPrice.toFixed(4) : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Volume: ${operation.amount.toFixed(2)}
+                          </div>
+                        </div>
+
+                        {/* Venda */}
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-green-400 font-medium text-sm">VENDA</span>
+                          </div>
+                          <div className="text-white font-bold">{operation.exchanges[1]}</div>
+                          <div className="text-green-200">
+                            ${operation.sellPrice ? operation.sellPrice.toFixed(4) : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Lucro: +${operation.profit.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Métricas da Operação */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-400">Spread Capturado</div>
+                        <div className="text-yellow-400 font-bold text-lg">{operation.spread.toFixed(3)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Duração Total</div>
+                        <div className="text-blue-400 font-medium">{operation.duration}s</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Rentabilidade</div>
+                        <div className="text-green-400 font-medium">
+                          +{((operation.profit / operation.amount) * 100).toFixed(3)}%
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400">Exchanges</div>
+                        <div className="text-purple-400 font-medium text-xs">
+                          {operation.exchanges.join(' ↔ ')}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Fluxo de Arbitragem */}
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <div className="text-xs text-gray-400 mb-2">Fluxo da Operação:</div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-blue-300">🔍 Detectar → 💰 Comprar → 📈 Transferir → 💸 Vender → ✅ Lucro</span>
+                        <span className="text-green-400 font-medium">
+                          ROI: +{((operation.profit / operation.amount) * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-gray-800 pt-4 flex justify-end">
+            <Button
+              onClick={() => setShowOperationHistory(false)}
+              className="bg-gray-700 hover:bg-gray-600"
+            >
+              Fechar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

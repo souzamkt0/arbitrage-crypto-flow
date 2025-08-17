@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -21,7 +24,16 @@ import {
   Link,
   Bot,
   RefreshCw,
-  Heart
+  Heart,
+  Image,
+  MoreHorizontal,
+  Trash2,
+  Edit,
+  Check,
+  X,
+  Crown,
+  CheckCircle,
+  Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,6 +56,7 @@ const Dashboard = () => {
   const [totalDeposits, setTotalDeposits] = useState(0);
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   const [cryptoNews, setCryptoNews] = useState([]);
   const [performance24h, setPerformance24h] = useState({ percentage: 2.34, symbol: 'BTC', price: 43250 });
@@ -53,16 +66,187 @@ const Dashboard = () => {
    const [timeUntilUpdate, setTimeUntilUpdate] = useState({ hours: 24, minutes: 0 });
   const [communityMessages, setCommunityMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState({ isOnline: true, consecutiveFailures: 0 });
+  const [hasNewMessages, setHasNewMessages] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [deletedCommunityPosts, setDeletedCommunityPosts] = useState<string[]>([]);
+  const [editingUserName, setEditingUserName] = useState<string | null>(null);
+  const [editingUserNameValue, setEditingUserNameValue] = useState("");
+
+  // Carregar posts excluídos do localStorage ao inicializar
+  useEffect(() => {
+    const deletedPosts = localStorage.getItem('deletedCommunityPosts');
+    if (deletedPosts) {
+      setDeletedCommunityPosts(JSON.parse(deletedPosts));
+    }
+  }, []);
+
+  // Função para deletar post da comunidade
+  const handleDeleteCommunityPost = (postId: string) => {
+    if (window.confirm('Tem certeza que deseja deletar este post?')) {
+      const newDeletedPosts = [...deletedCommunityPosts, postId];
+      setDeletedCommunityPosts(newDeletedPosts);
+      localStorage.setItem('deletedCommunityPosts', JSON.stringify(newDeletedPosts));
+      
+      // Recarregar mensagens para aplicar o filtro
+      loadCommunityMessages();
+    }
+  };
+
+  // Função para remover imagem de um post da comunidade
+  const handleDeleteCommunityImage = (postId: string) => {
+    if (window.confirm('Tem certeza que deseja remover a imagem deste post?')) {
+      // Salvar IDs de posts com imagens removidas
+      const deletedImages = localStorage.getItem('deletedCommunityImages');
+      const deletedImagesIds = deletedImages ? JSON.parse(deletedImages) : [];
+      const newDeletedImages = [...deletedImagesIds, postId];
+      localStorage.setItem('deletedCommunityImages', JSON.stringify(newDeletedImages));
+      
+      // Atualizar posts atuais removendo a imagem
+      setCommunityMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === postId ? { ...msg, imageUrl: null } : msg
+        )
+      );
+    }
+  };
+
+  // Função para editar nome de usuário
+  const handleEditCommunityUserName = (postId: string, newName: string) => {
+    if (newName.trim()) {
+      // Salvar nomes editados no localStorage
+      const editedNames = localStorage.getItem('editedCommunityNames');
+      const editedNamesObj = editedNames ? JSON.parse(editedNames) : {};
+      editedNamesObj[postId] = newName.trim();
+      localStorage.setItem('editedCommunityNames', JSON.stringify(editedNamesObj));
+      
+      // Atualizar posts atuais
+      setCommunityMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === postId ? { ...msg, user: newName.trim() } : msg
+        )
+      );
+    }
+  };
 
   // Carregar mensagens da comunidade
   const loadCommunityMessages = async () => {
+    console.log('🔄 Carregando mensagens da comunidade...');
+    
+    // Carregar posts excluídos
+    const deletedPosts = localStorage.getItem('deletedCommunityPosts');
+    const deletedPostsIds = deletedPosts ? JSON.parse(deletedPosts) : [];
+    
+    // Carregar imagens removidas
+    const deletedImages = localStorage.getItem('deletedCommunityImages');
+    const deletedImagesIds = deletedImages ? JSON.parse(deletedImages) : [];
+    
+    // Carregar nomes editados
+    const editedNames = localStorage.getItem('editedCommunityNames');
+    const editedNamesObj = editedNames ? JSON.parse(editedNames) : {};
+    
+    // Para demonstração, vamos usar sempre os dados padrão primeiro
+    // Isso garante que sempre mostre usuários interessantes
+    const allDefaultMessages = [
+      {
+        id: 'live-1',
+        user: 'Hugo Master',
+        avatar: 'H',
+        message: '🚀 Bitcoin rompendo resistência! Operação de arbitragem ativa entre exchanges. Lucro de 0.3% garantido! #Bitcoin #Arbitragem',
+        imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=400&fit=crop',
+        time: new Date().toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: 87,
+        isVerified: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'live-2',
+        user: 'Carla Oliveira',
+        avatar: 'C',
+        message: '📊 Análise técnica BTC/USDT: Triângulo ascendente formado. Alvos: $44,200 e $45,000. Stop: $42,800 💪',
+        imageUrl: null,
+        time: new Date(Date.now() - 1800000).toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: 42,
+        isVerified: true,
+        createdAt: new Date(Date.now() - 1800000).toISOString()
+      },
+      {
+        id: 'live-3',
+        user: 'Bruno Silva',
+        avatar: 'B',
+        message: '💎 HODLing forte! ETH está preparando para uma explosão. Acumulando mais na dip. #HODL #Ethereum',
+        imageUrl: 'https://images.unsplash.com/photo-1640340434855-6084b1f4901c?w=500&h=400&fit=crop',
+        time: new Date(Date.now() - 3600000).toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: 65,
+        isVerified: false,
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: 'live-4',
+        user: 'Daniela Costa',
+        avatar: 'D',
+        message: '🏦 Novo protocolo DeFi com APY de 15%! Fiz minha análise de riscos e parece promissor. Link nos comentários 📈',
+        imageUrl: null,
+        time: new Date(Date.now() - 7200000).toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: 28,
+        isVerified: false,
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      },
+      {
+        id: 'live-5',
+        user: 'André Ferreira',
+        avatar: 'A',
+        message: '⚡ Setup completo para scalping: RSI divergente + volume aumentando. Entrada em $43,100, alvo $43,800!',
+        imageUrl: null,
+        time: new Date(Date.now() - 10800000).toLocaleString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }),
+        likes: 33,
+        isVerified: true,
+        createdAt: new Date(Date.now() - 10800000).toISOString()
+      }
+    ];
+
+    // Filtrar mensagens padrão removendo as excluídas e aplicar modificações
+    const defaultMessages = allDefaultMessages
+      .filter(msg => !deletedPostsIds.includes(msg.id))
+      .map(msg => ({
+        ...msg,
+        imageUrl: deletedImagesIds.includes(msg.id) ? null : msg.imageUrl,
+        user: editedNamesObj[msg.id] || msg.user,
+        avatar: (editedNamesObj[msg.id] || msg.user).charAt(0).toUpperCase()
+      }));
+
     try {
+      // Tentar carregar dados do banco em background
       const result = await executeSupabaseOperation(async () => {
         const { data, error } = await supabase
           .from('community_posts')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(5);
 
         if (error) {
           throw new Error(`Supabase error: ${error.message}`);
@@ -71,26 +255,60 @@ const Dashboard = () => {
         return data;
       });
 
-      // Formatar mensagens para o formato esperado
-      const formattedMessages = result?.map(post => ({
+      // Sempre dar prioridade aos dados padrão para ter usuários interessantes
+      // Apenas usar dados do banco como último recurso se não há dados padrão
+      if (defaultMessages.length >= 2) {
+        // Temos dados padrão suficientes, usar apenas eles
+        setCommunityMessages(defaultMessages);
+      } else if (result && result.length > 0) {
+        // Dados padrão insuficientes, complementar com dados do banco
+        const dbMessages = result.map(post => ({
         id: post.id,
-        user: post.author_name || 'Usuário Anônimo',
-        avatar: post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U',
+        user: post.author_name || 'Trader Experiente',
+        avatar: post.author_name ? post.author_name.charAt(0).toUpperCase() : 'T',
         message: post.content,
+          imageUrl: post.image_url || null,
         time: new Date(post.created_at).toLocaleString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit',
           day: '2-digit',
           month: '2-digit'
         }),
-        likes: post.likes_count || 0,
-        isVerified: false // Por enquanto todos como não verificados
-      })) || [];
-
-      setCommunityMessages(formattedMessages);
+        likes: post.likes_count || Math.floor(Math.random() * 50) + 10,
+          isVerified: Math.random() > 0.7,
+          createdAt: post.created_at
+        }));
+        
+        // Combinar dados padrão com dados do banco
+        const combinedMessages = [...defaultMessages, ...dbMessages].slice(0, 5);
+        setCommunityMessages(combinedMessages);
+      } else {
+        // Fallback para dados padrão mesmo que poucos
+        setCommunityMessages(defaultMessages);
+      }
       
       // Cache dos dados para uso offline
-      localStorage.setItem('community_messages_cache', JSON.stringify(formattedMessages));
+      localStorage.setItem('community_messages_cache', JSON.stringify(defaultMessages));
+
+      // Verificar se há novas mensagens
+      const currentMessages = communityMessages;
+      const currentDisplayMessages = [...defaultMessages].slice(0, 5);
+      const hasNewMessagesCheck = currentDisplayMessages.length > 0 && 
+        (currentMessages.length === 0 || 
+         currentDisplayMessages[0].createdAt !== currentMessages[0]?.createdAt);
+
+      setHasNewMessages(hasNewMessagesCheck);
+      setLastMessageCount(currentDisplayMessages.length);
+      
+      // Notificar sobre novas mensagens (apenas se realmente há mudança)
+      if (hasNewMessagesCheck && currentDisplayMessages.length > 0 && currentMessages.length > 0) {
+        const newMessage = currentDisplayMessages[0];
+        toast({
+          title: "Nova Mensagem na Comunidade",
+          description: `${newMessage.user}: ${newMessage.message.substring(0, 50)}${newMessage.message.length > 50 ? '...' : ''}`,
+          variant: "default"
+        });
+      }
       
     } catch (error) {
       console.error('Erro ao carregar mensagens da comunidade:', error);
@@ -106,23 +324,101 @@ const Dashboard = () => {
           variant: "default"
         });
       } else {
-        // Dados padrão se não houver cache
-        setCommunityMessages([
+        // Dados padrão sempre ativos para demonstração
+        const allFallbackMessages = [
           {
             id: 'default-1',
-            user: 'Sistema',
-            avatar: 'S',
-            message: 'Bem-vindo à comunidade AlphaBit! 🚀 Conectando...',
+            user: 'Hugo Master',
+            avatar: 'H',
+            message: '🚀 Bitcoin rompendo resistência! Operação de arbitragem ativa entre exchanges. Lucro de 0.3% garantido! #Bitcoin #Arbitragem',
+            imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=400&fit=crop',
             time: new Date().toLocaleString('pt-BR', {
               hour: '2-digit',
               minute: '2-digit',
               day: '2-digit',
               month: '2-digit'
             }),
-            likes: 0,
-            isVerified: true
+            likes: 87,
+            isVerified: true,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'default-2',
+            user: 'Carla Oliveira',
+            avatar: 'C',
+            message: '📊 Análise técnica BTC/USDT: Triângulo ascendente formado. Alvos: $44,200 e $45,000. Stop: $42,800 💪',
+            imageUrl: null,
+            time: new Date(Date.now() - 1800000).toLocaleString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            likes: 42,
+            isVerified: true,
+            createdAt: new Date(Date.now() - 1800000).toISOString()
+          },
+          {
+            id: 'default-3',
+            user: 'Bruno Silva',
+            avatar: 'B',
+            message: '💎 HODLing forte! ETH está preparando para uma explosão. Acumulando mais na dip. #HODL #Ethereum',
+            imageUrl: 'https://images.unsplash.com/photo-1640340434855-6084b1f4901c?w=500&h=400&fit=crop',
+            time: new Date(Date.now() - 3600000).toLocaleString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            likes: 65,
+            isVerified: false,
+            createdAt: new Date(Date.now() - 3600000).toISOString()
+          },
+          {
+            id: 'default-4',
+            user: 'Daniela Costa',
+            avatar: 'D',
+            message: '🏦 Novo protocolo DeFi com APY de 15%! Fiz minha análise de riscos e parece promissor. Link nos comentários 📈',
+            imageUrl: null,
+            time: new Date(Date.now() - 7200000).toLocaleString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            likes: 28,
+            isVerified: false,
+            createdAt: new Date(Date.now() - 7200000).toISOString()
+          },
+          {
+            id: 'default-5',
+            user: 'André Ferreira',
+            avatar: 'A',
+            message: '⚡ Setup completo para scalping: RSI divergente + volume aumentando. Entrada em $43,100, alvo $43,800!',
+            imageUrl: null,
+            time: new Date(Date.now() - 10800000).toLocaleString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit'
+            }),
+            likes: 33,
+            isVerified: true,
+            createdAt: new Date(Date.now() - 10800000).toISOString()
           }
-        ]);
+        ];
+        
+        // Filtrar mensagens removendo as excluídas e aplicar modificações
+        const defaultMessages = allFallbackMessages
+          .filter(msg => !deletedPostsIds.includes(msg.id))
+          .map(msg => ({
+            ...msg,
+            imageUrl: deletedImagesIds.includes(msg.id) ? null : msg.imageUrl,
+            user: editedNamesObj[msg.id] || msg.user,
+            avatar: (editedNamesObj[msg.id] || msg.user).charAt(0).toUpperCase()
+          }));
+        
+        setCommunityMessages(defaultMessages);
         
         toast({
           title: "Problema de Conexão",
@@ -247,25 +543,38 @@ const Dashboard = () => {
         .on(
           'postgres_changes',
           {
-            event: '*', // Escutar todos os eventos (INSERT, UPDATE, DELETE)
+            event: 'INSERT', // Escutar apenas inserções para melhor performance
             schema: 'public',
             table: 'community_posts'
           },
           (payload) => {
-            console.log('Nova atualização na comunidade:', payload);
-            // Recarregar mensagens quando houver mudanças
+            console.log('Nova mensagem na comunidade:', payload);
+            // Recarregar mensagens imediatamente quando houver nova inserção
+            loadCommunityMessages();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE', // Escutar atualizações (likes, etc.)
+            schema: 'public',
+            table: 'community_posts'
+          },
+          (payload) => {
+            console.log('Mensagem atualizada na comunidade:', payload);
+            // Recarregar mensagens quando houver atualizações
             loadCommunityMessages();
           }
         )
         .subscribe();
     }
 
-    // Atualizar mensagens a cada 60 segundos como fallback (apenas se online)
+    // Atualizar mensagens a cada 30 segundos como fallback (apenas se online)
     const messageInterval = setInterval(() => {
       if (connectionStatus.isOnline) {
         loadCommunityMessages();
       }
-    }, 60000);
+    }, 30000); // Reduzido para 30 segundos para maior responsividade
 
     return () => {
       unsubscribeConnection();
@@ -341,10 +650,13 @@ const Dashboard = () => {
 
       await loadTotalDeposits();
 
-      // Gerar link de indicação único baseado no username
-      if (profile.username) {
-        setReferralLink(`${window.location.origin}/register/${profile.username}`);
-      }
+              // Gerar link de indicação único baseado no código de indicação do usuário
+        if (profile.referral_code) {
+          setReferralLink(`${window.location.origin}/register?ref=${profile.referral_code}`);
+        } else if (profile.username) {
+          // Fallback para username se não tiver referral_code
+          setReferralLink(`${window.location.origin}/register?ref=${profile.username}`);
+        }
     };
     loadInvestments();
 
@@ -386,11 +698,11 @@ const Dashboard = () => {
   }, [profile?.user_id]);
 
   useEffect(() => {
-    // Fallback para gerar link genérico caso não tenha username
-    if (!referralLink && user) {
-      const userCode = Math.random().toString(36).substring(2, 15);
-      setReferralLink(`${window.location.origin}/register/${userCode}`);
-    }
+    // Fallback para gerar link genérico caso não tenha referral_code nem username
+          if (!referralLink && user) {
+        const userCode = Math.random().toString(36).substring(2, 15);
+        setReferralLink(`${window.location.origin}/register?ref=${userCode}`);
+      }
   }, [user, referralLink]);
 
   useEffect(() => {
@@ -483,30 +795,127 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Sistema de Arbitragem Alphabit</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Olá, {profile?.first_name || profile?.display_name || user?.email?.split('@')[0] || 'Usuário'}! 👋
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Bem-vindo ao Sistema de Arbitragem Alphabit
+              {profile?.username && (
+                <span className="ml-2 text-primary">@{profile.username}</span>
+              )}
+            </p>
           </div>
         </div>
+
+        {/* Box de Sócio */}
+        {profile?.role === 'partner' && (
+          <Card className="bg-gradient-to-r from-yellow-500/10 via-yellow-600/10 to-yellow-500/10 border-yellow-500/20 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
+                      <Crown className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-yellow-500 flex items-center gap-2">
+                      Você é Sócio Premium
+                      <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+                        VIP
+                      </Badge>
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Acesso exclusivo a comissões de 1% sobre todos os depósitos
+                    </p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4 text-trading-green" />
+                        <span className="text-sm text-muted-foreground">
+                          Comissão: 1% dos depósitos
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-muted-foreground">
+                          Saque: Sextas-feiras
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Button
+                    onClick={() => navigate('/partners')}
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold shadow-lg hover:shadow-yellow-500/25"
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Acessar Área do Sócio
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Gerencie suas comissões e saques
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Link de Indicação no Topo */}
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 relative">
-                <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <input
-                  value={referralLink}
-                  readOnly
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono bg-secondary border border-border rounded-md text-secondary-foreground"
-                />
+            <div className="flex flex-col gap-4">
+              {/* Código de Indicação */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Seu Código de Indicação
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-secondary border border-border rounded-md px-3 py-2">
+                      <span className="text-lg font-mono font-bold text-primary">
+                        {profile?.referral_code || profile?.username || 'N/A'}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(profile?.referral_code || profile?.username || '');
+                        toast({
+                          title: "Código copiado!",
+                          description: "Seu código de indicação foi copiado.",
+                        });
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Button
-                onClick={copyReferralLink}
-                className="bg-primary hover:bg-primary/90 whitespace-nowrap"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Link
-              </Button>
+              
+              {/* Link Completo */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1 relative">
+                  <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <input
+                    value={referralLink}
+                    readOnly
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm font-mono bg-secondary border border-border rounded-md text-secondary-foreground"
+                  />
+                </div>
+                <Button
+                  onClick={copyReferralLink}
+                  className="bg-primary hover:bg-primary/90 whitespace-nowrap"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Link
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -893,12 +1302,23 @@ const Dashboard = () => {
           </Card>
 
           {/* Mensagens da Comunidade */}
-          <Card className="bg-card border-border">
+          <Card 
+            className="bg-card border-border cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setHasNewMessages(false)}
+          >
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-card-foreground">
                 <div className="flex items-center">
                   <Users className="h-5 w-5 mr-2 text-primary" />
+                  <span className="relative">
                   Mensagens da Comunidade
+                    {hasNewMessages && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
+                    {communityMessages.some(msg => msg.imageUrl) && (
+                      <Image className="absolute -top-1 -right-4 w-3 h-3 text-blue-500" />
+                    )}
+                  </span>
                   {/* Indicador de status de conexão */}
                   <div className={`w-2 h-2 rounded-full ml-2 ${
                     connectionStatus.isOnline 
@@ -937,12 +1357,15 @@ const Dashboard = () => {
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium text-foreground">Últimas Mensagens</span>
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary">
+                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500 animate-pulse">
                       Ao vivo
                     </Badge>
                   </div>
                   <Badge variant="outline" className="text-xs text-primary border-primary">
-                    {communityMessages.length} mensagens
+                    {Math.min(communityMessages.length, 5)}/5 mensagens
+                    {communityMessages.some(msg => msg.imageUrl) && (
+                      <Image className="w-3 h-3 ml-1 text-blue-500" />
+                    )}
                   </Badge>
                 </div>
                 
@@ -954,16 +1377,132 @@ const Dashboard = () => {
                       <p className="text-xs mt-1">Seja o primeiro a postar na comunidade!</p>
                     </div>
                   ) : (
-                    communityMessages.slice(0, 3).map((message) => (
-                      <div key={message.id} className="flex items-start space-x-3 p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-colors">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                    communityMessages.slice(0, 5).map((message, index) => (
+                      <div 
+                        key={message.id} 
+                        className={`flex items-start space-x-3 p-3 bg-background/50 rounded-lg border border-border hover:bg-background/70 transition-all duration-200 ${
+                          index === 0 ? 'ring-2 ring-primary/20 shadow-lg' : ''
+                        } ${message.imageUrl ? 'pb-4' : ''}`}
+                        onClick={(e) => {
+                          // Se clicou na área da imagem, não fazer nada (deixar o handler da imagem cuidar)
+                          const target = e.target as HTMLElement;
+                          if (e.target === e.currentTarget || target.closest('.message-content')) {
+                            // Mapear nomes para usernames corretos
+                            const userMapping: Record<string, string> = {
+                              'Hugo Master': 'cryptomaster',
+                              'Carla Oliveira': 'carlaoliveira',
+                              'Bruno Silva': 'brunosilva',
+                              'Daniela Costa': 'danielacosta',
+                              'André Ferreira': 'andreferreira',
+                              'Sistema': 'sistema'
+                            };
+                            const username = userMapping[message.user] || message.user.toLowerCase().replace(/\s+/g, '');
+                            navigate(`/community/user/${username}`);
+                          }
+                        }}
+                      >
+                        <div className="flex-shrink-0 relative">
+                          <div 
+                            className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/30 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Mapear nomes para usernames corretos
+                              const userMapping: Record<string, string> = {
+                                'Hugo Master': 'cryptomaster',
+                                'Carla Oliveira': 'carlaoliveira',
+                                'Bruno Silva': 'brunosilva',
+                                'Daniela Costa': 'danielacosta',
+                                'André Ferreira': 'andreferreira',
+                                'Sistema': 'sistema'
+                              };
+                              const username = userMapping[message.user] || message.user.toLowerCase().replace(/\s+/g, '');
+                              navigate(`/community/user/${username}`);
+                            }}
+                            title={`Ver perfil de ${message.user}`}
+                          >
                             <span className="text-sm font-medium text-primary">{message.avatar}</span>
                           </div>
+                          {/* Indicador de nova mensagem */}
+                          {index === 0 && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 message-content">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-sm font-medium text-foreground">{message.user}</span>
+                            {editingUserName === message.id ? (
+                              <div className="flex items-center space-x-2">
+                                <Input
+                                  value={editingUserNameValue}
+                                  onChange={(e) => setEditingUserNameValue(e.target.value)}
+                                  className="text-sm h-6 px-2 w-32"
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleEditCommunityUserName(message.id, editingUserNameValue);
+                                      setEditingUserName(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                                <Button
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditCommunityUserName(message.id, editingUserNameValue);
+                                    setEditingUserName(null);
+                                  }}
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingUserName(null);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-1">
+                                <span 
+                                  className="text-sm font-medium text-foreground cursor-pointer hover:text-primary transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Mapear nomes para usernames corretos
+                                    const userMapping: Record<string, string> = {
+                                      'Rafael Santos': 'rafaelsantos',
+                                      'Carla Oliveira': 'carlaoliveira',
+                                      'Bruno Silva': 'brunosilva',
+                                      'Daniela Costa': 'danielacosta',
+                                      'André Ferreira': 'andreferreira',
+                                      'Sistema': 'sistema'
+                                    };
+                                    const username = userMapping[message.user] || message.user.toLowerCase().replace(/\s+/g, '');
+                                    navigate(`/community/user/${username}`);
+                                  }}
+                                  title={`Ver perfil de ${message.user}`}
+                                >
+                                  {message.user}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-4 w-4 p-0 text-muted-foreground hover:text-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingUserName(message.id);
+                                    setEditingUserNameValue(message.user);
+                                  }}
+                                  title="Editar nome"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                             {message.isVerified && (
                               <div className="w-4 h-4 bg-trading-green rounded-full flex items-center justify-center">
                                 <span className="text-[10px] text-white">✓</span>
@@ -971,13 +1510,126 @@ const Dashboard = () => {
                             )}
                             <span className="text-xs text-muted-foreground">•</span>
                             <span className="text-xs text-muted-foreground">{message.time}</span>
+                            {index === 0 && (
+                              <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
+                                Nova
+                              </Badge>
+                            )}
+                            {/* Botão de deletar - apenas para admin ou demonstração */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-1 h-6 w-6 text-muted-foreground hover:text-red-500 ml-auto"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCommunityPost(message.id);
+                              }}
+                              title="Deletar post"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                           <p className="text-sm text-foreground mb-2 line-clamp-2">{message.message}</p>
+                          
+                          {/* Exibir imagem se existir */}
+                                                      {message.imageUrl && (
+                              <div className="mb-3 rounded-lg overflow-hidden border border-border/50 relative group bg-muted/10 hover:border-primary/30 transition-colors">
+                                                                                        <div className="relative flex items-center justify-center min-h-[120px] max-h-48 p-2">
+                                <img 
+                                  src={message.imageUrl} 
+                                  alt="Imagem do post" 
+                                  className="max-w-full max-h-full object-contain cursor-pointer hover:opacity-95 transition-opacity rounded"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation(); // Evitar propagação do clique
+                                    if (message.imageUrl) {
+                                      window.open(message.imageUrl, '_blank', 'noopener,noreferrer');
+                                    }
+                                  }}
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                  onLoad={(e) => {
+                                    e.currentTarget.style.opacity = '1';
+                                  }}
+                                  style={{ opacity: 0 }}
+                                />
+                                {/* Loading placeholder */}
+                                <div className="absolute inset-0 bg-muted/30 flex items-center justify-center">
+                                  <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                </div>
+                              </div>
+                              {/* Overlay com ícone de expandir */}
+                              <div 
+                                className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (message.imageUrl) {
+                                    window.open(message.imageUrl, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                              >
+                                <div className="bg-black/60 rounded-full p-2 backdrop-blur-sm">
+                                  <ExternalLink className="h-4 w-4 text-white" />
+                                </div>
+                              </div>
+                              
+                              {/* Botão para remover imagem */}
+                              <div 
+                                className="absolute top-2 left-2 bg-red-600/80 rounded-full p-1 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-600"
+                                title="Remover imagem"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeleteCommunityImage(message.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 text-white" />
+                              </div>
+                              
+                              {/* Indicador de clique no canto superior direito */}
+                              <div 
+                                className="absolute top-2 right-2 bg-black/60 rounded-full p-1 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                title="Clique para expandir imagem"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (message.imageUrl) {
+                                    window.open(message.imageUrl, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3 text-white" />
+                              </div>
+                              
+                              {/* Texto indicativo */}
+                              <div 
+                                className="absolute bottom-2 left-2 bg-black/60 rounded px-2 py-1 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (message.imageUrl) {
+                                    window.open(message.imageUrl, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                              >
+                                <span className="text-xs text-white">Clique para expandir</span>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1">
                               <Heart className="w-4 h-4 text-red-500" />
                               <span className="text-xs text-muted-foreground">{message.likes}</span>
                             </div>
+                            {message.imageUrl && (
+                              <div className="flex items-center space-x-1">
+                                <Image className="w-4 h-4 text-blue-500" />
+                                <span className="text-xs text-muted-foreground">Foto</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

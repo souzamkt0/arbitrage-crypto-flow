@@ -1,8 +1,8 @@
 export const communityUsers: any[] = [
   {
     id: "user-1",
-    username: "cryptomaster",
-    displayName: "Crypto Master",
+    username: "rafaelsantos",
+    displayName: "Rafael Santos",
     bio: "Especialista em trading de criptomoedas e arbitragem",
     avatar: "avatar1",
     verified: true,

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft,
   CheckCircle2, 
@@ -17,34 +19,198 @@ import {
   Shield,
   Ban,
   MessageCircle,
-  Settings
+  Settings,
+  Camera,
+  Upload,
+  Edit,
+  Check,
+  X,
+  RotateCcw
 } from "lucide-react";
-import TwitterPost, { TwitterPostData } from "@/components/TwitterPost";
+import TwitterPost from "@/components/TwitterPost";
 import { UserProfileData } from "@/components/UserProfile";
+
+// Interface local para TwitterPost
+interface TwitterPostData {
+  id: string;
+  author: UserProfileData;
+  content: string;
+  timestamp: string;
+  likes: number;
+  retweets: number;
+  replies: number;
+  shares: number;
+  liked: boolean;
+  retweeted: boolean;
+  hashtags?: string[];
+  mentions?: string[];
+  replyTo?: string;
+  imageUrl?: string;
+}
 import { communityUsers } from "@/data/communityUsers";
+import ProfileImageUpload from "@/components/ProfileImageUpload";
 
 const UserProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   // Para demonstração, definindo como true - em produção usar: currentUser?.role === 'admin'
   const isAdmin = true;
   const [user, setUser] = useState<UserProfileData | null>(null);
   const [userPosts, setUserPosts] = useState<TwitterPostData[]>([]);
   const [activeTab, setActiveTab] = useState("posts");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [deletedPosts, setDeletedPosts] = useState<string[]>([]);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [editedUsername, setEditedUsername] = useState("");
 
   // Usar os dados reais da comunidade
   const mockUsers: UserProfileData[] = communityUsers;
 
-  const mockPosts: TwitterPostData[] = [];
+  const mockPosts: TwitterPostData[] = [
+    {
+      id: "post-crypto-1",
+      author: {
+        id: "user-1",
+        username: "cryptomaster",
+        displayName: "Crypto Master",
+        bio: "Especialista em trading de criptomoedas e arbitragem",
+        avatar: "avatar1",
+        verified: true,
+        followers: 1520,
+        following: 340,
+        posts: 89,
+        joinDate: "Janeiro 2023",
+        city: "São Paulo",
+        state: "SP",
+        location: "São Paulo, SP",
+        isFollowing: false,
+        isBlocked: false,
+        earnings: 3200.50,
+        level: 8,
+        badge: "Master"
+      },
+      content: "🚀 Bitcoin rompendo resistência dos $43,500! Operação de arbitragem em andamento entre Binance e Coinbase. Lucro de 0.3% já garantido! #Bitcoin #Arbitragem #CryptoTrading",
+      timestamp: "2h",
+      likes: 87,
+      retweets: 23,
+      replies: 15,
+      shares: 12,
+      liked: false,
+      retweeted: false,
+      hashtags: ["Bitcoin", "Arbitragem", "CryptoTrading"],
+      imageUrl: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=400&fit=crop"
+    },
+    {
+      id: "post-crypto-2",
+      author: {
+        id: "user-1",
+        username: "cryptomaster",
+        displayName: "Crypto Master",
+        bio: "Especialista em trading de criptomoedas e arbitragem",
+        avatar: "avatar1",
+        verified: true,
+        followers: 1520,
+        following: 340,
+        posts: 89,
+        joinDate: "Janeiro 2023",
+        city: "São Paulo",
+        state: "SP",
+        location: "São Paulo, SP",
+        isFollowing: false,
+        isBlocked: false,
+        earnings: 3200.50,
+        level: 8,
+        badge: "Master"
+      },
+      content: "📊 Análise técnica do BTC/USDT: Formação de triângulo ascendente no gráfico de 4h. Alvos: $44,200 e $45,000. Stop loss: $42,800. Gestão de risco é fundamental! 💪",
+      timestamp: "5h",
+      likes: 142,
+      retweets: 38,
+      replies: 27,
+      shares: 19,
+      liked: false,
+      retweeted: false,
+      hashtags: ["AnaliseĺTécnica", "BTC", "Trading"]
+    },
+    {
+      id: "post-crypto-3",
+      author: {
+        id: "user-1",
+        username: "cryptomaster",
+        displayName: "Crypto Master",
+        bio: "Especialista em trading de criptomoedas e arbitragem",
+        avatar: "avatar1",
+        verified: true,
+        followers: 1520,
+        following: 340,
+        posts: 89,
+        joinDate: "Janeiro 2023",
+        city: "São Paulo",
+        state: "SP",
+        location: "São Paulo, SP",
+        isFollowing: false,
+        isBlocked: false,
+        earnings: 3200.50,
+        level: 8,
+        badge: "Master"
+      },
+      content: "💎 HODLers vs Traders: Ambas estratégias têm seu lugar no mercado cripto. HODLing para ganhos de longo prazo, trading para lucros consistentes. A chave é diversificar! #HODL #Trading",
+      timestamp: "1d",
+      likes: 95,
+      retweets: 41,
+      replies: 33,
+      shares: 8,
+      liked: false,
+      retweeted: false,
+      hashtags: ["HODL", "Trading", "Crypto"],
+      imageUrl: "https://images.unsplash.com/photo-1640340434855-6084b1f4901c?w=500&h=400&fit=crop"
+    }
+  ];
 
   useEffect(() => {
     // Buscar dados do usuário baseado no username
     const foundUser = mockUsers.find(u => u.username === username);
     if (foundUser) {
-      setUser(foundUser);
-      // Filtrar posts do usuário
-      setUserPosts(mockPosts.filter(post => post.author.username === username));
+      // Carregar nome editado do localStorage
+      const editedUserNames = localStorage.getItem('editedUserNames');
+      const editedNamesObj = editedUserNames ? JSON.parse(editedUserNames) : {};
+      const customDisplayName = editedNamesObj[username] || foundUser.displayName;
+      
+      const userWithCustomName = { ...foundUser, displayName: customDisplayName };
+      
+      setUser(userWithCustomName);
+      setEditedName(customDisplayName);
+      
+      // Carregar username editado do localStorage
+      const editedUsernames = localStorage.getItem('editedUsernames');
+      const editedUsernamesObj = editedUsernames ? JSON.parse(editedUsernames) : {};
+      const customUsername = editedUsernamesObj[username] || foundUser.username;
+      setEditedUsername(customUsername);
+      
+      // Carregar posts excluídos do localStorage
+      const deletedPostsStorage = localStorage.getItem(`deletedPosts_${username}`);
+      const deletedPostsIds = deletedPostsStorage ? JSON.parse(deletedPostsStorage) : [];
+      setDeletedPosts(deletedPostsIds);
+      
+      // Filtrar posts do usuário (excluindo os deletados) e atualizar nome do autor
+      const userPostsFiltered = mockPosts
+        .filter(post => post.author.username === username && !deletedPostsIds.includes(post.id))
+        .map(post => ({
+          ...post,
+          author: {
+            ...post.author,
+            displayName: customDisplayName
+          }
+        }));
+      setUserPosts(userPostsFiltered);
+      
+      console.log('Usuário carregado:', { username, originalName: foundUser.displayName, customName: customDisplayName });
     }
   }, [username]);
 
@@ -101,6 +267,14 @@ const UserProfilePage = () => {
   };
 
   const handleDelete = (postId: string) => {
+    // Atualizar lista de posts excluídos
+    const newDeletedPosts = [...deletedPosts, postId];
+    setDeletedPosts(newDeletedPosts);
+    
+    // Salvar no localStorage
+    localStorage.setItem(`deletedPosts_${username}`, JSON.stringify(newDeletedPosts));
+    
+    // Remover da lista atual
     setUserPosts(posts => posts.filter(post => post.id !== postId));
   };
 
@@ -122,6 +296,135 @@ const UserProfilePage = () => {
     if (level >= 6) return "text-purple-500";
     if (level >= 4) return "text-blue-500";
     return "text-green-500";
+  };
+
+  // Verificar se o usuário atual pode editar este perfil
+  const canEditProfile = currentUser?.id === user?.id || isAdmin;
+  
+  // Para demonstração, sempre permitir editar posts do cryptomaster
+  const canEditPosts = username === 'cryptomaster' || isAdmin;
+
+  // Handlers para upload de imagens
+  const handleProfileImageUploaded = (url: string) => {
+    setProfileImage(url);
+    if (user) {
+      setUser({ ...user, avatar: url });
+    }
+  };
+
+  const handleCoverImageUploaded = (url: string) => {
+    setCoverImage(url);
+  };
+
+  // Handlers para edição do nome
+  const handleSaveName = () => {
+    if (user && editedName.trim() && username) {
+      const newDisplayName = editedName.trim();
+      
+      // Atualizar o estado local
+      setUser({ ...user, displayName: newDisplayName });
+      setIsEditingName(false);
+      
+      // Persistir no localStorage
+      const editedUserNames = localStorage.getItem('editedUserNames');
+      const editedNamesObj = editedUserNames ? JSON.parse(editedUserNames) : {};
+      editedNamesObj[username] = newDisplayName;
+      localStorage.setItem('editedUserNames', JSON.stringify(editedNamesObj));
+      
+      // Mostrar confirmação
+      toast({
+        title: "Nome atualizado!",
+        description: `O nome foi alterado para "${newDisplayName}" com sucesso.`,
+      });
+      
+      console.log('Nome salvo:', { username, newDisplayName, stored: editedNamesObj });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedName(user?.displayName || "");
+    setIsEditingName(false);
+  };
+
+  // Função para resetar nome para o original
+  const handleResetName = () => {
+    if (username) {
+      const foundUser = mockUsers.find(u => u.username === username);
+      if (foundUser) {
+        const editedUserNames = localStorage.getItem('editedUserNames');
+        const editedNamesObj = editedUserNames ? JSON.parse(editedUserNames) : {};
+        delete editedNamesObj[username];
+        localStorage.setItem('editedUserNames', JSON.stringify(editedNamesObj));
+        
+        setUser({ ...user!, displayName: foundUser.displayName });
+        setEditedName(foundUser.displayName);
+        
+        toast({
+          title: "Nome resetado!",
+          description: `O nome foi restaurado para "${foundUser.displayName}".`,
+        });
+      }
+    }
+  };
+
+  // Handlers para edição do username
+  const handleSaveUsername = () => {
+    if (user && editedUsername.trim() && username) {
+      const newUsername = editedUsername.trim().toLowerCase().replace(/\s+/g, '');
+      
+      // Validar formato do username
+      if (!/^[a-z0-9_]+$/.test(newUsername)) {
+        toast({
+          title: "Username inválido!",
+          description: "Use apenas letras minúsculas, números e underscore (_).",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Atualizar o estado local
+      setUser({ ...user, username: newUsername });
+      setIsEditingUsername(false);
+      
+      // Persistir no localStorage
+      const editedUsernames = localStorage.getItem('editedUsernames');
+      const editedUsernamesObj = editedUsernames ? JSON.parse(editedUsernames) : {};
+      editedUsernamesObj[username] = newUsername;
+      localStorage.setItem('editedUsernames', JSON.stringify(editedUsernamesObj));
+      
+      // Mostrar confirmação
+      toast({
+        title: "Username atualizado!",
+        description: `O username foi alterado para "@${newUsername}" com sucesso.`,
+      });
+      
+      console.log('Username salvo:', { original: username, new: newUsername });
+    }
+  };
+
+  const handleCancelUsernameEdit = () => {
+    setEditedUsername(user?.username || "");
+    setIsEditingUsername(false);
+  };
+
+  const handleResetUsername = () => {
+    if (username) {
+      const foundUser = mockUsers.find(u => u.username === username);
+      if (foundUser) {
+        const editedUsernames = localStorage.getItem('editedUsernames');
+        const editedUsernamesObj = editedUsernames ? JSON.parse(editedUsernames) : {};
+        delete editedUsernamesObj[username];
+        localStorage.setItem('editedUsernames', JSON.stringify(editedUsernamesObj));
+        
+        setUser({ ...user!, username: foundUser.username });
+        setEditedUsername(foundUser.username);
+        
+        toast({
+          title: "Username resetado!",
+          description: `O username foi restaurado para "@${foundUser.username}".`,
+        });
+      }
+    }
   };
 
   if (!user) {
@@ -171,18 +474,49 @@ const UserProfilePage = () => {
 
       {/* Profile Header */}
       <div className="border-b border-border">
-        {/* Cover Image Placeholder */}
-        <div className="h-32 sm:h-48 bg-gradient-to-r from-primary/20 to-secondary/20"></div>
+        {/* Cover Image */}
+        <div className="relative h-32 sm:h-48 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
+          {coverImage && (
+            <img 
+              src={coverImage} 
+              alt="Foto de capa" 
+              className="w-full h-full object-cover"
+            />
+          )}
+          {canEditProfile && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-none"
+              onClick={() => setShowImageUpload(true)}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Editar capa
+            </Button>
+          )}
+        </div>
         
         {/* Profile Info */}
         <div className="px-4 pb-4">
           <div className="flex justify-between items-start -mt-12 sm:-mt-16">
+            <div className="relative">
             <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background">
-              <AvatarImage src={user.avatar} alt={user.displayName} />
+                <AvatarImage src={profileImage || user.avatar} alt={user.displayName} />
               <AvatarFallback className="text-lg sm:text-2xl">
                 {user.displayName.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
+              {canEditProfile && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute bottom-0 right-0 w-8 h-8 p-0 rounded-full bg-primary hover:bg-primary/90 text-white border-2 border-background"
+                  onClick={() => setShowImageUpload(true)}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
             
             <div className="flex space-x-2 mt-4">
               <Button variant="outline" size="sm">
@@ -212,7 +546,48 @@ const UserProfilePage = () => {
           
           <div className="mt-4">
             <div className="flex items-center space-x-2">
+              {isEditingName ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="text-xl sm:text-2xl font-bold bg-transparent border-primary"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSaveName()}
+                  />
+                  <Button size="sm" onClick={handleSaveName} className="p-1">
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleCancelEdit} className="p-1">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
               <h2 className="text-xl sm:text-2xl font-bold">{user.displayName}</h2>
+                  {canEditProfile && (
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditingName(true)}
+                        className="p-1"
+                        title="Editar nome"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleResetName}
+                        className="p-1 text-muted-foreground hover:text-orange-500"
+                        title="Resetar para nome original"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
               {user.verified && (
                 <CheckCircle2 className="h-5 w-5 text-blue-500" />
               )}
@@ -221,7 +596,69 @@ const UserProfilePage = () => {
               </Badge>
             </div>
             
-            <p className="text-muted-foreground">@{user.username}</p>
+            <div className="flex items-center space-x-2">
+              {isEditingUsername ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-muted-foreground">@</span>
+                  <Input
+                    value={editedUsername}
+                    onChange={(e) => setEditedUsername(e.target.value)}
+                    className="text-sm h-6 px-2 w-40 text-muted-foreground"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveUsername();
+                      }
+                    }}
+                    placeholder="username"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={handleSaveUsername}
+                  >
+                    <Check className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 w-6 p-0"
+                    onClick={handleCancelUsernameEdit}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1">
+                  <p className="text-muted-foreground">@{user.username}</p>
+                  {canEditProfile && (
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 text-muted-foreground hover:text-primary"
+                        onClick={() => {
+                          setIsEditingUsername(true);
+                          setEditedUsername(user.username);
+                        }}
+                        title="Editar username"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 text-muted-foreground hover:text-orange-500"
+                        onClick={handleResetUsername}
+                        title="Resetar username original"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             
             {user.bio && (
               <p className="mt-3 text-sm sm:text-base">{user.bio}</p>
@@ -301,8 +738,8 @@ const UserProfilePage = () => {
                     onDelete={handleDelete}
                     onDeleteImage={handleDeleteImage}
                     currentUserId={currentUser?.id || "current"}
-                    canEdit={post.author.id === currentUser?.id}
-                    canDelete={post.author.id === currentUser?.id || isAdmin}
+                    canEdit={canEditPosts}
+                    canDelete={canEditPosts}
                   />
                 </div>
               ))
@@ -356,6 +793,17 @@ const UserProfilePage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Profile Image Upload Modal */}
+      {showImageUpload && (
+        <ProfileImageUpload
+          currentProfileImage={profileImage || user?.avatar}
+          currentCoverImage={coverImage}
+          onProfileImageUpdate={handleProfileImageUploaded}
+          onCoverImageUpdate={handleCoverImageUploaded}
+          onClose={() => setShowImageUpload(false)}
+        />
+      )}
     </div>
   );
 };

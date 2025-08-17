@@ -20,9 +20,9 @@ const ReferralSystem = () => {
   useEffect(() => {
     // Simulação: gerar código único para o usuário logado
     const userName = "Usuario"; // Em produção, viria do contexto do usuário
-    const code = Math.random().toString(36).substring(2, 15);
-    setUserReferralCode(code);
-    setReferralLink(`${window.location.origin}/register/${code}`);
+          const code = Math.random().toString(36).substring(2, 15);
+      setUserReferralCode(code);
+      setReferralLink(`${window.location.origin}/register`);
 
     // Carregar configurações do admin
     const settings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
