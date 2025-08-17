@@ -346,95 +346,95 @@ const Investments = () => {
     return plan?.required_referrals || 0;
   };
 
+  // Função para carregar dados do usuário
+  const loadUserData = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch user profile data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Erro ao buscar perfil do usuário:', profileError);
+      }
+
+      if (profile) {
+        setUserBalance(profile.balance || 0);
+      }
+
+      // Fetch user investments
+      const { data: userInvs, error: userInvsError } = await supabase
+        .from('user_investments')
+        .select(`
+          id,
+          amount,
+          created_at,
+          user_id,
+          operations_completed,
+          total_earned,
+          daily_rate,
+          status
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (userInvsError) {
+        console.error('Erro ao buscar investimentos do usuário:', userInvsError);
+      }
+
+      if (userInvs) {
+        const formattedInvestments = userInvs.map(inv => ({
+          id: inv.id,
+          investmentId: 'basic-plan',
+          investmentName: 'Plano Básico',
+          amount: inv.amount,
+          dailyRate: inv.daily_rate || 2.5,
+          startDate: inv.created_at?.split('T')[0] || '',
+          endDate: '',
+          totalEarned: inv.total_earned || 0,
+          status: (inv.status as "active" | "completed") || "active",
+          daysRemaining: 30,
+          currentDayProgress: 0,
+          todayEarnings: 0,
+          dailyTarget: (inv.amount * (inv.daily_rate || 2.5)) / 100,
+          currentOperation: undefined,
+          operationsCompleted: inv.operations_completed || 0,
+          totalOperations: 2
+        }));
+        setUserInvestments(formattedInvestments);
+        
+        // Iniciar timers de liberação para investimentos ativos
+        formattedInvestments.forEach(investment => {
+          // Investimento ativo carregado
+        });
+      }
+
+      // Fetch referral count
+      const { data: referrals, error: referralsError } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referrer_id', user.id)
+        .eq('status', 'active');
+      
+      if (referralsError) {
+        console.error('Erro ao buscar referrals:', referralsError);
+      }
+      
+      if (referrals) {
+        setReferralCount(referrals.length);
+        console.log('Referrals encontrados:', referrals.length);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    }
+  };
+
   // Load user data and investment plans
   useEffect(() => {
-
-    const loadUserData = async () => {
-      if (!user) return;
-
-      try {
-        // Fetch user profile data
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('balance')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Erro ao buscar perfil do usuário:', profileError);
-        }
-
-        if (profile) {
-          setUserBalance(profile.balance || 0);
-        }
-
-        // Fetch user investments
-        const { data: userInvs, error: userInvsError } = await supabase
-          .from('user_investments')
-          .select(`
-            id,
-            amount,
-            created_at,
-            user_id,
-            operations_completed,
-            total_earned,
-            daily_rate,
-            status
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (userInvsError) {
-          console.error('Erro ao buscar investimentos do usuário:', userInvsError);
-        }
-
-        if (userInvs) {
-          const formattedInvestments = userInvs.map(inv => ({
-            id: inv.id,
-            investmentId: 'basic-plan',
-            investmentName: 'Plano Básico',
-            amount: inv.amount,
-            dailyRate: inv.daily_rate || 2.5,
-            startDate: inv.created_at?.split('T')[0] || '',
-            endDate: '',
-            totalEarned: inv.total_earned || 0,
-            status: (inv.status as "active" | "completed") || "active",
-            daysRemaining: 30,
-            currentDayProgress: 0,
-            todayEarnings: 0,
-            dailyTarget: (inv.amount * (inv.daily_rate || 2.5)) / 100,
-            currentOperation: undefined,
-            operationsCompleted: inv.operations_completed || 0,
-            totalOperations: 2
-          }));
-          setUserInvestments(formattedInvestments);
-          
-          // Iniciar timers de liberação para investimentos ativos
-          formattedInvestments.forEach(investment => {
-            // Investimento ativo carregado
-          });
-        }
-
-        // Fetch referral count
-        const { data: referrals, error: referralsError } = await supabase
-          .from('referrals')
-          .select('id')
-          .eq('referrer_id', user.id)
-          .eq('status', 'active');
-        
-        if (referralsError) {
-          console.error('Erro ao buscar referrals:', referralsError);
-        }
-        
-        if (referrals) {
-          setReferralCount(referrals.length);
-          console.log('Referrals encontrados:', referrals.length);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    };
-
     loadUserData();
     loadInvestmentPlans();
   }, [user]);
@@ -1316,55 +1316,55 @@ const Investments = () => {
                 {userInvestments
                   .filter(investment => investment.status === "active")
                   .map((investment) => (
-                    <div key={investment.id} className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-700/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-lg">
+                    <div key={investment.id} className={`bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-700/30 hover:shadow-2xl transition-all duration-300 overflow-hidden relative rounded-lg ${isMobile ? 'mx-2' : ''}`}>
                       {/* Background pattern */}
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"></div>
                       <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-10 translate-x-10"></div>
                       
                       {/* Header */}
-                      <div className="border-b border-blue-700/30 p-4 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="text-2xl font-bold text-white">
+                      <div className={`border-b border-blue-700/30 relative z-10 ${isMobile ? 'p-4' : 'p-4'}`}>
+                        <div className={`flex items-center justify-between ${isMobile ? 'flex-col gap-3' : ''}`}>
+                          <div className={`flex items-center gap-3 flex-1 min-w-0 ${isMobile ? 'w-full justify-center' : ''}`}>
+                            <div className={`font-bold text-white ${isMobile ? 'text-3xl' : 'text-2xl'}`}>
                               {investment.investmentName.includes('4.0.0') && '🤖'}
                               {investment.investmentName.includes('4.0.5') && '🚀'}
                               {investment.investmentName.includes('4.1.0') && '💎'}
                               {!investment.investmentName.includes('4.0') && '📈'}
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-lg text-white font-bold truncate">
+                            <div className={`min-w-0 flex-1 ${isMobile ? 'text-center' : ''}`}>
+                              <div className={`text-white font-bold truncate ${isMobile ? 'text-xl' : 'text-lg'}`}>
                                 {investment.investmentName.includes('4.0.0') && 'Robô 4.0.0'}
                                 {investment.investmentName.includes('4.0.5') && 'Robô 4.0.5'}
                                 {investment.investmentName.includes('4.1.0') && 'Robô 4.1.0'}
                                 {!investment.investmentName.includes('4.0') && investment.investmentName}
                               </div>
-                              <p className="text-sm text-gray-400 truncate">
+                              <p className={`text-gray-400 truncate ${isMobile ? 'text-base' : 'text-sm'}`}>
                                 {getDailyOperationsFromPlan(investment.investmentName)} operações diárias
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 font-bold">
+                          <Badge className={`bg-gradient-to-r from-green-500 to-green-600 text-white border-0 font-bold ${isMobile ? 'text-sm px-3 py-1' : ''}`}>
                             Ativo
                           </Badge>
                         </div>
                       </div>
 
                       {/* Content */}
-                      <div className="p-4 relative z-10">
-                        <div className="space-y-4">
+                      <div className={`relative z-10 ${isMobile ? 'p-4' : 'p-4'}`}>
+                        <div className={`space-y-4 ${isMobile ? 'space-y-5' : ''}`}>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Valor Investido</span>
-                            <span className="font-bold text-white">${investment.amount.toFixed(2)}</span>
+                            <span className={`text-gray-400 ${isMobile ? 'text-base' : 'text-sm'}`}>Valor Investido</span>
+                            <span className={`font-bold text-white ${isMobile ? 'text-lg' : ''}`}>${investment.amount.toFixed(2)}</span>
                           </div>
                           
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Ganhos Atuais</span>
-                            <span className="font-bold text-green-400">+${investment.totalEarned.toFixed(2)}</span>
+                            <span className={`text-gray-400 ${isMobile ? 'text-base' : 'text-sm'}`}>Ganhos Atuais</span>
+                            <span className={`font-bold text-green-400 ${isMobile ? 'text-lg' : ''}`}>+${investment.totalEarned.toFixed(2)}</span>
                           </div>
                           
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Lucro do Dia</span>
-                            <span className="font-bold text-yellow-400">+${calculateTodayEarnings(investment).toFixed(2)}</span>
+                            <span className={`text-gray-400 ${isMobile ? 'text-base' : 'text-sm'}`}>Lucro do Dia</span>
+                            <span className={`font-bold text-yellow-400 ${isMobile ? 'text-lg' : ''}`}>+${calculateTodayEarnings(investment).toFixed(2)}</span>
                           </div>
                           
                           <div className="space-y-2">
@@ -1395,14 +1395,16 @@ const Investments = () => {
                             
                             {/* Timer de Reset Diário */}
                             {dailyResetTimers[investment.id] && (
-                              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm text-orange-400 font-medium">⏰ Próximas Operações</span>
-                                  <div className="text-orange-400 text-xl font-bold">
+                              <div className={`bg-orange-500/10 border border-orange-500/30 rounded-lg ${isMobile ? 'p-4' : 'p-3'}`}>
+                                <div className={`flex items-center justify-between mb-2 ${isMobile ? 'flex-col gap-2' : ''}`}>
+                                  <span className={`text-orange-400 font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
+                                    ⏰ Próximas Operações
+                                  </span>
+                                  <div className={`text-orange-400 font-bold ${isMobile ? 'text-2xl' : 'text-xl'}`}>
                                     {formatTimeRemaining(dailyResetTimers[investment.id])}
                                   </div>
                                 </div>
-                                <div className="text-xs text-gray-400">
+                                <div className={`text-gray-400 ${isMobile ? 'text-center text-sm' : 'text-xs'}`}>
                                   Aguarde 24h para executar novas operações de arbitragem
                                 </div>
                               </div>
@@ -1410,20 +1412,22 @@ const Investments = () => {
                             
                             {/* Status quando operações estão disponíveis */}
                             {!dailyResetTimers[investment.id] && investment.operationsCompleted < 2 && (
-                              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                                <div className="flex items-center gap-2">
+                              <div className={`bg-green-500/10 border border-green-500/30 rounded-lg ${isMobile ? 'p-4' : 'p-3'}`}>
+                                <div className={`flex items-center gap-2 ${isMobile ? 'justify-center' : ''}`}>
                                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                  <span className="text-sm text-green-400 font-medium">
+                                  <span className={`text-green-400 font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
                                     🚀 Arbitragem disponível
                                   </span>
                                 </div>
-                                <div className="text-xs text-gray-400 mt-1">
+                                <div className={`text-gray-400 mt-1 ${isMobile ? 'text-center text-sm' : 'text-xs'}`}>
                                   Você pode executar {2 - investment.operationsCompleted} operações de arbitragem hoje
                                 </div>
                               </div>
                             )}
                             
-                            <div className="flex gap-2">
+                            {/* Box de Trading Melhorado para Mobile */}
+                            <div className={`${isMobile ? 'space-y-3' : 'flex gap-2'}`}>
+                              {/* Botão Principal de Arbitragem */}
                               <Button
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -1464,29 +1468,35 @@ const Investments = () => {
                                   investment.operationsCompleted >= 2 || // Bloqueado quando 2 operações completas
                                   !!dailyResetTimers[investment.id] // Bloqueado durante timer de 24h
                                 }
-                                className="flex-1 bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                size="sm"
+                                className={`${isMobile ? 'w-full' : 'flex-1'} bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-0 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] ${isMobile ? 'py-4 text-base font-semibold' : 'py-2'}`}
+                                size={isMobile ? "lg" : "sm"}
                               >
-                                <Play className="h-4 w-4 mr-2" />
-                                {dailyResetTimers[investment.id] 
-                                  ? `⏰ ${formatTimeRemaining(dailyResetTimers[investment.id])}` 
-                                  : investment.operationsCompleted >= 2 
-                                    ? 'Operações Completas' 
-                                    : `Executar Arbitragem (${investment.operationsCompleted}/2)`
-                                }
+                                <div className={`${isMobile ? 'flex flex-col items-center gap-1' : 'flex items-center'}`}>
+                                  <Play className={`${isMobile ? 'h-6 w-6' : 'h-4 w-4 mr-2'}`} />
+                                  <span className={isMobile ? 'text-sm' : ''}>
+                                    {dailyResetTimers[investment.id] 
+                                      ? `⏰ ${formatTimeRemaining(dailyResetTimers[investment.id])}` 
+                                      : investment.operationsCompleted >= 2 
+                                        ? 'Operações Completas' 
+                                        : `Executar Arbitragem (${investment.operationsCompleted}/2)`
+                                    }
+                                  </span>
+                                </div>
                               </Button>
                               
+                              {/* Botão de Histórico */}
                               <Button
                                 variant="outline"
                                 onClick={() => setShowOperationHistory(true)}
-                                className="px-3 text-sm hover:bg-green-500 hover:text-white transition-colors"
-                                size="sm"
+                                className={`${isMobile ? 'w-full' : 'px-3'} text-sm hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-300 ${isMobile ? 'py-3 border-2' : ''}`}
+                                size={isMobile ? "lg" : "sm"}
                                 title="Ver histórico de operações"
                               >
-                                <BarChart3 className="h-4 w-4" />
+                                <div className={`${isMobile ? 'flex items-center justify-center gap-2' : 'flex items-center'}`}>
+                                  <BarChart3 className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'}`} />
+                                  {isMobile && <span className="text-sm font-medium">Histórico</span>}
+                                </div>
                               </Button>
-                              
-
                             </div>
                           </div>
                         </div>
