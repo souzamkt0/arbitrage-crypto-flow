@@ -140,3 +140,4 @@ async function applyMigrations() {
 // Executar as migrações
 applyMigrations();
 
+

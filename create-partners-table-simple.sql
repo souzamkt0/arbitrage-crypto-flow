@@ -251,3 +251,4 @@ SELECT * FROM partners;
 -- 13. Testar função de remover sócio
 -- SELECT remove_partner('exemplo@email.com');
 
+

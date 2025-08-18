@@ -27,10 +27,23 @@ import {
   UserX,
   Filter,
   Eye,
-  MessageCircle
+  MessageCircle,
+  Settings,
+  User,
+  Key,
+  LogOut,
+  Menu
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResidualEarnings from "@/components/ResidualEarnings";
+import { useNavigate } from "react-router-dom";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface ReferredUser {
   id: string;
@@ -58,7 +71,79 @@ const Referrals = () => {
   });
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  
+  // Estados para o menu de usuário
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
+  // Fechar menu quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showUserMenu) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+  
+  // Função para mudar a senha
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Senha alterada com sucesso!",
+      });
+      
+      setShowChangePasswordModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao alterar senha",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   useEffect(() => {
     const loadReferralData = async () => {
@@ -289,6 +374,74 @@ Alphabit Team`;
               Sistema de Indicações
             </h1>
             <p className="text-muted-foreground">Gerencie suas indicações e acompanhe comissões</p>
+          </div>
+          
+          {/* User Menu */}
+          <div className="relative">
+            <Button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              variant="ghost"
+              size="sm"
+              className="p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/30"
+            >
+              <User className="h-5 w-5 text-gray-300" />
+            </Button>
+            
+            {showUserMenu && (
+              <div className="absolute right-0 top-12 w-64 bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700/50 shadow-xl z-50">
+                <div className="p-4 border-b border-gray-700/50">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm">{user?.email}</p>
+                      <p className="text-gray-400 text-xs">Usuário ativo</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-2">
+                  <Button
+                    onClick={() => {
+                      setShowChangePasswordModal(true);
+                      setShowUserMenu(false);
+                    }}
+                    variant="ghost"
+                    className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800/50"
+                  >
+                    <Key className="h-4 w-4 mr-3" />
+                    Alterar Senha
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      navigate('/investments');
+                      setShowUserMenu(false);
+                    }}
+                    variant="ghost"
+                    className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800/50"
+                  >
+                    <Settings className="h-4 w-4 mr-3" />
+                    Acessar Investimentos
+                  </Button>
+                  
+                  <div className="border-t border-gray-700/50 my-2"></div>
+                  
+                  <Button
+                    onClick={() => {
+                      signOut();
+                      setShowUserMenu(false);
+                    }}
+                    variant="ghost"
+                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    <LogOut className="h-4 w-4 mr-3" />
+                    Sair
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -564,6 +717,70 @@ Alphabit Team`;
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal para Alterar Senha */}
+      <Dialog open={showChangePasswordModal} onOpenChange={setShowChangePasswordModal}>
+        <DialogContent className="bg-gray-900 border border-gray-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-blue-400 flex items-center justify-center gap-2">
+              <Key className="h-6 w-6" />
+              Alterar Senha
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-gray-300">Nova Senha</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Digite a nova senha"
+                className="bg-gray-800 border-gray-600 text-white"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-300">Confirmar Nova Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirme a nova senha"
+                className="bg-gray-800 border-gray-600 text-white"
+              />
+            </div>
+            
+            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30">
+              <div className="text-blue-400 text-sm">
+                <strong>Requisitos da senha:</strong>
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>• Mínimo 6 caracteres</li>
+                  <li>• Recomendado: letras, números e símbolos</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={() => setShowChangePasswordModal(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={isChangingPassword || !newPassword || !confirmPassword}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

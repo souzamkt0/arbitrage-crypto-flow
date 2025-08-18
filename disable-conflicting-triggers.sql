@@ -11,3 +11,4 @@ SELECT
 FROM information_schema.triggers 
 WHERE event_object_table IN ('profiles', 'users')
 ORDER BY trigger_name;
+

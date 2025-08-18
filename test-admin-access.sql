@@ -80,3 +80,4 @@ LEFT JOIN profiles p ON u.id = p.user_id
 LEFT JOIN partners pt ON u.email = pt.email
 WHERE u.email = 'souzamkt0@gmail.com';
 
+

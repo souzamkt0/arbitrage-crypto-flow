@@ -30,3 +30,4 @@ SELECT user_id, email, role, display_name
 FROM profiles 
 WHERE role = 'partner';
 
+

@@ -111,3 +111,4 @@ async function testSimpleRegistration() {
 }
 
 testSimpleRegistration();
+

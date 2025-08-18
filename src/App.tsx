@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import CompleteProfile from "./pages/CompleteProfile";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
 
@@ -31,18 +32,30 @@ import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
 import Footer from "./components/Footer";
+import AdminImpersonationBanner from "./components/AdminImpersonationBanner";
+import PortRedirect from "./components/PortRedirect";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
   
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Verificar se o perfil está completo (exceto na página de completar perfil)
+  if (location.pathname !== '/complete-profile' && profile && !profile.profile_completed && !profile.display_name) {
+    return <Navigate to="/complete-profile" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 // Admin Route Component
@@ -68,6 +81,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen bg-background w-full">
     <Navbar />
+    <AdminImpersonationBanner />
     <PriceTicker />
     <div className="w-full pb-20 md:pb-0">
       {children}
@@ -83,10 +97,19 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PortRedirect />
           <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route 
+            path="/complete-profile" 
+            element={
+              <ProtectedRoute>
+                <CompleteProfile />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"

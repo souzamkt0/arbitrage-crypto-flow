@@ -156,3 +156,4 @@ SELECT
     (SELECT COUNT(*) FROM profiles WHERE referred_by IS NOT NULL) as perfis_com_referral,
     'Se os números aumentaram, o sistema está funcionando' as status;
 
+

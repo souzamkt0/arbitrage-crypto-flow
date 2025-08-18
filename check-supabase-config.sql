@@ -146,3 +146,4 @@ SELECT
     END as usuario,
     'Se tudo estiver ✅, o problema pode ser no frontend' as proximo_passo;
 
+

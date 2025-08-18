@@ -118,3 +118,4 @@ SELECT
     (SELECT COUNT(*) FROM profiles WHERE referral_code = 'souzamkt0') as com_referral_souzamkt0,
     'Admin pronto para receber indicações' as status;
 
+

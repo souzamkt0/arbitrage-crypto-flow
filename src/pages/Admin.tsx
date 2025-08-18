@@ -56,7 +56,10 @@ import {
   CreditCard,
   ArrowDown,
   RefreshCw,
-  Crown
+  Crown,
+  Key,
+  LogOut,
+  User
 } from "lucide-react";
 
 interface User {
@@ -209,8 +212,132 @@ const Admin = () => {
   const [selectedUserForPartner, setSelectedUserForPartner] = useState<any>(null);
   const [customCommission, setCustomCommission] = useState(1.0);
   const [isPartnerSelectionModalOpen, setIsPartnerSelectionModalOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<string | null>(null);
+  
+  // Estados para alteração de senha e acesso à conta
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showAccessAccountModal, setShowAccessAccountModal] = useState(false);
+  const [selectedUserForAccess, setSelectedUserForAccess] = useState<any>(null);
+  
+  // Estados para exclusão de usuário
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
 
   const { toast } = useToast();
+  
+  // Função para alterar senha do usuário
+  const handleChangePassword = async () => {
+    if (!selectedUserForPassword) return;
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      // Como admin, precisamos usar a API de admin do Supabase
+      // Por enquanto, vamos mostrar uma mensagem informativa
+      toast({
+        title: "Aviso",
+        description: "Para alterar senha de usuário, use o painel de administração do Supabase",
+        variant: "default",
+      });
+      
+      setShowChangePasswordModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setSelectedUserForPassword(null);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao alterar senha",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+  
+  // Função para acessar conta do usuário
+  const handleAccessAccount = (user: any) => {
+    setSelectedUserForAccess(user);
+    setShowAccessAccountModal(true);
+  };
+  
+  // Função para confirmar acesso à conta
+  const confirmAccessAccount = async () => {
+    if (!selectedUserForAccess) return;
+    
+    try {
+      // Salvar informações do admin atual para poder voltar
+      const adminInfo = {
+        id: user?.id,
+        email: user?.email,
+        role: 'admin',
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem('admin_session_backup', JSON.stringify(adminInfo));
+      
+      // Salvar informações do usuário que será acessado
+      const userToAccess = {
+        id: selectedUserForAccess.id,
+        name: selectedUserForAccess.name,
+        email: selectedUserForAccess.email,
+        role: selectedUserForAccess.role,
+        status: selectedUserForAccess.status,
+        balance: selectedUserForAccess.balance,
+        totalProfit: selectedUserForAccess.totalProfit
+      };
+      
+      localStorage.setItem('impersonated_user', JSON.stringify(userToAccess));
+      
+      // Ativar modo de impersonação
+      localStorage.setItem('admin_impersonation_mode', 'true');
+      
+      toast({
+        title: "Acesso Concedido",
+        description: `Acessando conta de ${selectedUserForAccess.name}. Use o botão "Voltar ao Admin" para retornar.`,
+        variant: "default",
+      });
+      
+      // Redirecionar para o dashboard como o usuário
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('Erro ao acessar conta:', error);
+      
+      toast({
+        title: "Erro",
+        description: "Não foi possível acessar a conta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+    
+    setShowAccessAccountModal(false);
+    setSelectedUserForAccess(null);
+  };
 
   // Load investment plans from Supabase
   useEffect(() => {
@@ -398,12 +525,111 @@ const Admin = () => {
     });
   };
 
-  const handleDeleteUser = (userId: string) => {
-    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+  const handleDeleteUser = async (userId: string) => {
+    // Verificar se não está tentando excluir o próprio admin
+    if (userId === user?.id) {
     toast({
-      title: "Usuário removido",
-      description: "Usuário foi removido do sistema.",
-    });
+        title: "Erro",
+        description: "Você não pode excluir sua própria conta de administrador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar se é o admin principal (souzamkt0@gmail.com)
+    const userToDelete = users.find(u => u.id === userId);
+    if (userToDelete?.email === 'souzamkt0@gmail.com') {
+      toast({
+        title: "Erro",
+        description: "Não é possível excluir a conta de administrador principal.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Abrir modal de confirmação
+    setUserToDelete(userToDelete);
+    setShowDeleteUserModal(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setDeletingUser(userToDelete.id);
+    setShowDeleteUserModal(false);
+
+    try {
+      // Primeiro, excluir o perfil do usuário
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userToDelete.id);
+
+      if (profileError) {
+        console.error('Erro ao excluir perfil:', profileError);
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir perfil do usuário.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Tentar excluir o usuário da autenticação (pode não funcionar dependendo das permissões)
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userToDelete.id);
+        if (authError) {
+          console.warn('Aviso: Não foi possível excluir usuário da autenticação:', authError);
+          // Continuar mesmo se falhar na autenticação
+        }
+      } catch (authError) {
+        console.warn('Aviso: Erro ao excluir usuário da autenticação:', authError);
+        // Continuar mesmo se falhar na autenticação
+      }
+
+      // Excluir dados relacionados (investimentos, transações, etc.)
+      const tablesToDelete = [
+        'user_investments',
+        'deposits', 
+        'withdrawals',
+        'admin_balance_transactions',
+        'community_posts'
+      ];
+
+      for (const table of tablesToDelete) {
+        try {
+          const { error: deleteError } = await supabase
+            .from(table)
+            .delete()
+            .eq('user_id', userToDelete.id);
+
+          if (deleteError) {
+            console.warn(`Aviso: Erro ao excluir dados da tabela ${table}:`, deleteError);
+          }
+        } catch (error) {
+          console.warn(`Aviso: Erro ao excluir dados da tabela ${table}:`, error);
+        }
+      }
+
+      // Atualizar estado local
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
+      
+      toast({
+        title: "Usuário excluído",
+        description: "Usuário foi excluído do sistema com sucesso.",
+        variant: "default",
+      });
+
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir usuário do sistema.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingUser(null);
+    }
   };
 
   const handleEditUser = (user: User) => {
@@ -3380,6 +3606,7 @@ const Admin = () => {
                           size="sm"
                           onClick={() => handleViewUser(user)}
                           className="h-8 w-8 p-0"
+                          title="Ver detalhes"
                         >
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
@@ -3388,16 +3615,44 @@ const Admin = () => {
                           size="sm"
                           onClick={() => handleEditUser(user)}
                           className="h-8 w-8 p-0"
+                          title="Editar usuário"
                         >
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                          onClick={() => {
+                            setSelectedUserForPassword(user);
+                            setShowChangePasswordModal(true);
+                          }}
+                          className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600"
+                          title="Alterar senha"
                         >
+                          <Key className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAccessAccount(user)}
+                          className="h-8 w-8 p-0 text-green-500 hover:text-green-600"
+                          title="Acessar conta"
+                        >
+                          <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={deletingUser === user.id}
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0 disabled:opacity-50"
+                          title="Excluir usuário"
+                        >
+                          {deletingUser === user.id ? (
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-destructive"></div>
+                          ) : (
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          )}
                         </Button>
                       </div>
                     </TableCell>
@@ -5820,6 +6075,157 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal para Alterar Senha */}
+      <Dialog open={showChangePasswordModal} onOpenChange={setShowChangePasswordModal}>
+        <DialogContent className="bg-gray-900 border border-gray-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-blue-400 flex items-center justify-center gap-2">
+              <Key className="h-6 w-6" />
+              Alterar Senha do Usuário
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedUserForPassword && (
+            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30 mb-4">
+              <div className="text-blue-400 text-sm">
+                <strong>Usuário:</strong> {selectedUserForPassword.name}
+              </div>
+              <div className="text-blue-300 text-xs">
+                {selectedUserForPassword.email}
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-gray-300">Nova Senha</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Digite a nova senha"
+                className="bg-gray-800 border-gray-600 text-white"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-300">Confirmar Nova Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirme a nova senha"
+                className="bg-gray-800 border-gray-600 text-white"
+              />
+            </div>
+            
+            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30">
+              <div className="text-blue-400 text-sm">
+                <strong>Requisitos da senha:</strong>
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>• Mínimo 6 caracteres</li>
+                  <li>• Recomendado: letras, números e símbolos</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={() => {
+                setShowChangePasswordModal(false);
+                setNewPassword("");
+                setConfirmPassword("");
+                setSelectedUserForPassword(null);
+              }}
+              className="flex-1 bg-gray-700 hover:bg-gray-600"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={isChangingPassword || !newPassword || !confirmPassword}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Acessar Conta */}
+      <Dialog open={showAccessAccountModal} onOpenChange={setShowAccessAccountModal}>
+        <DialogContent className="bg-gray-900 border border-gray-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-green-400 flex items-center justify-center gap-2">
+              <User className="h-6 w-6" />
+              Acessar Conta do Usuário
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedUserForAccess && (
+            <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/30 mb-4">
+              <div className="text-green-400 text-sm">
+                <strong>Usuário:</strong> {selectedUserForAccess.name}
+              </div>
+              <div className="text-green-300 text-xs">
+                {selectedUserForAccess.email}
+              </div>
+              <div className="text-green-300 text-xs mt-1">
+                <strong>Status:</strong> {selectedUserForAccess.status === 'active' ? 'Ativo' : 'Inativo'}
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div className="bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/30">
+              <div className="text-yellow-400 text-sm">
+                <strong>⚠️ Aviso:</strong>
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>• Você será redirecionado para o dashboard como este usuário</li>
+                  <li>• Um banner vermelho aparecerá no topo indicando o modo admin</li>
+                  <li>• Use o botão "Voltar ao Admin" para retornar ao painel</li>
+                  <li>• Todas as ações serão registradas no log de administração</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30">
+              <div className="text-blue-400 text-sm">
+                <strong>O que você poderá fazer:</strong>
+                <ul className="mt-2 space-y-1 text-xs">
+                  <li>• Navegar por todas as páginas como o usuário</li>
+                  <li>• Visualizar investimentos e transações</li>
+                  <li>• Verificar configurações da conta</li>
+                  <li>• Testar funcionalidades do sistema</li>
+                  <li>• Gerar relatórios de atividade</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={() => {
+                setShowAccessAccountModal(false);
+                setSelectedUserForAccess(null);
+              }}
+              className="flex-1 bg-gray-700 hover:bg-gray-600"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmAccessAccount}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              Confirmar Acesso
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

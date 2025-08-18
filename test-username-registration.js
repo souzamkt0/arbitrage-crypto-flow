@@ -99,3 +99,4 @@ async function testUsernameRegistration() {
 }
 
 testUsernameRegistration();
+
