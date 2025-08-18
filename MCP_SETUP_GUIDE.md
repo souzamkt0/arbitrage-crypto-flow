@@ -179,3 +179,4 @@ Agora o Cursor pode:
 - Integrar com GitHub
 - Entender sua estrutura de banco Supabase
 - Sugerir melhorias baseadas no contexto completo
+

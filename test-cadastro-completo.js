@@ -167,3 +167,4 @@ testarCadastroCompleto().then(result => {
     console.log(`Erro: ${result.error}`);
   }
 });
+

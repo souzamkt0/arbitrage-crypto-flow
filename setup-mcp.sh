@@ -100,3 +100,4 @@ echo "- Gerenciar usuários"
 echo "- Monitorar logs"
 echo ""
 echo "✅ MCP configurado e pronto para uso!"
+

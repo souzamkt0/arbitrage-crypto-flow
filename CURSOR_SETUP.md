@@ -118,3 +118,4 @@ Para problemas específicos:
 ---
 
 **✅ Cursor configurado e pronto para uso!**
+

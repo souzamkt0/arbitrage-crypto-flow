@@ -176,3 +176,4 @@ Agora o Cursor entende completamente seu projeto e pode ajudar com:
 - Otimização de código
 - Implementação de features
 - Configuração de banco de dados
+

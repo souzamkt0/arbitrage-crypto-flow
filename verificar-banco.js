@@ -124,3 +124,4 @@ async function verificarBanco() {
 
 // Executar verificação
 verificarBanco();
+

@@ -81,3 +81,4 @@ LEFT JOIN partners pt ON u.email = pt.email
 WHERE u.email = 'souzamkt0@gmail.com';
 
 
+

@@ -128,3 +128,4 @@ Se encontrar problemas:
 
 **Status:** ⏳ Aguardando configuração do OAuth
 **Próximo passo:** Configurar credenciais no Google Cloud Console
+

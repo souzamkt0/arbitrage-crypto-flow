@@ -81,3 +81,4 @@ WHERE table_schema = 'public'
 AND table_name = 'profiles'
 AND column_name IN ('profile_completed', 'first_name', 'last_name', 'cpf', 'whatsapp', 'referral_code', 'referred_by')
 ORDER BY column_name;
+

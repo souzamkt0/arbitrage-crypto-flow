@@ -64,3 +64,4 @@ FROM auth.config
 WHERE name IN ('enable_signup', 'enable_confirmations', 'require_email_confirmation');
 
 
+

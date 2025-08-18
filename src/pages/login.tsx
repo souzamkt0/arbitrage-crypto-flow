@@ -5,9 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { Lock, Mail, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-
+import { Lock, Mail, ArrowRight } from "lucide-react";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,25 +14,10 @@ const Login = () => {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
 
-
-
-  // Debug: verificar se o componente está carregando
-  useEffect(() => {
-    console.log("🔍 Login component loaded - User:", user);
-  }, [user]);
-
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      console.log("🔄 User authenticated, redirecting to dashboard");
-      // Verificar se estamos na porta correta
-      if (window.location.port !== '8080' && window.location.port !== '') {
-        console.log('⚠️ Porta incorreta detectada:', window.location.port);
-        console.log('🔄 Redirecionando para porta 8080...');
-        window.location.href = `http://localhost:8080/dashboard`;
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -42,22 +25,10 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    console.log("🔐 Attempting login with:", { email });
-    
     const { error } = await signIn(email, password);
     
     if (!error) {
-      console.log("✅ Login successful, redirecting to dashboard");
-      // Verificar se estamos na porta correta
-      if (window.location.port !== '8080' && window.location.port !== '') {
-        console.log('⚠️ Porta incorreta detectada:', window.location.port);
-        console.log('🔄 Redirecionando para porta 8080...');
-        window.location.href = `http://localhost:8080/dashboard`;
-      } else {
-        navigate("/dashboard");
-      }
-    } else {
-      console.log("❌ Login failed:", error);
+      navigate("/dashboard");
     }
     
     setIsLoading(false);
@@ -108,7 +79,7 @@ const Login = () => {
           <div className="absolute left-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-400"></div>
           <div className="absolute right-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-20 animate-pulse animation-delay-1200"></div>
         </div>
-        
+
         {/* Binance-style particles */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-16 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
@@ -116,14 +87,22 @@ const Login = () => {
           <div className="absolute bottom-32 left-24 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping animation-delay-600"></div>
           <div className="absolute bottom-48 right-32 w-1 h-1 bg-yellow-400 rounded-full animate-ping animation-delay-900"></div>
         </div>
-        
+
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg">
+          {/* Back to Register Button */}
+          <div className="mb-6 animate-fade-in-up">
+            <Link to="/register" className="inline-flex items-center text-gray-400 hover:text-white transition-colors duration-200">
+              <ArrowRight className="h-4 w-4 mr-2 transform rotate-180" />
+              <span className="text-sm">Voltar ao Cadastro</span>
+            </Link>
+          </div>
+
           {/* Crypto Finance Logo */}
           <div className="text-center mb-8 animate-fade-in-up">
             <div className="flex justify-center mb-6">
@@ -149,7 +128,7 @@ const Login = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Floating elements */}
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 transform rotate-45 animate-float"></div>
                 <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
@@ -167,19 +146,21 @@ const Login = () => {
                   ALPHABIT
                 </span>
               </h1>
-              <p className="text-gray-400 text-sm mt-1">Crypto Exchange Platform</p>
+              <p className="text-gray-400 text-sm mt-1">Entrar na Conta</p>
             </div>
           </div>
 
           {/* Login Card */}
           <Card className="bg-gradient-to-b from-gray-900/80 to-black/80 backdrop-blur-xl border-white/10 shadow-2xl animate-fade-in-up animation-delay-400 rounded-3xl overflow-hidden">
             <CardHeader className="text-center pb-2">
-              {/* No title, minimalist approach */}
+              <CardTitle className="text-white text-xl font-semibold">
+                Entrar na Conta
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-6">
                 {/* Email Field */}
-                <div className="space-y-3 animate-fade-in-up animation-delay-800">
+                <div className="space-y-2 animate-fade-in-up animation-delay-600">
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                     <Input
@@ -188,15 +169,15 @@ const Login = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email ID"
-                      className="pl-12 pr-4 py-4 bg-transparent border-0 border-b-2 border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none text-lg"
+                      placeholder="seu@email.com"
+                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none"
                       required
                     />
                   </div>
                 </div>
                 
                 {/* Password Field */}
-                <div className="space-y-3 animate-fade-in-up animation-delay-900">
+                <div className="space-y-2 animate-fade-in-up animation-delay-700">
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                     <Input
@@ -205,56 +186,37 @@ const Login = () => {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      className="pl-12 pr-4 py-4 bg-transparent border-0 border-b-2 border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none text-lg"
+                      placeholder="••••••••"
+                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-0 transition-all duration-200 rounded-none"
                       required
                     />
                   </div>
                 </div>
                 
-                {/* Remember me and Forgot Password */}
-                <div className="flex items-center justify-between text-sm animate-fade-in-up animation-delay-950">
-                  <label className="flex items-center text-gray-300">
-                    <input type="checkbox" className="mr-2 rounded border-white/20 bg-transparent" />
-                    Lembrar-me
-                  </label>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    Esqueceu a senha?
-                  </a>
-                </div>
-                
                 {/* Login Button */}
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-4 rounded-2xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-yellow-500/25 animate-fade-in-up animation-delay-1000 text-lg" 
-                  disabled={isLoading}
-                >
-                  <span className="flex items-center justify-center">
-                    {isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Entrando...
-                      </>
-                    ) : (
-                      "LOGIN"
-                    )}
-                  </span>
-                </Button>
+                <div className="animate-fade-in-up animation-delay-800">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold py-3 rounded-xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-yellow-400/25" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Entrando..." : "Entrar"}
+                    {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                  </Button>
+                </div>
               </form>
 
-
-
-              {/* Register Section */}
-              <div className="mt-8 pt-6 animate-fade-in-up animation-delay-1100">
-                <p className="text-center text-gray-400 mb-4 text-sm">
-                  Não tem uma conta?
+              {/* Register Link */}
+              <div className="mt-8 pt-6 border-t border-white/10 animate-fade-in-up animation-delay-900">
+                <p className="text-center text-sm text-gray-400 mb-4">
+                  Ainda não tem uma conta?
                 </p>
                 <Link to="/register">
                   <Button 
-                    variant="ghost" 
-                    className="w-full text-white hover:bg-white/5 transition-all duration-200 transform hover:scale-[1.02] text-sm font-medium"
+                    variant="outline" 
+                    className="w-full border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10 hover:border-yellow-400 transition-all duration-200 py-3 rounded-xl"
                   >
-                    Criar nova conta
+                    Criar conta
                   </Button>
                 </Link>
               </div>
@@ -262,100 +224,6 @@ const Login = () => {
           </Card>
         </div>
       </div>
-
-      <style>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes gradient-x {
-          0%, 100% {
-            background-size: 200% 200%;
-            background-position: left center;
-          }
-          50% {
-            background-size: 200% 200%;
-            background-position: right center;
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
-        }
-        
-        .animate-gradient-x {
-          animation: gradient-x 3s ease infinite;
-        }
-        
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-        }
-        
-        .animation-delay-400 {
-          animation-delay: 0.4s;
-        }
-        
-        .animation-delay-600 {
-          animation-delay: 0.6s;
-        }
-        
-        .animation-delay-700 {
-          animation-delay: 0.7s;
-        }
-        
-        .animation-delay-800 {
-          animation-delay: 0.8s;
-        }
-        
-        .animation-delay-900 {
-          animation-delay: 0.9s;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1.0s;
-        }
-        
-        .animation-delay-1100 {
-          animation-delay: 1.1s;
-        }
-        
-        .animation-delay-1200 {
-          animation-delay: 1.2s;
-        }
-        
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px) rotate(45deg);
-          }
-          50% {
-            transform: translateY(-10px) rotate(45deg);
-          }
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };

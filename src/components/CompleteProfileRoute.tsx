@@ -22,3 +22,4 @@ const CompleteProfileRoute = () => {
 };
 
 export default CompleteProfileRoute;
+

@@ -29,3 +29,4 @@ if (typeof window !== 'undefined') {
   localStorage.setItem('testUser', JSON.stringify(testUser));
   console.log('💾 Dados salvos no localStorage');
 }
+

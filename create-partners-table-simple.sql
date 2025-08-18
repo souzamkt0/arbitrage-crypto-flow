@@ -252,3 +252,4 @@ SELECT * FROM partners;
 -- SELECT remove_partner('exemplo@email.com');
 
 
+

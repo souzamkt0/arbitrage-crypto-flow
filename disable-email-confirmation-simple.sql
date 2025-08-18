@@ -83,3 +83,4 @@ SELECT
     'Todos os emails foram confirmados e novos usuários serão confirmados automaticamente' as descricao;
 
 
+

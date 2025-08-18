@@ -102,3 +102,4 @@ https://cbwpghrkfvczjqzefvix.supabase.co/auth/v1/callback
 ---
 
 **Status:** Verificando configurações do OAuth
+

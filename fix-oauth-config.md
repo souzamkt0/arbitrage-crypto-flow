@@ -81,3 +81,4 @@ https://cbwpghrkfvczjqzefvix.supabase.co/auth/v1/callback
 ---
 
 **Status:** Aguardando configuração do novo OAuth client
+

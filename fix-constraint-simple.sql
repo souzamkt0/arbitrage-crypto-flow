@@ -31,3 +31,4 @@ FROM profiles
 WHERE role = 'partner';
 
 
+
