@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conexão Supabase</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+        }
+        .error {
+            background: #dc3545;
+            color: white;
+        }
+        .info {
+            background: #17a2b8;
+            color: white;
+        }
+        .warning {
+            background: #ffc107;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Teste de Conexão Supabase</h1>
+        <p>Testando conexão com: <strong>https://cbwpghrkfvczjqzefvix.supabase.co</strong></p>
+        
+        <button onclick="testarConexao()" id="testBtn">🔗 Testar Conexão</button>
+        <button onclick="testarCadastro()" id="cadastroBtn">👤 Testar Cadastro</button>
+        <button onclick="limparResultados()">🗑️ Limpar</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Configuração da Supabase
+        const supabaseUrl = 'https://cbwpghrkfvczjqzefvix.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0ODU5ODUsImV4cCI6MjA3MTA2MTk4NX0.3KMVlqAr4bu0l0Wfs47I2GQtUQcb3xTqPoXSSXgzbJo';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function limparResultados() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testarConexao() {
+            const btn = document.getElementById('testBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testando...';
+            
+            try {
+                log('🔗 Testando conexão com Supabase...', 'info');
+                log(`📡 URL: ${supabaseUrl}`, 'info');
+                log(`🔑 Key: ${supabaseKey.substring(0, 20)}...`, 'info');
+                
+                // Testar conexão básica
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Erro na conexão: ${error.message}`, 'error');
+                    log(`❌ Código: ${error.code}`, 'error');
+                    log(`❌ Detalhes: ${error.details}`, 'error');
+                    return;
+                }
+                
+                log('✅ Conexão estabelecida com sucesso!', 'success');
+                
+                // Verificar estrutura da tabela
+                const { data: profiles, error: profilesError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .limit(1);
+                
+                if (profilesError) {
+                    log(`❌ Erro ao verificar profiles: ${profilesError.message}`, 'error');
+                    return;
+                }
+                
+                if (profiles && profiles.length > 0) {
+                    log('✅ Tabela profiles encontrada!', 'success');
+                    log(`📊 Colunas: ${Object.keys(profiles[0]).join(', ')}`, 'success');
+                    
+                    // Verificar colunas específicas
+                    const profile = profiles[0];
+                    const colunasImportantes = [
+                        'user_id', 'email', 'username', 'profile_completed',
+                        'first_name', 'last_name', 'cpf', 'whatsapp'
+                    ];
+                    
+                    colunasImportantes.forEach(coluna => {
+                        if (profile.hasOwnProperty(coluna)) {
+                            log(`✅ ${coluna}: ${typeof profile[coluna]}`, 'success');
+                        } else {
+                            log(`❌ ${coluna}: NÃO ENCONTRADA`, 'error');
+                        }
+                    });
+                } else {
+                    log('⚠️ Tabela profiles vazia', 'warning');
+                }
+                
+                log('🎉 Conexão testada com sucesso!', 'success');
+                
+            } catch (error) {
+                log(`❌ Erro geral: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔗 Testar Conexão';
+            }
+        }
+        
+        async function testarCadastro() {
+            const btn = document.getElementById('cadastroBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testando cadastro...';
+            
+            try {
+                log('👤 Testando cadastro de usuário...', 'info');
+                
+                const timestamp = Date.now();
+                const testUser = {
+                    email: `teste${timestamp}@conexao.com`,
+                    password: '123456'
+                };
+                
+                log(`📝 Criando usuário: ${testUser.email}`, 'info');
+                
+                // Criar usuário no auth
+                const { data, error } = await supabase.auth.signUp({
+                    email: testUser.email,
+                    password: testUser.password,
+                    options: {
+                        emailRedirectTo: undefined,
+                        data: {
+                            email_confirmed: true
+                        }
+                    }
+                });
+                
+                if (error) {
+                    log(`❌ Erro no cadastro: ${error.message}`, 'error');
+                    return;
+                }
+                
+                log(`✅ Usuário criado: ${data.user.id}`, 'success');
+                
+                // Aguardar um pouco
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Criar perfil
+                const generateReferralCode = () => {
+                    const timestamp = Date.now().toString(36);
+                    const random = Math.random().toString(36).substring(2, 8);
+                    return `teste${timestamp}${random}`.toLowerCase();
+                };
+                
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        user_id: data.user.id,
+                        email: data.user.email,
+                        display_name: null,
+                        username: `teste${timestamp}`,
+                        first_name: null,
+                        last_name: null,
+                        cpf: null,
+                        whatsapp: null,
+                        bio: null,
+                        avatar: 'avatar1',
+                        referral_code: generateReferralCode(),
+                        referred_by: null,
+                        role: 'user',
+                        balance: 0.00,
+                        total_profit: 0.00,
+                        status: 'active',
+                        profile_completed: false
+                    });
+                
+                if (profileError) {
+                    log(`❌ Erro criando perfil: ${profileError.message}`, 'error');
+                    return;
+                }
+                
+                log('✅ Perfil criado com sucesso!', 'success');
+                
+                // Testar login
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: testUser.email,
+                    password: testUser.password
+                });
+                
+                if (loginError) {
+                    log(`❌ Erro no login: ${loginError.message}`, 'error');
+                } else {
+                    log('✅ Login realizado com sucesso!', 'success');
+                }
+                
+                log('🎉 Cadastro testado com sucesso!', 'success');
+                
+            } catch (error) {
+                log(`❌ Erro geral: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '👤 Testar Cadastro';
+            }
+        }
+    </script>
+</body>
+</html>

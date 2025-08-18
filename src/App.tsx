@@ -34,13 +34,15 @@ import PriceTicker from "./components/PriceTicker";
 import Footer from "./components/Footer";
 import AdminImpersonationBanner from "./components/AdminImpersonationBanner";
 import PortRedirect from "./components/PortRedirect";
+import OAuthRedirect from "./components/OAuthRedirect";
+import AuthErrorHandler from "./components/AuthErrorHandler";
+import CompleteProfileRoute from "./components/CompleteProfileRoute";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, profile, isLoading } = useAuth();
-  const location = useLocation();
+  const { user, isLoading } = useAuth();
   
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
@@ -48,11 +50,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
-  
-  // Verificar se o perfil está completo (exceto na página de completar perfil)
-  if (location.pathname !== '/complete-profile' && profile && !profile.profile_completed && !profile.display_name) {
-    return <Navigate to="/complete-profile" replace />;
   }
   
   return <>{children}</>;
@@ -97,19 +94,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AuthErrorHandler />
           <PortRedirect />
+          <OAuthRedirect />
           <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route 
-            path="/complete-profile" 
-            element={
-              <ProtectedRoute>
-                <CompleteProfile />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/complete-profile" element={<CompleteProfileRoute />} />
           <Route path="/api-connection" element={<ApiConnection />} />
           <Route
             path="/dashboard"

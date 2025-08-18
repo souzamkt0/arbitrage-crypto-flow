@@ -1,0 +1,64 @@
+{
+  "project": {
+    "name": "arbitrage-crypto-flow",
+    "type": "react-vite-typescript",
+    "supabase": {
+      "url": "https://cbwpghrkfvczjqzefvix.supabase.co",
+      "project_id": "cbwpghrkfvczjqzefvix"
+    }
+  },
+  "database": {
+    "tables": {
+      "profiles": {
+        "description": "Perfis de usuários",
+        "columns": {
+          "user_id": "UUID - ID único do usuário",
+          "email": "TEXT - Email do usuário",
+          "username": "TEXT - Nome de usuário",
+          "profile_completed": "BOOLEAN - Se o perfil foi completado",
+          "first_name": "TEXT - Nome",
+          "last_name": "TEXT - Sobrenome",
+          "cpf": "TEXT - CPF do usuário",
+          "whatsapp": "TEXT - WhatsApp do usuário",
+          "referral_code": "TEXT - Código de indicação",
+          "referred_by": "TEXT - Quem indicou",
+          "role": "TEXT - Papel (user, admin, partner)",
+          "balance": "DECIMAL - Saldo da conta",
+          "total_profit": "DECIMAL - Lucro total",
+          "status": "TEXT - Status da conta"
+        }
+      },
+      "user_investments": {
+        "description": "Investimentos dos usuários"
+      },
+      "deposits": {
+        "description": "Depósitos dos usuários"
+      },
+      "withdrawals": {
+        "description": "Saques dos usuários"
+      }
+    }
+  },
+  "features": {
+    "authentication": {
+      "google_oauth": true,
+      "email_password": true,
+      "profile_completion": true
+    },
+    "investment_system": {
+      "robots": ["4.0.0", "4.0.5", "4.1.0"],
+      "referral_system": true
+    },
+    "admin_panel": {
+      "user_management": true,
+      "impersonation": true
+    }
+  },
+  "tech_stack": {
+    "frontend": "React + Vite + TypeScript",
+    "ui": "Shadcn UI + Tailwind CSS",
+    "database": "Supabase (PostgreSQL)",
+    "auth": "Supabase Auth",
+    "deployment": "Vercel"
+  }
+}

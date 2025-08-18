@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Registro - Alphabit</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Registro - Alphabit</h1>
+        
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" required minlength="6">
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Nome de usuário:</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="referralCode">Código de indicação (opcional):</label>
+                <input type="text" id="referralCode">
+            </div>
+            
+            <button type="submit" id="submitBtn">Criar Conta</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Configuração da Supabase
+        const supabaseUrl = 'https://cbwpghrkfvczjqzefvix.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+        }
+        
+        function generateReferralCode() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substring(2, 8);
+            return `user${timestamp}${random}`.toLowerCase();
+        }
+        
+        async function signUp(email, password, userData) {
+            try {
+                console.log('🔄 Iniciando cadastro...', { email, userData });
+                
+                // Criar o usuário no auth
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/dashboard`,
+                        data: {
+                            email_confirmed: true
+                        }
+                    }
+                });
+
+                if (error) {
+                    console.error("❌ Erro no cadastro:", error.message, error);
+                    
+                    // Tratar rate limiting
+                    if (error.message.includes('security purposes')) {
+                        return { error: { message: 'Aguarde alguns segundos antes de tentar novamente' } };
+                    }
+                    
+                    return { error: { message: `Erro no cadastro: ${error.message}` } };
+                }
+
+                console.log("✅ Usuário criado no auth com sucesso!", data);
+
+                // Se o usuário foi criado, criar o perfil básico
+                if (data.user && data.user.id) {
+                    console.log('🔄 Criando perfil básico...');
+                    
+                    try {
+                        // Aguardar um pouco para garantir que o usuário foi criado
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Criar perfil básico (sem informações completas)
+                        const { error: profileError } = await supabase
+                            .from('profiles')
+                            .insert({
+                                user_id: data.user.id,
+                                email: data.user.email,
+                                display_name: null,
+                                username: userData.username || data.user.email?.split('@')[0] || 'user',
+                                first_name: null,
+                                last_name: null,
+                                cpf: null,
+                                whatsapp: null,
+                                bio: null,
+                                avatar: 'avatar1',
+                                referral_code: generateReferralCode(),
+                                referred_by: userData.referralCode || null,
+                                role: 'user',
+                                balance: 0.00,
+                                total_profit: 0.00,
+                                status: 'active',
+                                profile_completed: false
+                            });
+
+                        if (profileError) {
+                            console.error('❌ Erro criando perfil:', profileError);
+                            return { error: { message: `Erro ao criar perfil: ${profileError.message}` } };
+                        } else {
+                            console.log('✅ Perfil básico criado com sucesso!');
+                        }
+
+                    } catch (profileError) {
+                        console.error('❌ Erro na criação de perfil:', profileError);
+                        return { error: { message: 'Erro interno ao criar perfil' } };
+                    }
+                }
+
+                return { error: null, data };
+            } catch (error) {
+                console.error("❌ Erro interno no cadastro:", error);
+                return { error: { message: 'Erro interno durante o cadastro' } };
+            }
+        }
+        
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Criando conta...';
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            const referralCode = document.getElementById('referralCode').value;
+            
+            showResult('🔄 Iniciando processo de cadastro...', 'info');
+            
+            try {
+                const { error, data } = await signUp(email, password, {
+                    username,
+                    referralCode: referralCode || null
+                });
+                
+                if (error) {
+                    showResult(`❌ Erro no cadastro:\n${error.message}`, 'error');
+                } else {
+                    showResult(`✅ Cadastro realizado com sucesso!\n\n📧 Email: ${email}\n👤 Usuário: ${username}\n🆔 ID: ${data.user.id}\n\n⚠️ Nota: O email precisa ser confirmado para fazer login.`, 'success');
+                }
+            } catch (error) {
+                showResult(`❌ Erro inesperado:\n${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Criar Conta';
+            }
+        });
+        
+        // Preencher com dados de teste
+        document.getElementById('email').value = `teste${Date.now()}@debug.com`;
+        document.getElementById('password').value = '123456';
+        document.getElementById('username').value = `teste${Date.now()}`;
+    </script>
+</body>
+</html>

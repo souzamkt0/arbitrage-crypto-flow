@@ -70,6 +70,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             
             setProfile(profileData);
             
+            // Se não existir perfil, criar após primeiro login (confirmação de e‑mail)
+            if (!profileData) {
+              try {
+                console.log('🧩 Nenhum perfil encontrado. Criando perfil básico pós‑confirmação...');
+                const generateReferralCode = () => {
+                  const timestamp = Date.now().toString(36);
+                  const random = Math.random().toString(36).substring(2, 8);
+                  return `${session.user.email?.split('@')[0] || 'user'}${timestamp}${random}`.toLowerCase();
+                };
+                                  const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert({
+                      user_id: session.user.id,
+                      email: session.user.email,
+                      display_name: session.user.email?.split('@')[0] || 'user',
+                      username: session.user.email?.split('@')[0] || 'user',
+                      first_name: null,
+                      last_name: null,
+                      cpf: null,
+                      whatsapp: null,
+                      bio: null,
+                      avatar: 'avatar1',
+                      referral_code: generateReferralCode(),
+                      referred_by: null,
+                      role: 'user',
+                      balance: 0.00,
+                      total_profit: 0.00,
+                      status: 'active',
+                      profile_completed: false
+                    });
+                if (!profileError) {
+                  const { data: createdProfile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+                    .single();
+                  setProfile(createdProfile);
+                  console.log('✅ Perfil básico criado após confirmação.');
+                  
+                  // Redirecionar para dashboard após criar perfil
+                  if (window.location.pathname === '/complete-profile' || window.location.pathname === '/') {
+                    console.log('🔄 Redirecionando para dashboard após confirmação...');
+                    window.location.href = '/dashboard';
+                  }
+                } else {
+                  console.error('❌ Erro ao criar perfil pós‑confirmação:', profileError);
+                }
+              } catch (e) {
+                console.error('❌ Erro inesperado ao criar perfil pós‑confirmação:', e);
+              }
+            }
+            
             // Verificar se estamos na porta correta
             if (window.location.port !== '8080' && window.location.port !== '') {
               console.log('⚠️ Porta incorreta detectada:', window.location.port);
@@ -134,53 +186,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('🔄 Iniciando cadastro...', { email, userData });
       
-      // Criar o usuário no auth
+      // Criar o usuário no auth com os dados do usuário
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: undefined,
           data: {
-            email_confirmed: true
-          }
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            username: userData.username,
+            cpf: userData.cpf,
+            whatsapp: userData.whatsapp,
+            referral_code: userData.referralCode || null
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
 
       if (error) {
         console.error("❌ Erro no cadastro:", error.message, error);
+        
+        // Tratar rate limiting
+        if (error.message.includes('security purposes')) {
+          return { error: { message: 'Aguarde alguns segundos antes de tentar novamente' } };
+        }
+        
+        if (error.message.includes('already registered')) {
+          return { error: { message: 'Este email já está cadastrado' } };
+        }
+        
         return { error: { message: `Erro no cadastro: ${error.message}` } };
       }
 
       console.log("✅ Usuário criado no auth com sucesso!", data);
 
-      // Se o usuário foi criado, criar o perfil básico
-      if (data.user && data.user.id) {
-        console.log('🔄 Criando perfil básico...');
+      // Se o usuário foi criado, criar o perfil imediatamente
+      if (data.user) {
+        console.log('🔄 Criando perfil do usuário...');
         
-        try {
-          // Aguardar um pouco para garantir que o usuário foi criado
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Gerar código de indicação único
-          const generateReferralCode = () => {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substring(2, 8);
-            return `${userData.username || 'user'}${timestamp}${random}`.toLowerCase();
-          };
+        const generateReferralCode = () => {
+          const timestamp = Date.now().toString(36);
+          const random = Math.random().toString(36).substring(2, 8);
+          return `${userData.username || 'user'}${timestamp}${random}`.toLowerCase();
+        };
 
-          // Criar perfil básico (sem informações completas)
+        try {
           const { error: profileError } = await supabase
             .from('profiles')
             .insert({
               user_id: data.user.id,
-              email: data.user.email,
-              display_name: null, // Será preenchido na página de completar perfil
-              username: userData.username || data.user.email?.split('@')[0] || 'user',
-              first_name: null, // Será preenchido na página de completar perfil
-              last_name: null, // Será preenchido na página de completar perfil
-              cpf: null, // Será preenchido na página de completar perfil
-              whatsapp: null, // Será preenchido na página de completar perfil
-              bio: null,
+              email: email,
+              display_name: `${userData.firstName} ${userData.lastName}`.trim(),
+              username: userData.username,
+              first_name: userData.firstName,
+              last_name: userData.lastName,
+              cpf: userData.cpf,
+              whatsapp: userData.whatsapp,
+              bio: 'Novo usuário',
               avatar: 'avatar1',
               referral_code: generateReferralCode(),
               referred_by: userData.referralCode || null,
@@ -188,26 +250,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               balance: 0.00,
               total_profit: 0.00,
               status: 'active',
-              profile_completed: false // Marcar como não completo
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
 
           if (profileError) {
-            console.error('❌ Erro criando perfil:', profileError);
-            return { error: { message: `Database error saving new user: ${profileError.message}` } };
+            console.error('❌ Erro ao criar perfil:', profileError);
+            // Não falhar o cadastro por causa do perfil
           } else {
-            console.log('✅ Perfil básico criado com sucesso!');
+            console.log('✅ Perfil criado com sucesso!');
           }
-
         } catch (profileError) {
-          console.error('❌ Erro na criação de perfil:', profileError);
-          return { error: { message: 'Database error saving new user' } };
+          console.error('❌ Erro interno ao criar perfil:', profileError);
+          // Não falhar o cadastro por causa do perfil
         }
       }
 
       return { error: null };
     } catch (error) {
       console.error("❌ Erro interno no cadastro:", error);
-      return { error: { message: 'Internal error during registration' } };
+      return { error: { message: 'Erro interno durante o cadastro' } };
     }
   };
 

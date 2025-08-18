@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples de Registro</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+        }
+        .error {
+            background: #dc3545;
+            color: white;
+        }
+        .info {
+            background: #17a2b8;
+            color: white;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste Simples de Registro</h1>
+        
+        <div>
+            <label>Chave da API:</label>
+            <input type="text" id="apiKey" placeholder="Cole sua chave anônima aqui">
+            
+            <label>Email:</label>
+            <input type="email" id="email" value="teste@exemplo.com">
+            
+            <label>Senha:</label>
+            <input type="password" id="password" value="123456">
+        </div>
+        
+        <button onclick="testarConexao()" id="testBtn">🔗 Testar Conexão</button>
+        <button onclick="testarRegistro()" id="regBtn">👤 Testar Registro</button>
+        <button onclick="limparResultados()">🗑️ Limpar</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let supabase = null;
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function limparResultados() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function inicializarSupabase() {
+            const apiKey = document.getElementById('apiKey').value;
+            const supabaseUrl = 'https://cbwpghrkfvczjqzefvix.supabase.co';
+            
+            if (!apiKey) {
+                log('❌ Por favor, cole sua chave anônima primeiro!', 'error');
+                return false;
+            }
+            
+            try {
+                supabase = window.supabase.createClient(supabaseUrl, apiKey);
+                log('✅ Cliente Supabase inicializado', 'success');
+                return true;
+            } catch (error) {
+                log(`❌ Erro ao inicializar Supabase: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testarConexao() {
+            if (!inicializarSupabase()) return;
+            
+            const btn = document.getElementById('testBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testando...';
+            
+            try {
+                log('🔗 Testando conexão com Supabase...', 'info');
+                
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Erro na conexão: ${error.message}`, 'error');
+                    log(`❌ Código: ${error.code}`, 'error');
+                    return;
+                }
+                
+                log('✅ Conexão estabelecida com sucesso!', 'success');
+                
+                // Verificar estrutura
+                const { data: profiles, error: profilesError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .limit(1);
+                
+                if (profilesError) {
+                    log(`❌ Erro ao verificar profiles: ${profilesError.message}`, 'error');
+                    return;
+                }
+                
+                if (profiles && profiles.length > 0) {
+                    log('✅ Tabela profiles encontrada!', 'success');
+                    log(`📊 Colunas: ${Object.keys(profiles[0]).join(', ')}`, 'success');
+                } else {
+                    log('⚠️ Tabela profiles vazia', 'info');
+                }
+                
+            } catch (error) {
+                log(`❌ Erro geral: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔗 Testar Conexão';
+            }
+        }
+        
+        async function testarRegistro() {
+            if (!inicializarSupabase()) return;
+            
+            const btn = document.getElementById('regBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testando registro...';
+            
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                log('👤 Testando registro de usuário...', 'info');
+                log(`📝 Email: ${email}`, 'info');
+                
+                // Criar usuário no auth
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: undefined,
+                        data: {
+                            email_confirmed: true
+                        }
+                    }
+                });
+                
+                if (error) {
+                    log(`❌ Erro no registro: ${error.message}`, 'error');
+                    log(`❌ Código: ${error.code}`, 'error');
+                    return;
+                }
+                
+                log(`✅ Usuário criado no auth: ${data.user.id}`, 'success');
+                
+                // Aguardar um pouco
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Criar perfil
+                const generateReferralCode = () => {
+                    const timestamp = Date.now().toString(36);
+                    const random = Math.random().toString(36).substring(2, 8);
+                    return `teste${timestamp}${random}`.toLowerCase();
+                };
+                
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        user_id: data.user.id,
+                        email: data.user.email,
+                        display_name: null,
+                        username: `teste${Date.now()}`,
+                        first_name: null,
+                        last_name: null,
+                        cpf: null,
+                        whatsapp: null,
+                        bio: null,
+                        avatar: 'avatar1',
+                        referral_code: generateReferralCode(),
+                        referred_by: null,
+                        role: 'user',
+                        balance: 0.00,
+                        total_profit: 0.00,
+                        status: 'active',
+                        profile_completed: false
+                    });
+                
+                if (profileError) {
+                    log(`❌ Erro criando perfil: ${profileError.message}`, 'error');
+                    log(`❌ Código: ${profileError.code}`, 'error');
+                    log(`❌ Detalhes: ${profileError.details}`, 'error');
+                    return;
+                }
+                
+                log('✅ Perfil criado com sucesso!', 'success');
+                log('🎉 Registro completo funcionando!', 'success');
+                
+            } catch (error) {
+                log(`❌ Erro geral: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '👤 Testar Registro';
+            }
+        }
+    </script>
+</body>
+</html>

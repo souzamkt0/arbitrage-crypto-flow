@@ -18,7 +18,8 @@ const CompleteProfile = () => {
     cpf: "",
     whatsapp: "",
     bio: "",
-    avatar: "avatar1"
+    avatar: "avatar1",
+    referredBy: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
@@ -53,6 +54,20 @@ const CompleteProfile = () => {
         whatsapp: profile.whatsapp || "",
         bio: profile.bio || "",
         avatar: profile.avatar || "avatar1"
+      }));
+    }
+
+    // Pré-preencher dados do Google se disponíveis
+    if (user && user.user_metadata) {
+      const metadata = user.user_metadata;
+      console.log('📊 Dados do Google:', metadata);
+      
+      setFormData(prev => ({
+        ...prev,
+        firstName: prev.firstName || metadata.full_name?.split(' ')[0] || metadata.name?.split(' ')[0] || "",
+        lastName: prev.lastName || metadata.full_name?.split(' ').slice(1).join(' ') || metadata.name?.split(' ').slice(1).join(' ') || "",
+        username: prev.username || metadata.email?.split('@')[0] || "",
+        bio: prev.bio || `Usuário ${metadata.full_name || metadata.name || 'Google'}`
       }));
     }
   }, [user, profile, navigate]);
@@ -151,6 +166,7 @@ const CompleteProfile = () => {
           whatsapp: formData.whatsapp,
           bio: formData.bio,
           avatar: formData.avatar,
+          referred_by: formData.referredBy,
           profile_completed: true
         })
         .eq('user_id', user.id);
@@ -315,6 +331,17 @@ const CompleteProfile = () => {
                 {errors.whatsapp && (
                   <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
                 )}
+              </div>
+
+              <div>
+                <Label htmlFor="referredBy" className="text-gray-300">Quem te Indicou? (Opcional)</Label>
+                <Input
+                  id="referredBy"
+                  value={formData.referredBy}
+                  onChange={(e) => handleInputChange('referredBy', e.target.value)}
+                  className="mt-1 border-gray-600"
+                  placeholder="Código de indicação ou nome"
+                />
               </div>
             </div>
           )}

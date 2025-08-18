@@ -1,0 +1,52 @@
+# Cursor Rules para Projeto Supabase
+
+## Configuração da Supabase
+- URL: https://cbwpghrkfvczjqzefvix.supabase.co
+- Projeto: arbitrage-crypto-flow
+- Framework: React + Vite + TypeScript
+
+## Estrutura do Projeto
+- `src/integrations/supabase/client.ts` - Cliente Supabase
+- `src/hooks/useAuth.tsx` - Hook de autenticação
+- `src/pages/` - Páginas da aplicação
+- `src/components/` - Componentes React
+
+## Tabelas do Banco
+- `profiles` - Perfis de usuários
+- `user_investments` - Investimentos dos usuários
+- `deposits` - Depósitos
+- `withdrawals` - Saques
+- `admin_balance_transactions` - Transações do admin
+- `community_posts` - Posts da comunidade
+
+## Colunas Importantes (profiles)
+- `user_id` - ID do usuário
+- `email` - Email do usuário
+- `username` - Nome de usuário
+- `profile_completed` - Se o perfil foi completado
+- `first_name`, `last_name` - Nome completo
+- `cpf`, `whatsapp` - Dados pessoais
+- `referral_code`, `referred_by` - Sistema de indicações
+- `role` - Papel do usuário (user, admin, partner)
+- `balance`, `total_profit` - Saldo e lucros
+- `status` - Status da conta
+
+## Padrões de Código
+- Use TypeScript para tipagem
+- Use React Hooks para estado
+- Use Supabase client para operações de banco
+- Use Shadcn UI para componentes
+- Use Tailwind CSS para estilização
+
+## Autenticação
+- Google OAuth configurado
+- Email/password authentication
+- Redirecionamento para /complete-profile após cadastro
+- Proteção de rotas com ProtectedRoute
+
+## Funcionalidades Principais
+- Sistema de investimentos com robôs
+- Sistema de indicações/referrals
+- Painel administrativo
+- Sistema de depósitos/saques
+- Comunidade de usuários

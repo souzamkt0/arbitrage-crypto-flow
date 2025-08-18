@@ -1,0 +1,63 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-supabase"],
+      "env": {
+        "SUPABASE_URL": "https://cbwpghrkfvczjqzefvix.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0ODU5ODUsImV4cCI6MjA3MTA2MTk4NX0.3KMVlqAr4bu0l0Wfs47I2GQtUQcb3xTqPoXSSXgzbJo"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "MCP_FILESYSTEM_ROOT": "/Users/macbook/Desktop/arbitrage-crypto-flow"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
+    }
+  },
+  "project": {
+    "name": "arbitrage-crypto-flow",
+    "type": "react-vite-typescript",
+    "database": "supabase",
+    "framework": "react"
+  },
+  "database": {
+    "type": "supabase",
+    "url": "https://cbwpghrkfvczjqzefvix.supabase.co",
+    "tables": {
+      "profiles": {
+        "description": "Perfis de usuários",
+        "columns": {
+          "user_id": "UUID - ID único do usuário",
+          "email": "TEXT - Email do usuário",
+          "username": "TEXT - Nome de usuário",
+          "profile_completed": "BOOLEAN - Se o perfil foi completado",
+          "first_name": "TEXT - Nome",
+          "last_name": "TEXT - Sobrenome",
+          "cpf": "TEXT - CPF do usuário",
+          "whatsapp": "TEXT - WhatsApp do usuário",
+          "referral_code": "TEXT - Código de indicação",
+          "referred_by": "TEXT - Quem indicou",
+          "role": "TEXT - Papel (user, admin, partner)",
+          "balance": "DECIMAL - Saldo da conta",
+          "total_profit": "DECIMAL - Lucro total",
+          "status": "TEXT - Status da conta"
+        }
+      },
+      "user_investments": {
+        "description": "Investimentos dos usuários"
+      },
+      "deposits": {
+        "description": "Depósitos dos usuários"
+      },
+      "withdrawals": {
+        "description": "Saques dos usuários"
+      }
+    }
+  }
+}
