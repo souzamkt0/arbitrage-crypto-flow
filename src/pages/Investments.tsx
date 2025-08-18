@@ -1733,6 +1733,16 @@ const Investments = () => {
                 return currentLevel >= planLevel;
               };
 
+              const isPlanActive = (planId: string) => {
+                // Verificar se o usuário tem investimentos ativos neste plano
+                return userInvestments.some(inv => inv.investmentName.includes(planId) && inv.status === 'active');
+              };
+
+              const canInteractWithPlan = (planId: string) => {
+                // Só pode interagir se o plano está ativo
+                return isPlanActive(planId);
+              };
+
               return (
                 <>
                   {/* Robô 4.0.0 - Iniciante */}
