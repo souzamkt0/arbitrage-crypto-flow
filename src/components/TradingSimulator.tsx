@@ -442,7 +442,9 @@ const TradingSimulator = ({
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent) {
-                              parent.innerHTML = `<span class="text-xs">${
+                              const span = document.createElement('span');
+                              span.className = 'text-xs';
+                              span.textContent = 
                                 exchange.name === 'Binance' ? '🟡' :
                                 exchange.name === 'Coinbase' ? '🔵' :
                                 exchange.name === 'Kraken' ? '🟣' :
@@ -450,8 +452,8 @@ const TradingSimulator = ({
                                 exchange.name === 'Huobi' ? '🔴' :
                                 exchange.name === 'Bybit' ? '🟠' :
                                 exchange.name === 'OKX' ? '⚫' :
-                                '🟤'
-                              }</span>`;
+                                '🟤';
+                              parent.appendChild(span);
                             }
                           }}
                         />
