@@ -149,10 +149,8 @@ const EditProfile = () => {
               )}
               <div className="absolute top-4 right-4">
                 <ProfileImageUpload 
-                  type="cover"
-                  currentImageUrl={profileData.coverImage}
-                  onImageUpdate={(url) => handleInputChange('coverImage', url)}
-                  userId={user?.id}
+                  currentCoverImage={profileData.coverImage}
+                  onCoverImageUpdate={(url) => handleInputChange('coverImage', url)}
                 />
               </div>
             </div>
@@ -168,10 +166,8 @@ const EditProfile = () => {
                 </Avatar>
                 <div className="absolute bottom-0 right-0">
                   <ProfileImageUpload 
-                    type="profile"
-                    currentImageUrl={profileData.avatar}
-                    onImageUpdate={(url) => handleInputChange('avatar', url)}
-                    userId={user?.id}
+                    currentProfileImage={profileData.avatar}
+                    onProfileImageUpdate={(url) => handleInputChange('avatar', url)}
                   />
                 </div>
               </div>

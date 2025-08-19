@@ -81,6 +81,7 @@ interface InvestmentPlan {
   name: string;
   dailyRate: number;
   minimumAmount: number;
+  maxInvestmentAmount?: number;
   duration: number;
   description: string;
   status: "active" | "inactive";
@@ -737,7 +738,7 @@ const Admin = () => {
       name: "",
       dailyRate: 1.0,
       minimumAmount: 100,
-      maximumAmount: 1000,
+      maxInvestmentAmount: 1000,
       duration: 40,
       description: "",
       status: "active",
@@ -4682,7 +4683,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <span className="text-muted-foreground">Valor Máx:</span>
-                            <div className="font-medium">${(plan.maximumAmount || 0).toLocaleString()}</div>
+                            <div className="font-medium">${(plan.maxInvestmentAmount || 0).toLocaleString()}</div>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Duração:</span>
@@ -4774,8 +4775,8 @@ const Admin = () => {
                       id="maxAmount"
                       type="number"
                       min="1"
-                      value={selectedPlan.maximumAmount}
-                      onChange={(e) => setSelectedPlan({...selectedPlan, maximumAmount: parseInt(e.target.value) || 0})}
+                      value={selectedPlan.maxInvestmentAmount}
+                      onChange={(e) => setSelectedPlan({...selectedPlan, maxInvestmentAmount: parseInt(e.target.value) || 0})}
                     />
                   </div>
                 </div>
