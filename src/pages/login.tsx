@@ -28,9 +28,19 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    console.log('🔑 Iniciando processo de login...', { email });
+    
     const { error } = await signIn(email, password);
     
-    if (!error) {
+    if (error) {
+      console.error('❌ Erro retornado do signIn:', error);
+      toast({
+        title: "Erro no login",
+        description: error.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    } else {
+      console.log('✅ Login realizado com sucesso, redirecionando...');
       navigate("/dashboard");
     }
     
