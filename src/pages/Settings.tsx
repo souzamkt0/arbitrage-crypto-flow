@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Settings as SettingsIcon, 
   Save, 
@@ -18,15 +20,31 @@ import {
   Phone,
   Calendar,
   MapPin,
-  Shield
+  Shield,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const handleSave = () => {
     toast({
@@ -35,7 +53,16 @@ const Settings = () => {
     });
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: "Erro!",
+        description: "Todos os campos são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({
         title: "Erro!",
@@ -44,28 +71,122 @@ const Settings = () => {
       });
       return;
     }
-    
-    toast({
-      title: "Senha alterada!",
-      description: "Sua senha foi atualizada com sucesso.",
-    });
-    
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erro!",
+        description: "A nova senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      // Primeiro, verificar a senha atual fazendo login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast({
+          title: "Erro!",
+          description: "Senha atual incorreta.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Atualizar a senha
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        toast({
+          title: "Erro!",
+          description: `Erro ao alterar senha: ${updateError.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Senha alterada!",
+        description: "Sua senha foi atualizada com sucesso.",
+      });
+      
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast({
+        title: "Erro!",
+        description: "Erro inesperado ao alterar senha.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
-  // Mock data - in a real app this would come from your auth context or API
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setIsDeletingAccount(true);
+
+    try {
+      // Primeiro, deletar o perfil do usuário
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        console.error('Erro ao deletar perfil:', profileError);
+      }
+
+      // Deletar outros dados relacionados (investimentos, depósitos, etc.)
+      await Promise.all([
+        supabase.from('user_investments').delete().eq('user_id', user.id),
+        supabase.from('deposits').delete().eq('user_id', user.id),
+        supabase.from('withdrawals').delete().eq('user_id', user.id),
+        supabase.from('community_posts').delete().eq('user_id', user.id),
+      ]);
+
+      // Por último, fazer logout (o usuário ainda existirá no auth.users, mas sem dados)
+      await signOut();
+
+      toast({
+        title: "Conta excluída!",
+        description: "Sua conta e todos os dados foram removidos com sucesso.",
+      });
+
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Erro!",
+        description: "Erro ao excluir conta. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  // Usar dados reais do usuário autenticado
   const userInfo = {
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "+55 (11) 99999-9999",
-    joinDate: "15/03/2024",
-    location: "São Paulo, SP",
-    referrals: 12,
-    activePlans: 2,
-    communityRank: "Gold",
-    totalEarnings: 1250.50
+    name: profile?.display_name || profile?.first_name || "Usuário",
+    email: user?.email || profile?.email || "email@exemplo.com",
+    phone: profile?.whatsapp || "Não informado",
+    joinDate: profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-BR') : "Não informado",
+    location: profile?.location || "Não informado",
+    referrals: 0, // Implementar contagem de indicações
+    activePlans: 0, // Implementar contagem de planos ativos
+    communityRank: profile?.role === 'admin' ? 'Admin' : profile?.role === 'partner' ? 'Partner' : 'User',
+    totalEarnings: profile?.total_profit || 0
   };
 
   return (
@@ -273,10 +394,66 @@ const Settings = () => {
             </div>
             
             <div className="flex justify-end">
-              <Button onClick={handlePasswordChange} className="bg-primary hover:bg-primary/90">
+              <Button 
+                onClick={handlePasswordChange} 
+                disabled={isChangingPassword}
+                className="bg-primary hover:bg-primary/90"
+              >
                 <Lock className="h-4 w-4 mr-2" />
-                Alterar Senha
+                {isChangingPassword ? "Alterando..." : "Alterar Senha"}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              Zona de Perigo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-red-700">Excluir Conta</p>
+                <p className="text-sm text-red-600">
+                  Esta ação é irreversível. Todos os seus dados serão permanentemente removidos.
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={isDeletingAccount}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {isDeletingAccount ? "Excluindo..." : "Excluir Conta"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
+                      e removerá todos os seus dados de nossos servidores, incluindo:
+                      <br /><br />
+                      • Perfil e informações pessoais<br />
+                      • Histórico de investimentos<br />
+                      • Depósitos e saques<br />
+                      • Posts na comunidade<br />
+                      • Sistema de indicações
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Sim, excluir permanentemente
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>
