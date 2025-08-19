@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -224,10 +224,73 @@ export type Database = {
           updated_at?: string | null
           user_investment_id?: string
         }
+        Relationships: []
+      }
+      custom_users: {
+        Row: {
+          bio: string | null
+          cover_image_url: string | null
+          created_at: string
+          custom_display_name: string | null
+          custom_username: string | null
+          id: string
+          original_username: string
+          profile_image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          custom_display_name?: string | null
+          custom_username?: string | null
+          id?: string
+          original_username: string
+          profile_image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          custom_display_name?: string | null
+          custom_username?: string | null
+          id?: string
+          original_username?: string
+          profile_image_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_earnings: {
+        Row: {
+          created_at: string | null
+          date: string
+          earnings: number
+          id: string
+          investment_id: string | null
+          operations_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          earnings: number
+          id?: string
+          investment_id?: string | null
+          operations_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          earnings?: number
+          id?: string
+          investment_id?: string | null
+          operations_count?: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: "current_operations_user_investment_id_fkey"
-            columns: ["user_investment_id"]
+            foreignKeyName: "daily_earnings_investment_id_fkey"
+            columns: ["investment_id"]
             isOneToOne: false
             referencedRelation: "user_investments"
             referencedColumns: ["id"]
@@ -366,17 +429,619 @@ export type Database = {
         }
         Relationships: []
       }
+      facebook_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          privacy: string | null
+          target_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          privacy?: string | null
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          privacy?: string | null
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_albums: {
+        Row: {
+          cover_photo_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          owner_id: string | null
+          photos_count: number | null
+          privacy: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          photos_count?: number | null
+          privacy?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          photos_count?: number | null
+          privacy?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_albums_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          media_url: string | null
+          parent_comment_id: string | null
+          post_id: string | null
+          replies_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_url?: string | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          replies_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_url?: string | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          replies_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_friendships: {
+        Row: {
+          addressee_id: string | null
+          created_at: string | null
+          id: string
+          requester_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          addressee_id?: string | null
+          created_at?: string | null
+          id?: string
+          requester_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          addressee_id?: string | null
+          created_at?: string | null
+          id?: string
+          requester_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          reaction_type: string | null
+          target_id: string
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reaction_type?: string | null
+          target_id: string
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reaction_type?: string | null
+          target_id?: string
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          recipient_id: string | null
+          sender_id: string | null
+          target_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          target_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          target_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_photos: {
+        Row: {
+          album_id: string | null
+          alt_text: string | null
+          caption: string | null
+          comments_count: number | null
+          created_at: string | null
+          file_size: number | null
+          height: number | null
+          id: string
+          likes_count: number | null
+          owner_id: string | null
+          post_id: string | null
+          tags: Json | null
+          url: string
+          width: number | null
+        }
+        Insert: {
+          album_id?: string | null
+          alt_text?: string | null
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          likes_count?: number | null
+          owner_id?: string | null
+          post_id?: string | null
+          tags?: Json | null
+          url: string
+          width?: number | null
+        }
+        Update: {
+          album_id?: string | null
+          alt_text?: string | null
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          likes_count?: number | null
+          owner_id?: string | null
+          post_id?: string | null
+          tags?: Json | null
+          url?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_photos_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_photos_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_photos_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_posts: {
+        Row: {
+          author_id: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          feeling: string | null
+          hashtags: string[] | null
+          id: string
+          is_pinned: boolean | null
+          likes_count: number | null
+          link_preview: Json | null
+          location: string | null
+          media_urls: string[] | null
+          mentions: string[] | null
+          post_type: string | null
+          privacy: string | null
+          shares_count: number | null
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          feeling?: string | null
+          hashtags?: string[] | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          link_preview?: Json | null
+          location?: string | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          post_type?: string | null
+          privacy?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          feeling?: string | null
+          hashtags?: string[] | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          link_preview?: Json | null
+          location?: string | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          post_type?: string | null
+          privacy?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_profiles: {
+        Row: {
+          badge: string | null
+          bio: string | null
+          birth_date: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          display_name: string
+          earnings: number | null
+          education: string | null
+          email_public: boolean | null
+          followers_count: number | null
+          following_count: number | null
+          friends_count: number | null
+          id: string
+          join_date: string | null
+          last_active: string | null
+          level: number | null
+          location: string | null
+          phone: string | null
+          photos_count: number | null
+          posts_count: number | null
+          privacy_settings: Json | null
+          profile_photo_url: string | null
+          relationship_status: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string
+          verified: boolean | null
+          website: string | null
+          work: string | null
+        }
+        Insert: {
+          badge?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name: string
+          earnings?: number | null
+          education?: string | null
+          email_public?: boolean | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          join_date?: string | null
+          last_active?: string | null
+          level?: number | null
+          location?: string | null
+          phone?: string | null
+          photos_count?: number | null
+          posts_count?: number | null
+          privacy_settings?: Json | null
+          profile_photo_url?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+          verified?: boolean | null
+          website?: string | null
+          work?: string | null
+        }
+        Update: {
+          badge?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name?: string
+          earnings?: number | null
+          education?: string | null
+          email_public?: boolean | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          join_date?: string | null
+          last_active?: string | null
+          level?: number | null
+          location?: string | null
+          phone?: string | null
+          photos_count?: number | null
+          posts_count?: number | null
+          privacy_settings?: Json | null
+          profile_photo_url?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
+          verified?: boolean | null
+          website?: string | null
+          work?: string | null
+        }
+        Relationships: []
+      }
+      facebook_shares: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          privacy: string | null
+          share_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          privacy?: string | null
+          share_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          privacy?: string | null
+          share_text?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investment_operations: {
+        Row: {
+          buy_price: number
+          completed_at: string | null
+          id: string
+          investment_id: string | null
+          pair: string
+          profit: number | null
+          progress: number | null
+          sell_price: number | null
+          started_at: string | null
+          status: string | null
+          time_remaining: number | null
+        }
+        Insert: {
+          buy_price: number
+          completed_at?: string | null
+          id?: string
+          investment_id?: string | null
+          pair: string
+          profit?: number | null
+          progress?: number | null
+          sell_price?: number | null
+          started_at?: string | null
+          status?: string | null
+          time_remaining?: number | null
+        }
+        Update: {
+          buy_price?: number
+          completed_at?: string | null
+          id?: string
+          investment_id?: string | null
+          pair?: string
+          profit?: number | null
+          progress?: number | null
+          sell_price?: number | null
+          started_at?: string | null
+          status?: string | null
+          time_remaining?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_operations_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investment_plans: {
         Row: {
           created_at: string | null
           daily_rate: number
           description: string | null
           duration_days: number
+          features: Json | null
           id: string
-          maximum_amount: number
+          max_investment_amount: number | null
           minimum_amount: number
+          minimum_indicators: number
           name: string
-          required_referrals: number
+          robot_version: string
           status: string | null
           updated_at: string | null
         }
@@ -385,11 +1050,13 @@ export type Database = {
           daily_rate: number
           description?: string | null
           duration_days: number
+          features?: Json | null
           id?: string
-          maximum_amount: number
+          max_investment_amount?: number | null
           minimum_amount: number
+          minimum_indicators: number
           name: string
-          required_referrals?: number
+          robot_version: string
           status?: string | null
           updated_at?: string | null
         }
@@ -398,15 +1065,55 @@ export type Database = {
           daily_rate?: number
           description?: string | null
           duration_days?: number
+          features?: Json | null
           id?: string
-          maximum_amount?: number
+          max_investment_amount?: number | null
           minimum_amount?: number
+          minimum_indicators?: number
           name?: string
-          required_referrals?: number
+          robot_version?: string
           status?: string | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      investment_returns: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_amount: number
+          period_days: number
+          plan_id: string | null
+          return_amount: number
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_amount: number
+          period_days: number
+          plan_id?: string | null
+          return_amount: number
+          total_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_amount?: number
+          period_days?: number
+          plan_id?: string | null
+          return_amount?: number
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_returns_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       market_data: {
         Row: {
@@ -450,6 +1157,172 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          deposit_amount: number
+          deposit_id: string | null
+          id: string
+          partner_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          deposit_amount: number
+          deposit_id?: string | null
+          id?: string
+          partner_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          deposit_amount?: number
+          deposit_id?: string | null
+          id?: string
+          partner_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_commissions_deposit_id_fkey"
+            columns: ["deposit_id"]
+            isOneToOne: false
+            referencedRelation: "deposits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_withdrawals: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          partner_id: string
+          status: string | null
+          updated_at: string | null
+          withdrawal_date: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          status?: string | null
+          updated_at?: string | null
+          withdrawal_date?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          status?: string | null
+          updated_at?: string | null
+          withdrawal_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_withdrawals_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          commission_percentage: number
+          created_at: string | null
+          display_name: string | null
+          email: string
+          id: string
+          status: string | null
+          total_deposits: number
+          total_earnings: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          commission_percentage?: number
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          id?: string
+          status?: string | null
+          total_deposits?: number
+          total_earnings?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          commission_percentage?: number
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          status?: string | null
+          total_deposits?: number
+          total_earnings?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      photo_uploads: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          storage_path: string
+          updated_at: string | null
+          upload_date: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          storage_path: string
+          updated_at?: string | null
+          upload_date?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          storage_path?: string
+          updated_at?: string | null
+          upload_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_interactions: {
         Row: {
           created_at: string | null
@@ -484,30 +1357,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_activated: boolean | null
+          activation_date: string | null
           api_connected: boolean | null
           avatar: string | null
+          avatar_url: string | null
           badge: string | null
           balance: number | null
           bio: string | null
           city: string | null
+          cpf: string | null
           created_at: string | null
           display_name: string | null
           earnings: number | null
           email: string | null
+          first_deposit_date: string | null
+          first_name: string | null
           followers_count: number | null
           following_count: number | null
+          full_name: string | null
           id: string
           join_date: string | null
+          last_deposit_date: string | null
           last_login: string | null
+          last_name: string | null
+          last_withdrawal: string | null
           level: number | null
           location: string | null
+          minimum_deposit_amount: number | null
+          minimum_deposit_met: boolean | null
           monthly_earnings: number | null
+          partner_balance: number | null
+          partner_commission: number | null
+          partner_earnings: number | null
+          partner_total_deposits: number | null
+          phone: string | null
           posts_count: number | null
+          profile_completed: boolean | null
           referral_balance: number | null
+          referral_code: string | null
+          referred_by: string | null
           residual_balance: number | null
           role: string | null
           state: string | null
           status: string | null
+          total_commission: number | null
+          total_deposited: number | null
           total_profit: number | null
           updated_at: string | null
           user_id: string
@@ -516,30 +1411,52 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          account_activated?: boolean | null
+          activation_date?: string | null
           api_connected?: boolean | null
           avatar?: string | null
+          avatar_url?: string | null
           badge?: string | null
           balance?: number | null
           bio?: string | null
           city?: string | null
+          cpf?: string | null
           created_at?: string | null
           display_name?: string | null
           earnings?: number | null
           email?: string | null
+          first_deposit_date?: string | null
+          first_name?: string | null
           followers_count?: number | null
           following_count?: number | null
+          full_name?: string | null
           id?: string
           join_date?: string | null
+          last_deposit_date?: string | null
           last_login?: string | null
+          last_name?: string | null
+          last_withdrawal?: string | null
           level?: number | null
           location?: string | null
+          minimum_deposit_amount?: number | null
+          minimum_deposit_met?: boolean | null
           monthly_earnings?: number | null
+          partner_balance?: number | null
+          partner_commission?: number | null
+          partner_earnings?: number | null
+          partner_total_deposits?: number | null
+          phone?: string | null
           posts_count?: number | null
+          profile_completed?: boolean | null
           referral_balance?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           residual_balance?: number | null
           role?: string | null
           state?: string | null
           status?: string | null
+          total_commission?: number | null
+          total_deposited?: number | null
           total_profit?: number | null
           updated_at?: string | null
           user_id: string
@@ -548,30 +1465,52 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          account_activated?: boolean | null
+          activation_date?: string | null
           api_connected?: boolean | null
           avatar?: string | null
+          avatar_url?: string | null
           badge?: string | null
           balance?: number | null
           bio?: string | null
           city?: string | null
+          cpf?: string | null
           created_at?: string | null
           display_name?: string | null
           earnings?: number | null
           email?: string | null
+          first_deposit_date?: string | null
+          first_name?: string | null
           followers_count?: number | null
           following_count?: number | null
+          full_name?: string | null
           id?: string
           join_date?: string | null
+          last_deposit_date?: string | null
           last_login?: string | null
+          last_name?: string | null
+          last_withdrawal?: string | null
           level?: number | null
           location?: string | null
+          minimum_deposit_amount?: number | null
+          minimum_deposit_met?: boolean | null
           monthly_earnings?: number | null
+          partner_balance?: number | null
+          partner_commission?: number | null
+          partner_earnings?: number | null
+          partner_total_deposits?: number | null
+          phone?: string | null
           posts_count?: number | null
+          profile_completed?: boolean | null
           referral_balance?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           residual_balance?: number | null
           role?: string | null
           state?: string | null
           status?: string | null
+          total_commission?: number | null
+          total_deposited?: number | null
           total_profit?: number | null
           updated_at?: string | null
           user_id?: string
@@ -657,12 +1596,204 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
+        Relationships: []
+      }
+      social_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          parent_comment_id: string | null
+          post_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "residual_earnings_investment_id_fkey"
-            columns: ["investment_id"]
+            foreignKeyName: "social_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
             isOneToOne: false
-            referencedRelation: "user_investments"
+            referencedRelation: "social_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string | null
+          following_id: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      social_likes: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          is_public: boolean | null
+          likes_count: number | null
+          location: string | null
+          shares_count: number | null
+          tagged_users: string[] | null
+          updated_at: string | null
+          user_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          likes_count?: number | null
+          location?: string | null
+          shares_count?: number | null
+          tagged_users?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          likes_count?: number | null
+          location?: string | null
+          shares_count?: number | null
+          tagged_users?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      social_shares: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          post_id: string | null
+          share_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          share_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          share_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -724,6 +1855,57 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_profits: {
+        Row: {
+          completed_operations: number
+          created_at: string | null
+          daily_rate: number
+          exchanges_count: number
+          execution_time_seconds: number | null
+          id: string
+          investment_amount: number
+          metadata: Json | null
+          plan_name: string
+          profit_per_exchange: number | null
+          status: string | null
+          total_profit: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_operations: number
+          created_at?: string | null
+          daily_rate: number
+          exchanges_count: number
+          execution_time_seconds?: number | null
+          id?: string
+          investment_amount: number
+          metadata?: Json | null
+          plan_name: string
+          profit_per_exchange?: number | null
+          status?: string | null
+          total_profit: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_operations?: number
+          created_at?: string | null
+          daily_rate?: number
+          exchanges_count?: number
+          execution_time_seconds?: number | null
+          id?: string
+          investment_amount?: number
+          metadata?: Json | null
+          plan_name?: string
+          profit_per_exchange?: number | null
+          status?: string | null
+          total_profit?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       treasure_chests: {
         Row: {
           chest_number: number
@@ -765,60 +1947,167 @@ export type Database = {
           },
         ]
       }
+      user_data: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_investments: {
         Row: {
           amount: number
           created_at: string | null
           current_day_progress: number | null
           daily_rate: number
-          daily_target: number
+          daily_target: number | null
           days_remaining: number | null
           end_date: string
           id: string
           operations_completed: number | null
+          plan_id: string | null
           start_date: string | null
           status: string | null
           today_earnings: number | null
           total_earned: number | null
-          total_operations: number | null
+          total_operations: number
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount: number
           created_at?: string | null
           current_day_progress?: number | null
           daily_rate: number
-          daily_target: number
+          daily_target?: number | null
           days_remaining?: number | null
           end_date: string
           id?: string
           operations_completed?: number | null
+          plan_id?: string | null
           start_date?: string | null
           status?: string | null
           today_earnings?: number | null
           total_earned?: number | null
-          total_operations?: number | null
+          total_operations: number
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
           created_at?: string | null
           current_day_progress?: number | null
           daily_rate?: number
-          daily_target?: number
+          daily_target?: number | null
           days_remaining?: number | null
           end_date?: string
           id?: string
           operations_completed?: number | null
+          plan_id?: string | null
           start_date?: string | null
           status?: string | null
           today_earnings?: number | null
           total_earned?: number | null
-          total_operations?: number | null
+          total_operations?: number
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_investments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          display_name: string | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          is_private: boolean | null
+          is_verified: boolean | null
+          location: string | null
+          posts_count: number | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_private?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          posts_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_private?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          posts_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -893,46 +2182,145 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_partner_by_email: {
+        Args: { commission_percentage?: number; partner_email: string }
+        Returns: Json
+      }
+      apply_role_constraint_migration: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      calculate_daily_progress: {
+        Args: { p_investment_id: string }
+        Returns: number
+      }
       calculate_referral_commission: {
-        Args: { referred_user_id: string; investment_amount: number }
+        Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
       }
-      create_treasure_chests: {
-        Args: { user_id_param: string; deposit_id_param: string }
+      complete_investment_operation: {
+        Args: { p_operation_id: string }
         Returns: undefined
+      }
+      confirm_all_emails: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      confirm_user_email: {
+        Args: { user_id: string }
+        Returns: Json
+      }
+      create_investment_operation: {
+        Args: { p_investment_id: string }
+        Returns: string
+      }
+      create_treasure_chests: {
+        Args: { deposit_id_param: string; user_id_param: string }
+        Returns: undefined
+      }
+      create_user_investment: {
+        Args: { p_amount: number; p_plan_id: string; p_user_id: string }
+        Returns: string
       }
       get_digitopay_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_deposits: number
-          total_withdrawals: number
-          pending_deposits: number
-          pending_withdrawals: number
           completed_deposits: number
           completed_withdrawals: number
+          pending_deposits: number
+          pending_withdrawals: number
+          total_deposits: number
+          total_withdrawals: number
+        }[]
+      }
+      get_investment_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          active_investments: number
+          completed_investments: number
+          today_total_earnings: number
+          total_earned: number
+          total_invested: number
+        }[]
+      }
+      get_table_structure: {
+        Args: { table_name: string }
+        Returns: {
+          check_clause: string
+          column_default: string
+          column_name: string
+          data_type: string
+          is_nullable: string
         }[]
       }
       get_user_digitopay_transactions: {
         Args: { target_user_id: string }
         Returns: {
-          id: string
-          trx_id: string
-          type: string
           amount: number
           amount_brl: number
-          status: string
-          person_name: string
-          person_cpf: string
           created_at: string
+          id: string
+          person_cpf: string
+          person_name: string
+          status: string
+          trx_id: string
+          type: string
+        }[]
+      }
+      get_user_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          email_verified: boolean
+          full_name: string
+          id: string
+          updated_at: string
+        }[]
+      }
+      get_user_trading_stats: {
+        Args: { user_uuid: string }
+        Returns: {
+          avg_daily_rate: number
+          best_profit: number
+          total_execution_time: number
+          total_invested: number
+          total_operations: number
+          total_profit: number
         }[]
       }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_admin_user: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
+      remove_partner: {
+        Args: { partner_email: string }
+        Returns: Json
+      }
+      reset_daily_earnings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       set_user_as_admin: {
         Args: { user_email: string }
         Returns: undefined
+      }
+      update_operations_progress: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_partner_commission: {
+        Args: { new_commission_percentage: number; partner_email: string }
+        Returns: Json
+      }
+      update_user_role: {
+        Args: { new_role: string; user_id_param: string }
+        Returns: boolean
       }
     }
     Enums: {
