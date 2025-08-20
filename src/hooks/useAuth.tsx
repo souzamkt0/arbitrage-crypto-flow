@@ -100,37 +100,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔄 Tentando login ULTRA-SIMPLIFICADO...', { email });
+      console.log('🔑 Iniciando processo de login...', { email });
       
-      // Tentar login sem nenhuma verificação adicional
+      // Simular um pequeno delay para garantir que o banco esteja pronto
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Tentativa de login mais robusta
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log('📊 Resposta do login ULTRA-SIMPLIFICADO:', { 
+      console.log('📊 Resposta do login:', { 
         hasData: !!data, 
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
         hasError: !!error,
         errorMessage: error?.message,
-        errorCode: error?.code || 'NO_CODE',
-        user: data?.user?.email || 'NO_USER',
-        session: !!data?.session
+        userEmail: data?.user?.email
       });
 
       if (error) {
-        console.error("❌ Erro no login ULTRA-SIMPLIFICADO:", {
-          name: error.name,
-          message: error.message,
-          code: error.code,
-          status: error.status
-        });
+        console.error("❌ Erro no login:", error);
+        // Se for erro de schema, tentar novamente após um delay
+        if (error.message.includes('Database error querying schema')) {
+          console.log('🔄 Tentando novamente após erro de schema...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          if (retryError) {
+            return { error: retryError };
+          }
+          
+          console.log('✅ Login bem-sucedido na segunda tentativa!');
+          return { error: null };
+        }
+        
         return { error };
       }
 
-      console.log('✅ Login ULTRA-SIMPLIFICADO bem-sucedido!');
+      console.log('✅ Login bem-sucedido!');
       return { error: null };
-    } catch (error) {
-      console.error("❌ Erro interno no login ULTRA-SIMPLIFICADO:", error);
+    } catch (error: any) {
+      console.error("❌ Erro interno no login:", error);
       return { error };
     }
   };
