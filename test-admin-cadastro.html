@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Teste Cadastro Admin Master</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .info-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: rgba(255, 99, 71, 0.1);
+            border: 1px solid rgba(255, 99, 71, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+        .test-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .log-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .result-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .credentials {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Teste de Cadastro Admin Master</h1>
+        
+        <div class="info-box">
+            <h3>📋 O que este teste faz:</h3>
+            <ul>
+                <li>✅ Cria um usuário admin no Supabase Auth</li>
+                <li>✅ Cria perfil com role 'admin' automaticamente</li>
+                <li>✅ Confirma email automaticamente</li>
+                <li>✅ Testa login com as credenciais criadas</li>
+                <li>✅ Fornece credenciais para teste manual</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h3>⚠️ Importante:</h3>
+            <p>Este teste criará um usuário admin real no seu sistema. Use apenas para testes!</p>
+            <p>As credenciais serão exibidas após o teste para que você possa fazer login manualmente.</p>
+        </div>
+
+        <button class="test-button" onclick="executarTesteAdmin()" id="testButton">
+            🚀 Criar Admin de Teste
+        </button>
+
+        <div class="log-output" id="logOutput"></div>
+        <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+
+        const supabaseUrl = "https://cbwpghrkfvczjqzefvix.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8";
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        window.executarTesteAdmin = async function() {
+            const button = document.getElementById('testButton');
+            const logOutput = document.getElementById('logOutput');
+            const resultBox = document.getElementById('resultBox');
+            
+            button.disabled = true;
+            button.textContent = '🔄 Criando Admin...';
+            logOutput.style.display = 'block';
+            logOutput.textContent = '';
+            resultBox.style.display = 'none';
+
+            function log(message) {
+                console.log(message);
+                logOutput.textContent += message + '\n';
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+
+            const timestamp = Date.now();
+            
+            const adminData = {
+                firstName: 'Admin',
+                lastName: 'Master',
+                username: `admin_master_${timestamp}`,
+                email: `admin_master_${timestamp}@gmail.com`,
+                password: 'AdminMaster123!',
+                cpf: '111.222.333-44',
+                whatsapp: '(11) 98888-7777'
+            };
+
+            try {
+                log('🚀 === CRIANDO ADMIN DE TESTE ===');
+                log('📊 Dados do Admin: ' + JSON.stringify(adminData, null, 2));
+                
+                // 1. CRIAR USUÁRIO NO AUTH
+                log('\n🔄 Etapa 1: Criando admin no auth...');
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: adminData.email,
+                    password: adminData.password,
+                    options: {
+                        data: {
+                            first_name: adminData.firstName,
+                            last_name: adminData.lastName,
+                            username: adminData.username,
+                            cpf: adminData.cpf,
+                            whatsapp: adminData.whatsapp
+                        },
+                        emailRedirectTo: `${window.location.origin}/dashboard`
+                    }
+                });
+
+                if (authError) {
+                    throw new Error(`Erro no auth: ${authError.message}`);
+                }
+
+                const userId = authData.user?.id;
+                log('✅ Admin criado no auth: ' + userId);
+
+                // 2. CRIAR PERFIL ADMIN VIA RPC
+                log('\n🔄 Etapa 2: Criando perfil admin via RPC...');
+                const { data: profileResult, error: profileError } = await supabase.rpc('create_user_profile_manual', {
+                    user_id_param: userId,
+                    email_param: adminData.email,
+                    first_name_param: adminData.firstName,
+                    last_name_param: adminData.lastName,
+                    username_param: adminData.username,
+                    cpf_param: adminData.cpf,
+                    whatsapp_param: adminData.whatsapp,
+                    referral_code_param: null
+                });
+
+                if (profileError) {
+                    throw new Error(`Erro ao criar perfil admin: ${profileError.message}`);
+                }
+
+                if (!profileResult?.success) {
+                    throw new Error(`Falha na criação do perfil admin: ${profileResult?.error}`);
+                }
+
+                log('✅ Perfil admin criado via RPC: ' + JSON.stringify(profileResult));
+
+                // 3. DEFINIR COMO ADMIN
+                log('\n🔄 Etapa 3: Definindo role como admin...');
+                const { data: updateResult, error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        role: 'admin',
+                        status: 'active',
+                        profile_completed: true
+                    })
+                    .eq('user_id', userId);
+
+                if (updateError) {
+                    log('⚠️ Aviso ao definir como admin: ' + updateError.message);
+                } else {
+                    log('✅ Role admin definido');
+                }
+
+                // 4. CONFIRMAR EMAIL
+                log('\n🔄 Etapa 4: Confirmando email...');
+                const { data: confirmResult, error: confirmError } = await supabase.rpc('confirm_email_manual', {
+                    user_email: adminData.email
+                });
+
+                if (confirmError) {
+                    log('⚠️ Aviso ao confirmar email: ' + confirmError.message);
+                } else {
+                    log('✅ Email confirmado');
+                }
+
+                // 5. VERIFICAR PERFIL ADMIN CRIADO
+                log('\n🔍 Etapa 5: Verificando perfil admin criado...');
+                const { data: profile, error: profileCheckError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (profileCheckError) {
+                    log('⚠️ Aviso ao buscar perfil admin: ' + profileCheckError.message);
+                } else {
+                    log('✅ Perfil admin encontrado: ' + JSON.stringify(profile, null, 2));
+                }
+
+                // 6. TESTAR LOGIN ADMIN
+                log('\n🔄 Etapa 6: Testando login admin...');
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: adminData.email,
+                    password: adminData.password
+                });
+
+                if (loginError) {
+                    throw new Error(`Erro no login admin: ${loginError.message}`);
+                }
+
+                log('✅ Login admin funcionando: ' + loginData.user?.email);
+
+                // Fazer logout
+                await supabase.auth.signOut();
+                log('📤 Logout admin realizado');
+
+                log('\n🎉 === ADMIN DE TESTE CRIADO COM SUCESSO ===');
+
+                // Mostrar resultado de sucesso
+                resultBox.className = 'result-box success';
+                resultBox.innerHTML = `
+                    <h3>✅ Admin Criado com Sucesso!</h3>
+                    <div class="credentials">
+                        <strong>📧 Email:</strong> ${adminData.email}<br>
+                        <strong>🔐 Senha:</strong> ${adminData.password}<br>
+                        <strong>👤 Username:</strong> ${adminData.username}<br>
+                        <strong>🛡️ Role:</strong> admin
+                    </div>
+                    <p><strong>🔗 Agora você pode:</strong></p>
+                    <ul>
+                        <li>Ir para <a href="/register" style="color: #ffd700;">página de cadastro</a> e testar</li>
+                        <li>Ou fazer login com as credenciais acima</li>
+                        <li>Verificar se o perfil admin foi criado corretamente</li>
+                    </ul>
+                `;
+                resultBox.style.display = 'block';
+
+            } catch (error) {
+                log('\n💥 ERRO AO CRIAR ADMIN DE TESTE: ' + error.message);
+                
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = `
+                    <h3>❌ Erro ao Criar Admin</h3>
+                    <p><strong>Erro:</strong> ${error.message}</p>
+                    <p>Verifique os logs acima para mais detalhes.</p>
+                `;
+                resultBox.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = '🚀 Criar Admin de Teste';
+            }
+        }
+    </script>
+</body>
+</html>
