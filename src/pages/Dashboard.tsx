@@ -872,16 +872,16 @@ const Dashboard = () => {
 
         {/* Enhanced Partner/Socio Status Box */}
         {partnerData && (
-          <Card className="mb-6 bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-500/30 shadow-lg">
+          <Card className="mb-6 bg-gradient-to-br from-binance-black via-binance-dark-gray to-binance-gray border-binance-yellow/30 shadow-lg shadow-binance-yellow/10">
             <CardHeader className="pb-4">
               <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full mb-3">
-                  <Crown className="h-8 w-8 text-white" />
+                <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-binance-yellow to-binance-yellow/80 rounded-full mb-3">
+                  <Crown className="h-8 w-8 text-binance-black" />
                 </div>
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                <CardTitle className="text-2xl font-bold text-binance-yellow">
                   🎉 Parabéns por ser Sócio Ativo da Alphabit!
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-sm text-foreground/80 mt-2">
                   Você faz parte do seleto grupo de sócios que recebe {partnerStats.commission}% sobre todos os depósitos da plataforma
                 </p>
               </div>
@@ -889,40 +889,40 @@ const Dashboard = () => {
             <CardContent className="space-y-6">
               {/* Estatísticas principais */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200/50 dark:border-yellow-800/30">
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                <div className="text-center p-4 bg-binance-black/50 rounded-lg border border-binance-yellow/20">
+                  <div className="text-2xl font-bold text-binance-yellow">
                     R$ {partnerStats.totalEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <div className="text-sm text-muted-foreground font-medium">Comissões Recebidas</div>
+                  <div className="text-sm text-foreground/70 font-medium">Comissões Recebidas</div>
                 </div>
-                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200/50 dark:border-green-800/30">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-center p-4 bg-binance-black/50 rounded-lg border border-binance-green/20">
+                  <div className="text-2xl font-bold text-binance-green">
                     R$ {partnerStats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
-                  <div className="text-sm text-muted-foreground font-medium">Total Depósitos Plataforma</div>
+                  <div className="text-sm text-foreground/70 font-medium">Total Depósitos Plataforma</div>
                 </div>
-                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="text-center p-4 bg-binance-black/50 rounded-lg border border-binance-yellow/20">
+                  <div className="text-2xl font-bold text-binance-yellow">
                     {partnerStats.commission}%
                   </div>
-                  <div className="text-sm text-muted-foreground font-medium">Taxa de Comissão</div>
+                  <div className="text-sm text-foreground/70 font-medium">Taxa de Comissão</div>
                 </div>
               </div>
 
               {/* Informação sobre saques */}
-              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg">
+              <div className="p-4 bg-binance-black/30 border border-binance-yellow/30 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <Calendar className="h-6 w-6 text-purple-500 mt-1 flex-shrink-0" />
+                  <Calendar className="h-6 w-6 text-binance-yellow mt-1 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                    <h3 className="font-semibold text-binance-yellow mb-2">
                       💰 Você pode sacar toda sexta-feira o lucro gerado
                     </h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-foreground/80">
                       Os saques são liberados automaticamente toda sexta-feira. Seus ganhos serão transferidos para sua conta.
                     </p>
                     <div className="mt-3">
                       <Button 
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        className="bg-binance-yellow hover:bg-binance-yellow/90 text-binance-black font-semibold"
                         onClick={() => {
                           const today = new Date();
                           const isFriday = today.getDay() === 5;
@@ -949,26 +949,26 @@ const Dashboard = () => {
               </div>
 
               {/* Seção Motivacional */}
-              <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-lg">
+              <div className="p-4 bg-binance-black/30 border border-binance-green/30 rounded-lg">
                 <div className="text-center mb-4">
-                  <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                  <h3 className="text-xl font-bold text-binance-yellow mb-2">
                     🚀 Maximize seus Ganhos!
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <h4 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-2">
+                  <div className="p-3 bg-binance-black/40 rounded-lg border border-binance-yellow/20">
+                    <h4 className="font-semibold text-sm text-binance-yellow mb-2">
                       📈 Crescimento Exponencial
                     </h4>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/80">
                       Quanto mais a plataforma cresce, maiores são seus ganhos. Cada novo usuário aumenta sua comissão mensal.
                     </p>
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <h4 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-2">
+                  <div className="p-3 bg-binance-black/40 rounded-lg border border-binance-yellow/20">
+                    <h4 className="font-semibold text-sm text-binance-yellow mb-2">
                       💼 Renda Passiva
                     </h4>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/80">
                       Seus ganhos são automáticos e baseados no volume total de depósitos da plataforma, sem esforço adicional.
                     </p>
                   </div>
@@ -976,18 +976,18 @@ const Dashboard = () => {
               </div>
 
               {/* Comissão atual */}
-              <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+              <div className="p-4 bg-binance-black/30 border border-binance-green/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                    <p className="text-sm font-medium text-binance-green">
                       💰 Comissão Disponível para Saque
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/70">
                       Baseado nos depósitos da plataforma • Atualizado em tempo real
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <div className="text-2xl font-bold text-binance-yellow">
                       R$ {partnerStats.monthlyEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -995,14 +995,14 @@ const Dashboard = () => {
               </div>
 
               {/* Mensagem de crescimento */}
-              <div className="p-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-lg">
+              <div className="p-4 bg-binance-black/30 border border-binance-yellow/30 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <TrendingUp className="h-6 w-6 text-blue-500 mt-1 flex-shrink-0" />
+                  <TrendingUp className="h-6 w-6 text-binance-yellow mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                    <h4 className="font-semibold text-binance-yellow mb-2">
                       Como seus lucros aumentam com o crescimento da plataforma
                     </h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
+                    <ul className="text-sm text-foreground/80 space-y-1">
                       <li>• Mais usuários = mais depósitos = mais comissão para você</li>
                       <li>• Seu percentual fixo de {partnerStats.commission}% garante crescimento proporcional</li>
                       <li>• Crescimento composto: cada real depositado gera retorno contínuo</li>
