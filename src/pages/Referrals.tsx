@@ -279,7 +279,19 @@ const Referrals = () => {
   // Função para forçar atualização dos dados
   const forceRefresh = () => {
     console.log('🔄 Forçando atualização dos dados...');
-    window.location.reload();
+    setReferredUsers([]);
+    setStats({
+      totalReferrals: 0,
+      activeReferrals: 0,
+      totalCommission: 0,
+      pendingCommission: 0
+    });
+    setProfile(null);
+    
+    // Recarregar dados após limpar
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   const copyToClipboard = async () => {
