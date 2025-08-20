@@ -2272,6 +2272,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      test_referral_signup: {
+        Args: { referral_code?: string; test_email: string }
+        Returns: Json
+      }
       update_operations_progress: {
         Args: Record<PropertyKey, never>
         Returns: undefined
