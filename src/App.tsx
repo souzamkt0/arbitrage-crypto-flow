@@ -40,7 +40,26 @@ import CompleteProfileRoute from "./components/CompleteProfileRoute";
 
 const queryClient = new QueryClient();
 
-// Protected Route Component
+// Auto-redirect Route Component for root path
+const AutoRedirect = () => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+        <div className="text-xl">Acessando automaticamente...</div>
+        <div className="text-sm text-gray-400 mt-2">admin@clean.com</div>
+      </div>
+    </div>;
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Navigate to="/login" replace />;
+};
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
@@ -101,7 +120,7 @@ const App = () => (
           <OAuthRedirect />
           <AuthDebugger />
           <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<AutoRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/painel" element={<Navigate to="/dashboard" replace />} />

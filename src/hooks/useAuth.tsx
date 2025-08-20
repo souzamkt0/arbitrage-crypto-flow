@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Check for existing session - VERSÃO ULTRA-SIMPLIFICADA
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('🔍 Verificando sessão existente:', !!session);
       setSession(session);
       setUser(session?.user ?? null);
@@ -81,9 +81,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         console.log('✅ Sessão existente encontrada, definindo perfil mock');
         setProfile({ role: 'admin', email: session.user.email }); // Mock profile
+        setIsLoading(false);
+      } else {
+        // *** NOVO: LOGIN AUTOMÁTICO ***
+        console.log('🔄 Nenhuma sessão encontrada, tentando login automático...');
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: 'admin@clean.com',
+            password: '123456',
+          });
+
+          if (error) {
+            console.error('❌ Login automático falhou:', error.message);
+            setIsLoading(false);
+          } else {
+            console.log('✅ Login automático bem-sucedido!', data.user?.email);
+            // O onAuthStateChange vai pegar a mudança e atualizar o estado
+          }
+        } catch (err: any) {
+          console.error('❌ Erro no login automático:', err.message);
+          setIsLoading(false);
+        }
       }
-      
-      setIsLoading(false);
     });
 
     // Check impersonation mode on mount
