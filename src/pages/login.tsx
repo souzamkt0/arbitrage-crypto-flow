@@ -181,9 +181,9 @@ const Login = () => {
           </div>
 
           {/* Login Card */}
-          <Card className="bg-card/80 backdrop-blur-xl border-border shadow-2xl animate-fade-in-up animation-delay-400 rounded-3xl overflow-hidden">
+          <Card className="bg-gray-900/90 backdrop-blur-xl border-gray-700 shadow-2xl animate-fade-in-up animation-delay-400 rounded-3xl overflow-hidden">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-foreground text-xl font-semibold">
+              <CardTitle className="text-white text-xl font-semibold">
                 Entrar na Conta
               </CardTitle>
             </CardHeader>
@@ -192,7 +192,7 @@ const Login = () => {
                 {/* Email Field */}
                 <div className="space-y-2 animate-fade-in-up animation-delay-600">
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-foreground transition-colors duration-200" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                     <Input
                       id="email"
                       name="email"
@@ -200,7 +200,7 @@ const Login = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
-                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-border text-foreground placeholder-muted-foreground focus:border-primary focus:ring-0 transition-all duration-200 rounded-none"
+                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-gray-600 text-white placeholder-gray-400 focus:border-primary focus:ring-0 transition-all duration-200 rounded-none"
                       required
                     />
                   </div>
@@ -209,7 +209,7 @@ const Login = () => {
                 {/* Password Field */}
                 <div className="space-y-2 animate-fade-in-up animation-delay-700">
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-foreground transition-colors duration-200" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors duration-200" />
                     <Input
                       id="password"
                       name="password"
@@ -217,7 +217,7 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-border text-foreground placeholder-muted-foreground focus:border-primary focus:ring-0 transition-all duration-200 rounded-none"
+                      className="pl-12 pr-4 py-3 bg-transparent border-0 border-b-2 border-gray-600 text-white placeholder-gray-400 focus:border-primary focus:ring-0 transition-all duration-200 rounded-none"
                       required
                     />
                   </div>
@@ -238,9 +238,9 @@ const Login = () => {
 
               {/* Divider */}
               <div className="flex items-center my-6 animate-fade-in-up animation-delay-850">
-                <div className="flex-1 border-t border-border"></div>
-                <span className="px-4 text-muted-foreground text-sm">ou</span>
-                <div className="flex-1 border-t border-border"></div>
+                <div className="flex-1 border-t border-gray-600"></div>
+                <span className="px-4 text-gray-400 text-sm">ou</span>
+                <div className="flex-1 border-t border-gray-600"></div>
               </div>
 
               {/* Google Login Button */}
@@ -248,7 +248,7 @@ const Login = () => {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full bg-card hover:bg-muted text-foreground font-semibold py-3 rounded-xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg animate-fade-in-up animation-delay-875 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 border border-border"
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-xl transform hover:scale-[1.02] transition-all duration-200 shadow-lg animate-fade-in-up animation-delay-875 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 border border-gray-600"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -281,8 +281,8 @@ const Login = () => {
               </Button>
 
               {/* Register Link */}
-              <div className="mt-8 pt-6 border-t border-border animate-fade-in-up animation-delay-900">
-                <p className="text-center text-sm text-muted-foreground mb-4">
+              <div className="mt-8 pt-6 border-t border-gray-600 animate-fade-in-up animation-delay-900">
+                <p className="text-center text-sm text-gray-400 mb-4">
                   Ainda não tem uma conta?
                 </p>
                 <Link to="/register">
