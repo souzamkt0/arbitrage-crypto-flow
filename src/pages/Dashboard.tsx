@@ -870,7 +870,152 @@ const Dashboard = () => {
         {/* Partner Status Banner */}
         <PartnerStatusBanner />
 
-        {/* Link de Indicação no Topo */}
+        {/* Enhanced Partner/Socio Status Box */}
+        {partnerData && (
+          <Card className="mb-6 bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-500/30 shadow-lg">
+            <CardHeader className="pb-4">
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center justify-center p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full mb-3">
+                  <Crown className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  🎉 Parabéns por ser Sócio Ativo da Alphabit!
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Você faz parte do seleto grupo de sócios que recebe {partnerStats.commission}% sobre todos os depósitos da plataforma
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Estatísticas principais */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200/50 dark:border-yellow-800/30">
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    R$ {partnerStats.totalEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-medium">Comissões Recebidas</div>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200/50 dark:border-green-800/30">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    R$ {partnerStats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-medium">Total Depósitos Plataforma</div>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {partnerStats.commission}%
+                  </div>
+                  <div className="text-sm text-muted-foreground font-medium">Taxa de Comissão</div>
+                </div>
+              </div>
+
+              {/* Informação sobre saques */}
+              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-6 w-6 text-purple-500 mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-purple-600 dark:text-purple-400 mb-2">
+                      💰 Você pode sacar toda sexta-feira o lucro gerado
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Os saques são liberados automaticamente toda sexta-feira. Seus ganhos serão transferidos para sua conta.
+                    </p>
+                    <div className="mt-3">
+                      <Button 
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        onClick={() => {
+                          const today = new Date();
+                          const isFriday = today.getDay() === 5;
+                          if (isFriday) {
+                            toast({
+                              title: "Saque Disponível!",
+                              description: "Processando sua solicitação de saque...",
+                            });
+                          } else {
+                            const daysUntilFriday = (5 - today.getDay() + 7) % 7 || 7;
+                            toast({
+                              title: "Saque não disponível",
+                              description: `Próximo saque em ${daysUntilFriday} dia(s) - sexta-feira`,
+                            });
+                          }
+                        }}
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Solicitar Saque
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Seção Motivacional */}
+              <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-lg">
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                    🚀 Maximize seus Ganhos!
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-2">
+                      📈 Crescimento Exponencial
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Quanto mais a plataforma cresce, maiores são seus ganhos. Cada novo usuário aumenta sua comissão mensal.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 mb-2">
+                      💼 Renda Passiva
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Seus ganhos são automáticos e baseados no volume total de depósitos da plataforma, sem esforço adicional.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comissão atual */}
+              <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      💰 Comissão Disponível para Saque
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Baseado nos depósitos da plataforma • Atualizado em tempo real
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      R$ {partnerStats.monthlyEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mensagem de crescimento */}
+              <div className="p-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-6 w-6 text-blue-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                      Como seus lucros aumentam com o crescimento da plataforma
+                    </h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Mais usuários = mais depósitos = mais comissão para você</li>
+                      <li>• Seu percentual fixo de {partnerStats.commission}% garante crescimento proporcional</li>
+                      <li>• Crescimento composto: cada real depositado gera retorno contínuo</li>
+                      <li>• Expansão da plataforma multiplica seus ganhos automaticamente</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Link de Indicação */}
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex flex-col gap-4">
@@ -925,71 +1070,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Partner/Socio Status Box */}
-        {partnerData && (
-          <Card className="mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-500/20 rounded-full">
-                    <Crown className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-yellow-600 dark:text-yellow-400">
-                      🏆 Status de Sócio Ativo
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Você tem direito a {partnerStats.commission}% sobre todos os depósitos da plataforma
-                    </p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300">
-                  Sócio VIP
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-background/50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                    R$ {partnerStats.totalEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Comissões Recebidas</div>
-                </div>
-                <div className="text-center p-3 bg-background/50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    R$ {partnerStats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Depósitos Plataforma</div>
-                </div>
-                <div className="text-center p-3 bg-background/50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {partnerStats.commission}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">Taxa de Comissão</div>
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                      💰 Comissão Potencial Atual
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Baseado nos depósitos da plataforma
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                      R$ {partnerStats.monthlyEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-6">
