@@ -87,6 +87,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+import AuthDebugger from "./components/AuthDebugger";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -97,6 +99,7 @@ const App = () => (
           <AuthErrorHandler />
           <PortRedirect />
           <OAuthRedirect />
+          <AuthDebugger />
           <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
