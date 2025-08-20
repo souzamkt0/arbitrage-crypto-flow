@@ -246,21 +246,13 @@ const Register = () => {
     try {
       console.log('🔄 Iniciando cadastro real...', formData);
       
-      // Usar Supabase diretamente para garantir que o email seja enviado
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            username: formData.username,
-            cpf: formData.cpf,
-            whatsapp: formData.whatsapp,
-            referralCode: referralCode
-          }
-        }
+      const { error } = await signUp(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
+        cpf: formData.cpf,
+        whatsapp: formData.whatsapp,
+        referralCode: referralCode
       });
       
       if (error) {
@@ -289,13 +281,13 @@ const Register = () => {
       
       toast({
         title: "✅ Cadastro realizado!",
-        description: "Verifique seu email para confirmar sua conta. O link de confirmação foi enviado para " + formData.email,
+        description: "Conta criada com sucesso! Você já pode fazer login.",
       });
       
-      // Redirecionar para página de instrução
+      // Redirecionar para login
       setTimeout(() => {
         navigate('/login');
-      }, 3000);
+      }, 2000);
 
     } catch (error: any) {
       console.error('❌ Erro no cadastro:', error);
