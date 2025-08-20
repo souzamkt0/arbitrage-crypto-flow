@@ -1229,15 +1229,7 @@ export type Database = {
           updated_at?: string | null
           withdrawal_date?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "partner_withdrawals_partner_id_fkey"
-            columns: ["partner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       partners: {
         Row: {
@@ -1357,165 +1349,81 @@ export type Database = {
       }
       profiles: {
         Row: {
-          account_activated: boolean | null
-          activation_date: string | null
-          api_connected: boolean | null
           avatar: string | null
           avatar_url: string | null
-          badge: string | null
           balance: number | null
           bio: string | null
-          city: string | null
           cpf: string | null
           created_at: string | null
           display_name: string | null
-          earnings: number | null
           email: string | null
-          first_deposit_date: string | null
+          email_verified: boolean | null
           first_name: string | null
-          followers_count: number | null
-          following_count: number | null
           full_name: string | null
           id: string
-          join_date: string | null
-          last_deposit_date: string | null
-          last_login: string | null
           last_name: string | null
-          last_withdrawal: string | null
-          level: number | null
-          location: string | null
-          minimum_deposit_amount: number | null
-          minimum_deposit_met: boolean | null
-          monthly_earnings: number | null
-          partner_balance: number | null
-          partner_commission: number | null
-          partner_earnings: number | null
-          partner_total_deposits: number | null
           phone: string | null
-          posts_count: number | null
           profile_completed: boolean | null
-          referral_balance: number | null
           referral_code: string | null
           referred_by: string | null
-          residual_balance: number | null
           role: string | null
-          state: string | null
           status: string | null
-          total_commission: number | null
-          total_deposited: number | null
           total_profit: number | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
           username: string | null
-          verified: boolean | null
           whatsapp: string | null
         }
         Insert: {
-          account_activated?: boolean | null
-          activation_date?: string | null
-          api_connected?: boolean | null
           avatar?: string | null
           avatar_url?: string | null
-          badge?: string | null
           balance?: number | null
           bio?: string | null
-          city?: string | null
           cpf?: string | null
           created_at?: string | null
           display_name?: string | null
-          earnings?: number | null
           email?: string | null
-          first_deposit_date?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
-          followers_count?: number | null
-          following_count?: number | null
           full_name?: string | null
-          id?: string
-          join_date?: string | null
-          last_deposit_date?: string | null
-          last_login?: string | null
+          id: string
           last_name?: string | null
-          last_withdrawal?: string | null
-          level?: number | null
-          location?: string | null
-          minimum_deposit_amount?: number | null
-          minimum_deposit_met?: boolean | null
-          monthly_earnings?: number | null
-          partner_balance?: number | null
-          partner_commission?: number | null
-          partner_earnings?: number | null
-          partner_total_deposits?: number | null
           phone?: string | null
-          posts_count?: number | null
           profile_completed?: boolean | null
-          referral_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
-          residual_balance?: number | null
           role?: string | null
-          state?: string | null
           status?: string | null
-          total_commission?: number | null
-          total_deposited?: number | null
           total_profit?: number | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
           username?: string | null
-          verified?: boolean | null
           whatsapp?: string | null
         }
         Update: {
-          account_activated?: boolean | null
-          activation_date?: string | null
-          api_connected?: boolean | null
           avatar?: string | null
           avatar_url?: string | null
-          badge?: string | null
           balance?: number | null
           bio?: string | null
-          city?: string | null
           cpf?: string | null
           created_at?: string | null
           display_name?: string | null
-          earnings?: number | null
           email?: string | null
-          first_deposit_date?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
-          followers_count?: number | null
-          following_count?: number | null
           full_name?: string | null
           id?: string
-          join_date?: string | null
-          last_deposit_date?: string | null
-          last_login?: string | null
           last_name?: string | null
-          last_withdrawal?: string | null
-          level?: number | null
-          location?: string | null
-          minimum_deposit_amount?: number | null
-          minimum_deposit_met?: boolean | null
-          monthly_earnings?: number | null
-          partner_balance?: number | null
-          partner_commission?: number | null
-          partner_earnings?: number | null
-          partner_total_deposits?: number | null
           phone?: string | null
-          posts_count?: number | null
           profile_completed?: boolean | null
-          referral_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
-          residual_balance?: number | null
           role?: string | null
-          state?: string | null
           status?: string | null
-          total_commission?: number | null
-          total_deposited?: number | null
           total_profit?: number | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
           username?: string | null
-          verified?: boolean | null
           whatsapp?: string | null
         }
         Relationships: []
