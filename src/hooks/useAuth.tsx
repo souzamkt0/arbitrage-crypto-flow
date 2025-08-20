@@ -267,51 +267,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("✅ Usuário criado no auth com sucesso!", data);
 
-      // Se o usuário foi criado, criar o perfil imediatamente
-      if (data.user) {
-        console.log('🔄 Criando perfil do usuário...');
-        
-        const generateReferralCode = () => {
-          const timestamp = Date.now().toString(36);
-          const random = Math.random().toString(36).substring(2, 8);
-          return `${userData.username || 'user'}${timestamp}${random}`.toLowerCase();
-        };
-
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              email: email,
-              display_name: `${userData.firstName} ${userData.lastName}`.trim(),
-              username: userData.username,
-              first_name: userData.firstName,
-              last_name: userData.lastName,
-              cpf: userData.cpf,
-              whatsapp: userData.whatsapp,
-              bio: 'Novo usuário',
-              avatar: 'avatar1',
-              referral_code: generateReferralCode(),
-              referred_by: userData.referralCode || null,
-              role: 'user',
-              balance: 0.00,
-              total_profit: 0.00,
-              status: 'active',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-
-          if (profileError) {
-            console.error('❌ Erro ao criar perfil:', profileError);
-            // Não falhar o cadastro por causa do perfil
-          } else {
-            console.log('✅ Perfil criado com sucesso!');
-          }
-        } catch (profileError) {
-          console.error('❌ Erro interno ao criar perfil:', profileError);
-          // Não falhar o cadastro por causa do perfil
-        }
-      }
+      // NOTA: O perfil será criado automaticamente pelo trigger 'handle_new_user'
+      // que executa quando um novo usuário é inserido na tabela auth.users
+      console.log('🔄 Perfil será criado automaticamente pelo trigger do banco de dados...');
 
       return { error: null };
     } catch (error) {
