@@ -1368,6 +1368,7 @@ export type Database = {
           avatar_url: string | null
           balance: number | null
           bio: string | null
+          city: string | null
           cpf: string | null
           created_at: string | null
           display_name: string | null
@@ -1379,9 +1380,11 @@ export type Database = {
           last_name: string | null
           phone: string | null
           profile_completed: boolean | null
+          referral_balance: number | null
           referral_code: string | null
           referred_by: string | null
           role: string | null
+          state: string | null
           status: string | null
           total_profit: number | null
           updated_at: string | null
@@ -1394,6 +1397,7 @@ export type Database = {
           avatar_url?: string | null
           balance?: number | null
           bio?: string | null
+          city?: string | null
           cpf?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -1405,9 +1409,11 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           profile_completed?: boolean | null
+          referral_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
           role?: string | null
+          state?: string | null
           status?: string | null
           total_profit?: number | null
           updated_at?: string | null
@@ -1420,6 +1426,7 @@ export type Database = {
           avatar_url?: string | null
           balance?: number | null
           bio?: string | null
+          city?: string | null
           cpf?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -1431,9 +1438,11 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           profile_completed?: boolean | null
+          referral_balance?: number | null
           referral_code?: string | null
           referred_by?: string | null
           role?: string | null
+          state?: string | null
           status?: string | null
           total_profit?: number | null
           updated_at?: string | null
