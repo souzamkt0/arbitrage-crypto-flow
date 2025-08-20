@@ -278,7 +278,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
 
               {/* Preview do Valor */}
-              {amount && parseFloat(amount) > 0 && <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-sm bg-slate-950">
+              {amount && parseFloat(amount) > 0 && <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-sm bg-gray-950">
                   <div className="text-center space-y-2">
                     <div className="text-sm font-medium text-green-800">💳 Valor do PIX</div>
                     <CurrencyDisplay usdAmount={parseFloat(amount)} size="lg" orientation="vertical" />
