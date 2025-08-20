@@ -54,7 +54,7 @@ const AuthDebugger = () => {
       if (!user && !session) {
         addTestResult("🧪 Tentando login automático...");
         try {
-          const result = await signIn('admin@final.com', '123456');
+          const result = await signIn('admin@clean.com', '123456');
           if (result.error) {
             addTestResult(`❌ Login automático falhou: ${result.error.message}`);
           } else {
@@ -86,7 +86,7 @@ const AuthDebugger = () => {
   const testManualLogin = async () => {
     addTestResult("🧪 Testando login manual...");
     try {
-      const result = await signIn('admin@final.com', '123456');
+      const result = await signIn('admin@clean.com', '123456');
       if (result.error) {
         addTestResult(`❌ Login manual falhou: ${result.error.message}`);
         console.error("Erro detalhado:", result.error);
