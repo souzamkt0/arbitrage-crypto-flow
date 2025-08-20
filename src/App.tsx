@@ -106,7 +106,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-import AuthDebugger from "./components/AuthDebugger";
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -118,7 +118,7 @@ const App = () => (
           <AuthErrorHandler />
           <PortRedirect />
           <OAuthRedirect />
-          <AuthDebugger />
+          
           <Routes>
           <Route path="/" element={<AutoRedirect />} />
           <Route path="/login" element={<Login />} />
