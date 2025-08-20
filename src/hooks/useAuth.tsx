@@ -267,9 +267,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("✅ Usuário criado no auth com sucesso!", data);
 
-      // NOTA: O perfil será criado automaticamente pelo trigger 'handle_new_user'
-      // que executa quando um novo usuário é inserido na tabela auth.users
-      console.log('🔄 Perfil será criado automaticamente pelo trigger do banco de dados...');
+      // CORREÇÃO: Como não conseguimos criar triggers em auth.users no Supabase,
+      // vamos criar o perfil manualmente usando a função RPC
+      if (data.user) {
+        console.log('🔄 Criando perfil manualmente via RPC...');
+        
+        try {
+          const { data: profileResult, error: profileError } = await supabase.rpc('create_user_profile_manual', {
+            user_id_param: data.user.id,
+            email_param: data.user.email,
+            first_name_param: userData.firstName,
+            last_name_param: userData.lastName,
+            username_param: userData.username,
+            cpf_param: userData.cpf,
+            whatsapp_param: userData.whatsapp,
+            referral_code_param: userData.referralCode || null
+          });
+
+          if (profileError) {
+            console.error('❌ Erro ao criar perfil via RPC:', profileError);
+            return { error: { message: `Erro ao criar perfil: ${profileError.message}` } };
+          }
+
+          if (profileResult && !profileResult.success) {
+            console.error('❌ Falha na criação do perfil:', profileResult.error);
+            return { error: { message: `Erro ao criar perfil: ${profileResult.error}` } };
+          }
+
+          console.log('✅ Perfil criado com sucesso via RPC!', profileResult);
+
+          // Confirmar email automaticamente
+          console.log('🔄 Confirmando email automaticamente...');
+          const { error: confirmError } = await supabase.rpc('confirm_email_manual', {
+            user_email: data.user.email
+          });
+
+          if (confirmError) {
+            console.warn('⚠️ Aviso: Erro ao confirmar email automaticamente:', confirmError);
+            // Não falhar o cadastro por causa da confirmação de email
+          } else {
+            console.log('✅ Email confirmado automaticamente!');
+          }
+
+        } catch (profileError) {
+          console.error('❌ Erro interno ao criar perfil:', profileError);
+          return { error: { message: 'Erro interno durante a criação do perfil' } };
+        }
+      }
 
       return { error: null };
     } catch (error) {

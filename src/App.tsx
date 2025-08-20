@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import CompleteProfile from "./pages/CompleteProfile";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
+import TesteCompleto from "./pages/TesteCompleto";
 
 import Deposit from "./pages/Deposit";
 import Withdrawal from "./pages/Withdrawal";
@@ -292,6 +293,9 @@ const App = () => (
               </AdminRoute>
             }
           />
+
+          {/* Página de teste do sistema de cadastro */}
+          <Route path="/teste-completo" element={<TesteCompleto />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
