@@ -712,10 +712,12 @@ const Dashboard = () => {
 
               // Gerar link de indicação único baseado no código de indicação do usuário
         if (profile.referral_code) {
-          setReferralLink(`${window.location.origin}/register?ref=${profile.referral_code}`);
+          const userName = profile.display_name || profile.first_name || profile.username || 'Usuário';
+          setReferralLink(`${window.location.origin}/register?ref=${profile.referral_code}&name=${encodeURIComponent(userName)}`);
         } else if (profile.username) {
           // Fallback para username se não tiver referral_code
-          setReferralLink(`${window.location.origin}/register?ref=${profile.username}`);
+          const userName = profile.display_name || profile.first_name || profile.username || 'Usuário';
+          setReferralLink(`${window.location.origin}/register?ref=${profile.username}&name=${encodeURIComponent(userName)}`);
         }
     };
     loadInvestments();

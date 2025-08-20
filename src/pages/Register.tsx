@@ -26,6 +26,7 @@ const Register = () => {
     confirmPassword: ""
   });
   const [referralCode, setReferralCode] = useState("");
+  const [referrerName, setReferrerName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const navigate = useNavigate();
@@ -43,9 +44,14 @@ const Register = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
+    const refName = urlParams.get('name');
     if (refCode) {
       setReferralCode(refCode);
       console.log('🎯 Código de indicação capturado:', refCode);
+    }
+    if (refName) {
+      setReferrerName(decodeURIComponent(refName));
+      console.log('👤 Nome do indicador capturado:', refName);
     }
   }, []);
 
@@ -426,9 +432,15 @@ const Register = () => {
                 Cadastro de Usuário
               </CardTitle>
               {referralCode && (
-                <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                  <p className="text-yellow-400 text-xs">
-                    🎯 Cadastro via indicação: <span className="font-mono font-bold">{referralCode}</span>
+                <div className="mt-3 p-3 bg-gradient-to-r from-yellow-500/20 to-yellow-400/10 border border-yellow-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <User className="h-4 w-4 text-yellow-400" />
+                    <p className="text-yellow-400 text-sm font-medium">
+                      Você foi indicado por: <span className="font-bold">{referrerName || referralCode}</span>
+                    </p>
+                  </div>
+                  <p className="text-yellow-300/80 text-xs">
+                    ✨ Parabéns! Você terá vantagens especiais ao se cadastrar
                   </p>
                 </div>
               )}

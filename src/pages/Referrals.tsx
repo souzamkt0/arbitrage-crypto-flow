@@ -155,7 +155,7 @@ const Referrals = () => {
         // Get user profile with referral code for referral link
         const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
-          .select('username, referral_code, referral_balance')
+          .select('username, referral_code, referral_balance, display_name')
           .eq('user_id', user.id)
           .single();
 
@@ -165,9 +165,11 @@ const Referrals = () => {
         setProfile(userProfile);
 
         if (userProfile?.referral_code) {
-          setReferralLink(`${window.location.origin}/register?ref=${userProfile.referral_code}`);
+          const userName = userProfile.display_name || userProfile.username || 'Usuário';
+          setReferralLink(`${window.location.origin}/register?ref=${userProfile.referral_code}&name=${encodeURIComponent(userName)}`);
         } else if (userProfile?.username) {
-          setReferralLink(`${window.location.origin}/register?ref=${userProfile.username}`);
+          const userName = userProfile.display_name || userProfile.username || 'Usuário';
+          setReferralLink(`${window.location.origin}/register?ref=${userProfile.username}&name=${encodeURIComponent(userName)}`);
         }
 
         // Get referral data - buscar usuários que foram indicados por este usuário
@@ -262,15 +264,18 @@ const Referrals = () => {
             pendingCommission: 0
           });
           setReferredUsers([]);
+          
+          // Generate fallback referral code if no username or referral_code
+          if (!userProfile?.referral_code && !userProfile?.username) {
+            const userCode = Math.random().toString(36).substring(2, 15);
+            const fallbackName = 'Usuário';
+            setReferralLink(`${window.location.origin}/register?ref=${userCode}&name=${encodeURIComponent(fallbackName)}`);
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar dados de referência:', error);
       }
     };
-
-          // Generate fallback referral code if no username or referral_code
-      const userCode = Math.random().toString(36).substring(2, 15);
-      setReferralLink(`${window.location.origin}/register?ref=${userCode}`);
     
     loadReferralData();
 

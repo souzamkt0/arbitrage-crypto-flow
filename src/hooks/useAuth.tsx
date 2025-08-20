@@ -92,11 +92,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Definir perfil básico quando usuário estiver logado
         if (session?.user) {
-          console.log('✅ Usuário logado, definindo perfil básico');
-          setProfile({ 
-            role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
-            email: session.user.email 
-          });
+          console.log('✅ Usuário logado, buscando perfil completo...');
+          
+          // Buscar dados completos do perfil da tabela profiles
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single()
+            .then(({ data: profileData, error: profileError }) => {
+              if (profileError) {
+                console.warn('⚠️ Erro ao buscar perfil completo:', profileError);
+                // Fallback para perfil básico
+                setProfile({ 
+                  role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+                  email: session.user.email,
+                  user_id: session.user.id
+                });
+              } else {
+                console.log('✅ Perfil completo carregado:', profileData);
+                setProfile(profileData);
+              }
+            });
         } else {
           console.log('❌ Nenhum usuário, limpando estado');
           setProfile(null);
@@ -113,11 +130,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('✅ Sessão existente encontrada, definindo perfil básico');
-        setProfile({ 
-          role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
-          email: session.user.email 
-        });
+        console.log('✅ Sessão existente encontrada, buscando perfil completo...');
+        
+        // Buscar dados completos do perfil da tabela profiles
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
+          .then(({ data: profileData, error: profileError }) => {
+            if (profileError) {
+              console.warn('⚠️ Erro ao buscar perfil completo na sessão existente:', profileError);
+              // Fallback para perfil básico
+              setProfile({ 
+                role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+                email: session.user.email,
+                user_id: session.user.id
+              });
+            } else {
+              console.log('✅ Perfil completo carregado na sessão existente:', profileData);
+              setProfile(profileData);
+            }
+          });
       }
       
       setIsLoading(false);
