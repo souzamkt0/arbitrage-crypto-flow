@@ -60,15 +60,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // TEMPORARIAMENTE DESABILITADO - Fetch user profile
+          console.log('🔄 Session válida encontrada, pulando busca de perfil por enquanto...');
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
+            console.log('⏳ Buscando perfil (TEMPORARIAMENTE COMENTADO)...');
+            // const { data: profileData } = await supabase
+            //   .from('profiles')
+            //   .select('*')
+            //   .eq('user_id', session.user.id)
+            //   .single();
             
-            setProfile(profileData);
+            // setProfile(profileData);
+            const profileData = null;
             
             // Se não existir perfil, criar após primeiro login (confirmação de e‑mail)
             if (!profileData) {
@@ -166,24 +169,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔄 Tentando login...', { email });
+      console.log('🔄 Tentando login SIMPLIFICADO...', { email });
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log('📊 Resposta do login:', { data, error });
+      console.log('📊 Resposta do login SIMPLIFICADO:', { data, error });
 
       if (error) {
-        console.error("❌ Erro no login:", error.message, error);
+        console.error("❌ Erro no login SIMPLIFICADO:", error.message, error);
         return { error };
       }
 
-      console.log('✅ Login bem-sucedido!', data);
+      console.log('✅ Login SIMPLIFICADO bem-sucedido!', data);
       return { error: null };
     } catch (error) {
-      console.error("❌ Erro interno no login:", error);
+      console.error("❌ Erro interno no login SIMPLIFICADO:", error);
       return { error };
     }
   };
