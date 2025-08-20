@@ -8,107 +8,114 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Binance-like Dark Theme */
-    --background: 218 23% 7%;        /* #0B0E11 - Fundo muito escuro */
-    --foreground: 0 0% 95%;          /* #F2F2F2 - Texto branco */
+    /* Binance Authentic Dark Theme */
+    --background: 0 0% 7%;           /* #121212 - Preto profundo Binance */
+    --foreground: 0 0% 98%;          /* #FAFAFA - Branco puro */
 
-    --card: 220 13% 11%;             /* #1E2329 - Cards cinza escuro */
-    --card-foreground: 0 0% 95%;     /* #F2F2F2 - Texto dos cards */
+    --card: 0 0% 11%;                /* #1C1C1C - Cards preto escuro */
+    --card-foreground: 0 0% 98%;     /* #FAFAFA - Texto branco */
 
-    --popover: 220 13% 11%;          
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 11%;             /* #1C1C1C */
+    --popover-foreground: 0 0% 98%;  /* #FAFAFA */
 
-    --primary: 45 96% 50%;           /* #F0B90B - Amarelo Binance */
-    --primary-foreground: 218 23% 7%; /* Texto escuro no amarelo */
+    --primary: 43 100% 50%;          /* #FCD535 - Amarelo Binance autêntico */
+    --primary-foreground: 0 0% 7%;   /* #121212 - Texto preto no amarelo */
 
-    --secondary: 220 13% 15%;        /* #2B3139 - Cinza médio */
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 15%;           /* #262626 - Cinza escuro */
+    --secondary-foreground: 0 0% 95%; /* #F2F2F2 */
 
-    --muted: 220 13% 15%;            /* #2B3139 */
-    --muted-foreground: 0 0% 65%;    /* #A6A6A6 - Cinza claro */
+    --muted: 0 0% 20%;               /* #333333 - Cinza médio */
+    --muted-foreground: 0 0% 70%;    /* #B3B3B3 - Cinza claro */
 
-    --accent: 220 13% 15%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 15%;              /* #262626 */
+    --accent-foreground: 0 0% 98%;   /* #FAFAFA */
 
-    --success: 142 76% 36%;          /* #0ECB81 - Verde Binance */
-    --success-foreground: 0 0% 100%;
+    --success: 120 100% 40%;         /* #02C076 - Verde Binance */
+    --success-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --warning: 45 96% 50%;           /* #F0B90B - Amarelo */
-    --warning-foreground: 218 23% 7%;
+    --warning: 43 100% 50%;          /* #FCD535 - Amarelo */
+    --warning-foreground: 0 0% 7%;   /* #121212 */
 
-    --destructive: 0 84% 60%;        /* #F6465D - Vermelho Binance */
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 91% 58%;        /* #F84960 - Vermelho Binance */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --border: 220 13% 20%;           /* #474D57 - Bordas */
-    --input: 220 13% 15%;            /* #2B3139 - Inputs */
-    --ring: 45 96% 50%;              /* #F0B90B - Focus ring */
+    --border: 0 0% 25%;              /* #404040 - Bordas cinza escuro */
+    --input: 0 0% 15%;               /* #262626 - Inputs */
+    --ring: 43 100% 50%;             /* #FCD535 - Focus ring amarelo */
 
-    --trading-green: 142 76% 36%;    /* #0ECB81 */
-    --trading-red: 0 84% 60%;        /* #F6465D */
+    --trading-green: 120 100% 40%;   /* #02C076 - Verde trading */
+    --trading-red: 0 91% 58%;        /* #F84960 - Vermelho trading */
     
-    --gradient-primary: linear-gradient(135deg, hsl(45 96% 50%), hsl(45 96% 60%));
-    --gradient-dark: linear-gradient(135deg, hsl(218 23% 7%), hsl(220 13% 11%));
+    /* Gradients Binance */
+    --gradient-primary: linear-gradient(135deg, hsl(43 100% 50%), hsl(45 100% 60%));
+    --gradient-dark: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 11%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 11%), hsl(0 0% 15%));
     
-    /* Binance specific colors */
-    --binance-yellow: 45 96% 50%;    /* #F0B90B */
-    --binance-green: 142 76% 36%;    /* #0ECB81 */
-    --binance-red: 0 84% 60%;        /* #F6465D */
-    --binance-dark: 218 23% 7%;      /* #0B0E11 */
-    --binance-card: 220 13% 11%;     /* #1E2329 */
-    --binance-gray: 220 13% 15%;     /* #2B3139 */
+    /* Binance Brand Colors */
+    --binance-yellow: 43 100% 50%;   /* #FCD535 */
+    --binance-green: 120 100% 40%;   /* #02C076 */
+    --binance-red: 0 91% 58%;        /* #F84960 */
+    --binance-black: 0 0% 7%;        /* #121212 */
+    --binance-dark-gray: 0 0% 11%;   /* #1C1C1C */
+    --binance-gray: 0 0% 15%;        /* #262626 */
     
-    --shadow-glow: 0 0 20px hsl(45 96% 50% / 0.2);
-    --shadow-card: 0 4px 20px hsl(218 23% 7% / 0.3);
+    /* Enhanced shadows */
+    --shadow-glow: 0 0 30px hsl(43 100% 50% / 0.25);
+    --shadow-card: 0 8px 25px hsl(0 0% 0% / 0.4);
+    --shadow-yellow: 0 0 20px hsl(43 100% 50% / 0.3);
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
-    --sidebar-background: 220 13% 11%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 45 96% 50%;
-    --sidebar-primary-foreground: 218 23% 7%;
-    --sidebar-accent: 220 13% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 45 96% 50%;
+    /* Sidebar Binance Theme */
+    --sidebar-background: 0 0% 11%;    /* #1C1C1C */
+    --sidebar-foreground: 0 0% 98%;    /* #FAFAFA */
+    --sidebar-primary: 43 100% 50%;    /* #FCD535 */
+    --sidebar-primary-foreground: 0 0% 7%; /* #121212 */
+    --sidebar-accent: 0 0% 15%;        /* #262626 */
+    --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
+    --sidebar-border: 0 0% 25%;        /* #404040 */
+    --sidebar-ring: 43 100% 50%;       /* #FCD535 */
   }
 
   .dark {
-    --background: 220 13% 9%;
-    --foreground: 0 0% 95%;
+    /* Mantém o mesmo tema Binance para modo dark */
+    --background: 0 0% 7%;           /* #121212 - Preto profundo Binance */
+    --foreground: 0 0% 98%;          /* #FAFAFA - Branco puro */
 
-    --card: 220 13% 12%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 11%;                /* #1C1C1C - Cards preto escuro */
+    --card-foreground: 0 0% 98%;     /* #FAFAFA - Texto branco */
 
-    --popover: 220 13% 12%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 11%;             /* #1C1C1C */
+    --popover-foreground: 0 0% 98%;  /* #FAFAFA */
 
-    --primary: 45 100% 51%;
-    --primary-foreground: 220 13% 9%;
+    --primary: 43 100% 50%;          /* #FCD535 - Amarelo Binance autêntico */
+    --primary-foreground: 0 0% 7%;   /* #121212 - Texto preto no amarelo */
 
-    --secondary: 220 13% 15%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 15%;           /* #262626 - Cinza escuro */
+    --secondary-foreground: 0 0% 95%; /* #F2F2F2 */
 
-    --muted: 220 13% 15%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 20%;               /* #333333 - Cinza médio */
+    --muted-foreground: 0 0% 70%;    /* #B3B3B3 - Cinza claro */
 
-    --accent: 220 13% 15%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 15%;              /* #262626 */
+    --accent-foreground: 0 0% 98%;   /* #FAFAFA */
 
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 91% 58%;        /* #F84960 - Vermelho Binance */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --border: 220 13% 20%;
-    --input: 220 13% 20%;
-    --ring: 45 100% 51%;
+    --border: 0 0% 25%;              /* #404040 - Bordas cinza escuro */
+    --input: 0 0% 15%;               /* #262626 - Inputs */
+    --ring: 43 100% 50%;             /* #FCD535 - Focus ring amarelo */
     
-    --sidebar-background: 220 13% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 220 13% 9%;
-    --sidebar-accent: 220 13% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 45 100% 51%;
+    /* Sidebar mantém consistência */
+    --sidebar-background: 0 0% 11%;    /* #1C1C1C */
+    --sidebar-foreground: 0 0% 98%;    /* #FAFAFA */
+    --sidebar-primary: 43 100% 50%;    /* #FCD535 */
+    --sidebar-primary-foreground: 0 0% 7%; /* #121212 */
+    --sidebar-accent: 0 0% 15%;        /* #262626 */
+    --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
+    --sidebar-border: 0 0% 25%;        /* #404040 */
+    --sidebar-ring: 43 100% 50%;       /* #FCD535 */
   }
 
   @keyframes marketOscillation {
@@ -131,10 +138,10 @@ All colors MUST be HSL.
 
   @keyframes glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(45 100% 51% / 0.2);
+      box-shadow: 0 0 20px hsl(43 100% 50% / 0.2);
     }
     50% {
-      box-shadow: 0 0 30px hsl(45 100% 51% / 0.4);
+      box-shadow: 0 0 30px hsl(43 100% 50% / 0.4);
     }
   }
 
@@ -167,10 +174,10 @@ All colors MUST be HSL.
   
   @keyframes glow-pulse {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(45 100% 50% / 0.3);
+      box-shadow: 0 0 20px hsl(43 100% 50% / 0.3);
     }
     50% {
-      box-shadow: 0 0 40px hsl(45 100% 50% / 0.6), 0 0 60px hsl(45 100% 50% / 0.3);
+      box-shadow: 0 0 40px hsl(43 100% 50% / 0.6), 0 0 60px hsl(43 100% 50% / 0.3);
     }
   }
   
@@ -197,11 +204,11 @@ All colors MUST be HSL.
   @keyframes floatGlow {
     0%, 100% {
       transform: translateY(0px);
-      filter: drop-shadow(0 5px 15px hsl(45 100% 51% / 0.3));
+      filter: drop-shadow(0 5px 15px hsl(43 100% 50% / 0.3));
     }
     50% {
       transform: translateY(-5px);
-      filter: drop-shadow(0 10px 25px hsl(45 100% 51% / 0.5));
+      filter: drop-shadow(0 10px 25px hsl(43 100% 50% / 0.5));
     }
   }
   
@@ -294,7 +301,7 @@ All colors MUST be HSL.
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(45 100% 50% / 0.1),
+      hsl(43 100% 50% / 0.1),
       transparent
     );
     background-size: 200% 100%;

@@ -63,10 +63,13 @@ export default {
 				},
 				'trading-green': 'hsl(var(--trading-green))',
 				'trading-red': 'hsl(var(--trading-red))',
-				'gold': {
-					500: 'hsl(45, 100%, 50%)',
-					600: 'hsl(38, 100%, 45%)'
-				},
+				// Binance colors
+				'binance-yellow': 'hsl(var(--binance-yellow))',
+				'binance-green': 'hsl(var(--binance-green))',
+				'binance-red': 'hsl(var(--binance-red))',
+				'binance-black': 'hsl(var(--binance-black))',
+				'binance-dark-gray': 'hsl(var(--binance-dark-gray))',
+				'binance-gray': 'hsl(var(--binance-gray))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
