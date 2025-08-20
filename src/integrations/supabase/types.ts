@@ -2273,7 +2273,7 @@ export type Database = {
         Returns: undefined
       }
       test_referral_signup: {
-        Args: { referral_code?: string; test_email: string }
+        Args: { ref_code?: string; test_email: string }
         Returns: Json
       }
       update_operations_progress: {
