@@ -2127,6 +2127,10 @@ export type Database = {
         Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
       }
+      clean_auth_users: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       complete_investment_operation: {
         Args: { p_operation_id: string }
         Returns: undefined

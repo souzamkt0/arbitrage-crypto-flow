@@ -102,8 +102,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('🔑 Iniciando processo de login...', { email });
       
-      // Simular um pequeno delay para garantir que o banco esteja pronto
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Primeiro, limpar qualquer sessão corrompida
+      console.log('🧹 Limpando estado antes do login...');
+      await supabase.auth.signOut();
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // Tentativa de login mais robusta
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -122,21 +124,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error("❌ Erro no login:", error);
-        // Se for erro de schema, tentar novamente após um delay
-        if (error.message.includes('Database error querying schema')) {
-          console.log('🔄 Tentando novamente após erro de schema...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Se for erro de schema/NULL, implementar fix completo
+        if (error.message.includes('Database error querying schema') || 
+            error.message.includes('converting NULL to string') ||
+            error.message.includes('Scan error')) {
           
-          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+          console.log('🔄 Erro de schema/NULL detectado - implementando fix completo...');
+          
+          // Limpar completamente o estado de autenticação
+          await supabase.auth.signOut();
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Aguardar mais tempo para garantir limpeza completa
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Tentar novamente com nova instância limpa
+          console.log('🔄 Tentativa final após limpeza completa...');
+          const finalAttempt = await supabase.auth.signInWithPassword({
             email,
             password,
           });
           
-          if (retryError) {
-            return { error: retryError };
+          if (finalAttempt.error) {
+            console.error('❌ Falha na tentativa final:', finalAttempt.error);
+            
+            // Se ainda falhou com erro NULL, redirecionar para login simples
+            if (finalAttempt.error.message.includes('converting NULL to string') ||
+                finalAttempt.error.message.includes('Database error querying schema')) {
+              console.log('🔀 Redirecionando para login simples devido a erro persistente...');
+              window.location.href = '/simple-login';
+              return { error: new Error('Redirecionando para login alternativo...') };
+            }
+            return { error: finalAttempt.error };
           }
           
-          console.log('✅ Login bem-sucedido na segunda tentativa!');
+          console.log('✅ Login bem-sucedido após correção!');
           return { error: null };
         }
         
