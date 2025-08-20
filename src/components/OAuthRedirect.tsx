@@ -1,28 +1,44 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const OAuthRedirect = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Verificar se estamos na porta incorreta após OAuth
-    const currentPort = window.location.port;
-    const isWrongPort = currentPort === '3000';
-    
-    if (isWrongPort) {
-      console.log('⚠️ Porta incorreta detectada após OAuth:', currentPort);
-      console.log('🔄 Redirecionando para porta 8080...');
-      
-      // Extrair o pathname da URL atual
-      const currentPath = window.location.pathname;
-      const newUrl = `http://localhost:8080${currentPath}`;
-      
-      console.log('🎯 Nova URL:', newUrl);
-      
-      // Redirecionar para a porta correta
-      window.location.href = newUrl;
-    }
-  }, []);
+    const handleOAuthCallback = async () => {
+      // Verificar se temos parâmetros de OAuth na URL
+      const hasOAuthParams = searchParams.has('access_token') || 
+                            searchParams.has('code') || 
+                            window.location.hash.includes('access_token');
+
+      if (hasOAuthParams) {
+        console.log('🔄 Detectado callback OAuth, processando...');
+        
+        try {
+          // Aguardar um pouco para garantir que o Supabase processe o callback
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Verificar se o usuário foi autenticado
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            console.log('✅ OAuth bem-sucedido, redirecionando para dashboard...');
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.log('❌ OAuth falhou, redirecionando para login...');
+            navigate('/login', { replace: true });
+          }
+        } catch (error) {
+          console.error('❌ Erro no callback OAuth:', error);
+          navigate('/login', { replace: true });
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, [navigate, searchParams]);
 
   return null; // Componente não renderiza nada
 };
