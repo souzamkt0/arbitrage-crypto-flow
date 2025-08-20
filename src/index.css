@@ -8,66 +8,66 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Alphabit Theme - Complete Black with White and Yellow accents */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    /* Clean White Theme */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
 
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
 
     --primary: 45 100% 50%;
-    --primary-foreground: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
     --accent: 45 100% 50%;
-    --accent-foreground: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
 
-    --success: 120 100% 50%;
-    --success-foreground: 0 0% 0%;
+    --success: 120 100% 40%;
+    --success-foreground: 0 0% 100%;
 
     --warning: 45 100% 50%;
-    --warning-foreground: 0 0% 0%;
+    --warning-foreground: 0 0% 9%;
 
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 10%;
+    --border: 0 0% 90%;
+    --input: 0 0% 96%;
     --ring: 45 100% 50%;
 
-    --trading-green: 120 100% 50%;
+    --trading-green: 120 100% 40%;
     --trading-red: 0 75% 60%;
     
     --gradient-primary: linear-gradient(135deg, hsl(45 100% 50%), hsl(45 100% 60%));
-    --gradient-dark: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 5%));
+    --gradient-light: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 96%));
     
-    /* Facebook-style colors - Black theme */
+    /* Clean white theme colors */
     --facebook-blue: 45 100% 50%;
     --facebook-light-blue: 45 100% 60%;
-    --facebook-gray: 0 0% 10%;
-    --facebook-dark-gray: 0 0% 5%;
-    --facebook-border: 0 0% 20%;
+    --facebook-gray: 0 0% 96%;
+    --facebook-dark-gray: 0 0% 90%;
+    --facebook-border: 0 0% 90%;
     
-    --shadow-glow: 0 0 20px hsl(45 100% 50% / 0.3);
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 20px hsl(45 100% 50% / 0.2);
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.1);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 100%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 9%;
     --sidebar-primary: 45 100% 50%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 20%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 45 100% 50%;
   }
 
@@ -204,34 +204,34 @@ All colors MUST be HSL.
     }
   }
   
-  /* Facebook-style timeline - Complete Black Theme */
+  /* Clean white theme styles */
   .facebook-post {
-    @apply bg-black border border-gray-800 rounded-lg shadow-lg mb-4 p-4 text-white;
+    @apply bg-card border border-border rounded-lg shadow-lg mb-4 p-4 text-foreground;
   }
   
   .facebook-header {
-    @apply bg-black border-b border-gray-800 px-4 py-3 sticky top-0 z-50 text-white;
+    @apply bg-card border-b border-border px-4 py-3 sticky top-0 z-50 text-foreground;
   }
   
   .facebook-sidebar {
-    @apply bg-black min-h-screen text-white;
+    @apply bg-background min-h-screen text-foreground;
   }
   
   .facebook-feed {
-    @apply bg-black min-h-screen;
+    @apply bg-background min-h-screen;
   }
   
   .facebook-button {
-    @apply bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg transition-colors font-semibold;
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors font-semibold;
   }
   
   .facebook-button:hover {
-    @apply bg-yellow-600;
+    @apply bg-primary/90;
   }
   
   .facebook-button.active {
-    color: hsl(var(--background));
-    background-color: hsl(var(--facebook-blue));
+    color: hsl(var(--primary-foreground));
+    background-color: hsl(var(--primary));
   }
 }
 
@@ -241,7 +241,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-black text-white;
+    @apply bg-background text-foreground;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -278,46 +278,7 @@ All colors MUST be HSL.
     }
   }
   
-  /* Global black theme overrides */
-  * {
-    @apply border-gray-800;
-  }
-  
-  .bg-white {
-    @apply !bg-black;
-  }
-  
-  .bg-gray-50 {
-    @apply !bg-gray-900;
-  }
-  
-  .bg-gray-100 {
-    @apply !bg-black;
-  }
-  
-  .text-gray-900 {
-    @apply !text-white;
-  }
-  
-  .text-gray-800 {
-    @apply !text-gray-200;
-  }
-  
-  .text-gray-700 {
-    @apply !text-gray-300;
-  }
-  
-  .text-gray-600 {
-    @apply !text-gray-400;
-  }
-  
-  .border-gray-200 {
-    @apply !border-gray-800;
-  }
-  
-  .border-gray-300 {
-    @apply !border-gray-700;
-  }
+  /* Clean white theme - no overrides needed */
 
   /* Classes utilitárias para animações de criptomoedas */
   .animate-float-crypto {
