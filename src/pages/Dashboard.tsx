@@ -1030,12 +1030,12 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-secondary border border-border rounded-md px-3 py-2">
                       <span className="text-lg font-mono font-bold text-primary">
-                        {profile?.referral_code || profile?.username || 'N/A'}
+                        {profile?.username || profile?.referral_code || 'N/A'}
                       </span>
                     </div>
                     <Button
                       onClick={() => {
-                        navigator.clipboard.writeText(profile?.referral_code || profile?.username || '');
+                        navigator.clipboard.writeText(profile?.username || profile?.referral_code || '');
                         toast({
                           title: "Código copiado!",
                           description: "Seu código de indicação foi copiado.",
