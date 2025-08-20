@@ -196,13 +196,27 @@ const Referrals = () => {
 
         console.log('🔍 Debug Referrals - Usuários indicados encontrados:', referredUsers);
         console.log('🔍 Debug Referrals - Erro:', referralsError);
-
-        console.log('🔍 Debug Referrals - Usuários encontrados:', referredUsers);
-        console.log('🔍 Debug Referrals - Error:', referralsError);
-
-        console.log('📊 Dados de usuários indicados:', referredUsers);
-        console.log('❌ Erro:', referralsError);
-
+        
+        // DEBUG: Verificar se os dados estão chegando
+        if (referredUsers && referredUsers.length > 0) {
+          console.log('✅ SUCESSO: Encontramos', referredUsers.length, 'usuários indicados');
+          console.log('👥 Lista de usuários:', referredUsers.map(u => ({
+            name: u.display_name,
+            email: u.email,
+            user_id: u.user_id
+          })));
+        } else {
+          console.log('❌ PROBLEMA: Nenhum usuário indicado encontrado');
+          console.log('🔍 User ID do referenciador:', user.id);
+          
+          // Fazer uma busca de teste
+          const testQuery = await supabase
+            .from('profiles')
+            .select('user_id, display_name, email, referred_by')
+            .eq('referred_by', user.id);
+          console.log('🧪 Teste direto:', testQuery);
+        }
+        
         if (referredUsers && referredUsers.length > 0) {
           // Calculate stats based on real data
           const activeReferrals = referredUsers.filter(user => user.status === 'active').length;
