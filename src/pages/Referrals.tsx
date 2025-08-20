@@ -160,16 +160,33 @@ const Referrals = () => {
         console.log('🔍 Debug Referrals - User Email:', user.email);
         
         // Get user profile with referral code for referral link
+        console.log('🔍 Buscando profile para user_id:', user.id);
         const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
           .select('username, referral_code, referral_balance, display_name')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        console.log('🔍 Debug Referrals - Profile:', userProfile);
+        console.log('🔍 Debug Referrals - Profile encontrado:', userProfile);
         console.log('🔍 Debug Referrals - Profile Error:', profileError);
-
-        setProfile(userProfile);
+        
+        // Se não encontrou, tentar buscar de forma alternativa
+        if (!userProfile && !profileError) {
+          console.log('🔄 Tentando busca alternativa do profile...');
+          const { data: altProfile, error: altError } = await supabase
+            .from('profiles')
+            .select('username, referral_code, referral_balance, display_name')
+            .eq('user_id', user.id);
+          
+          console.log('🔍 Busca alternativa - Profile:', altProfile);
+          console.log('🔍 Busca alternativa - Error:', altError);
+          
+          if (altProfile && altProfile.length > 0) {
+            setProfile(altProfile[0]);
+          }
+        } else {
+          setProfile(userProfile);
+        }
 
         if (userProfile?.referral_code) {
           const userName = userProfile.display_name || userProfile.username || 'Usuário';
@@ -181,6 +198,7 @@ const Referrals = () => {
 
         // Buscar usuários indicados - método direto e eficiente
         console.log('🔍 Debug Referrals - Buscando usuários indicados por:', user.id);
+        console.log('🔍 Tipo do user.id:', typeof user.id);
         
         const { data: referredUsers, error: referralsError } = await supabase
           .from('profiles')
