@@ -1386,7 +1386,7 @@ export type Database = {
           email_verified?: boolean | null
           first_name?: string | null
           full_name?: string | null
-          id: string
+          id?: string
           last_name?: string | null
           phone?: string | null
           profile_completed?: boolean | null
