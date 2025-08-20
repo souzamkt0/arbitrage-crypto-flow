@@ -37,13 +37,17 @@ export const PartnerStatusBanner = () => {
   const checkPartnerStatus = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Iniciando verificação de status de sócio para usuário:', user?.id);
 
       // Verificar se é admin e sócio
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role, email')
         .eq('user_id', user?.id)
         .single();
+
+      console.log('📊 Dados do perfil:', profileData);
+      console.log('⚠️ Erro do perfil:', profileError);
 
       if (!profileData) {
         console.log('❌ Perfil não encontrado');
@@ -51,25 +55,45 @@ export const PartnerStatusBanner = () => {
       }
 
       const isAdmin = profileData.role === 'admin';
+      console.log('👑 É admin?', isAdmin);
+      console.log('📧 Email do perfil:', profileData.email);
 
       // Verificar se é sócio
-      const { data: partnerData } = await supabase
+      const { data: partnerData, error: partnerError } = await supabase
         .from('partners')
         .select('*')
         .eq('email', profileData.email)
         .eq('status', 'active')
         .single();
 
+      console.log('🤝 Dados do sócio:', partnerData);
+      console.log('⚠️ Erro do sócio:', partnerError);
+
+      // Também verificar sem filtro de status para debug
+      const { data: allPartnerData, error: allPartnerError } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('email', profileData.email);
+
+      console.log('🔍 Todos os dados de sócio para este email:', allPartnerData);
+      console.log('⚠️ Erro na busca completa:', allPartnerError);
+
       const isPartner = !!partnerData;
+      console.log('🎯 É sócio?', isPartner);
 
       // Calcular total de depósitos da plataforma
-      const { data: depositsData } = await supabase
+      const { data: depositsData, error: depositsError } = await supabase
         .from('deposits')
         .select('amount_usd')
         .eq('status', 'paid');
 
+      console.log('💰 Dados de depósitos:', depositsData);
+      console.log('⚠️ Erro de depósitos:', depositsError);
+
       const totalDeposits = depositsData?.reduce((sum, deposit) => 
         sum + (deposit.amount_usd || 0), 0) || 0;
+
+      console.log('📈 Total de depósitos calculado:', totalDeposits);
 
       setPartnerStatus({
         isPartner,
@@ -78,11 +102,12 @@ export const PartnerStatusBanner = () => {
         totalPlatformDeposits: totalDeposits
       });
 
-      console.log('✅ Status verificado:', {
+      console.log('✅ Status final definido:', {
         isAdmin,
         isPartner,
         partnerData,
-        totalDeposits
+        totalDeposits,
+        showBanner: isAdmin || isPartner
       });
 
     } catch (error) {
@@ -92,8 +117,19 @@ export const PartnerStatusBanner = () => {
     }
   };
 
-  // Se o usuário não estiver logado ou não for admin/sócio, não mostrar nada
-  if (!user || (!partnerStatus.isAdmin && !partnerStatus.isPartner)) {
+  // Se o usuário não estiver logado, não mostrar nada
+  if (!user) {
+    console.log('❌ Usuário não logado, não exibindo banner');
+    return null;
+  }
+
+  // Se não for admin nem sócio, não mostrar nada
+  if (!partnerStatus.isAdmin && !partnerStatus.isPartner) {
+    console.log('❌ Usuário não é admin nem sócio, não exibindo banner:', {
+      isAdmin: partnerStatus.isAdmin,
+      isPartner: partnerStatus.isPartner,
+      loading
+    });
     return null;
   }
 
