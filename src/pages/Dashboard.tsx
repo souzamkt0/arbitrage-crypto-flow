@@ -41,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
 import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
 import { executeSupabaseOperation, connectionMonitor } from "@/services/connectionMonitor";
+import { PartnerStatusBanner } from "@/components/PartnerStatusBanner";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -807,62 +808,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Box de Sócio */}
-        {profile?.role === 'partner' && (
-          <Card className="bg-gradient-to-r from-yellow-500/10 via-yellow-600/10 to-yellow-500/10 border-yellow-500/20 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
-                      <Crown className="h-8 w-8 text-white" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-white" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-yellow-500 flex items-center gap-2">
-                      Você é Sócio Premium
-                      <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
-                        VIP
-                      </Badge>
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Acesso exclusivo a comissões de 1% sobre todos os depósitos
-                    </p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-4 w-4 text-trading-green" />
-                        <span className="text-sm text-muted-foreground">
-                          Comissão: 1% dos depósitos
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4 text-primary" />
-                        <span className="text-sm text-muted-foreground">
-                          Saque: Sextas-feiras
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Button
-                    onClick={() => navigate('/partners')}
-                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold shadow-lg hover:shadow-yellow-500/25"
-                  >
-                    <Crown className="h-4 w-4 mr-2" />
-                    Acessar Área do Sócio
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Gerencie suas comissões e saques
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Partner Status Banner */}
+        <PartnerStatusBanner />
+
+        {/* Partner Status Banner */}
+        <PartnerStatusBanner />
 
         {/* Link de Indicação no Topo */}
         <Card className="bg-card border-border">
