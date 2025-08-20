@@ -66,11 +66,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
-      {/* Clean Background */}
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Black Background */}
       <div className="absolute inset-0">
         {/* Main gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-muted to-background"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black"></div>
         
         {/* Geometric patterns */}
         <div className="absolute inset-0 opacity-10">
@@ -119,7 +119,7 @@ const Login = () => {
         </div>
 
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
       </div>
 
       {/* Main Content */}
@@ -127,7 +127,7 @@ const Login = () => {
         <div className="w-full max-w-lg">
           {/* Back to Register Button */}
           <div className="mb-6 animate-fade-in-up">
-            <Link to="/register" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Link to="/register" className="inline-flex items-center text-gray-300 hover:text-white transition-colors duration-200">
               <ArrowRight className="h-4 w-4 mr-2 transform rotate-180" />
               <span className="text-sm">Voltar ao Cadastro</span>
             </Link>
@@ -138,7 +138,7 @@ const Login = () => {
             <div className="flex justify-center mb-6">
               <div className="relative">
                 {/* Logo Container */}
-                <div className="w-24 h-24 bg-gradient-to-br from-muted to-background rounded-2xl flex items-center justify-center border-2 border-primary/30 shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                <div className="w-24 h-24 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center border-2 border-primary/30 shadow-2xl transform hover:scale-105 transition-transform duration-300">
                   {/* Diamond Pattern */}
                   <div className="relative">
                     {/* Main diamond shape */}
@@ -171,12 +171,12 @@ const Login = () => {
             
             {/* Brand Name */}
             <div className="mb-2">
-              <h1 className="text-2xl font-bold text-foreground tracking-wider">
+              <h1 className="text-2xl font-bold text-white tracking-wider">
                 <span className="bg-gradient-to-r from-primary via-primary to-primary bg-clip-text text-transparent">
                   ALPHABIT
                 </span>
               </h1>
-              <p className="text-muted-foreground text-sm mt-1">Entrar na Conta</p>
+              <p className="text-gray-300 text-sm mt-1">Entrar na Conta</p>
             </div>
           </div>
 
