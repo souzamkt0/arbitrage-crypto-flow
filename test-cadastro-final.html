@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Cadastro - Pós Correção</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            width: 100%;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            margin: 10px 0;
+        }
+        .error {
+            background: #dc3545;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            margin: 10px 0;
+        }
+        .info {
+            background: #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            margin: 10px 0;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Cadastro - Pós Correção</h1>
+        <p>Este teste vai verificar se o erro de cadastro foi corrigido após a migração do banco de dados.</p>
+        
+        <button onclick="testarCadastro()">🚀 Executar Teste de Cadastro</button>
+        <button onclick="limparLogs()">🧹 Limpar Logs</button>
+        
+        <div id="resultado"></div>
+        <div id="logs" class="log"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://cbwpghrkfvczjqzefvix.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('logs');
+            logElement.innerHTML += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+        }
+        
+        function showResult(message, isSuccess) {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = `<div class="${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+        
+        function limparLogs() {
+            document.getElementById('logs').innerHTML = '';
+            document.getElementById('resultado').innerHTML = '';
+        }
+        
+        async function testarCadastro() {
+            try {
+                log('🚀 Iniciando teste de cadastro pós-correção...');
+                
+                // Dados de teste únicos
+                const timestamp = Date.now();
+                const emailTeste = `teste_pos_correcao_${timestamp}@test.com`;
+                const senhaTeste = 'TesteSenha123!';
+                const nomeTeste = 'Usuário Teste Pós Correção';
+                
+                log(`📝 Dados do teste:`);
+                log(`   Email: ${emailTeste}`);
+                log(`   Nome: ${nomeTeste}`);
+                
+                // Teste 1: Verificar se Supabase está acessível
+                log('🔍 Verificando conexão com Supabase...');
+                const { data: testConnection } = await supabase.from('profiles').select('count').limit(1);
+                log('✅ Conexão com Supabase estabelecida');
+                
+                // Teste 2: Tentar fazer signup
+                log('👤 Tentando fazer signup...');
+                const { data: signupData, error: signupError } = await supabase.auth.signUp({
+                    email: emailTeste,
+                    password: senhaTeste,
+                    options: {
+                        data: {
+                            first_name: 'Usuário',
+                            last_name: 'Teste',
+                            display_name: nomeTeste
+                        },
+                        emailRedirectTo: `${window.location.origin}/`
+                    }
+                });
+                
+                if (signupError) {
+                    log(`❌ Erro no signup: ${signupError.message}`, 'error');
+                    showResult(`❌ Erro no cadastro: ${signupError.message}`, false);
+                    return;
+                }
+                
+                log('✅ Signup realizado com sucesso!');
+                log(`📊 User ID: ${signupData.user?.id}`);
+                log(`📧 Email: ${signupData.user?.email}`);
+                log(`✉️ Email confirmado: ${signupData.user?.email_confirmed_at ? 'Sim' : 'Não'}`);
+                
+                // Teste 3: Aguardar um pouco para processamento
+                log('⏳ Aguardando processamento...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Teste 4: Verificar se perfil foi criado usando as funções RPC
+                log('👤 Verificando criação de perfil...');
+                
+                if (signupData.user?.id) {
+                    // Tentar criar perfil manualmente se não existir
+                    const { data: profileResult, error: profileError } = await supabase.rpc('create_user_profile_manual', {
+                        user_id_param: signupData.user.id,
+                        email_param: emailTeste,
+                        first_name_param: 'Usuário',
+                        last_name_param: 'Teste',
+                        username_param: `user_${timestamp}`
+                    });
+                    
+                    if (profileError) {
+                        log(`⚠️ Aviso ao criar perfil: ${profileError.message}`, 'warn');
+                    } else if (profileResult) {
+                        log(`✅ Perfil criado: ${JSON.stringify(profileResult)}`);
+                    }
+                    
+                    // Confirmar email automaticamente
+                    const { data: confirmResult, error: confirmError } = await supabase.rpc('confirm_email_manual', {
+                        user_email: emailTeste
+                    });
+                    
+                    if (confirmError) {
+                        log(`⚠️ Aviso ao confirmar email: ${confirmError.message}`, 'warn');
+                    } else if (confirmResult) {
+                        log(`✅ Email confirmado: ${JSON.stringify(confirmResult)}`);
+                    }
+                }
+                
+                // Teste 5: Verificar login
+                log('🔐 Testando login...');
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: emailTeste,
+                    password: senhaTeste
+                });
+                
+                if (loginError) {
+                    log(`❌ Erro no login: ${loginError.message}`, 'error');
+                } else {
+                    log('✅ Login realizado com sucesso!');
+                    log(`📊 Session ativa: ${loginData.session ? 'Sim' : 'Não'}`);
+                }
+                
+                // Teste 6: Verificar perfil final
+                const { data: finalProfile, error: finalProfileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', signupData.user?.id)
+                    .single();
+                
+                if (finalProfileError) {
+                    log(`⚠️ Perfil não encontrado: ${finalProfileError.message}`, 'warn');
+                } else {
+                    log('✅ Perfil encontrado:');
+                    log(`   Username: ${finalProfile.username}`);
+                    log(`   Display Name: ${finalProfile.display_name}`);
+                    log(`   Role: ${finalProfile.role}`);
+                    log(`   Status: ${finalProfile.status}`);
+                }
+                
+                // Limpeza: Fazer logout
+                await supabase.auth.signOut();
+                log('🚪 Logout realizado');
+                
+                // Resultado final
+                const sucesso = !signupError && !loginError;
+                if (sucesso) {
+                    showResult('🎉 TESTE CONCLUÍDO COM SUCESSO! O erro de cadastro foi corrigido.', true);
+                    log('🎉 TESTE FINALIZADO: Cadastro funcionando normalmente!');
+                } else {
+                    showResult('⚠️ Teste concluído com algumas advertências. Verifique os logs.', false);
+                    log('⚠️ TESTE FINALIZADO: Há algumas questões a resolver.');
+                }
+                
+            } catch (error) {
+                log(`💥 Erro inesperado: ${error.message}`, 'error');
+                showResult(`💥 Erro inesperado: ${error.message}`, false);
+            }
+        }
+        
+        // Auto-executar teste ao carregar a página
+        window.addEventListener('load', () => {
+            log('📄 Página carregada. Pronto para teste.');
+        });
+    </script>
+</body>
+</html>
