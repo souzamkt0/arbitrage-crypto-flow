@@ -48,8 +48,7 @@ const AutoRedirect = () => {
     return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
       <div className="text-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-        <div className="text-xl">Acessando automaticamente...</div>
-        <div className="text-sm text-gray-400 mt-2">admin@clean.com</div>
+        <div className="text-xl">Carregando...</div>
       </div>
     </div>;
   }
