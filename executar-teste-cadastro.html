@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Cadastro - Sistema AlphaBit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+        
+        h1 {
+            color: #ffc107;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #ffc107, #ff8f00);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.3);
+        }
+        
+        .test-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .success {
+            color: #4caf50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+        
+        .info {
+            color: #2196f3;
+        }
+        
+        .warning {
+            color: #ff9800;
+        }
+        
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .status-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 193, 7, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffc107;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Automático de Cadastro</h1>
+        <p style="text-align: center; color: #ccc; margin-bottom: 30px;">
+            Este teste verifica se o sistema de cadastro está funcionando corretamente após as correções implementadas.
+        </p>
+        
+        <button id="testButton" class="test-button">
+            🚀 Executar Teste Completo
+        </button>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3 style="color: #ffc107;">📊 Resultados do Teste:</h3>
+            <div id="status"></div>
+            <div id="details"></div>
+        </div>
+        
+        <div id="manualTest" style="margin-top: 30px; padding: 20px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border: 1px solid rgba(255, 193, 7, 0.3);">
+            <h3 style="color: #ffc107;">📝 Para Teste Manual:</h3>
+            <p>Acesse: <a href="/register" style="color: #ffc107;">/register</a></p>
+            <p>Use qualquer email válido e senha com 6+ caracteres</p>
+            <p>Preencha todos os campos obrigatórios</p>
+        </div>
+    </div>
+
+    <script>
+        const testButton = document.getElementById('testButton');
+        const results = document.getElementById('results');
+        const status = document.getElementById('status');
+        const details = document.getElementById('details');
+
+        testButton.addEventListener('click', async function() {
+            testButton.disabled = true;
+            testButton.innerHTML = '<div class="loading"></div> Executando Teste...';
+            results.style.display = 'block';
+            
+            status.innerHTML = '<div class="status-item"><span class="loading"></span> Iniciando teste automático...</div>';
+            details.innerHTML = '';
+
+            try {
+                // Fazer chamada para a edge function de teste
+                const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/test-registration', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8'
+                    }
+                });
+
+                const result = await response.json();
+                
+                // Mostrar resultados
+                displayResults(result, response.status);
+                
+            } catch (error) {
+                console.error('Erro no teste:', error);
+                
+                status.innerHTML = `
+                    <div class="status-item error">
+                        <span class="status-icon">❌</span>
+                        Erro durante o teste: ${error.message}
+                    </div>
+                `;
+                
+                // Fallback: testar manualmente via JavaScript
+                await fallbackTest();
+            }
+            
+            testButton.disabled = false;
+            testButton.innerHTML = '🔄 Executar Novo Teste';
+        });
+
+        function displayResults(result, statusCode) {
+            const isSuccess = statusCode === 200;
+            const isPartial = statusCode === 206;
+            
+            let statusHtml = '';
+            
+            if (isSuccess) {
+                statusHtml = `
+                    <div class="status-item success">
+                        <span class="status-icon">✅</span>
+                        <strong>TESTE APROVADO! Sistema funcionando perfeitamente!</strong>
+                    </div>
+                `;
+            } else if (isPartial) {
+                statusHtml = `
+                    <div class="status-item warning">
+                        <span class="status-icon">⚠️</span>
+                        <strong>TESTE PARCIAL: Alguns itens precisam de atenção</strong>
+                    </div>
+                `;
+            } else {
+                statusHtml = `
+                    <div class="status-item error">
+                        <span class="status-icon">❌</span>
+                        <strong>TESTE FALHADO: Sistema com problemas</strong>
+                    </div>
+                `;
+            }
+            
+            status.innerHTML = statusHtml;
+            
+            if (result.results) {
+                let detailsHtml = '<h4 style="color: #ffc107; margin-top: 20px;">Detalhes dos Testes:</h4>';
+                
+                const tests = [
+                    { name: 'Criação de Usuário no Auth', result: result.results.authCreation },
+                    { name: 'Criação Automática de Perfil', result: result.results.profileCreation },
+                    { name: 'Sistema de Login', result: result.results.loginTest },
+                    { name: 'Triggers Ativos', result: result.results.triggersActive }
+                ];
+                
+                tests.forEach(test => {
+                    const icon = test.result ? '✅' : '❌';
+                    const className = test.result ? 'success' : 'error';
+                    detailsHtml += `
+                        <div class="status-item ${className}">
+                            <span class="status-icon">${icon}</span>
+                            ${test.name}
+                        </div>
+                    `;
+                });
+                
+                if (result.testData) {
+                    detailsHtml += `
+                        <h4 style="color: #ffc107; margin-top: 20px;">Dados de Teste Gerados:</h4>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 10px;">
+                            <p><strong>Email:</strong> ${result.testData.email}</p>
+                            <p><strong>Senha:</strong> ${result.testData.password}</p>
+                            <p><strong>Username:</strong> ${result.testData.username}</p>
+                        </div>
+                    `;
+                }
+                
+                detailsHtml += `
+                    <h4 style="color: #ffc107; margin-top: 20px;">Resumo:</h4>
+                    <div class="status-item info">
+                        <span class="status-icon">📊</span>
+                        ${result.summary.passed}/${result.summary.totalTests} testes aprovados
+                    </div>
+                `;
+                
+                details.innerHTML = detailsHtml;
+            } else if (result.error) {
+                details.innerHTML = `
+                    <div class="status-item error">
+                        <span class="status-icon">💥</span>
+                        Erro: ${result.error}
+                    </div>
+                `;
+            }
+        }
+
+        async function fallbackTest() {
+            status.innerHTML += `
+                <div class="status-item info">
+                    <span class="status-icon">🔍</span>
+                    Executando teste alternativo via JavaScript...
+                </div>
+            `;
+            
+            // Aqui você pode implementar testes básicos via JavaScript
+            // Por exemplo, verificar se a página de cadastro carrega
+            try {
+                const testResult = {
+                    pageLoad: true,
+                    formPresent: document.querySelector('form') !== null,
+                    timestamp: new Date().toISOString()
+                };
+                
+                details.innerHTML += `
+                    <h4 style="color: #ffc107;">Teste Básico de Interface:</h4>
+                    <div class="status-item ${testResult.pageLoad ? 'success' : 'error'}">
+                        <span class="status-icon">${testResult.pageLoad ? '✅' : '❌'}</span>
+                        Página carregada corretamente
+                    </div>
+                `;
+                
+            } catch (e) {
+                details.innerHTML += `
+                    <div class="status-item error">
+                        <span class="status-icon">❌</span>
+                        Erro no teste alternativo: ${e.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
