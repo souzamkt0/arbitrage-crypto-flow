@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [impersonatedUser, setImpersonatedUser] = useState<any | null>(null);
 
-  const isAdmin = user?.email === 'souzamkt0@gmail.com' || profile?.role === 'admin';
+  const isAdmin = user?.email === 'admin@clean.com' || profile?.role === 'admin';
 
   useEffect(() => {
     // Check for impersonation mode
@@ -59,10 +59,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // NÃO fazer nenhuma consulta adicional para evitar erros de schema
+        // Definir perfil básico quando usuário estiver logado
         if (session?.user) {
-          console.log('✅ Usuário logado, pulando todas as consultas de perfil');
-          setProfile({ role: 'admin', email: session.user.email }); // Mock profile
+          console.log('✅ Usuário logado, definindo perfil básico');
+          setProfile({ 
+            role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+            email: session.user.email 
+          });
         } else {
           console.log('❌ Nenhum usuário, limpando estado');
           setProfile(null);
@@ -79,8 +82,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('✅ Sessão existente encontrada, definindo perfil mock');
-        setProfile({ role: 'admin', email: session.user.email }); // Mock profile
+        console.log('✅ Sessão existente encontrada, definindo perfil básico');
+        setProfile({ 
+          role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+          email: session.user.email 
+        });
       }
       
       setIsLoading(false);
