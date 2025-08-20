@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import CreateAdmin from "./pages/CreateAdmin";
+import SimpleLogin from "./pages/SimpleLogin";
 import Login from "./pages/login";
 import Register from "./pages/Register";
 import CompleteProfile from "./pages/CompleteProfile";
@@ -120,6 +122,8 @@ const App = () => (
           
           <Routes>
           <Route path="/" element={<AutoRedirect />} />
+          <Route path="/simple-login" element={<SimpleLogin />} />
+          <Route path="/create-admin" element={<CreateAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
