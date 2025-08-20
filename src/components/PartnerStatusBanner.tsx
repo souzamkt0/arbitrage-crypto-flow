@@ -99,10 +99,10 @@ export const PartnerStatusBanner = () => {
 
   if (loading) {
     return (
-      <Card className="mb-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/20">
+      <Card className="mb-6 bg-gradient-to-r from-primary/10 to-warning/10 border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             <span className="ml-2 text-sm text-muted-foreground">Verificando status...</span>
           </div>
         </CardContent>
@@ -116,76 +116,82 @@ export const PartnerStatusBanner = () => {
   };
 
   return (
-    <Card className="mb-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/20">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <Card className="mb-6 bg-gradient-to-r from-primary/20 to-warning/20 border-2 border-primary/40 shadow-lg">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               {partnerStatus.isAdmin && (
-                <Badge variant="destructive" className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
+                <Badge variant="destructive" className="flex items-center gap-1 text-sm px-3 py-1">
+                  <Shield className="h-4 w-4" />
                   Administrador
                 </Badge>
               )}
               {partnerStatus.isPartner && (
-                <Badge variant="default" className="flex items-center gap-1 bg-purple-600">
-                  <Crown className="h-3 w-3" />
-                  Sócio VIP
+                <Badge className="flex items-center gap-1 bg-gradient-to-r from-primary to-warning text-primary-foreground text-sm px-3 py-1 shadow-md">
+                  <Crown className="h-4 w-4" />
+                  🎯 SÓCIO VIP
                 </Badge>
               )}
             </div>
-            
-            {partnerStatus.isPartner && partnerStatus.partnerData && (
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <span className="text-muted-foreground">Comissão:</span>
-                  <span className="font-semibold text-green-600">
-                    {partnerStatus.partnerData.commission_percentage}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-blue-600" />
-                  <span className="text-muted-foreground">Ganhos estimados:</span>
-                  <span className="font-semibold text-blue-600">
-                    ${calculatePartnerEarnings().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           <Button
             onClick={checkPartnerStatus}
             variant="outline"
             size="sm"
-            className="text-xs"
+            className="border-primary/50 hover:bg-primary/10"
             disabled={loading}
           >
-            <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
         </div>
 
         {partnerStatus.isPartner && (
-          <div className="mt-3 p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Total Depósitos Plataforma:</span>
-                <div className="font-semibold text-green-600">
-                  ${partnerStatus.totalPlatformDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          <div className="space-y-4">
+            {/* Contador Principal de Ganhos */}
+            <div className="text-center p-6 bg-gradient-to-r from-success/10 to-trading-green/10 rounded-xl border border-success/20">
+              <div className="text-3xl font-bold text-success mb-2">
+                ${calculatePartnerEarnings().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+              <div className="text-lg font-semibold text-muted-foreground mb-1">
+                💰 Ganhos com 1% dos Depósitos
+              </div>
+              <div className="text-sm text-muted-foreground">
+                📈 Total da Plataforma: ${partnerStatus.totalPlatformDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+
+            {/* Informações Detalhadas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  <span className="font-semibold text-primary">Comissão</span>
+                </div>
+                <div className="text-2xl font-bold text-primary">
+                  {partnerStatus.partnerData?.commission_percentage || 1}%
                 </div>
               </div>
-              <div>
-                <span className="text-muted-foreground">Sua Comissão:</span>
-                <div className="font-semibold text-purple-600">
-                  {partnerStatus.partnerData?.commission_percentage || 0}%
+              
+              <div className="text-center p-4 bg-secondary/20 rounded-lg border border-secondary/40">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users className="h-5 w-5 text-secondary-foreground" />
+                  <span className="font-semibold text-secondary-foreground">Status</span>
+                </div>
+                <div className="text-lg font-bold text-secondary-foreground">
+                  {partnerStatus.partnerData?.status === 'active' ? '✅ Ativo' : '❌ Inativo'}
                 </div>
               </div>
-              <div>
-                <span className="text-muted-foreground">Status:</span>
-                <div className="font-semibold text-blue-600">
-                  {partnerStatus.partnerData?.status === 'active' ? 'Ativo' : 'Inativo'}
+              
+              <div className="text-center p-4 bg-warning/10 rounded-lg border border-warning/20">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Crown className="h-5 w-5 text-warning" />
+                  <span className="font-semibold text-warning">Nível</span>
+                </div>
+                <div className="text-lg font-bold text-warning">
+                  VIP
                 </div>
               </div>
             </div>

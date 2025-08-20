@@ -63,6 +63,10 @@ export default {
 				},
 				'trading-green': 'hsl(var(--trading-green))',
 				'trading-red': 'hsl(var(--trading-red))',
+				'gold': {
+					500: 'hsl(45, 100%, 50%)',
+					600: 'hsl(38, 100%, 45%)'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

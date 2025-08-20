@@ -811,9 +811,6 @@ const Dashboard = () => {
         {/* Partner Status Banner */}
         <PartnerStatusBanner />
 
-        {/* Partner Status Banner */}
-        <PartnerStatusBanner />
-
         {/* Link de Indicação no Topo */}
         <Card className="bg-card border-border">
           <CardContent className="p-4">
