@@ -55,6 +55,13 @@ const Dashboard = () => {
   const [monthlyEarnings, setMonthlyEarnings] = useState(0);
   const [tradingBalance, setTradingBalance] = useState(0);
   const [totalDeposits, setTotalDeposits] = useState(0);
+  const [partnerData, setPartnerData] = useState(null);
+  const [partnerStats, setPartnerStats] = useState({
+    totalEarnings: 0,
+    totalDeposits: 0,
+    commission: 1.00,
+    monthlyEarnings: 0
+  });
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -586,7 +593,7 @@ const Dashboard = () => {
     };
   }, [connectionStatus.isOnline]);
 
-  // Carregar dados reais do usuário
+  // Carregar dados reais do usuário e dados de sócio
   useEffect(() => {
     if (!profile) return;
     setBalance(profile.balance || 0);
@@ -595,6 +602,58 @@ const Dashboard = () => {
     setResidualBalance(profile.residual_balance || 0);
     setMonthlyEarnings(profile.monthly_earnings || 0);
     setDailyProfit(profile.earnings || 0);
+
+    // Carregar dados de sócio se aplicável
+    const loadPartnerData = async () => {
+      if (!user) return;
+      
+      try {
+        console.log('🔍 Verificando status de sócio para:', user.email);
+        
+        // Verificar se é sócio
+        const { data: partnerInfo, error: partnerError } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        if (partnerInfo && !partnerError) {
+          console.log('✅ Usuário é sócio:', partnerInfo);
+          setPartnerData(partnerInfo);
+          
+          // Buscar estatísticas de depósitos totais da plataforma
+          const { data: depositsData, error: depositsError } = await supabase
+            .from('digitopay_transactions')
+            .select('amount_brl')
+            .eq('type', 'deposit')
+            .eq('status', 'completed');
+
+          if (depositsData && !depositsError) {
+            const totalPlatformDeposits = depositsData.reduce((sum, deposit) => sum + (deposit.amount_brl || 0), 0);
+            const monthlyCommission = totalPlatformDeposits * (partnerInfo.commission_percentage / 100);
+            
+            setPartnerStats({
+              totalEarnings: partnerInfo.total_earnings || 0,
+              totalDeposits: totalPlatformDeposits,
+              commission: partnerInfo.commission_percentage || 1.00,
+              monthlyEarnings: monthlyCommission
+            });
+            
+            console.log('📊 Estatísticas de sócio carregadas:', {
+              totalDeposits: totalPlatformDeposits,
+              commission: monthlyCommission
+            });
+          }
+        } else {
+          console.log('❌ Usuário não é sócio');
+          setPartnerData(null);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar dados de sócio:', error);
+      }
+    };
+
+    loadPartnerData();
 
     // Carregar dados de investimentos e operações
     const loadInvestments = async () => {
@@ -866,6 +925,71 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Partner/Socio Status Box */}
+        {partnerData && (
+          <Card className="mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-500/20 rounded-full">
+                    <Crown className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-yellow-600 dark:text-yellow-400">
+                      🏆 Status de Sócio Ativo
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Você tem direito a {partnerStats.commission}% sobre todos os depósitos da plataforma
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300">
+                  Sócio VIP
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-background/50 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    R$ {partnerStats.totalEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Comissões Recebidas</div>
+                </div>
+                <div className="text-center p-3 bg-background/50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    R$ {partnerStats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Depósitos Plataforma</div>
+                </div>
+                <div className="text-center p-3 bg-background/50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {partnerStats.commission}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Taxa de Comissão</div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      💰 Comissão Potencial Atual
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Baseado nos depósitos da plataforma
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      R$ {partnerStats.monthlyEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-6">
