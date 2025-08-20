@@ -274,9 +274,13 @@ const Referrals = () => {
     };
     
     loadReferralData();
-
-    // Remove mock data - use real data from database
   }, [user]);
+
+  // Função para forçar atualização dos dados
+  const forceRefresh = () => {
+    console.log('🔄 Forçando atualização dos dados...');
+    window.location.reload();
+  };
 
   const copyToClipboard = async () => {
     try {
@@ -377,16 +381,28 @@ Alphabit Team`;
             <p className="text-muted-foreground">Gerencie suas indicações e acompanhe comissões</p>
           </div>
           
-          {/* User Menu */}
-          <div className="relative">
+          {/* Botão de Atualizar */}
+          <div className="flex items-center gap-2">
             <Button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              variant="ghost"
+              onClick={forceRefresh}
+              variant="outline"
               size="sm"
-              className="p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/30"
+              className="bg-primary/10 border-primary/20 hover:bg-primary/20"
             >
-              <User className="h-5 w-5 text-gray-300" />
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Atualizar Dados
             </Button>
+            
+            {/* User Menu */}
+            <div className="relative">
+              <Button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                variant="ghost"
+                size="sm"
+                className="p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/30"
+              >
+                <User className="h-5 w-5 text-gray-300" />
+              </Button>
             
             {showUserMenu && (
               <div className="absolute right-0 top-12 w-64 bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700/50 shadow-xl z-50">
@@ -443,7 +459,9 @@ Alphabit Team`;
                 </div>
               </div>
             )}
+            </div>
           </div>
+        </div>
         </div>
 
         {/* Stats Cards */}
