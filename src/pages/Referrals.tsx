@@ -146,11 +146,18 @@ const Referrals = () => {
   };
 
   useEffect(() => {
+    console.log('🚀 useEffect Referrals iniciado');
+    console.log('🔍 User atual:', user);
+    
     const loadReferralData = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('❌ Sem usuário, saindo...');
+        return;
+      }
 
       try {
         console.log('🔍 Debug Referrals - User ID:', user.id);
+        console.log('🔍 Debug Referrals - User Email:', user.email);
         
         // Get user profile with referral code for referral link
         const { data: userProfile, error: profileError } = await supabase
