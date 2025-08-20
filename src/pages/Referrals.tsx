@@ -175,30 +175,29 @@ const Referrals = () => {
         // Get referral data - buscar usuários que foram indicados por este usuário
         console.log('🔍 Debug Referrals - Buscando usuários indicados por:', user.id);
         
-        // Buscar usuários que têm este usuário como referência (referred_by)
-        // Primeiro, buscar pelo user_id
-        let { data: referredUsers, error: referralsError } = await supabase
-          .from('profiles')
+        // Primeiro buscar na tabela referrals para pegar as referências diretas
+        const { data: referralRelations, error: referralError } = await supabase
+          .from('referrals')
           .select(`
-            user_id,
-            username, 
-            display_name, 
-            email, 
-            whatsapp, 
-            city, 
-            state, 
-            created_at,
+            referred_id,
+            referral_code,
+            commission_rate,
+            total_commission,
             status,
-            balance,
-            total_profit
+            created_at
           `)
-          .eq('referred_by', user.id)
-          .order('created_at', { ascending: false });
+          .eq('referrer_id', user.id);
 
-        // Se não encontrar pelo user_id, tentar pelo referral_code
-        if ((!referredUsers || referredUsers.length === 0) && userProfile?.referral_code) {
-          console.log('🔍 Tentando buscar por referral_code:', userProfile.referral_code);
-          const { data: referredByCode, error: codeError } = await supabase
+        console.log('🔍 Debug Referrals - Relações encontradas:', referralRelations);
+
+        let referredUsers: any[] = [];
+        let referralsError = referralError;
+
+        if (referralRelations && referralRelations.length > 0) {
+          // Buscar os perfis dos usuários indicados
+          const referredIds = referralRelations.map(rel => rel.referred_id);
+          
+          const { data: profilesData, error: profilesError } = await supabase
             .from('profiles')
             .select(`
               user_id,
@@ -213,12 +212,68 @@ const Referrals = () => {
               balance,
               total_profit
             `)
-            .eq('referred_by', userProfile.referral_code)
+            .in('user_id', referredIds)
             .order('created_at', { ascending: false });
 
-          if (referredByCode && referredByCode.length > 0) {
-            referredUsers = referredByCode;
-            referralsError = codeError;
+          if (profilesData) {
+            referredUsers = profilesData;
+            referralsError = profilesError;
+          }
+        }
+
+        // Se não encontrar na tabela referrals, buscar na tabela profiles por referred_by
+        if ((!referredUsers || referredUsers.length === 0)) {
+          console.log('🔍 Buscando na tabela profiles por referred_by');
+          
+          // Buscar por user_id
+          const { data: profileRefs, error: profileError } = await supabase
+            .from('profiles')
+            .select(`
+              user_id,
+              username, 
+              display_name, 
+              email, 
+              whatsapp, 
+              city, 
+              state, 
+              created_at,
+              status,
+              balance,
+              total_profit
+            `)
+            .eq('referred_by', user.id)
+            .order('created_at', { ascending: false });
+
+          if (profileRefs && profileRefs.length > 0) {
+            referredUsers = profileRefs;
+            referralsError = profileError;
+          }
+          
+          // Se ainda não encontrar e tiver referral_code, tentar por referral_code
+          if ((!referredUsers || referredUsers.length === 0) && userProfile?.referral_code) {
+            console.log('🔍 Tentando buscar por referral_code:', userProfile.referral_code);
+            const { data: referredByCode, error: codeError } = await supabase
+              .from('profiles')
+              .select(`
+                user_id,
+                username, 
+                display_name, 
+                email, 
+                whatsapp, 
+                city, 
+                state, 
+                created_at,
+                status,
+                balance,
+                total_profit
+              `)
+              .eq('referred_by', userProfile.referral_code)
+              .order('created_at', { ascending: false });
+
+            if (referredByCode && referredByCode.length > 0) {
+              referredUsers = referredByCode;
+              referralsError = codeError;
+            }
           }
         }
 
