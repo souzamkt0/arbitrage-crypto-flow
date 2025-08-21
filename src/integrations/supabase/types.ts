@@ -2158,6 +2158,10 @@ export type Database = {
         Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
       }
+      calculate_referral_commission_10pct: {
+        Args: { investment_amount: number; referred_user_id: string }
+        Returns: undefined
+      }
       clean_auth_users: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2259,6 +2263,20 @@ export type Database = {
           id: string
           updated_at: string
         }[]
+      }
+      get_user_referral_stats: {
+        Args: { target_user_id: string }
+        Returns: {
+          active_referrals: number
+          residual_balance: number
+          this_month_earnings: number
+          total_commissions: number
+          total_referrals: number
+        }[]
+      }
+      get_user_residual_balance: {
+        Args: { target_user_id: string }
+        Returns: number
       }
       get_user_trading_stats: {
         Args: { user_uuid: string }

@@ -42,6 +42,7 @@ import axios from "axios";
 import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
 import { executeSupabaseOperation, connectionMonitor } from "@/services/connectionMonitor";
 import { PartnerStatusBanner } from "@/components/PartnerStatusBanner";
+import ResidualBalanceBox from "@/components/ResidualBalanceBox";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -1177,6 +1178,11 @@ const Dashboard = () => {
             </CardContent>
           </Card>
                  </div>
+
+        {/* Saldo Residual - Sistema de Indicações */}
+        <div className="mb-6">
+          <ResidualBalanceBox />
+        </div>
 
          {/* Alphabot - Negociações de Arbitragem */}
          <Card className="bg-card border-border">
