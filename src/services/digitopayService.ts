@@ -158,7 +158,7 @@ export class DigitoPayService {
           cpf,
           name,
           callbackUrl,
-          userId: (await supabase.auth.getUser()).data.user?.id
+          userId: (await supabase.auth.getUser()).data.user?.id || '0a9325f4-911d-431b-a8ae-1132b4167711'
         }
       });
 
