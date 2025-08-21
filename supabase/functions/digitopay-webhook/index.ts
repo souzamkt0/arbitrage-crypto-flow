@@ -112,10 +112,24 @@ Deno.serve(async (req) => {
       console.log('💰 Processando depósito aprovado...');
 
       // Atualizar saldo do usuário
+      const { data: currentProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('user_id', transaction.user_id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Erro ao buscar perfil:', profileError);
+        throw profileError;
+      }
+
+      const currentBalance = parseFloat(currentProfile.balance || '0');
+      const newBalance = currentBalance + parseFloat(transaction.amount_brl);
+
       const { error: balanceError } = await supabase
         .from('profiles')
         .update({
-          balance: supabase.raw(`balance + ${transaction.amount_brl}`)
+          balance: newBalance.toString()
         })
         .eq('user_id', transaction.user_id);
 
