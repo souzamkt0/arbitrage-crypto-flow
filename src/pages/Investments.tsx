@@ -1311,10 +1311,11 @@ const Investments = () => {
           </div>
         )}
 
-        {/* Trading Simulation Modal */}
+        {/* Professional Trading Simulation Modal */}
         <Dialog open={showTradingSimulation} onOpenChange={() => {}}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto bg-gradient-to-br from-gray-900 via-slate-900 to-black border border-gray-700/50 text-white p-0">
-            {/* Professional Trading Header */}
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto bg-gradient-to-br from-slate-950 via-gray-950 to-black border-2 border-cyan-500/20 text-white p-0">
+            
+            {/* Trading Terminal Header */}
             <div className="bg-gradient-to-r from-cyan-950/40 via-blue-950/40 to-violet-950/40 px-6 py-4 border-b border-cyan-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -1340,20 +1341,18 @@ const Investments = () => {
 
             {/* Trading Interface */}
             <div className="p-6 space-y-6">
-              {/* Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Progresso: {tradingStatus.toUpperCase()}</span>
+                  <span>Status: {tradingStatus.toUpperCase()}</span>
                   <span className="text-cyan-400">{tradingProgress}%</span>
                 </div>
                 <Progress value={tradingProgress} className="h-2" />
               </div>
 
-              {/* Live Chart */}
               <div className="bg-slate-800/50 rounded-xl p-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Activity className="w-5 h-5 mr-2 text-cyan-400" />
-                  {currentTradingPair} - Análise em Tempo Real
+                  {currentTradingPair} - Análise Técnica
                 </h3>
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={priceData}>
@@ -1361,13 +1360,10 @@ const Investments = () => {
                     <YAxis tick={{fontSize: 10}} />
                     <Tooltip />
                     <Line type="monotone" dataKey="price" stroke="#06b6d4" strokeWidth={2} dot={false} />
-                    {buyPrice && <ReferenceLine y={buyPrice} stroke="#10b981" strokeDasharray="3 3" />}
-                    {sellPrice && <ReferenceLine y={sellPrice} stroke="#f59e0b" strokeDasharray="3 3" />}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Trading Stats */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
                   <div className="text-sm text-green-400">Compra</div>
@@ -1783,14 +1779,9 @@ const Investments = () => {
             </div>
           </DialogContent>
         </Dialog>
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-ping">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                      ARBITRAGEM EM TEMPO REAL
+
+        {/* Investment Dialog */}
+        {/* Investment Dialog */}
                     </h2>
                     <p className="text-gray-400 flex items-center space-x-2 mt-1">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
