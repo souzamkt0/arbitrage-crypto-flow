@@ -2635,6 +2635,7 @@ const Investments = () => {
         </div>
       </div>
     )}
+    </div>
 
       {/* Investment Modal - Dark Theme Improved */}
       <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
