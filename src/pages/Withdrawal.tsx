@@ -92,14 +92,14 @@ const Withdrawal = () => {
         // Fetch user profile data
         const { data: profile } = await supabase
           .from('profiles')
-          .select('balance, referral_balance, residual_balance')
+          .select('balance, referral_balance')
           .eq('user_id', user.id)
           .single();
 
         if (profile) {
           setUserBalance(profile.balance || 0);
           setReferralBalance(profile.referral_balance || 0);
-          setResidualBalance(profile.residual_balance || 0);
+          setResidualBalance(0); // Coluna não existe na tabela
         }
 
         // Fetch withdrawal history
@@ -337,7 +337,7 @@ const Withdrawal = () => {
                       </Button>
                     </div>
                     <p className="text-xl sm:text-2xl font-bold text-trading-green">
-                      {showBalance ? `$${userBalance.toLocaleString()}` : "••••••"}
+                      {showBalance ? `R$ ${userBalance.toFixed(2)}` : "••••••"}
                     </p>
                   </div>
                   <Wallet className="h-6 w-6 text-primary" />
@@ -352,7 +352,7 @@ const Withdrawal = () => {
                   <div className="flex-1">
                     <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo de Indicação</p>
                     <p className="text-lg sm:text-xl font-bold text-amber-600">
-                      {showBalance ? `$${referralBalance.toLocaleString()}` : "••••••"}
+                      {showBalance ? `R$ ${referralBalance.toFixed(2)}` : "••••••"}
                     </p>
                   </div>
                   <DollarSign className="h-6 w-6 text-amber-600" />
@@ -367,7 +367,7 @@ const Withdrawal = () => {
                   <div className="flex-1">
                     <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo Residual</p>
                     <p className="text-lg sm:text-xl font-bold text-blue-600">
-                      {showBalance ? `$${residualBalance.toLocaleString()}` : "••••••"}
+                      {showBalance ? `R$ ${residualBalance.toFixed(2)}` : "••••••"}
                     </p>
                   </div>
                   <CreditCard className="h-6 w-6 text-blue-600" />
@@ -382,7 +382,7 @@ const Withdrawal = () => {
                   <div className="flex-1">
                     <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo Total</p>
                     <p className="text-lg sm:text-xl font-bold text-green-600">
-                      {showBalance ? `$${(userBalance + referralBalance + residualBalance).toLocaleString()}` : "••••••"}
+                      {showBalance ? `R$ ${(userBalance + referralBalance + residualBalance).toFixed(2)}` : "••••••"}
                     </p>
                   </div>
                   <DollarSign className="h-6 w-6 text-green-600" />
