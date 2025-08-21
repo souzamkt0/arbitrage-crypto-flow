@@ -60,7 +60,6 @@ const ReferralSystem = () => {
         description: "O link de indicação foi copiado para a área de transferência.",
       });
     } catch (err) {
-      console.error("Erro ao copiar link:", err);
       toast({
         title: "Erro ao copiar",
         description: "Não foi possível copiar o link. Copie manualmente.",
@@ -77,9 +76,9 @@ const ReferralSystem = () => {
           text: "Conheça a plataforma de arbitragem automatizada que estou usando!",
           url: referralLink,
         });
-      } catch (err) {
-        console.error("Erro ao compartilhar:", err);
-      }
+        } catch (err) {
+          // Silenciosamente ignora erro de compartilhamento
+        }
     } else {
       copyToClipboard();
     }

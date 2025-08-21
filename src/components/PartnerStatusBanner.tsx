@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Shield, DollarSign, Users, RefreshCw, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface PartnerStatus {
   isPartner: boolean;
@@ -21,6 +22,7 @@ interface PartnerStatus {
 
 export const PartnerStatusBanner = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [partnerStatus, setPartnerStatus] = useState<PartnerStatus>({
     isPartner: false,
     isAdmin: false,
@@ -46,10 +48,14 @@ export const PartnerStatusBanner = () => {
         .eq('user_id', user?.id)
         .single();
 
-      if (profileError) {
-        console.error('❌ Erro ao buscar perfil:', profileError);
-        return;
-      }
+        if (profileError) {
+          toast({
+            title: "Erro ao buscar perfil",
+            description: "Não foi possível carregar as informações do perfil",
+            variant: "destructive"
+          });
+          return;
+        }
 
       if (!profileData) {
         console.log('❌ Perfil não encontrado');
@@ -101,9 +107,13 @@ export const PartnerStatusBanner = () => {
         willShowBanner: isAdmin || isPartner
       });
 
-    } catch (error) {
-      console.error('❌ Erro geral ao verificar status:', error);
-    } finally {
+      } catch (error) {
+        toast({
+          title: "Erro geral",
+          description: "Houve um problema ao verificar o status",
+          variant: "destructive"
+        });
+      } finally {
       setLoading(false);
     }
   };

@@ -11,9 +11,7 @@ import Register from "./pages/Register";
 import CompleteProfile from "./pages/CompleteProfile";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
-import TesteCompleto from "./pages/TesteCompleto";
 import TestWebhook from "./pages/TestWebhook";
-import Debug from "./pages/Debug";
 
 import Deposit from "./pages/Deposit";
 import Withdrawal from "./pages/Withdrawal";
@@ -292,14 +290,8 @@ const App = () => (
             }
           />
 
-          {/* Página de teste do sistema de cadastro */}
-          <Route path="/teste-completo" element={<TesteCompleto />} />
-
           {/* Página de teste de webhook */}
           <Route path="/test-webhook" element={<TestWebhook />} />
-
-          {/* Página de debug */}
-          <Route path="/debug" element={<Debug />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

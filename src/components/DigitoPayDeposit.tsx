@@ -82,7 +82,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         .limit(10);
 
       if (error) {
-        console.error('❌ Erro ao carregar histórico:', error);
+        toast({
+          title: "Erro ao carregar histórico",
+          description: "Não foi possível carregar as transações",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -189,9 +193,12 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               .eq('user_id', user?.id);
 
             if (updateError) {
-              console.error('❌ Erro ao atualizar saldo:', updateError);
+              toast({
+                title: "Erro ao atualizar saldo",
+                description: "Houve um problema ao atualizar seu saldo",
+                variant: "destructive"
+              });
             } else {
-              console.log('✅ Saldo atualizado com sucesso');
               
               // Atualizar histórico
               setDepositHistory(prev => 
@@ -254,7 +261,6 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       });
 
     } catch (error) {
-      console.error('❌ Erro ao criar depósito:', error);
       toast({
         title: 'Erro ao gerar PIX',
         description: error instanceof Error ? error.message : 'Erro desconhecido',

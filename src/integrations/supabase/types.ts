@@ -2194,19 +2194,6 @@ export type Database = {
         Args: { p_amount: number; p_plan_id: string; p_user_id: string }
         Returns: string
       }
-      create_user_profile_manual: {
-        Args: {
-          cpf_param?: string
-          email_param: string
-          first_name_param?: string
-          last_name_param?: string
-          referral_code_param?: string
-          user_id_param: string
-          username_param?: string
-          whatsapp_param?: string
-        }
-        Returns: Json
-      }
       get_digitopay_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
