@@ -101,6 +101,42 @@ serve(async (req) => {
 
       if (saveError) {
         console.error('❌ Erro ao salvar transação:', saveError);
+        
+        // Log do erro para debug
+        await supabase
+          .from('digitopay_debug')
+          .insert({
+            tipo: 'save_transaction_error',
+            payload: {
+              error: saveError,
+              transactionData: {
+                user_id: userId,
+                trx_id: depositResult.id,
+                type: 'deposit',
+                amount: amount,
+                amount_brl: amount,
+                status: 'pending',
+                pix_code: depositResult.pixCopiaECola,
+                qr_code_base64: depositResult.qrCodeBase64,
+                person_name: name,
+                person_cpf: cpf
+              }
+            }
+          });
+      } else {
+        console.log('✅ Transação salva com sucesso:', depositResult.id);
+        
+        // Log do sucesso
+        await supabase
+          .from('digitopay_debug')
+          .insert({
+            tipo: 'save_transaction_success',
+            payload: {
+              trx_id: depositResult.id,
+              user_id: userId,
+              amount: amount
+            }
+          });
       }
 
       return new Response(
