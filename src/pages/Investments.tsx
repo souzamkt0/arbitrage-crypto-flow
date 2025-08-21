@@ -1314,13 +1314,475 @@ const Investments = () => {
         {/* Trading Simulation Modal */}
         <Dialog open={showTradingSimulation} onOpenChange={() => {}}>
           <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto bg-gradient-to-br from-gray-900 via-slate-900 to-black border border-gray-700/50 text-white p-0">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-green-600/20 via-blue-600/20 to-purple-600/20 p-6 border-b border-gray-700/50">
+            {/* Professional Trading Header */}
+            <div className="bg-gradient-to-r from-cyan-950/40 via-blue-950/40 to-violet-950/40 px-6 py-4 border-b border-cyan-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 rounded-xl flex items-center justify-center shadow-2xl">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                      TERMINAL ARBITRAGEM PRO
+                    </h2>
+                    <div className="flex items-center space-x-2 text-sm text-gray-400">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span>LIVE • {currentTradingPair}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-green-400">+${currentProfit.toFixed(2)}</div>
+                  <div className="text-sm text-gray-400">Lucro Atual</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Trading Interface */}
+            <div className="p-6 space-y-6">
+              {/* Progress */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progresso: {tradingStatus.toUpperCase()}</span>
+                  <span className="text-cyan-400">{tradingProgress}%</span>
+                </div>
+                <Progress value={tradingProgress} className="h-2" />
+              </div>
+
+              {/* Live Chart */}
+              <div className="bg-slate-800/50 rounded-xl p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-cyan-400" />
+                  {currentTradingPair} - Análise em Tempo Real
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={priceData}>
+                    <XAxis dataKey="time" tick={{fontSize: 10}} />
+                    <YAxis tick={{fontSize: 10}} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="price" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                    {buyPrice && <ReferenceLine y={buyPrice} stroke="#10b981" strokeDasharray="3 3" />}
+                    {sellPrice && <ReferenceLine y={sellPrice} stroke="#f59e0b" strokeDasharray="3 3" />}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Trading Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
+                  <div className="text-sm text-green-400">Compra</div>
+                  <div className="text-lg font-mono text-green-300">${buyPrice.toFixed(4)}</div>
+                </div>
+                <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-500/20">
+                  <div className="text-sm text-yellow-400">Meta</div>
+                  <div className="text-lg font-mono text-yellow-300">${sellPrice.toFixed(4)}</div>
+                </div>
+                <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/20">
+                  <div className="text-sm text-purple-400">ROI</div>
+                  <div className="text-lg font-mono text-purple-300">{((sellPrice - buyPrice) / buyPrice * 100).toFixed(2)}%</div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+            
+            {/* Market Header */}
+            <div className="bg-gradient-to-r from-cyan-950/40 via-blue-950/40 to-violet-950/40 px-6 py-4 border-b border-cyan-500/20 backdrop-blur-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
                   <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center animate-pulse shadow-2xl">
-                      <TrendingUp className="w-8 h-8 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 rounded-xl flex items-center justify-center shadow-2xl shadow-cyan-500/25">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse flex items-center justify-center">
+                      <div className="w-2 h-2 bg-green-300 rounded-full"></div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                      ARBITRAGEM PRO TERMINAL
+                    </h2>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <span className="text-sm text-gray-400">Par: {currentTradingPair}</span>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-green-400 font-mono">LIVE MARKET</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-sm text-gray-400">Lucro Atual</div>
+                    <div className={`text-xl font-bold font-mono ${currentProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {currentProfit >= 0 ? '+' : ''}${currentProfit.toFixed(4)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-400">Status</div>
+                    <div className="text-sm font-semibold text-cyan-400 uppercase tracking-wider">
+                      {tradingStatus === 'analyzing' && '🔍 ANALISANDO'}
+                      {tradingStatus === 'buying' && '📈 COMPRANDO'}
+                      {tradingStatus === 'waiting' && '⏳ AGUARDANDO'}
+                      {tradingStatus === 'selling' && '📉 VENDENDO'}
+                      {tradingStatus === 'completed' && '✅ CONCLUÍDO'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Trading Interface */}
+            <div className="grid grid-cols-12 gap-4 p-4 h-[calc(95vh-120px)] overflow-hidden">
+              
+              {/* Left Panel - Market Data & Order Book */}
+              <div className="col-span-3 space-y-4 overflow-y-auto">
+                
+                {/* Market Ticker */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <Activity className="w-4 h-4 mr-2 text-cyan-400" />
+                    MARKET TICKER
+                  </h3>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'].map((pair, i) => {
+                      const isActive = pair === currentTradingPair;
+                      const price = (Math.random() * 50000 + 10000).toFixed(2);
+                      const change = (Math.random() * 10 - 5).toFixed(2);
+                      const isPositive = parseFloat(change) > 0;
+                      
+                      return (
+                        <div key={pair} className={`flex justify-between items-center p-2 rounded-lg transition-all ${
+                          isActive ? 'bg-cyan-500/20 border border-cyan-500/30' : 'hover:bg-slate-800/50'
+                        }`}>
+                          <div>
+                            <div className={`text-xs font-mono ${isActive ? 'text-cyan-400' : 'text-white'}`}>{pair}</div>
+                            <div className="text-xs text-gray-400">${price}</div>
+                          </div>
+                          <div className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}{change}%
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Order Book Simulation */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <BarChart3 className="w-4 h-4 mr-2 text-green-400" />
+                    ORDER BOOK
+                  </h3>
+                  
+                  {/* Sell Orders */}
+                  <div className="mb-3">
+                    <div className="text-xs text-red-400 mb-1 font-semibold">ASKS</div>
+                    {Array.from({length: 5}, (_, i) => {
+                      const price = (buyPrice * (1 + (i + 1) * 0.001)).toFixed(4);
+                      const volume = (Math.random() * 100).toFixed(2);
+                      return (
+                        <div key={i} className="flex justify-between text-xs py-1 hover:bg-red-500/10 px-2 rounded">
+                          <span className="text-red-400 font-mono">{price}</span>
+                          <span className="text-gray-400">{volume}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Current Price */}
+                  <div className="border-y border-slate-600/50 py-2 my-2">
+                    <div className="text-center">
+                      <div className="text-lg font-mono font-bold text-cyan-400">{buyPrice.toFixed(4)}</div>
+                      <div className="text-xs text-gray-400">ÚLTIMO PREÇO</div>
+                    </div>
+                  </div>
+
+                  {/* Buy Orders */}
+                  <div>
+                    <div className="text-xs text-green-400 mb-1 font-semibold">BIDS</div>
+                    {Array.from({length: 5}, (_, i) => {
+                      const price = (buyPrice * (1 - (i + 1) * 0.001)).toFixed(4);
+                      const volume = (Math.random() * 100).toFixed(2);
+                      return (
+                        <div key={i} className="flex justify-between text-xs py-1 hover:bg-green-500/10 px-2 rounded">
+                          <span className="text-green-400 font-mono">{price}</span>
+                          <span className="text-gray-400">{volume}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Trade Statistics */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <Target className="w-4 h-4 mr-2 text-purple-400" />
+                    ESTATÍSTICAS
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-400">Volume 24h:</span>
+                      <span className="text-white font-mono">$2.4M</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-400">Alta 24h:</span>
+                      <span className="text-green-400 font-mono">${(buyPrice * 1.05).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-400">Baixa 24h:</span>
+                      <span className="text-red-400 font-mono">${(buyPrice * 0.95).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-400">Spread:</span>
+                      <span className="text-cyan-400 font-mono">0.02%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Panel - Price Chart */}
+              <div className="col-span-6 space-y-4">
+                
+                {/* Price Chart */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm h-96">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center">
+                      <Sparkles className="w-5 h-5 mr-2 text-yellow-400" />
+                      {currentTradingPair} - ANÁLISE TÉCNICA
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <div className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
+                        1M
+                      </div>
+                      <div className="px-3 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs">
+                        5M
+                      </div>
+                      <div className="px-3 py-1 bg-gray-700/50 text-gray-400 rounded-full text-xs">
+                        15M
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={priceData}>
+                      <defs>
+                        <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="time" 
+                        tick={{fontSize: 10, fill: '#64748b'}}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        domain={['dataMin - 10', 'dataMax + 10']}
+                        tick={{fontSize: 10, fill: '#64748b'}}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          background: 'rgba(15, 23, 42, 0.9)',
+                          border: '1px solid #06b6d4',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="price"
+                        stroke="#06b6d4"
+                        strokeWidth={2}
+                        fill="url(#priceGradient)"
+                        dot={false}
+                      />
+                      {buyPrice && (
+                        <ReferenceLine 
+                          y={buyPrice} 
+                          stroke="#10b981" 
+                          strokeDasharray="5 5"
+                          label={{ value: "COMPRA", position: "insideTopRight", fill: "#10b981" }}
+                        />
+                      )}
+                      {sellPrice && (
+                        <ReferenceLine 
+                          y={sellPrice} 
+                          stroke="#f59e0b" 
+                          strokeDasharray="5 5"
+                          label={{ value: "META", position: "insideTopRight", fill: "#f59e0b" }}
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Trading Progress */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-6 backdrop-blur-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center">
+                      <Timer className="w-5 h-5 mr-2 text-orange-400" />
+                      PROGRESSO DA OPERAÇÃO
+                    </h3>
+                    <div className="text-2xl font-bold font-mono text-cyan-400">
+                      {tradingProgress}%
+                    </div>
+                  </div>
+                  
+                  <Progress 
+                    value={tradingProgress} 
+                    className="h-3 mb-4"
+                  />
+                  
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div className={`p-3 rounded-lg ${tradingStatus === 'analyzing' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-700/30 text-gray-500'}`}>
+                      <div className="text-lg">🔍</div>
+                      <div className="text-xs mt-1">Análise</div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${tradingStatus === 'buying' ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/30 text-gray-500'}`}>
+                      <div className="text-lg">📈</div>
+                      <div className="text-xs mt-1">Compra</div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${tradingStatus === 'waiting' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-700/30 text-gray-500'}`}>
+                      <div className="text-lg">⏳</div>
+                      <div className="text-xs mt-1">Espera</div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${tradingStatus === 'selling' ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-700/30 text-gray-500'}`}>
+                      <div className="text-lg">💰</div>
+                      <div className="text-xs mt-1">Venda</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Panel - Trade Details & History */}
+              <div className="col-span-3 space-y-4 overflow-y-auto">
+                
+                {/* Current Trade */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <Zap className="w-4 h-4 mr-2 text-yellow-400" />
+                    OPERAÇÃO ATUAL
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-slate-800/50 p-3 rounded-lg">
+                      <div className="text-xs text-gray-400 mb-1">Par de Trading</div>
+                      <div className="text-lg font-mono font-bold text-cyan-400">{currentTradingPair}</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-green-500/10 p-3 rounded-lg border border-green-500/20">
+                        <div className="text-xs text-green-400 mb-1">Preço Compra</div>
+                        <div className="text-sm font-mono text-green-300">${buyPrice.toFixed(4)}</div>
+                      </div>
+                      <div className="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/20">
+                        <div className="text-xs text-yellow-400 mb-1">Meta Venda</div>
+                        <div className="text-sm font-mono text-yellow-300">${sellPrice.toFixed(4)}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">
+                      <div className="text-xs text-purple-400 mb-1">ROI Esperado</div>
+                      <div className="text-lg font-mono font-bold text-purple-300">
+                        {((sellPrice - buyPrice) / buyPrice * 100).toFixed(3)}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Performance Metrics */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2 text-green-400" />
+                    PERFORMANCE
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">Operações Hoje:</span>
+                      <span className="text-sm font-semibold text-white">12</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">Taxa Sucesso:</span>
+                      <span className="text-sm font-semibold text-green-400">94.8%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">Lucro Médio:</span>
+                      <span className="text-sm font-semibold text-cyan-400">0.18%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">Tempo Médio:</span>
+                      <span className="text-sm font-semibold text-purple-400">2m 34s</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-slate-700/50">
+                    <div className="text-xs text-gray-400 mb-2">Eficiência do Robô</div>
+                    <Progress value={94.8} className="h-2" />
+                  </div>
+                </div>
+
+                {/* Recent Trades */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                    <Clock className="w-4 h-4 mr-2 text-blue-400" />
+                    TRADES RECENTES
+                  </h3>
+                  
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {Array.from({length: 8}, (_, i) => {
+                      const profit = (Math.random() * 5 + 0.5).toFixed(3);
+                      const time = `${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`;
+                      
+                      return (
+                        <div key={i} className="flex justify-between items-center p-2 bg-slate-800/30 rounded text-xs">
+                          <div>
+                            <div className="text-white font-mono">BTC/USDT</div>
+                            <div className="text-gray-400">{time}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-green-400 font-semibold">+{profit}%</div>
+                            <div className="text-green-300 font-mono">+${(parseFloat(profit) * 10).toFixed(2)}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Controls */}
+            <div className="bg-gradient-to-r from-slate-950/80 to-gray-950/80 px-6 py-4 border-t border-cyan-500/20 backdrop-blur-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-400">Sistema Ativo</span>
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    Próxima operação em: <span className="text-cyan-400 font-mono">23:45:12</span>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={() => setShowTradingSimulation(false)}
+                  variant="outline"
+                  className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400"
+                >
+                  <ChevronRight className="w-4 h-4 mr-2" />
+                  Minimizar Terminal
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
                     </div>
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-ping">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
