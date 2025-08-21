@@ -277,18 +277,18 @@ export const PartnerStats = () => {
                 type="number"
                 value={simulatedAmount}
                 onChange={(e) => setSimulatedAmount(Number(e.target.value))}
-                className="w-full bg-navy-800/50 border border-navy-600/30 rounded-lg px-3 py-2 text-white"
+                className="w-full bg-navy-800/50 border border-navy-600/30 rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground"
                 placeholder="1000"
               />
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-navy-800/30 rounded-lg p-3">
-                <div className="text-navy-300 text-xs mb-1">Usuário Comum</div>
-                <div className="text-white font-semibold">
+                <div className="text-muted-foreground text-xs mb-1">Usuário Comum</div>
+                <div className="text-foreground font-semibold">
                   R$ {simulation.regularProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
-                <div className="text-navy-400 text-xs">5% de lucro</div>
+                <div className="text-muted-foreground text-xs">5% de lucro</div>
               </div>
               
               <div className="bg-green-900/30 rounded-lg p-3 border border-green-500/30">
