@@ -2,17 +2,17 @@
 <html>
 <head>
   <title>DigitoPay Webhook Redirect</title>
-  <meta http-equiv="refresh" content="0; URL=https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook">
+  <meta http-equiv="refresh" content="0; URL=https://www.alphabit.vu/api/webhook/digitopay">
 </head>
 <body>
   <script>
     // Redirecionar webhook do DigitoPay para Supabase Edge Function
     const webhookData = new URLSearchParams(window.location.search);
-    const supabaseUrl = 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook';
+    const webhookUrl = 'https://www.alphabit.vu/api/webhook/digitopay';
     
     // Se for uma requisição POST (webhook), fazer proxy
     if (document.body) {
-      fetch(supabaseUrl, {
+      fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

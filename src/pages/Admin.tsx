@@ -59,7 +59,9 @@ import {
   Crown,
   Key,
   LogOut,
-  User
+  User,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 
 interface User {
@@ -6120,7 +6122,91 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            {/* Existing settings content would go here */}
+            {/* Configurações de Webhook */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link className="h-5 w-5" />
+                  Configurações de Webhook
+                </CardTitle>
+                <CardDescription>
+                  Configure os webhooks para processamento automático de depósitos e saques
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="webhookUrl">URL do Webhook</Label>
+                    <Input
+                      id="webhookUrl"
+                      value="https://www.alphabit.vu/api/webhook/digitopay"
+                      readOnly
+                      className="bg-gray-800"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      URL configurada para receber webhooks do DigitoPay
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Status do Webhook</Label>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Ativo
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        Processando automaticamente
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Configuração no DigitoPay</Label>
+                  <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/30">
+                    <div className="text-blue-400 text-sm font-medium mb-2">
+                      URL para configurar no painel do DigitoPay:
+                    </div>
+                    <div className="bg-gray-800 rounded p-2 font-mono text-xs break-all">
+                      https://www.alphabit.vu/api/webhook/digitopay
+                    </div>
+                    <p className="text-xs text-blue-300 mt-2">
+                      Esta URL deve ser configurada no painel administrativo do DigitoPay para processamento automático de transações.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://www.alphabit.vu/api/webhook/digitopay');
+                      toast({
+                        title: 'URL copiada!',
+                        description: 'URL do webhook copiada para a área de transferência',
+                      });
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copiar URL
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      window.open('https://www.alphabit.vu/api/webhook/digitopay', '_blank');
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Testar Webhook
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configurações Gerais */}
             <Card>
               <CardHeader>
                 <CardTitle>Configurações Gerais</CardTitle>

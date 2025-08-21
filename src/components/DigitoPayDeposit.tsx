@@ -114,7 +114,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       });
 
       // URL de callback para webhook - Via proxy do domínio da empresa
-      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/webhook-proxy`;
+      const callbackUrl = `https://www.alphabit.vu/api/webhook/digitopay`;
       console.log('🚀 Iniciando criação de depósito...');
       console.log('🔗 URL do webhook configurada:', callbackUrl);
 
