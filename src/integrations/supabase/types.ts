@@ -2298,6 +2298,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      sync_arbitrage_plans: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       test_referral_signup: {
         Args: { ref_code?: string; test_email: string }
         Returns: Json
