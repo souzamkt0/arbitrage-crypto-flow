@@ -1488,7 +1488,7 @@ const Investments = () => {
         ) : (
           <div className="space-y-6">
             {/* Box de Planos Ativos */}
-            {activeInvestments > 0 && showActivePlans && (
+            {activeInvestments > 0 && !showActivePlans && (
               <div className="relative overflow-hidden bg-gradient-to-r from-green-500/10 via-green-600/15 to-green-500/10 rounded-xl p-4 sm:p-6 mb-6 border border-green-500/30 backdrop-blur-sm">
                 <div className="relative z-10 text-center space-y-4">
                   <h3 className="text-lg font-bold text-green-400">🟢 PLANOS ATIVOS</h3>
@@ -1496,10 +1496,10 @@ const Investments = () => {
                     {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'}
                   </p>
                   <Button
-                    onClick={() => setShowActivePlans(false)}
+                    onClick={() => setShowActivePlans(true)}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    Ver Planos de Investimento
+                    Ver Planos Ativos
                   </Button>
                 </div>
               </div>
