@@ -25,7 +25,7 @@ const Footer = () => {
     },
     {
       icon: BarChart3,
-      label: 'Investimentos',
+      label: 'Contratos',
       path: '/investments'
     },
     {

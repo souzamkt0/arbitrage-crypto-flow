@@ -61,8 +61,8 @@ import {
   ReferenceLine,
   Tooltip
 } from "recharts";
-import TradingSimulator from "@/components/TradingSimulator";
-import { TradingHistory } from "@/components/TradingHistory";
+import TradingSimulatorAdvanced from "@/components/TradingSimulatorAdvanced";
+import { TradingHistoryExtrato } from "@/components/TradingHistoryExtrato";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -2613,10 +2613,10 @@ const Investments = () => {
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
           <div className="flex items-center justify-between">
             <h2 className={`${isMobile ? 'text-lg' : 'text-xl sm:text-2xl'} font-bold text-foreground`}>
-              Meus Investimentos
+              Meus Contratos Alpha
             </h2>
             <Badge variant="outline" className={`${isMobile ? 'text-xs' : 'text-xs sm:text-sm'}`}>
-              {userInvestments.length} {userInvestments.length === 1 ? 'Investimento' : 'Investimentos'}
+              {userInvestments.length} {userInvestments.length === 1 ? 'Contrato' : 'Contratos'}
             </Badge>
           </div>
 
@@ -3388,9 +3388,9 @@ const Investments = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Trading Simulator */}
+      {/* Trading Simulator Advanced */}
       {selectedInvestmentForTrading && (
-        <TradingSimulator
+        <TradingSimulatorAdvanced
           isOpen={isTradingSimulatorOpen}
           onClose={() => {
             setIsTradingSimulatorOpen(false);
