@@ -175,55 +175,7 @@ export const PartnerStatusBanner = () => {
           </Button>
         </div>
 
-        {partnerStatus.isPartner && (
-          <div className="space-y-4">
-            {/* Contador Principal de Ganhos */}
-            <div className="text-center p-6 bg-gradient-to-r from-success/10 to-trading-green/10 rounded-xl border border-success/20">
-              <div className="text-3xl font-bold text-success mb-2">
-                ${calculatePartnerEarnings().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-lg font-semibold text-muted-foreground mb-1">
-                💰 Ganhos com 1% dos Depósitos
-              </div>
-              <div className="text-sm text-muted-foreground">
-                📈 Total da Plataforma: ${partnerStatus.totalPlatformDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
-            </div>
 
-            {/* Informações Detalhadas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-primary">Comissão</span>
-                </div>
-                <div className="text-2xl font-bold text-primary">
-                  {partnerStatus.partnerData?.commission_percentage || 1}%
-                </div>
-              </div>
-              
-              <div className="text-center p-4 bg-secondary/20 rounded-lg border border-secondary/40">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Users className="h-5 w-5 text-secondary-foreground" />
-                  <span className="font-semibold text-secondary-foreground">Status</span>
-                </div>
-                <div className="text-lg font-bold text-secondary-foreground">
-                  {partnerStatus.partnerData?.status === 'active' ? '✅ Ativo' : '❌ Inativo'}
-                </div>
-              </div>
-              
-              <div className="text-center p-4 bg-warning/10 rounded-lg border border-warning/20">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Crown className="h-5 w-5 text-warning" />
-                  <span className="font-semibold text-warning">Nível</span>
-                </div>
-                <div className="text-lg font-bold text-warning">
-                  VIP
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -62,12 +62,15 @@ const Referrals = () => {
   const [referralLink, setReferralLink] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [whatsappFilter, setWhatsappFilter] = useState<"all" | "with" | "without">("all");
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const [stats, setStats] = useState({
     totalReferrals: 0,
     activeReferrals: 0,
     totalCommission: 0,
-    pendingCommission: 0
+    pendingCommission: 0,
+    withWhatsapp: 0,
+    withoutWhatsapp: 0
   });
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
@@ -80,6 +83,12 @@ const Referrals = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
+  // Estados para o sistema de mensagens
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
+  const [selectedMessageType, setSelectedMessageType] = useState<string>("welcome");
+  const [customMessage, setCustomMessage] = useState("");
   
   // Fechar menu quando clicar fora
   useEffect(() => {
@@ -251,7 +260,9 @@ const Referrals = () => {
             totalReferrals: referredUsers.length,
             activeReferrals,
             totalCommission,
-            pendingCommission: 0
+            pendingCommission: 0,
+            withWhatsapp: referredUsers.filter(user => user.whatsapp).length,
+            withoutWhatsapp: referredUsers.filter(user => !user.whatsapp).length
           });
 
           // Convert to the expected format
@@ -275,7 +286,9 @@ const Referrals = () => {
             totalReferrals: 0,
             activeReferrals: 0,
             totalCommission: 0,
-            pendingCommission: 0
+            pendingCommission: 0,
+            withWhatsapp: 0,
+            withoutWhatsapp: 0
           });
           setReferredUsers([]);
           
@@ -302,7 +315,9 @@ const Referrals = () => {
       totalReferrals: 0,
       activeReferrals: 0,
       totalCommission: 0,
-      pendingCommission: 0
+      pendingCommission: 0,
+      withWhatsapp: 0,
+      withoutWhatsapp: 0
     });
     setProfile(null);
     
@@ -335,7 +350,11 @@ const Referrals = () => {
     
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesWhatsapp = whatsappFilter === "all" || 
+                           (whatsappFilter === "with" && user.whatsapp) ||
+                           (whatsappFilter === "without" && !user.whatsapp);
+    
+    return matchesSearch && matchesStatus && matchesWhatsapp;
   });
 
   const formatCurrency = (value: number) => {
@@ -347,6 +366,135 @@ const Referrals = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  // Função para abrir modal de mensagens
+  const openMessageModal = (user: ReferredUser) => {
+    setSelectedUser(user);
+    setSelectedMessageType("welcome");
+    setCustomMessage("");
+    setShowMessageModal(true);
+  };
+
+  // Função para gerar mensagens baseadas no tipo
+  const generateMessage = (type: string, userName: string): string => {
+    const referrerName = profile?.display_name || profile?.username || 'Souza';
+    
+    switch (type) {
+      case "welcome":
+        return `Olá ${userName}! 
+
+Bem-vindo(a) ao Alphabit!
+
+Sou o ${referrerName} e estou muito feliz em ter você conosco!
+
+O que você ganha aqui:
+• Sistema de arbitragem automática
+• Investimentos seguros e lucrativos
+• Suporte 24/7
+• Comunidade exclusiva de traders
+
+Dica: Comece explorando o Dashboard e veja como nosso sistema funciona. Estou aqui para te ajudar em cada passo!
+
+Precisa de ajuda? Me chama aqui mesmo!
+
+Abraços e sucesso!
+${referrerName}
+Alphabit Team`;
+
+      case "followup":
+        return `Oi ${userName}! 
+
+Como está indo com o Alphabit? 
+
+Espero que esteja aproveitando nossa plataforma! Se tiver alguma dúvida sobre:
+• Como fazer seu primeiro investimento
+• Como funciona o sistema de arbitragem
+• Como acessar o Dashboard
+• Qualquer outra coisa
+
+É só me chamar aqui! Estou sempre disponível para ajudar.
+
+Sucesso!
+${referrerName}`;
+
+      case "investment":
+        return `Olá ${userName}! 
+
+Vi que você ainda não fez nenhum investimento no Alphabit.
+
+Quer que eu te ajude a começar? Posso te explicar:
+• Como funciona nosso sistema
+• Quais são os planos disponíveis
+• Como é o processo de investimento
+• Como acompanhar seus lucros
+
+É muito simples e seguro! Vamos conversar?
+
+${referrerName}`;
+
+      case "support":
+        return `Oi ${userName}! 
+
+Precisa de ajuda com algo no Alphabit?
+
+Estou aqui para te auxiliar com:
+• Dúvidas sobre a plataforma
+• Problemas técnicos
+• Explicações sobre investimentos
+• Qualquer outra questão
+
+Me conta o que está acontecendo que eu te ajudo!
+
+${referrerName}`;
+
+      case "custom":
+        return customMessage;
+
+      default:
+        return `Olá ${userName}! 
+
+${referrerName} aqui, do Alphabit.
+
+Como posso te ajudar hoje?
+
+${referrerName}`;
+    }
+  };
+
+  // Função para enviar mensagem
+  const sendMessage = (messageType: string) => {
+    if (!selectedUser?.whatsapp) {
+      toast({
+        title: "❌ WhatsApp não disponível",
+        description: "Este usuário não possui WhatsApp cadastrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Remover formatação do WhatsApp
+    const cleanWhatsApp = selectedUser.whatsapp.replace(/\D/g, '');
+    
+    // Gerar mensagem baseada no tipo
+    const message = generateMessage(messageType, selectedUser.name);
+    
+    // Codificar a mensagem para URL
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Criar link do WhatsApp
+    const whatsappUrl = `https://wa.me/55${cleanWhatsApp}?text=${encodedMessage}`;
+    
+    // Abrir WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    // Fechar modal
+    setShowMessageModal(false);
+    
+    toast({
+      title: "✅ Mensagem enviada!",
+      description: `Mensagem enviada para ${selectedUser.name}`,
+    });
   };
 
   const sendWelcomeMessage = (whatsapp: string, userName: string) => {
@@ -661,6 +809,17 @@ Alphabit Team`;
                       <SelectItem value="inactive">Inativos</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Select value={whatsappFilter} onValueChange={(value: "all" | "with" | "without") => setWhatsappFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <Phone className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="WhatsApp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="with">Com WhatsApp</SelectItem>
+                      <SelectItem value="without">Sem WhatsApp</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Table */}
@@ -676,6 +835,7 @@ Alphabit Team`;
                         <TableHead>Comissão</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="hidden xl:table-cell">Data Cadastro</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -697,20 +857,15 @@ Alphabit Team`;
                               {user.whatsapp ? (
                                 <>
                                   <div className="flex items-center text-sm">
-                                    📞 {user.whatsapp}
+                                    <span className="text-green-500 mr-1">📞</span>
+                                    {user.whatsapp}
                                   </div>
-                                  <Button
-                                    onClick={() => sendWelcomeMessage(user.whatsapp, user.name)}
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
-                                    title="Enviar mensagem de boas-vindas"
-                                  >
-                                    📱
-                                  </Button>
                                 </>
                               ) : (
-                                <span className="text-muted-foreground text-sm">Não informado</span>
+                                <span className="text-muted-foreground text-sm flex items-center">
+                                  <span className="text-red-500 mr-1">❌</span>
+                                  Não informado
+                                </span>
                               )}
                             </div>
                           </TableCell>
@@ -735,6 +890,29 @@ Alphabit Team`;
                           </TableCell>
                           <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
                             {formatDate(user.joinDate)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {user.whatsapp && (
+                                <Button
+                                  onClick={() => openMessageModal(user)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                                  title="Enviar mensagem"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                                title="Ver detalhes"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -825,6 +1003,158 @@ Alphabit Team`;
               className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
             >
               {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Enviar Mensagens */}
+      <Dialog open={showMessageModal} onOpenChange={setShowMessageModal}>
+        <DialogContent className="bg-gray-900 border border-gray-700 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-green-400 flex items-center justify-center gap-2">
+              <MessageCircle className="h-6 w-6" />
+              Enviar Mensagem para {selectedUser?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Informações do usuário */}
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600/30">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white">{selectedUser?.name}</h3>
+                  <p className="text-sm text-gray-400">{selectedUser?.email}</p>
+                  <p className="text-sm text-green-400">📞 {selectedUser?.whatsapp}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Seleção do tipo de mensagem */}
+            <div className="space-y-3">
+              <Label className="text-gray-300 font-medium">Tipo de Mensagem</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button
+                  onClick={() => setSelectedMessageType("welcome")}
+                  variant={selectedMessageType === "welcome" ? "default" : "outline"}
+                  className={`h-auto p-4 text-left ${
+                    selectedMessageType === "welcome" 
+                      ? "bg-green-600 hover:bg-green-700" 
+                      : "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-sm">👋 Boas-vindas</div>
+                    <div className="text-xs text-gray-300 mt-1">Mensagem de acolhimento para novos usuários</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => setSelectedMessageType("followup")}
+                  variant={selectedMessageType === "followup" ? "default" : "outline"}
+                  className={`h-auto p-4 text-left ${
+                    selectedMessageType === "followup" 
+                      ? "bg-blue-600 hover:bg-blue-700" 
+                      : "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-sm">📞 Acompanhamento</div>
+                    <div className="text-xs text-gray-300 mt-1">Verificar como está indo o usuário</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => setSelectedMessageType("investment")}
+                  variant={selectedMessageType === "investment" ? "default" : "outline"}
+                  className={`h-auto p-4 text-left ${
+                    selectedMessageType === "investment" 
+                      ? "bg-yellow-600 hover:bg-yellow-700" 
+                      : "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-sm">💰 Investimento</div>
+                    <div className="text-xs text-gray-300 mt-1">Ajudar com primeiro investimento</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => setSelectedMessageType("support")}
+                  variant={selectedMessageType === "support" ? "default" : "outline"}
+                  className={`h-auto p-4 text-left ${
+                    selectedMessageType === "support" 
+                      ? "bg-purple-600 hover:bg-purple-700" 
+                      : "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-sm">🆘 Suporte</div>
+                    <div className="text-xs text-gray-300 mt-1">Oferecer ajuda e suporte</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => setSelectedMessageType("custom")}
+                  variant={selectedMessageType === "custom" ? "default" : "outline"}
+                  className={`h-auto p-4 text-left md:col-span-2 ${
+                    selectedMessageType === "custom" 
+                      ? "bg-orange-600 hover:bg-orange-700" 
+                      : "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-sm">✏️ Mensagem Personalizada</div>
+                    <div className="text-xs text-gray-300 mt-1">Escrever sua própria mensagem</div>
+                  </div>
+                </Button>
+              </div>
+            </div>
+
+            {/* Preview da mensagem */}
+            <div className="space-y-3">
+              <Label className="text-gray-300 font-medium">Preview da Mensagem</Label>
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600/30 min-h-[200px] max-h-[300px] overflow-y-auto">
+                <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                  {selectedMessageType === "custom" 
+                    ? (customMessage || "Digite sua mensagem personalizada...")
+                    : generateMessage(selectedMessageType, selectedUser?.name || "")
+                  }
+                </div>
+              </div>
+            </div>
+
+            {/* Campo para mensagem personalizada */}
+            {selectedMessageType === "custom" && (
+              <div className="space-y-3">
+                <Label htmlFor="customMessage" className="text-gray-300 font-medium">Sua Mensagem</Label>
+                <textarea
+                  id="customMessage"
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  placeholder="Digite sua mensagem personalizada..."
+                  className="w-full h-32 bg-gray-800 border border-gray-600 rounded-lg p-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-3 pt-6">
+            <Button
+              onClick={() => setShowMessageModal(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => sendMessage(selectedMessageType)}
+              disabled={selectedMessageType === "custom" && !customMessage.trim()}
+              className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+            >
+              💬 Enviar via WhatsApp
             </Button>
           </div>
         </DialogContent>

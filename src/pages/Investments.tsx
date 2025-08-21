@@ -472,27 +472,27 @@ const Investments = () => {
   const planDetails = {
     '4.0.0': {
       name: '🤖 Robô 4.0.0',
-      dailyRate: 2.5,
+      dailyRate: 2.0,
       minimumAmount: 10,
       referralsRequired: 0,
       contractFee: 0,
-      description: '1 iniciação de operação - Taxa diária: 2,5%'
+      description: '1 iniciação de operação - Taxa diária: 2,0%'
     },
     '4.0.5': {
       name: '🚀 Robô 4.0.5',
-      dailyRate: 3.0,
+      dailyRate: 2.0,
       minimumAmount: 20,
       referralsRequired: 10,
       contractFee: 10,
-      description: 'Indicações necessárias: 10 ativos - Taxa diária: 3,0% - Investimento mínimo: $20 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
+      description: 'Indicações necessárias: 10 ativos - Taxa diária: 2,0% - Investimento mínimo: $20 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
     },
     '4.1.0': {
       name: '💎 Robô 4.1.0',
-      dailyRate: 4.0,
+      dailyRate: 3.0,
       minimumAmount: 500,
       referralsRequired: 20,
       contractFee: 10,
-      description: 'Indicações necessárias: 20 ativos - Taxa diária: 4,0% - Investimento mínimo: $500 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
+      description: 'Indicações necessárias: 20 ativos - Taxa diária: 3,0% - Investimento mínimo: $500 USDT - Extra: precisa assinar contrato e pagar $10 USDT'
     }
   };
   
@@ -530,8 +530,8 @@ const Investments = () => {
 
   // Função para calcular o lucro do dia atual
   const calculateTodayEarnings = (investment: UserInvestment) => {
-    // Cada operação rende 1.25% (metade da taxa diária de 2.5%)
-    const operationRate = 1.25;
+    // Cada operação rende 1% (metade da taxa diária de 2%)
+    const operationRate = 1.0;
     const earningsPerOperation = (investment.amount * operationRate) / 100;
     
     // Lucro do dia = operações realizadas hoje × ganho por operação
@@ -567,7 +567,7 @@ const Investments = () => {
       selectedPlan = {
         id: 'robo-4-0-0',
         name: '🤖 Robô 4.0.0',
-        dailyRate: 2.5,
+        dailyRate: 2.0,
         minimumAmount: 10,
         maximumAmount: 200,
         operations: 2,
@@ -579,7 +579,7 @@ const Investments = () => {
       selectedPlan = {
         id: 'robo-4-0-5',
         name: '🚀 Robô 4.0.5',
-        dailyRate: 3.0,
+        dailyRate: 2.0,
         minimumAmount: 20,
         maximumAmount: 200,
         operations: 3,
@@ -591,7 +591,7 @@ const Investments = () => {
       selectedPlan = {
         id: 'robo-4-1-0',
         name: '💎 Robô 4.1.0',
-        dailyRate: 4.0,
+        dailyRate: 3.0,
         minimumAmount: 500,
         maximumAmount: 200,
         operations: 4,
@@ -1480,40 +1480,7 @@ const Investments = () => {
           </Button>
         </div>
 
-        {/* Compact Deposit Section - Binance Style */}
-        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 lg:mb-8 border border-primary/20">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Plus className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base md:text-lg font-bold text-foreground truncate">Adicionar Fundos</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Deposite e comece a investir agora</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button 
-                onClick={() => navigate('/deposit')}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 flex-1 sm:flex-none text-xs sm:text-sm md:text-base transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                size={isMobile ? "sm" : "default"}
-              >
-                <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                PIX
-              </Button>
-              <Button 
-                onClick={() => navigate('/deposit')}
-                variant="outline" 
-                className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 flex-1 sm:flex-none text-xs sm:text-sm md:text-base font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Wallet className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                USDT
-              </Button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Box de Planos Ativos - Movido para cá */}
         {activeInvestments > 0 && (
@@ -1628,148 +1595,7 @@ const Investments = () => {
           </div>
         )}
 
-        {/* Balance and Stats Cards - Binance Style */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
-          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-2 sm:p-3 md:p-4">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide truncate">
-                Total Investido
-              </CardTitle>
-              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-            </CardHeader>
-            <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-foreground truncate">
-                ${totalInvested.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
-                {activeInvestments} ativos
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-2 sm:p-3 md:p-4">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide truncate">
-                Ganhos Totais
-              </CardTitle>
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-trading-green flex-shrink-0" />
-            </CardHeader>
-            <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-trading-green truncate">
-                +${totalEarnings.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
-                Rendimento
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-card to-card/90 border-border/50 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-2 sm:p-3 md:p-4">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide truncate">
-                Saldo Disponível
-              </CardTitle>
-              <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-            </CardHeader>
-            <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-primary truncate">
-                ${userBalance.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
-                Disponível
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/20 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-2 sm:p-3 md:p-4">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide truncate">
-                DigitoPay
-              </CardTitle>
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
-            </CardHeader>
-            <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-yellow-500 truncate">
-                R$ 0,00
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
-                PIX
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-2 sm:p-3 md:p-4">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide truncate">
-                USDT
-              </CardTitle>
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500 flex-shrink-0" />
-            </CardHeader>
-            <CardContent className="pt-0 p-2 sm:p-3 md:p-4">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-blue-500 truncate">
-                $ 0.00
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 truncate">
-                Crypto
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Deposit Section - Compact and Responsive */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          <Card className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 border-yellow-500/20">
-            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
-                  Depósito PIX
-                </CardTitle>
-                <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">
-                  DigitoPay
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Deposite via PIX com processamento instantâneo
-              </p>
-              <Button 
-                onClick={() => navigate('/deposit')}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-xs sm:text-sm"
-                size="sm"
-              >
-                Depositar via PIX
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20">
-            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-                  Depósito USDT
-                </CardTitle>
-                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs">
-                  Crypto
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Deposite USDT diretamente na sua carteira
-              </p>
-              <Button 
-                onClick={() => navigate('/deposit')}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm"
-                size="sm"
-              >
-                Depositar USDT
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
 
 
 
@@ -2101,9 +1927,9 @@ const Investments = () => {
                     <span className="text-sm font-medium text-primary">🎉 Liberdade Total de Investimento</span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>✅ <strong>Robô 4.0.0 (Iniciante):</strong> Sem Requisitos - Taxa 2,5%</p>
-                    <p>✅ <strong>Robô 4.0.5 (Intermediário):</strong> Disponível para todos - Taxa 3,0%</p>
-                    <p>✅ <strong>Robô 4.1.0 (Premium):</strong> Disponível para todos - Taxa 4,0%</p>
+                                          <p>✅ <strong>Robô 4.0.0 (Iniciante):</strong> Sem Requisitos - Taxa 2,0%</p>
+                    <p>✅ <strong>Robô 4.0.5 (Intermediário):</strong> Disponível para todos - Taxa 2,0%</p>
+                                          <p>✅ <strong>Robô 4.1.0 (Premium):</strong> Disponível para todos - Taxa 3,0%</p>
                   </div>
                   
                   {/* Quantos ativos (indicações) para cada nível */}
@@ -2118,7 +1944,7 @@ const Investments = () => {
                        <div className="text-xs font-semibold text-primary mb-1">🤖 Robô 4.0.0</div>
                        <div className="text-xs text-muted-foreground space-y-0.5">
                          <p><strong>Indicações necessárias:</strong> Nenhuma (0 ativos)</p>
-                         <p><strong>Taxa diária:</strong> 2,5%</p>
+                         <p><strong>Taxa diária:</strong> 2,0%</p>
                          <p><strong>Investimento mínimo:</strong> $10 USDT</p>
                        </div>
                      </div>
@@ -2196,7 +2022,7 @@ const Investments = () => {
                         🤖 Robô 4.0.0
                       </CardTitle>
                       <p className="text-sm text-yellow-300/80">
-                        2 operações por dia - Taxa diária: 2,5%
+                        2 operações por dia - Taxa diária: 2,0%
                       </p>
                     </div>
                   </div>
@@ -2205,7 +2031,7 @@ const Investments = () => {
                       Disponível
                     </Badge>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-yellow-400">2.5%</div>
+                      <div className="text-2xl font-bold text-yellow-400">2.0%</div>
                       <div className="text-xs text-gray-400">diário</div>
                     </div>
                   </div>
@@ -2217,8 +2043,8 @@ const Investments = () => {
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
-                    <div className="text-lg font-bold text-yellow-400">2.5%</div>
-                    <div className="text-xs text-green-400">+2.5% BTC</div>
+                    <div className="text-lg font-bold text-yellow-400">2.0%</div>
+                    <div className="text-xs text-green-400">+2.0% BTC</div>
                   </div>
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
@@ -2269,7 +2095,7 @@ const Investments = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                      <span><strong className="text-white">Taxa diária:</strong> 2,5%</span>
+                      <span><strong className="text-white">Taxa diária:</strong> 2,0%</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
@@ -2409,7 +2235,7 @@ const Investments = () => {
                       Intermediário
                     </Badge>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-orange-400">3.0%</div>
+                      <div className="text-2xl font-bold text-orange-400">2.0%</div>
                       <div className="text-xs text-gray-400">diário</div>
                     </div>
                   </div>
@@ -2421,8 +2247,8 @@ const Investments = () => {
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
-                    <div className="text-lg font-bold text-orange-400">3.0%</div>
-                    <div className="text-xs text-green-400">+3.0% BTC</div>
+                    <div className="text-lg font-bold text-orange-400">2.0%</div>
+                    <div className="text-xs text-green-400">+2.0% BTC</div>
                   </div>
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
@@ -2469,7 +2295,7 @@ const Investments = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                      <span><strong className="text-white">Taxa diária:</strong> 3,0%</span>
+                      <span><strong className="text-white">Taxa diária:</strong> 2,0%</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
@@ -2618,7 +2444,7 @@ const Investments = () => {
                       Premium
                     </Badge>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-purple-400">4.0%</div>
+                      <div className="text-2xl font-bold text-purple-400">3.0%</div>
                       <div className="text-xs text-gray-400">diário</div>
                     </div>
                   </div>
@@ -2630,8 +2456,8 @@ const Investments = () => {
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">ROI Diário</div>
-                    <div className="text-lg font-bold text-purple-400">4.0%</div>
-                    <div className="text-xs text-green-400">+4.0% BTC</div>
+                    <div className="text-lg font-bold text-purple-400">3.0%</div>
+                    <div className="text-xs text-green-400">+3.0% BTC</div>
                   </div>
                   <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Operações</div>
@@ -2678,7 +2504,7 @@ const Investments = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
-                      <span><strong className="text-white">Taxa diária:</strong> 4,0%</span>
+                      <span><strong className="text-white">Taxa diária:</strong> 3,0%</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300">
                       <div className="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
