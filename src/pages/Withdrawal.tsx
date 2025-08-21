@@ -445,12 +445,16 @@ const Withdrawal = () => {
                   </div>
 
                   {user ? (
-                    <DigitoPayWithdrawal onSuccess={() => {
-                      toast({
-                        title: "Sucesso!",
-                        description: "Saque solicitado com sucesso",
-                      });
-                    }} />
+                    <DigitoPayWithdrawal 
+                      userBalance={userBalance}
+                      referralBalance={referralBalance}
+                      onSuccess={() => {
+                        toast({
+                          title: "Sucesso!",
+                          description: "Saque solicitado com sucesso",
+                        });
+                      }} 
+                    />
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">Faça login para acessar o DigitoPay</p>

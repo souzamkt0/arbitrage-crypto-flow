@@ -12,9 +12,11 @@ import { Wallet, ArrowUpRight } from 'lucide-react';
 
 interface DigitoPayWithdrawalProps {
   onSuccess?: () => void;
+  userBalance?: number;
+  referralBalance?: number;
 }
 
-export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSuccess }) => {
+export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSuccess, userBalance = 0, referralBalance = 0 }) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [amount, setAmount] = useState('');
@@ -60,7 +62,7 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
     }
 
     // Verificar se o usuário tem saldo suficiente
-    const currentBalance = profile.balance || 0;
+    const currentBalance = userBalance + referralBalance;
     if (amountValue > currentBalance) {
       toast({
         title: 'Saldo insuficiente',
@@ -185,11 +187,9 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
             min="10"
             step="0.01"
           />
-          {profile && (
-            <p className="text-xs text-muted-foreground">
-              Saldo disponível: R$ {(profile.balance || 0).toFixed(2)}
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Saldo disponível: R$ {(userBalance + referralBalance).toFixed(2)}
+          </p>
         </div>
 
         <div className="space-y-2">
