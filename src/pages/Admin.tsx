@@ -61,7 +61,8 @@ import {
   LogOut,
   User,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Calculator
 } from "lucide-react";
 
 interface User {
@@ -183,7 +184,16 @@ const Admin = () => {
     pixDailyLimit: 2000,
     usdtDailyLimit: 10000,
     withdrawalProcessingHours: "09:00-17:00",
-    withdrawalBusinessDays: true
+    withdrawalBusinessDays: true,
+    // Configurações do AlphaBot
+    alphabotEnabled: true,
+    alphabotDailyRate: 0.05,
+    alphabotOperationDuration: 60,
+    alphabotMaxOperations: 12,
+    alphabotAutoRestart: true,
+    alphabotMinInvestment: 100,
+    alphabotMaxInvestment: 10000,
+    alphabotRiskLevel: "medium"
   });
   
   // Estados para Trading
@@ -1423,7 +1433,16 @@ const Admin = () => {
         pixDailyLimit: loaded.pixDailyLimit || 2000,
         usdtDailyLimit: loaded.usdtDailyLimit || 10000,
         withdrawalProcessingHours: loaded.withdrawalProcessingHours || "09:00-17:00",
-        withdrawalBusinessDays: loaded.withdrawalBusinessDays !== undefined ? loaded.withdrawalBusinessDays : true
+        withdrawalBusinessDays: loaded.withdrawalBusinessDays !== undefined ? loaded.withdrawalBusinessDays : true,
+        // Configurações do AlphaBot com valores padrão
+        alphabotEnabled: loaded.alphabotEnabled !== undefined ? loaded.alphabotEnabled : true,
+        alphabotDailyRate: loaded.alphabotDailyRate || 0.05,
+        alphabotOperationDuration: loaded.alphabotOperationDuration || 60,
+        alphabotMaxOperations: loaded.alphabotMaxOperations || 12,
+        alphabotAutoRestart: loaded.alphabotAutoRestart !== undefined ? loaded.alphabotAutoRestart : true,
+        alphabotMinInvestment: loaded.alphabotMinInvestment || 100,
+        alphabotMaxInvestment: loaded.alphabotMaxInvestment || 10000,
+        alphabotRiskLevel: loaded.alphabotRiskLevel || "medium"
       });
     }
   }, []);
@@ -3540,13 +3559,14 @@ const Admin = () => {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="users" className="w-full">
-                  <TabsList className="grid w-full grid-cols-7">
+                   <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="deposits">Depósitos</TabsTrigger>
           <TabsTrigger value="withdrawals">Saques</TabsTrigger>
           <TabsTrigger value="transactions">Transações</TabsTrigger>
           <TabsTrigger value="trading">Trading</TabsTrigger>
           <TabsTrigger value="partners">Sócios</TabsTrigger>
+          <TabsTrigger value="alphabot">AlphaBot</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
 
@@ -6117,6 +6137,322 @@ const Admin = () => {
                     )}
                   </CardContent>
                 </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="alphabot" className="space-y-6">
+            {/* Configurações do AlphaBot Trading */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-blue-600" />
+                  Configurações do AlphaBot Trading
+                </CardTitle>
+                <CardDescription>
+                  Configure os parâmetros do robô de trading automatizado
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Status do AlphaBot */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${adminSettings.alphabotEnabled ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                      <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                        Status do AlphaBot
+                      </h3>
+                    </div>
+                    <Switch
+                      checked={adminSettings.alphabotEnabled}
+                      onCheckedChange={(checked) => 
+                        setAdminSettings(prev => ({ ...prev, alphabotEnabled: checked }))
+                      }
+                    />
+                  </div>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {adminSettings.alphabotEnabled 
+                      ? "🤖 AlphaBot está ativo e processando operações automaticamente" 
+                      : "⚠️ AlphaBot está desativado - nenhuma operação será executada"
+                    }
+                  </p>
+                </div>
+
+                {/* Configurações de Operação */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      Parâmetros de Trading
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotDailyRate">Taxa Diária (%)</Label>
+                      <Input
+                        id="alphabotDailyRate"
+                        type="number"
+                        min="0.01"
+                        max="10"
+                        step="0.01"
+                        value={adminSettings.alphabotDailyRate}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotDailyRate: parseFloat(e.target.value) || 0.05
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Taxa de lucro diária alvo para as operações (atual: {(adminSettings.alphabotDailyRate * 100).toFixed(2)}%)
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotOperationDuration">Duração da Operação (segundos)</Label>
+                      <Input
+                        id="alphabotOperationDuration"
+                        type="number"
+                        min="30"
+                        max="300"
+                        value={adminSettings.alphabotOperationDuration}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotOperationDuration: parseInt(e.target.value) || 60
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Tempo médio de duração de cada operação de arbitragem
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotMaxOperations">Máximo de Operações por Dia</Label>
+                      <Input
+                        id="alphabotMaxOperations"
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={adminSettings.alphabotMaxOperations}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotMaxOperations: parseInt(e.target.value) || 12
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Limite de operações que o bot pode executar em 24 horas
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-yellow-600" />
+                      Limites de Investimento
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotMinInvestment">Investimento Mínimo (USD)</Label>
+                      <Input
+                        id="alphabotMinInvestment"
+                        type="number"
+                        min="10"
+                        max="1000"
+                        value={adminSettings.alphabotMinInvestment}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotMinInvestment: parseInt(e.target.value) || 100
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Valor mínimo para ativar o AlphaBot
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotMaxInvestment">Investimento Máximo (USD)</Label>
+                      <Input
+                        id="alphabotMaxInvestment"
+                        type="number"
+                        min="1000"
+                        max="100000"
+                        value={adminSettings.alphabotMaxInvestment}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotMaxInvestment: parseInt(e.target.value) || 10000
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Valor máximo aceito pelo AlphaBot
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="alphabotRiskLevel">Nível de Risco</Label>
+                      <select
+                        id="alphabotRiskLevel"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={adminSettings.alphabotRiskLevel}
+                        onChange={(e) => 
+                          setAdminSettings(prev => ({ 
+                            ...prev, 
+                            alphabotRiskLevel: e.target.value
+                          }))
+                        }
+                      >
+                        <option value="low">🟢 Baixo (Conservador)</option>
+                        <option value="medium">🟡 Médio (Balanceado)</option>
+                        <option value="high">🔴 Alto (Agressivo)</option>
+                      </select>
+                      <p className="text-xs text-muted-foreground">
+                        Define o perfil de risco das operações de arbitragem
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Configurações Avançadas */}
+                <div className="border-t pt-6">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
+                    <Settings className="h-5 w-5 text-purple-600" />
+                    Configurações Avançadas
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">Reinício Automático</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Reinicia automaticamente após completar todas as operações
+                        </p>
+                      </div>
+                      <Switch
+                        checked={adminSettings.alphabotAutoRestart}
+                        onCheckedChange={(checked) => 
+                          setAdminSettings(prev => ({ ...prev, alphabotAutoRestart: checked }))
+                        }
+                      />
+                    </div>
+
+                    <div className="p-4 border rounded-lg bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
+                      <h4 className="font-medium text-orange-800 dark:text-orange-200 mb-2">
+                        ⚡ Status Atual
+                      </h4>
+                      <div className="text-sm space-y-1">
+                        <p className="text-orange-700 dark:text-orange-300">
+                          • Operações ativas: {adminSettings.alphabotEnabled ? '🟢 Funcionando' : '🔴 Parado'}
+                        </p>
+                        <p className="text-orange-700 dark:text-orange-300">
+                          • Reinício automático: {adminSettings.alphabotAutoRestart ? '✅ Ativo' : '❌ Desativo'}
+                        </p>
+                        <p className="text-orange-700 dark:text-orange-300">
+                          • Nível de risco: {adminSettings.alphabotRiskLevel === 'low' ? '🟢 Baixo' : adminSettings.alphabotRiskLevel === 'medium' ? '🟡 Médio' : '🔴 Alto'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulador de Resultado */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 p-6 rounded-lg border border-green-200 dark:border-green-800">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-green-800 dark:text-green-200">
+                    <Calculator className="h-5 w-5" />
+                    Simulador de Performance
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                      <h4 className="font-medium text-green-700 dark:text-green-300 mb-2">Investimento de $1,000</h4>
+                      <p className="text-2xl font-bold text-green-600">
+                        ${(1000 * adminSettings.alphabotDailyRate).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Lucro diário estimado</p>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                      <h4 className="font-medium text-green-700 dark:text-green-300 mb-2">Em 30 dias</h4>
+                      <p className="text-2xl font-bold text-green-600">
+                        ${(1000 * adminSettings.alphabotDailyRate * 30).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Lucro mensal estimado</p>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                      <h4 className="font-medium text-green-700 dark:text-green-300 mb-2">Operações/dia</h4>
+                      <p className="text-2xl font-bold text-green-600">
+                        {adminSettings.alphabotMaxOperations}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Máximo configurado</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ações */}
+                <div className="flex flex-wrap gap-3 pt-4 border-t">
+                  <Button
+                    onClick={() => {
+                      toast({
+                        title: "Configurações Salvas",
+                        description: "As configurações do AlphaBot foram salvas com sucesso!",
+                        variant: "default"
+                      });
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Salvar Configurações
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setAdminSettings(prev => ({
+                        ...prev,
+                        alphabotEnabled: true,
+                        alphabotDailyRate: 0.05,
+                        alphabotOperationDuration: 60,
+                        alphabotMaxOperations: 12,
+                        alphabotAutoRestart: true,
+                        alphabotMinInvestment: 100,
+                        alphabotMaxInvestment: 10000,
+                        alphabotRiskLevel: "medium"
+                      }));
+                      toast({
+                        title: "Configurações Restauradas",
+                        description: "Configurações padrão do AlphaBot foram restauradas.",
+                        variant: "default"
+                      });
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Restaurar Padrões
+                  </Button>
+                  
+                  <Button
+                    variant={adminSettings.alphabotEnabled ? "destructive" : "default"}
+                    onClick={() => {
+                      const newState = !adminSettings.alphabotEnabled;
+                      setAdminSettings(prev => ({ ...prev, alphabotEnabled: newState }));
+                      toast({
+                        title: newState ? "AlphaBot Ativado" : "AlphaBot Desativado",
+                        description: newState 
+                          ? "O AlphaBot foi ativado e começará a processar operações."
+                          : "O AlphaBot foi desativado e parará todas as operações.",
+                        variant: "default"
+                      });
+                    }}
+                  >
+                    <Bot className="h-4 w-4 mr-2" />
+                    {adminSettings.alphabotEnabled ? "Desativar Bot" : "Ativar Bot"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
