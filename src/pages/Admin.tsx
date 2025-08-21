@@ -1686,9 +1686,11 @@ const Admin = () => {
 
   // Função para abrir modal de seleção de sócio com comissão
   const openPartnerSelectionModal = (user: any) => {
+    console.log('🔄 Abrindo modal de seleção de sócio para:', user);
     setSelectedUserForPartner(user);
     setCustomCommission(partnerCommission); // Usar comissão padrão como inicial
     setIsPartnerSelectionModalOpen(true);
+    console.log('✅ Modal deve estar aberto agora');
   };
 
   // Função para adicionar sócio com comissão personalizada
