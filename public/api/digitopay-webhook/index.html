@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DigitoPay Webhook Redirect</title>
+  <meta http-equiv="refresh" content="0; URL=https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook">
+</head>
+<body>
+  <script>
+    // Redirecionar webhook do DigitoPay para Supabase Edge Function
+    const webhookData = new URLSearchParams(window.location.search);
+    const supabaseUrl = 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook';
+    
+    // Se for uma requisição POST (webhook), fazer proxy
+    if (document.body) {
+      fetch(supabaseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(webhookData))
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Webhook redirecionado:', data);
+      })
+      .catch(error => {
+        console.error('Erro no redirecionamento:', error);
+      });
+    }
+  </script>
+  <p>Redirecionando webhook...</p>
+</body>
+</html>

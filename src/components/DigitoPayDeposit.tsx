@@ -113,9 +113,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         rate: conversion.exchangeRate
       });
 
-      // URL de callback para webhook
-      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook`;
+      // URL de callback para webhook - Via proxy do domínio da empresa
+      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/webhook-proxy`;
       console.log('🚀 Iniciando criação de depósito...');
+      console.log('🔗 URL do webhook configurada:', callbackUrl);
 
       // Criar depósito no DigitoPay via Edge Function
       // A Edge Function já salva a transação automaticamente
