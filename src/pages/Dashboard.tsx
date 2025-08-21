@@ -709,8 +709,8 @@ const Dashboard = () => {
           <div className="xl:col-span-2 lg:col-span-1 space-y-6">
             <TradingChart />
             
-            {/* Additional Crypto Charts Below BTC */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Additional Crypto Charts Below BTC - Same Size */}
+            <div className="space-y-6">
               <EthereumChart />
               <SolanaChart />
               <CardanoChart />
