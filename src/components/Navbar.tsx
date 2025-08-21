@@ -32,7 +32,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
-    { path: "/market", label: "Mercado", icon: TrendingUp },
+    { path: "/referrals", label: "Indicações", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
     // { path: "/bonus", label: "Bônus", icon: Gift }, // Página removida
     { path: "/community", label: "Comunidade", icon: MessageSquare },

@@ -20,8 +20,8 @@ const Footer = () => {
     },
     {
       icon: TrendingUp,
-      label: 'Mercado',
-      path: '/market'
+      label: 'Indicações',
+      path: '/referrals'
     },
     {
       icon: BarChart3,

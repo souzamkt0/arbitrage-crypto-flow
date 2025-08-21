@@ -18,7 +18,7 @@ import Withdrawal from "./pages/Withdrawal";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
-import Market from "./pages/Market";
+
 import Admin from "./pages/Admin";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
@@ -184,11 +184,7 @@ const App = () => (
           <Route
             path="/market"
             element={
-              <ProtectedRoute>
-                <Layout>
-                  <Market />
-                </Layout>
-              </ProtectedRoute>
+              <Navigate to="/referrals" replace />
             }
           />
           {/* Rota do Bonus removida */}
