@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [impersonatedUser, setImpersonatedUser] = useState<any | null>(null);
 
-  const isAdmin = user?.email === 'admin@clean.com' || profile?.role === 'admin';
+  const isAdmin = user?.email === 'admin@clean.com' || user?.email === 'souzamkt0@gmail.com' || profile?.role === 'admin';
 
   useEffect(() => {
     // Check for impersonation mode
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.warn('⚠️ Erro ao buscar perfil completo:', profileError);
                 // Fallback para perfil básico
                 setProfile({ 
-                  role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+                  role: (session.user.email === 'admin@clean.com' || session.user.email === 'souzamkt0@gmail.com') ? 'admin' : 'user', 
                   email: session.user.email,
                   user_id: session.user.id
                 });
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               console.warn('⚠️ Erro ao buscar perfil completo na sessão existente:', profileError);
               // Fallback para perfil básico
               setProfile({ 
-                role: session.user.email === 'admin@clean.com' ? 'admin' : 'user', 
+                role: (session.user.email === 'admin@clean.com' || session.user.email === 'souzamkt0@gmail.com') ? 'admin' : 'user', 
                 email: session.user.email,
                 user_id: session.user.id
               });
@@ -197,8 +197,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           console.log('🚀 Tentando login bypass para admin...');
           
-          // Tentar bypass apenas para admin
-          if (email === 'admin@clean.com' && password === '123456') {
+          // Tentar bypass para admins
+          if ((email === 'admin@clean.com' || email === 'souzamkt0@gmail.com') && password === '123456') {
             try {
               const response = await fetch(`https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/admin-bypass-auth`, {
                 method: 'POST',
