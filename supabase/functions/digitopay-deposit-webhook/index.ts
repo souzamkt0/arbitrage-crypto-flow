@@ -25,11 +25,20 @@ Deno.serve(async (req) => {
     await supabase.from('digitopay_debug').insert({
       tipo: 'deposit_webhook_received',
       payload: webhookData,
-      timestamp: new Date().toISOString()
+      created_at: new Date().toISOString()
     });
 
-    // Extrair dados do webhook
-    const { id: trxId, status, value, person } = webhookData;
+    // Extrair dados do webhook conforme documentação oficial DigitoPay
+    const { 
+      id: trxId, 
+      status, 
+      value, 
+      person,
+      paymentMethod,
+      type,
+      createdAt,
+      updatedAt
+    } = webhookData;
 
     if (!trxId) {
       console.error('❌ Webhook sem ID da transação');
@@ -39,20 +48,42 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Buscar transação no banco
-    const { data: transaction, error: transactionError } = await supabase
+    // Buscar transação no banco - tentar diferentes formatos de ID
+    let transaction = null;
+    let transactionError = null;
+
+    // Tentar buscar pelo trx_id original
+    const { data: trxData, error: trxError } = await supabase
       .from('digitopay_transactions')
       .select('*')
       .eq('trx_id', trxId)
-      .eq('type', 'deposit') // Garantir que é um depósito
+      .eq('type', 'deposit')
       .single();
+
+    if (trxData) {
+      transaction = trxData;
+    } else {
+      // Tentar buscar pelo idempotencyKey
+      const { data: idempData, error: idempError } = await supabase
+        .from('digitopay_transactions')
+        .select('*')
+        .eq('idempotency_key', trxId)
+        .eq('type', 'deposit')
+        .single();
+
+      if (idempData) {
+        transaction = idempData;
+      } else {
+        transactionError = trxError || idempError;
+      }
+    }
 
     if (transactionError || !transaction) {
       console.error('❌ Transação de depósito não encontrada:', trxId);
       await supabase.from('digitopay_debug').insert({
         tipo: 'deposit_transaction_not_found',
-        payload: { trxId, error: transactionError },
-        timestamp: new Date().toISOString()
+        payload: { trxId, error: transactionError, webhookData },
+        created_at: new Date().toISOString()
       });
       return new Response(JSON.stringify({ error: 'Deposit transaction not found' }), {
         status: 404,
@@ -62,13 +93,15 @@ Deno.serve(async (req) => {
 
     console.log('📋 Transação de depósito encontrada:', transaction);
 
-    // Mapear status do DigitoPay para status interno
+    // Mapear status do DigitoPay para status interno conforme documentação
     let internalStatus = 'pending';
     switch (status?.toLowerCase()) {
       case 'paid':
       case 'approved':
       case 'completed':
-      case 'realizado': // Status do DigitoPay para pagamento confirmado
+      case 'realizado':
+      case 'success':
+      case 'successful':
         internalStatus = 'completed';
         break;
       case 'cancelled':
@@ -79,11 +112,17 @@ Deno.serve(async (req) => {
       case 'failed':
       case 'error':
       case 'falhou':
+      case 'rejected':
         internalStatus = 'failed';
         break;
       case 'expired':
       case 'expirado':
         internalStatus = 'expired';
+        break;
+      case 'pending':
+      case 'pendente':
+      case 'waiting':
+        internalStatus = 'pending';
         break;
       default:
         internalStatus = 'pending';
@@ -99,7 +138,7 @@ Deno.serve(async (req) => {
         callback_data: webhookData,
         updated_at: new Date().toISOString()
       })
-      .eq('trx_id', trxId);
+      .eq('trx_id', transaction.trx_id);
 
     if (updateError) {
       console.error('❌ Erro ao atualizar transação de depósito:', updateError);
@@ -172,9 +211,10 @@ Deno.serve(async (req) => {
         oldStatus: transaction.status,
         newStatus: internalStatus,
         type: 'deposit',
-        amount: transaction.amount_brl
+        amount: transaction.amount_brl,
+        webhookData
       },
-      timestamp: new Date().toISOString()
+      created_at: new Date().toISOString()
     });
 
     console.log('🎉 Webhook de depósito processado com sucesso');
@@ -202,7 +242,7 @@ Deno.serve(async (req) => {
       await supabase.from('digitopay_debug').insert({
         tipo: 'deposit_webhook_error',
         payload: { error: error.message, stack: error.stack },
-        timestamp: new Date().toISOString()
+        created_at: new Date().toISOString()
       });
     } catch (logError) {
       console.error('❌ Erro ao logar erro:', logError);

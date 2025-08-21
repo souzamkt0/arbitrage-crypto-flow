@@ -137,12 +137,9 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         rate: conversion.exchangeRate
       });
 
-      // URL de callback para webhook - Via proxy do domínio da empresa
-      // Usar localhost para desenvolvimento, alphabit.vu para produção
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const callbackUrl = isLocalhost 
-        ? `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook`
-        : `https://www.alphabit.vu/api/webhook/digitopay`;
+      // URL de callback para webhook - Conforme documentação oficial DigitoPay
+      // Usar URL direta do Supabase Edge Function para garantir funcionamento
+      const callbackUrl = `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook`;
       console.log('🚀 Iniciando criação de depósito...');
       console.log('🔗 URL do webhook configurada:', callbackUrl);
 
