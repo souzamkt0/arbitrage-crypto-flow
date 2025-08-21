@@ -49,7 +49,7 @@ import { TradingChart } from "@/components/TradingChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
-import { CommunityFeed } from "@/components/CommunityFeed";
+
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -720,20 +720,6 @@ const Dashboard = () => {
               updateAlphaBot={updateAlphaBot}
             />
 
-            {/* Community Feed */}
-            <CommunityFeed
-              communityMessages={communityMessages}
-              hasNewMessages={hasNewMessages}
-              editingUserName={editingUserName}
-              editingUserNameValue={editingUserNameValue}
-              setEditingUserName={setEditingUserName}
-              setEditingUserNameValue={setEditingUserNameValue}
-              handleEditCommunityUserName={handleEditCommunityUserName}
-              handleDeleteCommunityPost={handleDeleteCommunityPost}
-              handleDeleteCommunityImage={handleDeleteCommunityImage}
-              loadCommunityMessages={loadCommunityMessages}
-              onUserClick={handleUserClick}
-            />
           </div>
         </div>
       </div>
