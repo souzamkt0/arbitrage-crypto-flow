@@ -291,187 +291,420 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   };
 
   return (
-    <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-2 border-yellow-500/20">
-      <CardHeader>
-        <CardTitle className="text-yellow-400 flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Depósito PIX Automático
-        </CardTitle>
-        <CardDescription className="text-gray-400">
-          Gere um PIX e receba confirmação automática quando pago
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
+      {/* Trading Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <h1 className="text-2xl font-bold text-white">TRADING DEPOSIT</h1>
+          <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-sm font-medium">
+            LIVE
+          </div>
+        </div>
+        <p className="text-gray-400">Instant PIX deposits • Real-time confirmation • Trading ready</p>
+      </div>
+
+      <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20 shadow-2xl shadow-blue-500/10">
+        <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-blue-500/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                <DollarSign className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-white">
+                  Instant PIX Deposit
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-sm">
+                  Automated confirmation • Zero delays
+                </CardDescription>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-gray-500">Exchange Rate</div>
+              <div className="text-lg font-bold text-green-400">
+                1 USD = {formatBRL(exchangeRate || 5.5)}
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      <CardContent className="p-6 space-y-8">
         {!depositData ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="amount" className="text-yellow-400">Valor (USD)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="bg-gray-800 border-yellow-500/30 text-white"
-                  placeholder="10.00"
-                  min="1"
-                  step="0.01"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Valor mínimo: $1.00 USD
-                </p>
+            {/* Trading Form */}
+            <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <h3 className="text-lg font-semibold text-white">Trading Deposit Form</h3>
               </div>
-              <div>
-                <Label htmlFor="cpf" className="text-yellow-400">CPF</Label>
-                <Input
-                  id="cpf"
-                  value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
-                  className="bg-gray-800 border-yellow-500/30 text-white"
-                  placeholder="123.456.789-00"
-                />
-              </div>
-            </div>
-
-            {amount && (
-              <div className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
-                <h4 className="text-yellow-400 font-medium mb-2">💰 Resumo do Depósito</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-400">Você paga (PIX):</span>
-                    <div className="text-white font-semibold">
-                      {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="amount" className="text-blue-400 font-medium flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Deposit Amount (USD)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="bg-slate-800/60 border-blue-500/30 text-white text-lg font-medium pl-12 h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      placeholder="0.00"
+                      min="1"
+                      step="0.01"
+                    />
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 font-bold">
+                      $
                     </div>
                   </div>
-                  <div>
-                    <span className="text-gray-400">Recebe (USD):</span>
-                    <div className="text-white font-semibold">${parseFloat(amount).toFixed(2)}</div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Min: $1.00 USD</span>
+                    <span className="text-green-400">✓ Instant confirmation</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="cpf" className="text-blue-400 font-medium flex items-center gap-2">
+                    <div className="w-4 h-4 border border-blue-400 rounded flex items-center justify-center">
+                      <div className="w-2 h-2 bg-blue-400 rounded-sm"></div>
+                    </div>
+                    CPF Document
+                  </Label>
+                  <Input
+                    id="cpf"
+                    value={cpf}
+                    onChange={(e) => setCpf(e.target.value)}
+                    className="bg-slate-800/60 border-blue-500/30 text-white text-lg font-medium h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="000.000.000-00"
+                  />
+                  <p className="text-xs text-gray-400">Required for PIX payment</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trading Calculator */}
+            {amount && (
+              <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-xl p-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">₮</span>
+                  </div>
+                  <h4 className="text-emerald-400 font-bold text-lg">Trading Calculator</h4>
+                  <div className="ml-auto px-3 py-1 bg-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium">
+                    REAL-TIME
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30">
+                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      You Pay (PIX)
+                    </div>
+                    <div className="text-2xl font-bold text-white mb-1">
+                      {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
+                    </div>
+                    <div className="text-xs text-gray-400">Brazilian Real</div>
+                  </div>
+                  
+                  <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30 relative">
+                    <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-blue-500 rounded-full">
+                      <div className="text-xs text-white font-bold">→</div>
+                    </div>
+                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      Exchange Rate
+                    </div>
+                    <div className="text-lg font-bold text-blue-400 mb-1">
+                      {(exchangeRate || 5.5).toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-400">BRL/USD</div>
+                  </div>
+                  
+                  <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30">
+                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      You Receive (Trading Balance)
+                    </div>
+                    <div className="text-2xl font-bold text-green-400 mb-1">
+                      ${parseFloat(amount).toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-400">US Dollar</div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
+                  <div className="flex items-center gap-2 text-sm text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="font-medium">Ready for trading immediately after confirmation</span>
                   </div>
                 </div>
               </div>
             )}
 
-            <Button
-              onClick={handleCreateDeposit}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3"
-            >
-              {loading ? 'Gerando PIX Automático...' : '🚀 Gerar PIX com Confirmação Automática'}
-            </Button>
+            {/* Trading Action Button */}
+            <div className="relative">
+              <Button
+                onClick={handleCreateDeposit}
+                disabled={loading}
+                className="w-full h-14 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 hover:from-blue-700 hover:via-purple-700 hover:to-emerald-700 text-white font-bold text-lg shadow-lg shadow-blue-500/25 border-0 relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative flex items-center justify-center gap-3">
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Generating Trading PIX...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                        <span className="text-sm">⚡</span>
+                      </div>
+                      <span>EXECUTE INSTANT PIX DEPOSIT</span>
+                    </>
+                  )}
+                </div>
+              </Button>
+              
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full opacity-50"></div>
+            </div>
           </>
         ) : (
-          <div className="space-y-6">
-            <div className="text-center bg-gradient-to-r from-green-500/10 to-yellow-500/10 rounded-lg p-4 border border-green-500/20">
-              <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-2" />
-              <h3 className="text-lg font-semibold text-green-400 mb-2">✅ PIX Gerado com Sucesso!</h3>
-              <p className="text-sm text-gray-300">
-                Sistema configurado para confirmação automática. 
-                <br />
-                <strong>Você receberá uma notificação assim que o pagamento for confirmado!</strong>
-              </p>
+          <div className="space-y-8">
+            {/* Trading Success Header */}
+            <div className="text-center bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-blue-500/10 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center animate-pulse">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold text-green-400">TRADING PIX GENERATED</h3>
+                  <p className="text-sm text-gray-300">System ready for automatic confirmation</p>
+                </div>
+                <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
+                  ACTIVE
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-gray-300">Auto-detection enabled</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-gray-300">Real-time verification</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span className="text-gray-300">Instant notification</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
+            {/* QR Code Section */}
             {depositData.qrCodeBase64 && (
-              <div className="text-center space-y-3">
-                <div className="bg-white p-4 rounded-xl inline-block">
-                  <img
-                    src={`data:image/png;base64,${depositData.qrCodeBase64}`}
-                    alt="QR Code PIX"
-                    className="w-48 h-48 mx-auto"
-                  />
+              <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <QrCode className="h-5 w-5 text-blue-400" />
+                    <h4 className="text-lg font-semibold text-white">PIX QR Code</h4>
+                  </div>
+                  
+                  <div className="relative inline-block">
+                    <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 rounded-2xl border border-blue-500/20">
+                      <div className="bg-white p-4 rounded-xl shadow-2xl">
+                        <img
+                          src={`data:image/png;base64,${depositData.qrCodeBase64}`}
+                          alt="PIX QR Code"
+                          className="w-56 h-56 mx-auto"
+                        />
+                      </div>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">✓</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-400 max-w-md mx-auto">
+                    Scan this QR code with your banking app to complete the PIX payment
+                  </p>
                 </div>
-                <p className="text-sm text-gray-400">Escaneie o QR Code com seu app bancário</p>
               </div>
             )}
 
+            {/* PIX Code Section */}
             {depositData.pixCode && (
-              <div className="space-y-2">
-                <Label className="text-yellow-400">Código PIX (Copie e Cole)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={depositData.pixCode}
-                    readOnly
-                    className="bg-gray-800 border-yellow-500/30 text-white font-mono text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(depositData.pixCode);
-                        toast({
-                          title: '📋 Código PIX copiado!',
-                          description: 'Cole no seu app bancário para pagar'
-                        });
-                      } catch (error) {
-                        toast({
-                          title: 'Erro ao copiar',
-                          description: 'Copie manualmente',
-                          variant: 'destructive'
-                        });
-                      }
-                    }}
-                    className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+              <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Copy className="h-5 w-5 text-blue-400" />
+                    <Label className="text-lg font-semibold text-white">PIX Copy & Paste Code</Label>
+                  </div>
+                  
+                  <div className="relative">
+                    <Input
+                      value={depositData.pixCode}
+                      readOnly
+                      className="bg-slate-800/60 border-slate-600/30 text-white font-mono text-sm h-12 pr-24"
+                    />
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(depositData.pixCode);
+                          toast({
+                            title: '📋 PIX Code Copied!',
+                            description: 'Paste in your banking app to pay'
+                          });
+                        } catch (error) {
+                          toast({
+                            title: 'Copy Error',
+                            description: 'Copy manually',
+                            variant: 'destructive'
+                          });
+                        }
+                      }}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium"
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      COPY
+                    </Button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-400">
+                    Copy this code and paste it in your banking app's PIX payment section
+                  </p>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-lg p-4 border border-blue-500/20">
-                <div className="text-xs text-blue-400 mb-1">Valor a Pagar (PIX)</div>
-                <div className="text-xl font-bold text-white">
-                  {depositData.brlAmount ? formatBRL(depositData.brlAmount) : 'Calculando...'}
+            {/* Trading Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 rounded-xl p-6 border border-red-500/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">OUT</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-red-400 font-medium">PIX Payment</div>
+                    <div className="text-sm text-gray-400">Brazilian Real</div>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-white mb-2">
+                  {depositData.brlAmount ? formatBRL(depositData.brlAmount) : 'Calculating...'}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span>From your bank account</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-4 border border-green-500/20">
-                <div className="text-xs text-green-400 mb-1">Crédito na Conta (USD)</div>
-                <div className="text-xl font-bold text-white">
+              
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-6 border border-green-500/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">IN</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-green-400 font-medium">Trading Balance</div>
+                    <div className="text-sm text-gray-400">US Dollar</div>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-green-400 mb-2">
                   {depositData.usdAmount ? formatUSD(depositData.usdAmount) : 'N/A'}
                 </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Available for trading</span>
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
-              <div className="flex items-center gap-3 mb-2">
+            {/* Auto System Status */}
+            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 font-medium">✨ Sistema Automático Ativo</span>
+                <span className="text-purple-400 font-bold text-lg">⚡ AUTO-CONFIRMATION SYSTEM</span>
+                <div className="ml-auto px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
+                  MONITORING
+                </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Assim que você fizer o pagamento PIX, nosso sistema detectará automaticamente e:
-              </p>
-              <ul className="text-sm text-gray-300 mt-2 space-y-1 ml-4">
-                <li>• ✅ Confirmará o pagamento instantaneamente</li>
-                <li>• 💰 Adicionará o saldo à sua conta</li>
-                <li>• 🎉 Enviará uma notificação de confirmação</li>
-              </ul>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  <div className="text-sm text-gray-300">
+                    <div className="font-medium">Payment Detection</div>
+                    <div className="text-xs text-gray-400">Real-time monitoring</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
+                  <DollarSign className="h-5 w-5 text-blue-400" />
+                  <div className="text-sm text-gray-300">
+                    <div className="font-medium">Balance Update</div>
+                    <div className="text-xs text-gray-400">Instant credit</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
+                  <span className="text-purple-400 text-lg">🎉</span>
+                  <div className="text-sm text-gray-300">
+                    <div className="font-medium">Notification</div>
+                    <div className="text-xs text-gray-400">Success alert</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-sm text-gray-300">
+                Our trading system will automatically detect your PIX payment and instantly credit your account.
+                <strong className="text-purple-400"> No manual verification required!</strong>
+              </div>
             </div>
 
-            <div className="flex gap-2">
+            {/* Action Buttons */}
+            <div className="flex gap-4">
               <Button
                 onClick={checkStatus}
                 disabled={checkingStatus}
-                variant="outline"
-                className="flex-1 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold border-0"
               >
-                {checkingStatus ? '🔄 Verificando...' : '🔍 Verificar Agora'}
+                {checkingStatus ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    Checking Status...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg mr-2">🔍</span>
+                    CHECK STATUS NOW
+                  </>
+                )}
               </Button>
+              
               <Button
-                variant="outline"
                 onClick={() => {
                   setDepositData(null);
                   setAmount('');
                   setCpf('');
                 }}
-                className="border-gray-500/30 text-gray-400 hover:bg-gray-500/10"
+                className="h-12 px-8 bg-slate-700 hover:bg-slate-600 text-white font-medium border border-slate-600"
               >
-                🔄 Novo PIX
+                <span className="mr-2">↻</span>
+                NEW PIX
               </Button>
             </div>
 
-            <div className="text-xs text-center text-gray-500">
-              ID da Transação: {depositData.trxId}
+            {/* Transaction ID */}
+            <div className="text-center">
+              <div className="inline-block bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-600/30">
+                <div className="text-xs text-gray-500 mb-1">Transaction ID</div>
+                <div className="text-sm font-mono text-gray-300">{depositData.trxId}</div>
+              </div>
             </div>
           </div>
         )}
@@ -586,6 +819,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 };
