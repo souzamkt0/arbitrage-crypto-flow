@@ -65,14 +65,19 @@ const AutoRedirect = () => {
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
+  console.log('🛡️ ProtectedRoute - user:', !!user, 'isLoading:', isLoading);
+  
   if (isLoading) {
+    console.log('⏳ ProtectedRoute: Still loading, showing spinner');
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
   
   if (!user) {
+    console.log('❌ ProtectedRoute: No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
+  console.log('✅ ProtectedRoute: User authenticated, rendering children');
   return <>{children}</>;
 };
 
