@@ -234,7 +234,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         pixCode: result.pixCopiaECola || '',
         qrCodeBase64: result.qrCodeBase64 || '',
         usdAmount: usdAmount,
-        brlAmount: brlAmount,
+        brlAmount: brlAmount.brlAmount,
         createdAt: Date.now()
       };
 

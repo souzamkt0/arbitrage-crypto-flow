@@ -244,3 +244,5 @@ export const Debug: React.FC = () => {
     </div>
   );
 };
+
+export default Debug;
