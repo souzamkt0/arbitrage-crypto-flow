@@ -706,8 +706,15 @@ const Dashboard = () => {
           </div>
 
           {/* Center Section - Trading Chart (Takes more space on desktop) */}
-          <div className="xl:col-span-2 lg:col-span-1">
+          <div className="xl:col-span-2 lg:col-span-1 space-y-6">
             <TradingChart />
+            
+            {/* Additional Crypto Charts Below BTC */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <EthereumChart />
+              <SolanaChart />
+              <CardanoChart />
+            </div>
           </div>
 
           {/* Right Section - Trading Bot */}
@@ -720,13 +727,6 @@ const Dashboard = () => {
               updateAlphaBot={updateAlphaBot}
             />
           </div>
-        </div>
-
-        {/* Additional Crypto Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <EthereumChart />
-          <SolanaChart />
-          <CardanoChart />
         </div>
       </div>
     </div>
