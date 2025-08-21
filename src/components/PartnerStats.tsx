@@ -94,60 +94,64 @@ export const PartnerStats = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-amber-900/90 via-yellow-800/80 to-orange-900/90 rounded-xl border border-amber-500/30 p-6 backdrop-blur-sm hover:border-amber-400/50 transition-all duration-500 relative overflow-hidden group">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-amber-400/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <div className="bg-gradient-to-br from-amber-900/95 via-yellow-800/85 to-orange-900/95 rounded-xl border-2 border-amber-500/40 p-6 backdrop-blur-sm hover:border-amber-400/60 transition-all duration-500 relative overflow-hidden group shadow-2xl animate-fade-in">
+      {/* Enhanced Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-600/15 to-orange-600/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-radial from-amber-400/15 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="absolute -top-10 -left-10 w-32 h-32 bg-gradient-radial from-yellow-400/10 to-transparent rounded-full animate-pulse"></div>
       
-      {/* Floating Elements */}
+      {/* Floating Elements with Enhanced Animation */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-4 right-4 text-amber-300/40 animate-bounce" style={{ animationDelay: '0.5s' }}>
+        <div className="absolute top-6 right-6 text-3xl animate-bounce" style={{ animationDelay: '0.5s' }}>
           👑
         </div>
-        <div className="absolute bottom-6 left-6 text-yellow-300/30 animate-bounce" style={{ animationDelay: '1.5s' }}>
+        <div className="absolute bottom-8 left-8 text-2xl animate-bounce" style={{ animationDelay: '1.5s' }}>
           💰
         </div>
-        <div className="absolute top-1/2 right-8 text-orange-300/20 animate-pulse" style={{ animationDelay: '2s' }}>
+        <div className="absolute top-1/2 right-12 text-xl animate-pulse" style={{ animationDelay: '2s' }}>
           ⭐
+        </div>
+        <div className="absolute bottom-1/3 right-1/4 text-lg animate-pulse" style={{ animationDelay: '3s' }}>
+          💎
         </div>
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Crown className="w-6 h-6 text-white animate-pulse" />
+      {/* Enhanced Header */}
+      <div className="relative z-10 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+              <Crown className="w-8 h-8 text-white drop-shadow-lg" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-amber-100 group-hover:text-amber-50 transition-colors">
-                🎉 Parabéns, Sócio! 🎉
-              </h3>
-              <div className="text-xs text-amber-300/80">Parceiro Oficial da AlphaBit</div>
+              <h2 className="text-2xl font-bold text-amber-50 group-hover:text-white transition-colors mb-1">
+                🎉 PARABÉNS, SÓCIO! 🎉
+              </h2>
+              <div className="text-sm text-amber-300/90 font-medium">Parceiro Oficial da AlphaBit Trading</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400 text-xs font-medium">ATIVO</span>
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
+            <span className="text-green-400 text-sm font-bold tracking-wide">ATIVO</span>
           </div>
         </div>
 
-        {/* Congratulations Message */}
-        <div className="bg-gradient-to-r from-amber-800/50 to-orange-800/30 rounded-lg p-4 border border-amber-600/50 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Star className="h-5 w-5 text-amber-300" />
-            <span className="text-amber-200 font-semibold">Status: Sócio Oficial</span>
+        {/* Enhanced Congratulations Message */}
+        <div className="bg-gradient-to-r from-amber-800/60 to-orange-800/40 rounded-xl p-6 border-2 border-amber-600/50 mb-6 transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-3">
+            <Star className="h-6 w-6 text-amber-300 animate-pulse" />
+            <span className="text-amber-200 font-bold text-lg">Status: Sócio Elite</span>
           </div>
-          <p className="text-amber-100 text-sm leading-relaxed">
-            Você faz parte da elite de parceiros da AlphaBit! 🚀 
-            Ganhe <span className="font-bold text-yellow-300">{partnerData.commission_percentage}%</span> de 
-            comissão sobre TODOS os depósitos realizados na plataforma.
+          <p className="text-amber-100 text-base leading-relaxed">
+            Você faz parte da <span className="font-bold text-yellow-300">elite de parceiros</span> da AlphaBit! 🚀 
+            Ganhe <span className="font-bold text-yellow-300 text-xl">{partnerData.commission_percentage}%</span> de 
+            comissão sobre <span className="font-bold text-yellow-300">TODOS</span> os depósitos realizados na plataforma.
           </p>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* Enhanced Stats Grid */}
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Total Earnings */}
         <div className="bg-amber-800/30 rounded-lg p-4 border border-amber-600/30 group-hover:border-amber-500/50 transition-colors">
           <div className="flex items-center justify-between mb-2">

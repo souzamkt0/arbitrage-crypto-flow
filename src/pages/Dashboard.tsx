@@ -673,8 +673,13 @@ const Dashboard = () => {
       {/* Trading Header */}
       <TradingHeader />
       
-      {/* Partner Status Banner */}
+      {/* Partner Status Banner - Top Priority */}
       {partnerData && <PartnerStatusBanner />}
+      
+      {/* Partner Congratulations Box - Prominent Position */}
+      <div className="container mx-auto px-4 py-4">
+        <PartnerStats />
+      </div>
       
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -694,9 +699,6 @@ const Dashboard = () => {
           {/* Left Column - Market Overview */}
           <div className="lg:col-span-1 space-y-6">
             <MarketOverview />
-            
-            {/* Partner Stats - Only shows if user is a partner */}
-            <PartnerStats />
             
             {/* Residual Balance */}
             <ResidualBalanceBox />
