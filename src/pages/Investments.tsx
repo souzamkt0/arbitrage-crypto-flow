@@ -590,301 +590,464 @@ const Investments = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Box de Planos Ativos - Trading Style */}
-            {activeInvestments > 0 && !showActivePlans && (
-              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950/80 via-green-900/60 to-teal-950/80 rounded-2xl p-6 mb-6 border border-emerald-400/30 backdrop-blur-sm animate-fade-in">
-                {/* Animated Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent animate-pulse"></div>
-                  <div className="absolute top-2 right-4 w-16 h-16 border-2 border-emerald-400/30 rounded-full animate-spin" style={{ animationDuration: '8s' }}></div>
-                  <div className="absolute bottom-4 left-8 w-8 h-8 border border-green-400/40 rounded animate-bounce" style={{ animationDelay: '0.5s' }}></div>
-                  <div className="absolute top-1/2 left-4 w-2 h-2 bg-emerald-400/60 rounded-full animate-ping"></div>
-                  <div className="absolute top-1/4 right-8 w-3 h-3 bg-green-400/50 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+            
+            {/* Trading Dashboard - Planos Ativos */}
+            {activeInvestments > 0 && (
+              <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-black rounded-3xl p-8 mb-8 border border-gray-700/50 backdrop-blur-xl animate-fade-in">
+                {/* Trading Grid Background */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,127,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,127,0.03)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30"></div>
+                
+                {/* Floating Trading Elements */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  <div className="absolute top-6 left-12 text-green-400 text-xs font-mono animate-bounce opacity-60" style={{ animationDelay: '0.5s' }}>
+                    📈 BTC +3.2%
+                  </div>
+                  <div className="absolute top-12 right-16 text-blue-400 text-xs font-mono animate-bounce opacity-50" style={{ animationDelay: '1.5s' }}>
+                    ETH $2,847
+                  </div>
+                  <div className="absolute bottom-16 left-20 text-yellow-400 text-xs font-mono animate-bounce opacity-40" style={{ animationDelay: '2.5s' }}>
+                    ⚡ LIVE
+                  </div>
+                  <div className="absolute top-20 right-8 w-3 h-3 bg-green-400 rounded-full animate-ping opacity-60"></div>
+                  <div className="absolute bottom-20 left-8 w-2 h-2 bg-blue-400 rounded-full animate-pulse opacity-50"></div>
                 </div>
 
                 {/* Trading Chart Background */}
-                <div className="absolute inset-0 opacity-5">
-                  <svg className="w-full h-full" viewBox="0 0 400 200">
+                <div className="absolute top-0 right-0 w-80 h-40 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 200 100">
                     <defs>
-                      <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
-                        <stop offset="50%" stopColor="#059669" stopOpacity="0.6"/>
-                        <stop offset="100%" stopColor="#047857" stopOpacity="0.3"/>
+                      <linearGradient id="tradingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#00ff7f" stopOpacity="0.8"/>
+                        <stop offset="50%" stopColor="#00d4ff" stopOpacity="0.6"/>
+                        <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.4"/>
                       </linearGradient>
                     </defs>
                     <path 
-                      d="M0,150 Q50,120 100,100 T200,80 T300,60 T400,40" 
-                      stroke="url(#chartGradient)" 
+                      d="M10,80 Q40,60 70,45 T120,30 T160,20 T190,15" 
+                      stroke="url(#tradingGradient)" 
                       strokeWidth="2" 
                       fill="none"
                       className="animate-pulse"
                     />
                     <path 
-                      d="M0,160 Q60,140 120,120 T240,100 T360,80 T400,60" 
-                      stroke="url(#chartGradient)" 
+                      d="M10,85 Q45,70 80,55 T130,40 T170,30 T190,25" 
+                      stroke="url(#tradingGradient)" 
                       strokeWidth="1" 
                       fill="none" 
                       opacity="0.6"
                       className="animate-pulse"
-                      style={{ animationDelay: '0.5s' }}
+                      style={{ animationDelay: '1s' }}
                     />
                   </svg>
                 </div>
 
-                {/* Floating Numbers Animation */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-4 left-8 text-xs font-mono text-emerald-400/60 animate-bounce" style={{ animationDelay: '0.2s' }}>
-                    +{(Math.random() * 10).toFixed(2)}%
-                  </div>
-                  <div className="absolute top-8 right-12 text-xs font-mono text-green-400/50 animate-bounce" style={{ animationDelay: '1.2s' }}>
-                    ${(Math.random() * 1000).toFixed(2)}
-                  </div>
-                  <div className="absolute bottom-8 left-16 text-xs font-mono text-teal-400/40 animate-bounce" style={{ animationDelay: '2s' }}>
-                    ↗ {(Math.random() * 5).toFixed(1)}%
-                  </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="relative z-10 text-center space-y-6">
-                  {/* Header with Trading Icon */}
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center animate-pulse">
-                        <TrendingUp className="w-6 h-6 text-white" />
+                {/* Main Trading Dashboard Content */}
+                <div className="relative z-10">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center animate-pulse shadow-2xl">
+                          <TrendingUp className="w-8 h-8 text-white" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center animate-ping">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
                       </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                          ALPHA TRADING DASHBOARD
+                        </h2>
+                        <p className="text-gray-400 text-sm flex items-center space-x-2 mt-1">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                          <span>Sistema Operacional • {activeInvestments} Robôs Ativos</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <h3 className="text-xl font-bold text-emerald-300 flex items-center space-x-2">
-                        <span className="animate-pulse">📈</span>
-                        <span>TRADING ATIVO</span>
-                      </h3>
-                      <div className="text-sm text-emerald-200/80 font-mono animate-fade-in">
-                        Real-time profit generation
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-green-400 mb-1">
+                        +{(userInvestments.reduce((sum, inv) => sum + inv.totalEarned, 0)).toFixed(2)} USD
                       </div>
+                      <div className="text-sm text-gray-400">Total de Lucros</div>
                     </div>
                   </div>
 
-                  {/* Stats Display */}
-                  <div className="bg-black/20 rounded-xl p-4 border border-emerald-400/20 backdrop-blur-sm">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div className="space-y-1">
-                        <div className="text-2xl font-bold text-emerald-300 animate-pulse">
-                          {activeInvestments}
+                  {/* Trading Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    {/* Total Investido */}
+                    <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 rounded-2xl p-6 border border-blue-500/30 backdrop-blur-sm hover:border-blue-400/50 transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                          <Wallet className="w-6 h-6 text-blue-400" />
                         </div>
-                        <div className="text-xs text-emerald-200/70 uppercase tracking-wider">
-                          {activeInvestments === 1 ? 'Plano Ativo' : 'Planos Ativos'}
-                        </div>
+                        <div className="text-blue-400 text-sm font-medium">CAPITAL</div>
                       </div>
-                      <div className="space-y-1 border-x border-emerald-400/20">
-                        <div className="text-2xl font-bold text-green-300 animate-pulse flex items-center justify-center">
-                          <Activity className="w-4 h-4 mr-1" />
-                          {getTotalActiveOperations()}
-                        </div>
-                        <div className="text-xs text-green-200/70 uppercase tracking-wider">
-                          Operações/dia
-                        </div>
+                      <div className="text-2xl font-bold text-white mb-1">
+                        ${userInvestments.reduce((sum, inv) => sum + inv.amount, 0).toFixed(2)}
                       </div>
-                      <div className="space-y-1">
-                        <div className="text-2xl font-bold text-teal-300 flex items-center justify-center animate-pulse">
-                          <Sparkles className="w-4 h-4 mr-1" />
-                          ON
+                      <div className="text-blue-300 text-sm">Total Investido</div>
+                    </div>
+
+                    {/* Planos Ativos */}
+                    <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 rounded-2xl p-6 border border-green-500/30 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                          <Bot className="w-6 h-6 text-green-400" />
                         </div>
-                        <div className="text-xs text-teal-200/70 uppercase tracking-wider">
-                          Status
-                        </div>
+                        <div className="text-green-400 text-sm font-medium">ROBÔS</div>
                       </div>
+                      <div className="text-2xl font-bold text-white mb-1 flex items-center">
+                        {activeInvestments}
+                        <div className="w-2 h-2 bg-green-400 rounded-full ml-2 animate-pulse"></div>
+                      </div>
+                      <div className="text-green-300 text-sm">Sistemas Ativos</div>
+                    </div>
+
+                    {/* Operações Hoje */}
+                    <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 rounded-2xl p-6 border border-purple-500/30 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                          <Activity className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div className="text-purple-400 text-sm font-medium">OPS</div>
+                      </div>
+                      <div className="text-2xl font-bold text-white mb-1">
+                        {userInvestments.reduce((sum, inv) => sum + inv.operationsCompleted, 0)}
+                      </div>
+                      <div className="text-purple-300 text-sm">Operações Hoje</div>
+                    </div>
+
+                    {/* Performance */}
+                    <div className="bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 rounded-2xl p-6 border border-yellow-500/30 backdrop-blur-sm hover:border-yellow-400/50 transition-all duration-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-yellow-400" />
+                        </div>
+                        <div className="text-yellow-400 text-sm font-medium">ROI</div>
+                      </div>
+                      <div className="text-2xl font-bold text-white mb-1">
+                        +{userInvestments.length > 0 ? 
+                          ((userInvestments.reduce((sum, inv) => sum + inv.totalEarned, 0) / 
+                            userInvestments.reduce((sum, inv) => sum + inv.amount, 0)) * 100).toFixed(1) 
+                          : '0.0'}%
+                      </div>
+                      <div className="text-yellow-300 text-sm">Retorno Total</div>
                     </div>
                   </div>
 
-                  {/* Action Button */}
-                  <Button
-                    onClick={() => setShowActivePlans(true)}
-                    className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:via-green-500 hover:to-teal-500 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 hover-scale group"
-                  >
-                    <span className="relative z-10 flex items-center space-x-2">
-                      <BarChart3 className="w-5 h-5 group-hover:animate-pulse" />
-                      <span>Acessar Dashboard Trading</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  </Button>
+                  {/* Trading Interface */}
+                  <div className="bg-black/30 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <h3 className="text-xl font-bold text-white">Centro de Controle</h3>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-xs text-green-400 font-mono bg-green-400/10 px-3 py-1 rounded-full animate-pulse">
+                          ● SISTEMA ATIVO
+                        </div>
+                        <div className="text-xs text-gray-400 font-mono">
+                          {new Date().toLocaleTimeString('pt-BR')}
+                        </div>
+                      </div>
+                    </div>
 
-                  {/* Real-time Ticker */}
-                  <div className="text-xs text-emerald-300/60 font-mono animate-pulse">
-                    <div className="flex items-center justify-center space-x-4">
-                      <span>BTC/USDT: +2.34%</span>
-                      <span className="text-emerald-400">•</span>
-                      <span>ETH/USDT: +1.87%</span>
-                      <span className="text-emerald-400">•</span>
-                      <span>Lucro: +{((Math.random() * 100) + 50).toFixed(2)}%</span>
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Button
+                        onClick={() => setShowActivePlans(true)}
+                        className="relative overflow-hidden bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-500 hover:via-emerald-500 hover:to-teal-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 group"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                        <div className="relative z-10 flex items-center justify-center space-x-2">
+                          <BarChart3 className="w-5 h-5 group-hover:animate-pulse" />
+                          <span>Gerenciar Robôs</span>
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => setShowOperationHistory(true)}
+                        variant="outline"
+                        className="border-gray-600 text-gray-300 hover:text-white hover:border-blue-500/50 hover:bg-blue-500/10 py-4 px-6 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden group"
+                      >
+                        <div className="relative z-10 flex items-center justify-center space-x-2">
+                          <Activity className="w-5 h-5" />
+                          <span>Ver Histórico</span>
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => setShowActivePlans(false)}
+                        variant="outline"
+                        className="border-gray-600 text-gray-300 hover:text-white hover:border-purple-500/50 hover:bg-purple-500/10 py-4 px-6 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden group"
+                      >
+                        <div className="relative z-10 flex items-center justify-center space-x-2">
+                          <Plus className="w-5 h-5" />
+                          <span>Novos Planos</span>
+                        </div>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Real-time Market Ticker */}
+                  <div className="mt-6 bg-black/20 rounded-xl p-4 border border-gray-700/30">
+                    <div className="flex items-center justify-center space-x-8 text-xs font-mono">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-green-400">BTC/USDT: $67,234 (+2.34%)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                        <span className="text-blue-400">ETH/USDT: $3,847 (+1.87%)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                        <span className="text-purple-400">BNB/USDT: $634 (+0.92%)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                        <span className="text-yellow-400">ROI Total: +{((Math.random() * 100) + 50).toFixed(2)}%</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Corner Decorations */}
-                <div className="absolute top-0 left-0 w-20 h-20 border-l-2 border-t-2 border-emerald-400/30 rounded-tl-2xl"></div>
-                <div className="absolute bottom-0 right-0 w-20 h-20 border-r-2 border-b-2 border-emerald-400/30 rounded-br-2xl"></div>
+                <div className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-green-400/20 rounded-tl-3xl"></div>
+                <div className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-blue-400/20 rounded-br-3xl"></div>
               </div>
             )}
 
             {showActivePlans ? (
-              /* Active Plans View */
-              <div className="space-y-6">
+              /* Active Trading Bots Dashboard */
+              <div className="space-y-8">
+                {/* Dashboard Header */}
+                <div className="bg-gradient-to-r from-slate-900 via-gray-900 to-black rounded-2xl p-6 border border-gray-700/50 backdrop-blur-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-xl flex items-center justify-center animate-pulse">
+                        <Bot className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">Painel de Trading Bots</h2>
+                        <p className="text-gray-400 text-sm">Gerencie seus robôs de arbitragem ativos</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-green-500/20 px-4 py-2 rounded-lg border border-green-500/30">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                          <span className="text-green-400 text-sm font-medium">SISTEMAS ATIVOS</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {userInvestments.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {userInvestments.map((investment) => (
-                      <Card key={investment.id} className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border border-gray-700/50 backdrop-blur-sm hover:border-green-500/30 transition-all duration-300 animate-fade-in group hover-scale">
-                        {/* Background pattern */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 to-blue-900/5 rounded-lg"></div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {userInvestments.map((investment, index) => (
+                      <Card 
+                        key={investment.id} 
+                        className="bg-gradient-to-br from-slate-900/90 to-gray-900/90 border border-gray-700/50 backdrop-blur-sm hover:border-green-500/30 transition-all duration-500 animate-fade-in hover-scale group relative overflow-hidden"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        {/* Trading Bot Background Pattern */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 via-blue-900/5 to-purple-900/5 rounded-lg opacity-50"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-green-400/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         
+                        {/* Live Trading Indicator */}
+                        <div className="absolute top-4 right-4 flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+                          <span className="text-green-400 text-xs font-mono">LIVE</span>
+                        </div>
+
                         {/* Header */}
-                        <CardHeader className="pb-3 relative">
+                        <CardHeader className="pb-4 relative z-10">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-white text-lg font-bold flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <span>{investment.investmentName}</span>
-                              </CardTitle>
-                              <div className="text-xs text-green-400 mt-1 flex items-center space-x-2">
-                                <Activity className="w-3 h-3" />
-                                <span>
-                                  {getDailyOperationsFromPlan(investment.investmentName)} operações diárias
-                                </span>
+                            <div className="flex items-center space-x-3">
+                              <div className="relative">
+                                <div className="w-12 h-12 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                  <Bot className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                </div>
+                              </div>
+                              <div>
+                                <CardTitle className="text-white text-lg font-bold group-hover:text-green-300 transition-colors">
+                                  {investment.investmentName}
+                                </CardTitle>
+                                <div className="text-xs text-green-400 mt-1 flex items-center space-x-2">
+                                  <Activity className="w-3 h-3" />
+                                  <span>Arbitragem Ativa • {investment.dailyOperations} ops/dia</span>
+                                </div>
                               </div>
                             </div>
-                            <Badge 
-                              variant="secondary" 
-                              className="bg-gradient-to-r from-green-600/80 to-green-500/80 text-white border-green-400/50 animate-pulse"
-                            >
-                              ATIVO
-                            </Badge>
                           </div>
                         </CardHeader>
 
-                        {/* Content */}
-                        <CardContent className="space-y-4 relative">
-                          <div className="grid grid-cols-3 gap-3 text-center">
-                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                              <p className="text-xs text-gray-400 mb-1">Investido</p>
-                              <span className={`font-bold text-white ${isMobile ? 'text-lg' : ''}`}>${investment.amount.toFixed(2)}</span>
+                        {/* Trading Metrics */}
+                        <CardContent className="space-y-6 relative z-10">
+                          {/* Main Stats */}
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 rounded-xl p-4 border border-blue-500/30 text-center">
+                              <div className="text-xs text-blue-400 mb-1 font-medium">CAPITAL</div>
+                              <div className="text-lg font-bold text-white">${investment.amount.toFixed(2)}</div>
                             </div>
-                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                              <p className="text-xs text-gray-400 mb-1">Ganho Total</p>
-                              <span className={`font-bold text-green-400 ${isMobile ? 'text-lg' : ''}`}>+${investment.totalEarned.toFixed(2)}</span>
+                            <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 rounded-xl p-4 border border-green-500/30 text-center">
+                              <div className="text-xs text-green-400 mb-1 font-medium">LUCRO</div>
+                              <div className="text-lg font-bold text-green-400">+${investment.totalEarned.toFixed(2)}</div>
                             </div>
-                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                              <p className="text-xs text-gray-400 mb-1">Hoje</p>
-                              <span className={`font-bold text-yellow-400 ${isMobile ? 'text-lg' : ''}`}>+${calculateTodayEarnings(investment).toFixed(2)}</span>
+                            <div className="bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 rounded-xl p-4 border border-yellow-500/30 text-center">
+                              <div className="text-xs text-yellow-400 mb-1 font-medium">HOJE</div>
+                              <div className="text-lg font-bold text-yellow-400">+${calculateTodayEarnings(investment).toFixed(2)}</div>
                             </div>
                           </div>
                           
-                          <div className="space-y-3">
+                          {/* Trading Progress */}
+                          <div className="bg-black/30 rounded-xl p-4 border border-gray-700/30">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-gray-400 text-sm">Progresso Diário</span>
+                              <span className="text-white font-bold text-sm">{investment.currentDayProgress.toFixed(1)}%</span>
+                            </div>
+                            <div className="relative">
+                              <Progress 
+                                value={investment.currentDayProgress} 
+                                className="h-3 bg-gray-800/50"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-r from-green-500/30 via-blue-500/30 to-purple-500/30 rounded-full animate-pulse opacity-60"></div>
+                            </div>
+                            <div className="flex justify-between mt-2 text-xs text-gray-400">
+                              <span>00:00</span>
+                              <span>Atual: {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span>23:59</span>
+                            </div>
+                          </div>
+
+                          {/* Performance Metrics */}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
                             <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
-                              <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-400">Progresso do Dia</span>
-                                <span className="text-white font-medium">{investment.currentDayProgress.toFixed(1)}%</span>
-                              </div>
-                              <div className="relative">
-                                <Progress 
-                                  value={investment.currentDayProgress} 
-                                  className="h-3 bg-gray-700/50"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-r from-green-500/30 to-blue-500/30 rounded-full animate-pulse opacity-50"></div>
+                              <div className="text-gray-400 mb-1">Taxa de Sucesso</div>
+                              <div className="text-green-400 font-bold">98.7%</div>
+                            </div>
+                            <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
+                              <div className="text-gray-400 mb-1">ROI Atual</div>
+                              <div className="text-blue-400 font-bold">
+                                +{((investment.totalEarned / investment.amount) * 100).toFixed(1)}%
                               </div>
                             </div>
+                          </div>
 
-                            {/* Timer de Reset Diário */}
-                            {dailyResetTimers[investment.id] > 0 && (
-                              <div className="bg-gray-800/30 rounded-lg p-3 border border-yellow-500/30">
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="text-yellow-400 flex items-center space-x-1">
-                                    <Timer className="w-4 h-4" />
-                                    <span>Reset Diário</span>
-                                  </span>
-                                  <span className="text-yellow-300 font-mono">
-                                    {formatTimeRemaining(dailyResetTimers[investment.id])}
-                                  </span>
+                          {/* Bot Status */}
+                          <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/30 rounded-xl p-4 border border-gray-600/50">
+                            {investment.canOperate && investment.operationsCompleted < investment.dailyOperations ? (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                                  <span className="text-green-400 font-medium">Bot Pronto para Operar</span>
+                                </div>
+                                <div className="text-green-400 text-sm font-mono">
+                                  {investment.dailyOperations - investment.operationsCompleted} ops restantes
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                                  <span className="text-yellow-400 font-medium">Aguardando Reset</span>
+                                </div>
+                                <div className="text-yellow-400 text-sm font-mono">
+                                  {dailyResetTimers[investment.id] ? formatTimeRemaining(dailyResetTimers[investment.id]) : '24h'}
                                 </div>
                               </div>
                             )}
+                          </div>
 
-                            {/* Status quando operações estão disponíveis */}
-                            {investment.canOperate && investment.operationsCompleted < investment.dailyOperations && (
-                              <div className="bg-gradient-to-r from-green-900/40 to-emerald-900/40 rounded-lg p-3 border border-green-500/40">
-                                <div className="flex items-center space-x-2 text-green-300">
-                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-                                  <span className="text-sm font-medium">
-                                    Operação disponível • {investment.dailyOperations - investment.operationsCompleted} restante{investment.dailyOperations - investment.operationsCompleted !== 1 ? 's' : ''}
-                                  </span>
+                          {/* Trading Controls */}
+                          <div className="space-y-3">
+                            {/* Execute Operation Button */}
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (investment.canOperate && investment.operationsCompleted < investment.dailyOperations) {
+                                  executeOperation(investment);
+                                } else {
+                                  toast({
+                                    title: "Operações Concluídas",
+                                    description: "Aguarde o reset diário para novas operações",
+                                    variant: "default"
+                                  });
+                                }
+                              }}
+                              disabled={isLoading || !investment.canOperate || investment.operationsCompleted >= investment.dailyOperations}
+                              className={`w-full relative overflow-hidden transition-all duration-300 ${
+                                investment.canOperate && investment.operationsCompleted < investment.dailyOperations
+                                  ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-500 hover:via-emerald-500 hover:to-teal-500 text-white shadow-lg hover:shadow-green-500/25 transform hover:scale-105'
+                                  : 'bg-gradient-to-r from-gray-600 to-gray-700 text-gray-300 cursor-not-allowed'
+                              } group`}
+                              size="lg"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                              
+                              {isLoading ? (
+                                <div className="relative z-10 flex items-center justify-center">
+                                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                  <span>Executando Arbitragem...</span>
                                 </div>
-                              </div>
-                            )}
+                              ) : investment.canOperate && investment.operationsCompleted < investment.dailyOperations ? (
+                                <div className="relative z-10 flex items-center justify-center space-x-2">
+                                  <Play className="h-5 w-5 group-hover:animate-pulse" />
+                                  <span className="font-bold">EXECUTAR ARBITRAGEM</span>
+                                  <Zap className="h-4 w-4 animate-pulse" />
+                                </div>
+                              ) : (
+                                <div className="relative z-10 flex items-center justify-center space-x-2">
+                                  <Clock className="h-4 w-4" />
+                                  <span className="text-sm">Aguardando Reset Diário</span>
+                                </div>
+                              )}
+                            </Button>
 
-                            {/* Box de Trading Melhorado para Mobile */}
-                            <div className="space-y-3">
-                              {/* Botão Principal de Arbitragem */}
-                              <Button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (investment.canOperate && investment.operationsCompleted < investment.dailyOperations) {
-                                    executeOperation(investment);
-                                  } else {
-                                    toast({
-                                      title: "Operações Concluídas",
-                                      description: "Aguarde o reset diário para novas operações",
-                                      variant: "default"
-                                    });
-                                  }
-                                }}
-                                disabled={isLoading || !investment.canOperate || investment.operationsCompleted >= investment.dailyOperations}
-                                className={`w-full relative overflow-hidden transition-all duration-300 ${
-                                  investment.canOperate && investment.operationsCompleted < investment.dailyOperations
-                                    ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white shadow-lg hover:shadow-green-500/25 transform hover:scale-105'
-                                    : 'bg-gradient-to-r from-gray-600 to-gray-700 text-gray-300 cursor-not-allowed'
-                                } group`}
-                                size={isMobile ? "lg" : "default"}
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                                
-                                {isLoading ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                    <span className="relative z-10">Executando...</span>
-                                  </>
-                                ) : investment.canOperate && investment.operationsCompleted < investment.dailyOperations ? (
-                                  <>
-                                    <Play className="h-4 w-4 mr-2 relative z-10 group-hover:animate-pulse" />
-                                    <span className="relative z-10 font-semibold">
-                                      Executar Arbitragem
-                                    </span>
-                                    <Zap className="h-4 w-4 ml-2 relative z-10 animate-pulse" />
-                                  </>
-                                ) : (
-                                  <>
-                                    <Clock className="h-4 w-4 mr-2 relative z-10" />
-                                    <span className="relative z-10 text-sm">
-                                      {dailyResetTimers[investment.id] > 0 
-                                        ? `⏰ ${formatTimeRemaining(dailyResetTimers[investment.id])}` 
-                                        : 'Aguarde Reset Diário'}
-                                    </span>
-                                  </>
-                                )}
-                              </Button>
-
-                              {/* Botão de Histórico */}
+                            {/* Secondary Actions */}
+                            <div className="grid grid-cols-2 gap-3">
                               <Button
                                 onClick={() => setShowOperationHistory(true)}
                                 variant="outline"
-                                className="w-full border-gray-600 text-gray-300 hover:text-white hover:border-blue-500/50 hover:bg-blue-500/10 relative overflow-hidden group"
-                                size={isMobile ? "default" : "sm"}
+                                className="border-gray-600 text-gray-300 hover:text-white hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-300 group"
+                                size="sm"
                               >
                                 <BarChart3 className="h-4 w-4 mr-2" />
-                                <span>Histórico de Operações</span>
-                                <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                <span>Histórico</span>
                               </Button>
+                              
+                              <Button
+                                variant="outline"
+                                className="border-gray-600 text-gray-300 hover:text-white hover:border-purple-500/50 hover:bg-purple-500/10 transition-all duration-300 group"
+                                size="sm"
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                <span>Config</span>
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Mini Trading Chart */}
+                          <div className="bg-black/20 rounded-lg p-3 border border-gray-700/30">
+                            <div className="text-xs text-gray-400 mb-2">Performance 24h</div>
+                            <div className="h-12 relative">
+                              <svg className="w-full h-full" viewBox="0 0 100 24">
+                                <path 
+                                  d="M5,20 Q15,15 25,12 T45,8 T65,6 T85,4 T95,2" 
+                                  stroke="#10b981" 
+                                  strokeWidth="1.5" 
+                                  fill="none"
+                                  className="animate-pulse"
+                                />
+                                <circle cx="95" cy="2" r="2" fill="#10b981" className="animate-pulse"/>
+                              </svg>
                             </div>
                           </div>
                         </CardContent>
@@ -892,18 +1055,19 @@ const Investments = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl flex items-center justify-center">
-                      <PiggyBank className="h-12 w-12 text-gray-500" />
+                  <div className="text-center py-16">
+                    <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-gray-600/30">
+                      <Bot className="h-16 w-16 text-gray-500" />
                     </div>
-                    <h3 className="text-2xl font-semibold text-gray-400 mb-2">Nenhum Investimento Ativo</h3>
-                    <p className="text-gray-500 mb-6">Ative um plano para começar a gerar lucros com arbitragem automática</p>
+                    <h3 className="text-3xl font-bold text-gray-400 mb-4">Nenhum Trading Bot Ativo</h3>
+                    <p className="text-gray-500 mb-8 text-lg">Ative um robô de arbitragem para começar a gerar lucros automaticamente</p>
                     <Button
                       onClick={() => setShowActivePlans(false)}
-                      className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold px-8 py-3 rounded-xl"
+                      className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-yellow-500/25 transform hover:scale-105 transition-all duration-300"
+                      size="lg"
                     >
-                      <Plus className="h-5 w-5 mr-2" />
-                      Ver Planos Disponíveis
+                      <Plus className="h-6 w-6 mr-2" />
+                      Ativar Primeiro Robô
                     </Button>
                   </div>
                 )}
@@ -1020,16 +1184,28 @@ const Investments = () => {
               onClick={() => setShowActivePlans(!showActivePlans)}
               className={`${
                 showActivePlans 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
-                  : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-              } text-white font-bold px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 relative overflow-hidden group`}
+                  ? 'bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-400 hover:via-indigo-500 hover:to-purple-500' 
+                  : 'bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-400 hover:via-emerald-500 hover:to-teal-500'
+              } text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 relative overflow-hidden group border border-white/10`}
               size="lg"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              <Activity className="h-5 w-5 mr-2 relative z-10" />
-              <span className="relative z-10">
-                {showActivePlans ? 'Ver Planos de Investimento' : 'Ver Planos Ativos'}
-              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="relative z-10 flex items-center justify-center space-x-3">
+                <Activity className="h-6 w-6 group-hover:animate-pulse" />
+                <span className="text-lg">
+                  {showActivePlans ? '🏠 Voltar aos Planos' : '⚡ Acessar Trading Dashboard'}
+                </span>
+                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform animate-pulse" />
+              </div>
+              
+              {/* Floating particles effect */}
+              <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute top-2 left-4 w-1 h-1 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0.1s' }}></div>
+                <div className="absolute top-4 right-8 w-1 h-1 bg-white/40 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
+                <div className="absolute bottom-3 left-12 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+              </div>
             </Button>
           </div>
         )}
