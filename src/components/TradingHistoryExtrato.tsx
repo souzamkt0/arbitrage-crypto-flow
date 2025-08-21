@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   TrendingUp, 
   DollarSign,
@@ -14,7 +17,9 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   FileText,
-  Download
+  Download,
+  MessageCircle,
+  Share2
 } from "lucide-react";
 import { TradingProfitsService, TradingProfit, TradingStats } from "@/services/tradingProfitsService";
 
@@ -23,6 +28,8 @@ export const TradingHistoryExtrato = () => {
   const [stats, setStats] = useState<TradingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     loadData();
@@ -111,6 +118,57 @@ export const TradingHistoryExtrato = () => {
       <ArrowDownLeft className="h-4 w-4 text-red-400" />;
   };
 
+  const generateWhatsAppMessage = () => {
+    if (!stats) return "";
+    
+    const currentDate = new Date().toLocaleDateString('pt-BR');
+    const periodText = {
+      'all': 'Todos os períodos',
+      'today': 'Hoje',
+      'week': 'Últimos 7 dias', 
+      'month': 'Últimos 30 dias'
+    }[selectedPeriod];
+
+    let message = `🏦 *EXTRATO ALPHA ARBITRAGEM*\n`;
+    message += `📅 Data: ${currentDate}\n`;
+    message += `📊 Período: ${periodText}\n\n`;
+    
+    message += `💰 *RESUMO FINANCEIRO*\n`;
+    message += `💵 Saldo Investido: ${formatCurrency(stats.total_invested)}\n`;
+    message += `📈 Lucro Acumulado: +${formatCurrency(stats.total_profit)}\n`;
+    message += `🎯 Total de Operações: ${stats.total_operations}\n`;
+    message += `📊 Taxa Média: ${stats.avg_daily_rate.toFixed(2)}%\n\n`;
+    
+    if (profits.length > 0) {
+      message += `📋 *ÚLTIMAS OPERAÇÕES*\n`;
+      profits.slice(0, 5).forEach((profit, index) => {
+        message += `${index + 1}. ${profit.plan_name}\n`;
+        message += `   💰 +${formatCurrency(profit.total_profit)}\n`;
+        message += `   📅 ${formatDate(profit.created_at)}\n\n`;
+      });
+    }
+    
+    message += `🔗 Acesse sua conta: https://alphabit.vu\n`;
+    message += `⚡ *Sistema de Arbitragem Alpha*`;
+    
+    return encodeURIComponent(message);
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!phoneNumber.trim()) {
+      alert("Por favor, insira um número de WhatsApp válido");
+      return;
+    }
+    
+    const message = generateWhatsAppMessage();
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/55${cleanPhone}?text=${message}`;
+    
+    window.open(whatsappUrl, '_blank');
+    setWhatsappModalOpen(false);
+    setPhoneNumber("");
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -141,10 +199,74 @@ export const TradingHistoryExtrato = () => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" className="border-green-400/30 text-green-400 hover:bg-green-400/10">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar PDF
-            </Button>
+            <div className="flex gap-2">
+              <Dialog open={whatsappModalOpen} onOpenChange={setWhatsappModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="border-green-400/30 text-green-400 hover:bg-green-400/10">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Enviar WhatsApp
+                  </Button>
+                </DialogTrigger>
+                
+                <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-white flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5 text-green-400" />
+                      Compartilhar Extrato via WhatsApp
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-white">Número do WhatsApp</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-green-400"
+                      />
+                      <p className="text-xs text-gray-400">
+                        Digite apenas o número com DDD (sem 55 no início)
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                      <p className="text-sm text-gray-300 mb-2">📱 Será enviado:</p>
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <p>• Resumo financeiro completo</p>
+                        <p>• Histórico de operações</p>
+                        <p>• Estatísticas de lucros</p>
+                        <p>• Link de acesso à plataforma</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setWhatsappModalOpen(false)}
+                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        onClick={handleWhatsAppShare}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Enviar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Button variant="outline" className="border-green-400/30 text-green-400 hover:bg-green-400/10">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
