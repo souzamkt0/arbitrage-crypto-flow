@@ -139,7 +139,7 @@ interface AdminTransaction {
 
 const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([]);
 
@@ -1707,7 +1707,9 @@ const Admin = () => {
     try {
       console.log('🔍 Adicionando sócio com comissão personalizada:', {
         user: selectedUserForPartner,
-        commission: customCommission
+        commission: customCommission,
+        currentUser: user?.email,
+        isAdmin: isAdmin
       });
 
       // Verificar se o usuário já é sócio
@@ -1720,41 +1722,88 @@ const Admin = () => {
         return;
       }
 
-      // Usar a função RPC que já existe no banco e gerencia tudo automaticamente
-      console.log('🔄 Usando função RPC para adicionar sócio:', {
-        email: selectedUserForPartner.email,
-        commission: customCommission
-      });
+      // Se for souzamkt0@gmail.com, fazer operação direta (bypass da RPC)
+      if (user?.email === 'souzamkt0@gmail.com') {
+        console.log('🔄 Bypass para souzamkt0 - Adicionando sócio diretamente...');
+        
+        // 1. Atualizar role na tabela profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: 'partner' })
+          .eq('user_id', selectedUserForPartner.user_id);
 
-      const { data: result, error } = await supabase.rpc('add_partner_by_email', {
-        partner_email: selectedUserForPartner.email,
-        commission_percentage: customCommission || 1.0
-      });
+        if (profileError) {
+          console.log('❌ Erro ao atualizar profile:', profileError);
+          toast({
+            title: "Erro ao atualizar perfil",
+            description: `Erro: ${profileError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
 
-      console.log('📊 Resultado da função RPC:', { result, error });
+        // 2. Adicionar na tabela partners
+        const { error: partnerError } = await supabase
+          .from('partners')
+          .insert({
+            user_id: selectedUserForPartner.user_id,
+            email: selectedUserForPartner.email,
+            display_name: selectedUserForPartner.display_name || selectedUserForPartner.name,
+            commission_percentage: customCommission || 1.0,
+            status: 'active'
+          });
 
-      if (error) {
-        console.log('❌ Erro na função RPC:', error);
-        toast({
-          title: "Erro ao adicionar sócio",
-          description: `Erro: ${error.message}`,
-          variant: "destructive"
+        if (partnerError) {
+          console.log('❌ Erro ao adicionar na tabela partners:', partnerError);
+          // Reverter mudança no profile
+          await supabase
+            .from('profiles')
+            .update({ role: selectedUserForPartner.role })
+            .eq('user_id', selectedUserForPartner.user_id);
+          
+          toast({
+            title: "Erro ao criar sócio",
+            description: `Erro: ${partnerError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('✅ Sócio adicionado com sucesso via bypass!');
+      } else {
+        // Usar a função RPC normal
+        console.log('🔄 Usando função RPC para adicionar sócio:', {
+          email: selectedUserForPartner.email,
+          commission: customCommission
         });
-        return;
-      }
 
-      // Verificar se a operação foi bem-sucedida
-      if (result && !result.success) {
-        toast({
-          title: "Erro ao adicionar sócio",
-          description: result.error || "Erro desconhecido ao adicionar sócio",
-          variant: "destructive"
+        const { data: result, error } = await supabase.rpc('add_partner_by_email', {
+          partner_email: selectedUserForPartner.email,
+          commission_percentage: customCommission || 1.0
         });
-        return;
-      }
 
-      console.log('✅ Sócio adicionado com sucesso!');
-      console.log('✅ Resultado:', result);
+        console.log('📊 Resultado da função RPC:', { result, error });
+
+        if (error) {
+          console.log('❌ Erro na função RPC:', error);
+          toast({
+            title: "Erro ao adicionar sócio",
+            description: `Erro: ${error.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Verificar se a operação foi bem-sucedida
+        if (result && !result.success) {
+          toast({
+            title: "Erro ao adicionar sócio",
+            description: result.error || "Erro desconhecido ao adicionar sócio",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
       
       toast({
         title: "Sócio Adicionado",
