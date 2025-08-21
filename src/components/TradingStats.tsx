@@ -24,7 +24,7 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
     {
       title: 'Portfolio Balance',
       value: `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      change: '+12.5%',
+      change: 'Real Time',
       icon: DollarSign,
       color: 'from-blue-500 to-cyan-500',
       bgColor: 'from-blue-500/10 to-cyan-500/10',
@@ -33,7 +33,7 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
     {
       title: 'Daily Profit',
       value: `$${dailyProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      change: '+8.3%',
+      change: 'Today',
       icon: TrendingUp,
       color: 'from-green-500 to-emerald-500',
       bgColor: 'from-green-500/10 to-emerald-500/10',
@@ -42,14 +42,14 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
     {
       title: 'Total Profit',
       value: `$${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      change: '+156.7%',
+      change: 'Accumulated',
       icon: BarChart3,
       color: 'from-purple-500 to-violet-500',
       bgColor: 'from-purple-500/10 to-violet-500/10',
       borderColor: 'border-purple-500/20'
     },
     {
-      title: 'Active Orders',
+      title: 'Active Investments',
       value: activeOrders.toString(),
       change: 'Running',
       icon: Activity,
@@ -58,9 +58,9 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
       borderColor: 'border-orange-500/20'
     },
     {
-      title: 'Trading Balance',
+      title: 'Total Invested',
       value: `$${tradingBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      change: 'Available',
+      change: 'Capital',
       icon: Target,
       color: 'from-teal-500 to-cyan-500',
       bgColor: 'from-teal-500/10 to-cyan-500/10',
@@ -69,7 +69,7 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
     {
       title: 'Monthly Earnings',
       value: `$${monthlyEarnings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      change: '+45.2%',
+      change: 'This Month',
       icon: Clock,
       color: 'from-indigo-500 to-blue-500',
       bgColor: 'from-indigo-500/10 to-blue-500/10',
@@ -90,7 +90,7 @@ export const TradingStats: React.FC<TradingStatsProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-400 text-xs font-medium">LIVE</span>
+              <span className="text-green-400 text-xs font-medium">SYNC</span>
             </div>
           </div>
 

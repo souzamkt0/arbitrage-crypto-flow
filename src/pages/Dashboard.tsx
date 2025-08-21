@@ -87,6 +87,8 @@ const Dashboard = () => {
   const [deletedCommunityPosts, setDeletedCommunityPosts] = useState<string[]>([]);
   const [editingUserName, setEditingUserName] = useState<string | null>(null);
   const [editingUserNameValue, setEditingUserNameValue] = useState("");
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [isDataSyncing, setIsDataSyncing] = useState(false);
 
   // ... keep existing code (all utility functions and effects)
 
@@ -500,46 +502,158 @@ const Dashboard = () => {
   useEffect(() => {
     loadUserData();
     loadCommunityMessages();
+    loadInvestmentStats();
+    loadPartnerData();
     
-    // Simular dados iniciais para demonstração
-    setBalance(15420.50);
-    setDailyProfit(287.30);
-    setTotalProfit(8942.15);
-    setActiveOrders(5);
-    setTradingBalance(12000.00);
-    setMonthlyEarnings(2847.90);
-    
-    // Atualizar dados periodicamente
+    // Atualizar dados reais periodicamente (a cada 30 segundos)
     const interval = setInterval(() => {
-      setBalance(prev => prev + (Math.random() - 0.5) * 50);
-      setDailyProfit(prev => prev + (Math.random() - 0.5) * 10);
-    }, 5000);
+      loadUserData();
+      loadInvestmentStats();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [user]);
 
+  // Carregar dados reais do usuário
   const loadUserData = async () => {
     if (!user) return;
 
+    setIsDataSyncing(true);
     try {
-      // Carregar dados do usuário
-      const { data, error } = await supabase
+      // Carregar dados do perfil
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      if (data) {
-        setBalance(data.balance || 0);
-        setTotalDeposits(data.total_deposits || 0);
-        setReferralBalance(data.referral_balance || 0);
-        setResidualBalance(data.residual_balance || 0);
-        setReferralLink(`${window.location.origin}/register?ref=${data.referral_code || user.id}`);
+      if (profileData) {
+        const newBalance = profileData.balance || 0;
+        const newTotalProfit = profileData.total_profit || 0;
+        
+        // Verificar se os dados mudaram
+        const dataChanged = newBalance !== balance || newTotalProfit !== totalProfit;
+        
+        setBalance(newBalance);
+        setTotalProfit(newTotalProfit);
+        setReferralBalance(profileData.referral_balance || 0);
+        setReferralLink(`${window.location.origin}/register?ref=${profileData.referral_code || user.id}`);
+        
+        // Mostrar notificação se os dados foram atualizados
+        if (dataChanged && lastSyncTime) {
+          toast({
+            title: "Dados Sincronizados",
+            description: "Saldos atualizados com dados reais do banco",
+            variant: "default"
+          });
+        }
+        
+        setLastSyncTime(new Date());
       }
+
+      // Carregar estatísticas de ganhos residuais
+      const { data: residualStats } = await supabase.rpc('get_user_referral_stats', {
+        target_user_id: user.id
+      });
+
+      if (residualStats && residualStats.length > 0) {
+        setResidualBalance(residualStats[0].residual_balance || 0);
+        setMonthlyEarnings(residualStats[0].this_month_earnings || 0);
+      }
+
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
+      toast({
+        title: "Erro de Sincronização",
+        description: "Falha ao carregar dados reais do banco",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDataSyncing(false);
+    }
+  };
+
+  // Carregar estatísticas de investimentos reais
+  const loadInvestmentStats = async () => {
+    if (!user) return;
+
+    try {
+      // Buscar estatísticas de investimentos
+      const { data: investmentStats } = await supabase.rpc('get_investment_stats', {
+        p_user_id: user.id
+      });
+
+      if (investmentStats && investmentStats.length > 0) {
+        const stats = investmentStats[0];
+        setTradingBalance(stats.total_invested || 0);
+        setDailyProfit(stats.today_total_earnings || 0);
+        setActiveOrders(stats.active_investments || 0);
+      }
+
+      // Buscar depósitos totais confirmados
+      const { data: deposits } = await supabase
+        .from('deposits')
+        .select('amount_usd')
+        .eq('user_id', user.id)
+        .eq('status', 'paid');
+
+      if (deposits) {
+        const totalDepositsAmount = deposits.reduce((sum, deposit) => sum + (deposit.amount_usd || 0), 0);
+        setTotalDeposits(totalDepositsAmount);
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas de investimentos:', error);
+    }
+  };
+
+  // Carregar dados reais de parceiro
+  const loadPartnerData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: partner } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      setPartnerData(partner);
+
+      if (partner) {
+        // Buscar estatísticas de parceiro
+        const { data: commissions } = await supabase
+          .from('partner_commissions')
+          .select('commission_amount, created_at')
+          .eq('partner_id', user.id)
+          .eq('status', 'paid');
+
+        if (commissions) {
+          const totalEarnings = commissions.reduce((sum, c) => sum + Number(c.commission_amount), 0);
+          
+          // Calcular ganhos mensais
+          const currentMonth = new Date().getMonth();
+          const currentYear = new Date().getFullYear();
+          const monthlyTotal = commissions
+            .filter(c => {
+              const date = new Date(c.created_at);
+              return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+            })
+            .reduce((sum, c) => sum + Number(c.commission_amount), 0);
+
+          setPartnerStats({
+            totalEarnings,
+            totalDeposits: partner.total_deposits || 0,
+            commission: partner.commission_percentage || 1,
+            monthlyEarnings: monthlyTotal
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados de parceiro:', error);
     }
   };
 
