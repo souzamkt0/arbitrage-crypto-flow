@@ -694,24 +694,21 @@ const Dashboard = () => {
           botActive={botActive}
         />
 
-        {/* Main Trading Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Market Overview */}
-          <div className="lg:col-span-1 space-y-6">
+        {/* Main Trading Layout - Optimized for Desktop */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-2 gap-6">
+          {/* Left Section - Market Overview */}
+          <div className="xl:col-span-1 lg:col-span-1 space-y-6">
             <MarketOverview />
-            
-            {/* Residual Balance */}
             <ResidualBalanceBox />
           </div>
 
-          {/* Center Column - Trading Chart */}
-          <div className="lg:col-span-1">
+          {/* Center Section - Trading Chart (Takes more space on desktop) */}
+          <div className="xl:col-span-2 lg:col-span-1">
             <TradingChart />
           </div>
 
-          {/* Right Column - Bot & Community */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Trading Bot */}
+          {/* Right Section - Trading Bot */}
+          <div className="xl:col-span-1 lg:col-span-2 xl:lg:col-span-1">
             <TradingBot
               botActive={botActive}
               setBotActive={setBotActive}
@@ -719,7 +716,6 @@ const Dashboard = () => {
               isUpdatingAlphabot={isUpdatingAlphabot}
               updateAlphaBot={updateAlphaBot}
             />
-
           </div>
         </div>
       </div>
