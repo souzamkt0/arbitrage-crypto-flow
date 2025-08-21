@@ -1480,127 +1480,42 @@ const Investments = () => {
           </Button>
         </div>
 
-
-
-        {/* Box de Planos Ativos - Movido para cá */}
-        {activeInvestments > 0 && (
-          <div className="relative overflow-hidden bg-gradient-to-r from-green-500/10 via-green-600/15 to-green-500/10 rounded-xl p-4 sm:p-6 mb-6 border border-green-500/30 backdrop-blur-sm">
-            {/* Animated Background Pattern */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse"></div>
-              <div className="absolute top-0 left-0 w-full h-full">
-                <svg className="w-full h-full" viewBox="0 0 100 20" preserveAspectRatio="none">
-                  <path
-                    d="M0,10 Q10,5 20,10 T40,10 T60,10 T80,10 T100,10"
-                    fill="none"
-                    stroke="url(#greenGradient)"
-                    strokeWidth="0.5"
-                    className="animate-pulse"
-                  />
-                  <path
-                    d="M0,8 Q10,13 20,8 T40,8 T60,8 T80,8 T100,8"
-                    fill="none"
-                    stroke="url(#greenGradient2)"
-                    strokeWidth="0.3"
-                    className="animate-pulse"
-                    style={{ animationDelay: '0.5s' }}
-                  />
-                  <defs>
-                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.6" />
-                      <stop offset="50%" stopColor="#059669" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity="0.6" />
-                    </linearGradient>
-                    <linearGradient id="greenGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#34D399" stopOpacity="0.4" />
-                      <stop offset="50%" stopColor="#6EE7B7" stopOpacity="0.6" />
-                      <stop offset="100%" stopColor="#34D399" stopOpacity="0.4" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Floating Elements */}
-            <div className="absolute top-2 right-4 animate-bounce" style={{ animationDelay: '0.2s' }}>
-              <div className="w-2 h-2 bg-green-400 rounded-full opacity-60"></div>
-            </div>
-            <div className="absolute bottom-4 left-6 animate-bounce" style={{ animationDelay: '0.8s' }}>
-              <div className="w-1 h-1 bg-green-300 rounded-full opacity-40"></div>
-            </div>
-            <div className="absolute top-6 left-8 animate-bounce" style={{ animationDelay: '1.2s' }}>
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full opacity-50"></div>
-            </div>
-            
-            {/* Market Chart Mini */}
-            <div className="absolute top-2 left-2 w-16 h-8 opacity-30">
-              <svg viewBox="0 0 60 20" className="w-full h-full">
-                <path
-                  d="M0,15 L5,12 L10,14 L15,8 L20,10 L25,6 L30,9 L35,4 L40,7 L45,3 L50,5 L55,2 L60,4"
-                  fill="none"
-                  stroke="#10B981"
-                  strokeWidth="0.8"
-                  className="animate-pulse"
-                />
-              </svg>
-            </div>
-            
-            {/* Content */}
-            <div className="relative z-10 text-center space-y-4">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="relative">
-                  <Activity className="h-5 w-5 text-green-400 animate-pulse" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-green-400 bg-gradient-to-r from-green-400 to-green-300 bg-clip-text text-transparent">
-                  🟢 PLANOS ATIVOS
-                </h3>
-              </div>
-              
-              <div className="relative">
-                <p className="text-gray-200 text-sm font-medium">
-                  {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'} gerando rendimentos automaticamente
-                </p>
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
-              </div>
-              
-              <div className="flex items-center justify-center space-x-2 text-xs text-green-300/80">
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                  <span>Operações ativas</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-                  <span>Lucros em tempo real</span>
-                </div>
-              </div>
-              
-              <Button
-                onClick={() => setShowActivePlans(!showActivePlans)}
-                className={`${
-                  showActivePlans 
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
-                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                } text-white font-bold px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 relative overflow-hidden group`}
-                size="lg"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                <Activity className="h-5 w-5 mr-2 relative z-10" />
-                <span className="relative z-10">
-                  {showActivePlans ? 'Ver Planos de Investimento' : 'Ver Planos Ativos'}
-                </span>
-              </Button>
-            </div>
+        {/* Tab Content */}
+        {activeTab === 'history' ? (
+          /* História/Extrato View */
+          <div className="space-y-6">
+            <TradingHistoryExtrato />
           </div>
         )}
-
-
-
-
-
-        {showActivePlans ? (
-          /* Active Plans View */
+        
+        {/* Main Content Based on Active Tab */}
+        {activeTab === 'history' ? (
+          <div className="space-y-6">
+            <TradingHistoryExtrato />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Box de Planos Ativos */}
+            {activeInvestments > 0 && showActivePlans && (
+              <div className="relative overflow-hidden bg-gradient-to-r from-green-500/10 via-green-600/15 to-green-500/10 rounded-xl p-4 sm:p-6 mb-6 border border-green-500/30 backdrop-blur-sm">
+                <div className="relative z-10 text-center space-y-4">
+                  <h3 className="text-lg font-bold text-green-400">🟢 PLANOS ATIVOS</h3>
+                  <p className="text-gray-200 text-sm">
+                    {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'}
+                  </p>
+                  <Button
+                    onClick={() => setShowActivePlans(false)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Ver Planos de Investimento
+                  </Button>
+                </div>
+              </div>
+            )}
+        )}
+          </div>
+        ) : (
+          /* Investments View */
           <div className="space-y-6">
 
             {userInvestments.length > 0 ? (
