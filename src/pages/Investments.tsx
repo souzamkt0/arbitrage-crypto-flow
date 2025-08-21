@@ -1480,8 +1480,6 @@ const Investments = () => {
           </Button>
         </div>
 
-
-
         {/* Box de Planos Ativos - Movido para cá */}
         {activeInvestments > 0 && (
           <div className="relative overflow-hidden bg-gradient-to-r from-green-500/10 via-green-600/15 to-green-500/10 rounded-xl p-4 sm:p-6 mb-6 border border-green-500/30 backdrop-blur-sm">
@@ -1574,6 +1572,170 @@ const Investments = () => {
                   <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
                   <span>Lucros em tempo real</span>
                 </div>
+              </div>
+              
+              <Button
+                onClick={() => setShowActivePlans(!showActivePlans)}
+                className={`${
+                  showActivePlans 
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
+                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                } text-white font-bold px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 relative overflow-hidden group`}
+                size="lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                <Activity className="h-5 w-5 mr-2 relative z-10" />
+                <span className="relative z-10">
+                  {showActivePlans ? 'Ver Planos de Investimento' : 'Ver Planos Ativos'}
+                </span>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content */}
+        {activeTab === 'history' ? (
+          <div className="space-y-6">
+            <TradingHistoryExtrato />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Box de Planos Ativos - Trading Style */}
+            {activeInvestments > 0 && !showActivePlans && (
+              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950/80 via-green-900/60 to-teal-950/80 rounded-2xl p-6 mb-6 border border-emerald-400/30 backdrop-blur-sm animate-fade-in">
+                {/* Animated Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent animate-pulse"></div>
+                  <div className="absolute top-2 right-4 w-16 h-16 border-2 border-emerald-400/30 rounded-full animate-spin" style={{ animationDuration: '8s' }}></div>
+                  <div className="absolute bottom-4 left-8 w-8 h-8 border border-green-400/40 rounded animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+                  <div className="absolute top-1/2 left-4 w-2 h-2 bg-emerald-400/60 rounded-full animate-ping"></div>
+                  <div className="absolute top-1/4 right-8 w-3 h-3 bg-green-400/50 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+                </div>
+
+                {/* Trading Chart Background */}
+                <div className="absolute inset-0 opacity-5">
+                  <svg className="w-full h-full" viewBox="0 0 400 200">
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
+                        <stop offset="50%" stopColor="#059669" stopOpacity="0.6"/>
+                        <stop offset="100%" stopColor="#047857" stopOpacity="0.3"/>
+                      </linearGradient>
+                    </defs>
+                    <path 
+                      d="M0,150 Q50,120 100,100 T200,80 T300,60 T400,40" 
+                      stroke="url(#chartGradient)" 
+                      strokeWidth="2" 
+                      fill="none"
+                      className="animate-pulse"
+                    />
+                    <path 
+                      d="M0,160 Q60,140 120,120 T240,100 T360,80 T400,60" 
+                      stroke="url(#chartGradient)" 
+                      strokeWidth="1" 
+                      fill="none" 
+                      opacity="0.6"
+                      className="animate-pulse"
+                      style={{ animationDelay: '0.5s' }}
+                    />
+                  </svg>
+                </div>
+
+                {/* Floating Numbers Animation */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-4 left-8 text-xs font-mono text-emerald-400/60 animate-bounce" style={{ animationDelay: '0.2s' }}>
+                    +{(Math.random() * 10).toFixed(2)}%
+                  </div>
+                  <div className="absolute top-8 right-12 text-xs font-mono text-green-400/50 animate-bounce" style={{ animationDelay: '1.2s' }}>
+                    ${(Math.random() * 1000).toFixed(2)}
+                  </div>
+                  <div className="absolute bottom-8 left-16 text-xs font-mono text-teal-400/40 animate-bounce" style={{ animationDelay: '2s' }}>
+                    ↗ {(Math.random() * 5).toFixed(1)}%
+                  </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="relative z-10 text-center space-y-6">
+                  {/* Header with Trading Icon */}
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center animate-pulse">
+                        <TrendingUp className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-xl font-bold text-emerald-300 flex items-center space-x-2">
+                        <span className="animate-pulse">📈</span>
+                        <span>TRADING ATIVO</span>
+                      </h3>
+                      <div className="text-sm text-emerald-200/80 font-mono animate-fade-in">
+                        Real-time profit generation
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats Display */}
+                  <div className="bg-black/20 rounded-xl p-4 border border-emerald-400/20 backdrop-blur-sm">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="space-y-1">
+                        <div className="text-2xl font-bold text-emerald-300 animate-pulse">
+                          {activeInvestments}
+                        </div>
+                        <div className="text-xs text-emerald-200/70 uppercase tracking-wider">
+                          {activeInvestments === 1 ? 'Plano Ativo' : 'Planos Ativos'}
+                        </div>
+                      </div>
+                      <div className="space-y-1 border-x border-emerald-400/20">
+                        <div className="text-2xl font-bold text-green-300 animate-pulse flex items-center justify-center">
+                          <Activity className="w-4 h-4 mr-1" />
+                          {getTotalActiveOperations()}
+                        </div>
+                        <div className="text-xs text-green-200/70 uppercase tracking-wider">
+                          Operações/dia
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-2xl font-bold text-teal-300 flex items-center justify-center animate-pulse">
+                          <Sparkles className="w-4 h-4 mr-1" />
+                          ON
+                        </div>
+                        <div className="text-xs text-teal-200/70 uppercase tracking-wider">
+                          Status
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <Button
+                    onClick={() => setShowActivePlans(true)}
+                    className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:via-green-500 hover:to-teal-500 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 hover-scale group"
+                  >
+                    <span className="relative z-10 flex items-center space-x-2">
+                      <BarChart3 className="w-5 h-5 group-hover:animate-pulse" />
+                      <span>Acessar Dashboard Trading</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                  </Button>
+
+                  {/* Real-time Ticker */}
+                  <div className="text-xs text-emerald-300/60 font-mono animate-pulse">
+                    <div className="flex items-center justify-center space-x-4">
+                      <span>BTC/USDT: +2.34%</span>
+                      <span className="text-emerald-400">•</span>
+                      <span>ETH/USDT: +1.87%</span>
+                      <span className="text-emerald-400">•</span>
+                      <span>Lucro: +{((Math.random() * 100) + 50).toFixed(2)}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Corner Decorations */}
+                <div className="absolute top-0 left-0 w-20 h-20 border-l-2 border-t-2 border-emerald-400/30 rounded-tl-2xl"></div>
+                <div className="absolute bottom-0 right-0 w-20 h-20 border-r-2 border-b-2 border-emerald-400/30 rounded-br-2xl"></div>
               </div>
               
               <Button
