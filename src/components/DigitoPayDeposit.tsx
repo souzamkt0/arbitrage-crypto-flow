@@ -33,6 +33,17 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   const [amount, setAmount] = useState('');
   const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [autoCheck, setAutoCheck] = useState(false);
+  const [depositHistory, setDepositHistory] = useState<Array<{
+    trxId: string;
+    pixCode: string;
+    qrCodeBase64: string;
+    usdAmount?: number;
+    brlAmount?: number;
+    createdAt: number;
+    status: 'pending' | 'completed' | 'failed';
+  }>>([]);
   const [depositData, setDepositData] = useState<{
     trxId: string;
     pixCode: string;
@@ -53,10 +64,73 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     }
   }, [depositData]);
 
+  // Verificação automática de status
+  useEffect(() => {
+    if (autoCheck && depositData?.trxId) {
+      const interval = setInterval(() => {
+        console.log('🔄 Verificação automática de status...');
+        checkStatus();
+      }, 5000); // Verificar a cada 5 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [autoCheck, depositData?.trxId]);
+
+  // Carregar histórico de depósitos
+  const loadDepositHistory = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: transactions, error } = await supabase
+        .from('digitopay_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'deposit')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('❌ Erro ao carregar histórico:', error);
+        return;
+      }
+
+      const history = transactions.map(tx => ({
+        trxId: tx.trx_id,
+        pixCode: tx.pix_code || '',
+        qrCodeBase64: tx.qr_code_base64 || '',
+        usdAmount: tx.amount,
+        brlAmount: tx.amount_brl,
+        createdAt: new Date(tx.created_at).getTime(),
+        status: tx.status as 'pending' | 'completed' | 'failed'
+      }));
+
+      setDepositHistory(history);
+      console.log('📊 Histórico carregado:', history);
+    } catch (error) {
+      console.error('❌ Erro ao carregar histórico:', error);
+    }
+  };
+
+  // Carregar histórico ao montar o componente
+  useEffect(() => {
+    loadDepositHistory();
+  }, [user]);
+
   // Função para formatar CPF
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  };
+
+  // Função para formatar data
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // Função para copiar código PIX
@@ -167,6 +241,13 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         
         console.log('📱 Configurando dados do depósito:', depositDataToSet);
         setDepositData(depositDataToSet);
+        
+        // Adicionar ao histórico
+        const newDeposit = {
+          ...depositDataToSet,
+          status: 'pending' as const
+        };
+        setDepositHistory(prev => [newDeposit, ...prev.slice(0, 9)]); // Manter apenas os 10 mais recentes
         console.log('📱 Dados do depósito configurados:', {
           trxId: result.id,
           hasPixCode: !!result.pixCopiaECola,
@@ -198,7 +279,80 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   // Função para verificar status
   const checkStatus = async () => {
     if (!depositData?.trxId) return;
+    
+    setCheckingStatus(true);
     try {
+      console.log('🔍 Verificando status do depósito:', depositData.trxId);
+      
+      // 1. Primeiro, verificar se há registros na tabela de debug
+      const { data: debugData, error: debugError } = await supabase
+        .from('digitopay_debug')
+        .select('*')
+        .eq('tipo', 'webhook_received')
+        .contains('payload', { id: depositData.trxId })
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (debugError) {
+        console.error('❌ Erro ao verificar debug:', debugError);
+      }
+
+      console.log('📊 Dados de debug encontrados:', debugData);
+
+      // 2. Verificar se há webhook confirmando o pagamento
+      if (debugData && debugData.length > 0) {
+        const webhookData = debugData[0];
+        console.log('🎯 Webhook encontrado:', webhookData);
+        
+        // Verificar se o status é de pagamento confirmado
+        if (webhookData.payload?.status === 'REALIZADO' || webhookData.payload?.status === 'PAID') {
+          console.log('✅ Pagamento confirmado via webhook!');
+          
+          // Processar transação automaticamente
+          try {
+            const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/process-transaction', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                trxId: depositData.trxId
+              })
+            });
+            
+            const processResult = await response.json();
+            console.log('🔧 Resultado do processamento:', processResult);
+            
+            if (processResult.success) {
+              toast({
+                title: '🎉 Pagamento Confirmado!',
+                description: 'Seu saldo foi atualizado automaticamente'
+              });
+              
+              // Atualizar o perfil do usuário
+              if (profile) {
+                const newBalance = parseFloat(profile.balance || '0') + parseFloat(depositData.brlAmount.toString());
+                await supabase
+                  .from('profiles')
+                  .update({ balance: newBalance })
+                  .eq('user_id', profile.user_id);
+                console.log('✅ Saldo atualizado no perfil:', newBalance);
+              }
+              
+              setDepositData(null);
+              setAmount('');
+              onSuccess?.();
+              return;
+            }
+          } catch (processError) {
+            console.error('❌ Erro ao processar transação:', processError);
+          }
+        }
+      }
+
+      // 3. Se não encontrou webhook, verificar status via API
+      console.log('🔍 Verificando status via API...');
+      
       // Em desenvolvimento, simular verificação
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
@@ -227,7 +381,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
             
             if (processResult.success) {
               toast({
-                title: 'Pagamento confirmado!',
+                title: '🎉 Pagamento Confirmado!',
                 description: 'Seu saldo foi atualizado automaticamente'
               });
               // Atualizar o perfil do usuário
@@ -248,7 +402,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           }
         } else {
           toast({
-            title: 'Aguardando pagamento',
+            title: '⏳ Aguardando pagamento',
             description: `Aguarde ${Math.ceil((10000 - timeSinceCreation) / 1000)}s para simular confirmação`
           });
         }
@@ -264,6 +418,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       if (result.status === 'PAID' || result.status === 'REALIZADO') {
         isCompleted = true;
       }
+      
       if (isCompleted) {
         // Atualizar status no banco
         await DigitoPayService.updateTransactionStatus(depositData.trxId, 'completed', result);
@@ -283,7 +438,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           console.log('🔧 Resultado do processamento:', processResult);
           if (processResult.success) {
             toast({
-              title: 'Pagamento confirmado!',
+              title: '🎉 Pagamento Confirmado!',
               description: 'Seu saldo foi atualizado automaticamente'
             });
             // Atualizar o perfil do usuário
@@ -330,6 +485,8 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         description: 'Erro ao verificar status',
         variant: 'destructive'
       });
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
@@ -522,9 +679,45 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   <Download className="h-4 w-4 mr-2" />
                   Baixar QR
                 </Button>
-                <Button onClick={checkStatus} className="h-12 text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-black">
+                <Button 
+                  onClick={checkStatus} 
+                  disabled={checkingStatus}
+                  className="h-12 text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-black disabled:opacity-50"
+                >
+                  {checkingStatus ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                      Verificando...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
                   🔍 Verificar Status
+                    </div>
+                  )}
                 </Button>
+              </div>
+
+              {/* Check Automático */}
+              <div className="bg-yellow-500/10 border-2 border-yellow-500/30 rounded-xl p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-xs">⚡</span>
+                    </div>
+                    <span className="text-sm font-medium text-yellow-400">Verificação Automática</span>
+                  </div>
+                  <Button
+                    variant={autoCheck ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setAutoCheck(!autoCheck)}
+                    className={`text-xs ${autoCheck ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10'}`}
+                  >
+                    {autoCheck ? '🟢 Ativo' : '⚪ Inativo'}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  {autoCheck ? 'Verificando status automaticamente a cada 5 segundos' : 'Clique para ativar verificação automática'}
+                </p>
               </div>
 
               <Button variant="outline" onClick={() => setDepositData(null)} className="w-full h-12 text-sm font-semibold border-2 border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-400">
@@ -544,6 +737,120 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
             </div>
           </div>}
+
+          {/* Histórico de Depósitos */}
+          {depositHistory.length > 0 && (
+            <div className="space-y-4 mt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-yellow-400 mb-2">📋 Histórico de Depósitos</h3>
+                <p className="text-sm text-gray-400">Seus últimos depósitos PIX</p>
+              </div>
+              
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {depositHistory.map((deposit, index) => (
+                  <div key={deposit.trxId} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border-2 border-yellow-500/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                          <QrCode className="h-4 w-4 text-yellow-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-yellow-400">
+                            Depósito #{index + 1}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {formatDate(deposit.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          deposit.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                          deposit.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {deposit.status === 'completed' ? '✅ Pago' :
+                           deposit.status === 'pending' ? '⏳ Pendente' :
+                           '❌ Falhou'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="bg-gray-800/30 rounded-lg p-2">
+                        <div className="text-xs text-gray-400">Valor PIX</div>
+                        <div className="text-sm font-semibold text-white">
+                          {deposit.brlAmount ? `R$ ${deposit.brlAmount.toFixed(2)}` : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="bg-gray-800/30 rounded-lg p-2">
+                        <div className="text-xs text-gray-400">Crédito USD</div>
+                        <div className="text-sm font-semibold text-white">
+                          {deposit.usdAmount ? `$${deposit.usdAmount.toFixed(2)}` : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      {deposit.qrCodeBase64 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = `data:image/png;base64,${deposit.qrCodeBase64}`;
+                            link.download = `pix-qr-${deposit.trxId}.png`;
+                            link.click();
+                          }}
+                          className="flex-1 text-xs border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                        >
+                          📱 Baixar QR
+                        </Button>
+                      )}
+                      {deposit.pixCode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(deposit.pixCode);
+                              toast({
+                                title: 'Código PIX copiado!',
+                                description: 'Cole no seu app bancário'
+                              });
+                            } catch (error) {
+                              toast({
+                                title: 'Erro ao copiar',
+                                description: 'Copie manualmente',
+                                variant: 'destructive'
+                              });
+                            }
+                          }}
+                          className="flex-1 text-xs border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                        >
+                          📋 Copiar PIX
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="mt-2 text-xs text-gray-500 font-mono">
+                      ID: {deposit.trxId}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <Button
+                variant="outline"
+                onClick={loadDepositHistory}
+                className="w-full text-sm border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+              >
+                🔄 Atualizar Histórico
+              </Button>
+            </div>
+          )}
+        </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };

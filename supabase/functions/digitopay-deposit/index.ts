@@ -91,6 +91,7 @@ serve(async (req) => {
           type: 'deposit',
           amount: amount,
           amount_brl: amount,
+          status: 'pending', // Status inicial como pendente
           pix_code: depositResult.pixCopiaECola,
           qr_code_base64: depositResult.qrCodeBase64,
           person_name: name,

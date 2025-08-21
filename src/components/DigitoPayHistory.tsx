@@ -231,28 +231,28 @@ export const DigitoPayHistory: React.FC = () => {
                   </h4>
                   {otherTransactions.map(transaction => (
                     <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">
-                              {translateType(transaction.type)}
-                            </span>
-                            <Badge className={getStatusColor(transaction.status)}>
-                              {translateStatus(transaction.status)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
-                            <p>Data: {formatDate(transaction.created_at)}</p>
-                            <p>ID: {transaction.trx_id}</p>
-                          </div>
-                        </div>
-
-                        <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">
+                          {translateType(transaction.type)}
+                        </span>
+                        <Badge className={getStatusColor(transaction.status)}>
+                          {translateStatus(transaction.status)}
+                        </Badge>
                       </div>
+                      
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
+                        <p>Data: {formatDate(transaction.created_at)}</p>
+                        <p>ID: {transaction.trx_id}</p>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                     </div>
                   ))}
                 </div>
