@@ -146,6 +146,17 @@ const Investments = () => {
   ]);
   const [hiddenTables, setHiddenTables] = useState<Record<string, boolean>>({});
 
+  // Trading Simulation States
+  const [showTradingSimulation, setShowTradingSimulation] = useState(false);
+  const [tradingProgress, setTradingProgress] = useState(0);
+  const [currentTradingPair, setCurrentTradingPair] = useState('');
+  const [buyPrice, setBuyPrice] = useState(0);
+  const [sellPrice, setSellPrice] = useState(0);
+  const [currentProfit, setCurrentProfit] = useState(0);
+  const [tradingStatus, setTradingStatus] = useState<'analyzing' | 'buying' | 'waiting' | 'selling' | 'completed'>('analyzing');
+  const [priceData, setPriceData] = useState<any[]>([]);
+  const [simulationStep, setSimulationStep] = useState(0);
+
   useEffect(() => {
     if (user) {
       fetchInvestments();
@@ -313,36 +324,143 @@ const Investments = () => {
       return;
     }
 
+    // Reset simulation states
+    setTradingProgress(0);
+    setCurrentProfit(0);
+    setSimulationStep(0);
+    setTradingStatus('analyzing');
+    setPriceData([]);
+
+    // Select random trading pair
+    const randomPair = tradingPairs[Math.floor(Math.random() * tradingPairs.length)];
+    setCurrentTradingPair(randomPair);
+    
+    // Set initial buy price
+    const initialBuyPrice = 45000 + (Math.random() * 10000);
+    setBuyPrice(initialBuyPrice);
+    
+    // Calculate target sell price (0.1% to 0.5% profit)
+    const targetSellPrice = initialBuyPrice * (1.001 + Math.random() * 0.004);
+    setSellPrice(targetSellPrice);
+
+    // Set selected investment for trading
+    setSelectedInvestmentForTrading(investment);
+    
+    // Show trading simulation modal
+    setShowTradingSimulation(true);
+
+    // Start simulation process
+    await runTradingSimulation(investment, randomPair, initialBuyPrice, targetSellPrice);
+  };
+
+  const runTradingSimulation = async (
+    investment: UserInvestment, 
+    pair: string, 
+    buyPrice: number, 
+    targetSellPrice: number
+  ) => {
     try {
       setIsLoading(true);
       
-      // Simular operação de arbitragem
-      const randomPair = tradingPairs[Math.floor(Math.random() * tradingPairs.length)];
-      const buyPrice = 45000 + (Math.random() * 10000); // Preço de compra simulado
-      const sellPrice = buyPrice * (1.001 + Math.random() * 0.004); // 0.1% a 0.5% de lucro
-      const profit = (sellPrice - buyPrice) / buyPrice * investment.amount;
+      // Initialize price data with some historical points
+      const initialPriceData = Array.from({ length: 20 }, (_, i) => ({
+        time: Date.now() - (20 - i) * 1000,
+        price: buyPrice + (Math.random() - 0.5) * 100,
+        volume: Math.random() * 1000
+      }));
+      setPriceData(initialPriceData);
 
-      // Simular tempo de execução
+      // Phase 1: Analysis (0-20%)
+      setTradingStatus('analyzing');
+      for (let i = 0; i <= 20; i += 2) {
+        setTradingProgress(i);
+        setSimulationStep(i);
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+
+      // Phase 2: Buying (20-40%)
+      setTradingStatus('buying');
+      for (let i = 20; i <= 40; i += 2) {
+        setTradingProgress(i);
+        setSimulationStep(i);
+        
+        // Add real-time price updates
+        setPriceData(prev => [...prev.slice(-19), {
+          time: Date.now(),
+          price: buyPrice + (Math.random() - 0.3) * 50,
+          volume: Math.random() * 1000
+        }]);
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      // Phase 3: Waiting for optimal sell price (40-80%)
+      setTradingStatus('waiting');
+      for (let i = 40; i <= 80; i += 1) {
+        setTradingProgress(i);
+        setSimulationStep(i);
+        
+        // Gradually increase price towards target
+        const currentPrice = buyPrice + ((targetSellPrice - buyPrice) * ((i - 40) / 40));
+        const tempProfit = (currentPrice - buyPrice) / buyPrice * investment.amount;
+        setCurrentProfit(tempProfit);
+        
+        // Update price data
+        setPriceData(prev => [...prev.slice(-19), {
+          time: Date.now(),
+          price: currentPrice + (Math.random() - 0.5) * 20,
+          volume: Math.random() * 1000
+        }]);
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Phase 4: Selling (80-100%)
+      setTradingStatus('selling');
+      for (let i = 80; i <= 100; i += 2) {
+        setTradingProgress(i);
+        setSimulationStep(i);
+        
+        const finalPrice = targetSellPrice + (Math.random() - 0.5) * 10;
+        const finalProfit = (finalPrice - buyPrice) / buyPrice * investment.amount;
+        setCurrentProfit(finalProfit);
+        
+        setPriceData(prev => [...prev.slice(-19), {
+          time: Date.now(),
+          price: finalPrice,
+          volume: Math.random() * 1500
+        }]);
+        
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+
+      // Complete the operation
+      setTradingStatus('completed');
+      
+      // Final profit calculation
+      const finalProfit = (targetSellPrice - buyPrice) / buyPrice * investment.amount;
+      setCurrentProfit(finalProfit);
+
+      // Wait for user to see results
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Registrar operação no histórico
+      // Update investment data
       const newOperation = {
         id: `${Date.now()}-${investment.operationsCompleted + 1}`,
-        pair: randomPair,
+        pair,
         buyPrice,
-        sellPrice,
-        profit,
+        sellPrice: targetSellPrice,
+        profit: finalProfit,
         status: 'completed',
         timestamp: new Date().toISOString()
       };
 
       setOperationHistory(prev => [newOperation, ...prev]);
 
-      // Atualizar investimento
       const updatedInvestment = {
         ...investment,
         operationsCompleted: investment.operationsCompleted + 1,
-        totalEarned: investment.totalEarned + profit,
+        totalEarned: investment.totalEarned + finalProfit,
         canOperate: investment.operationsCompleted + 1 >= investment.dailyOperations ? false : true
       };
 
@@ -355,18 +473,23 @@ const Investments = () => {
       if (remaining > 0) {
         toast({
           title: "Operação Concluída! 🎉",
-          description: `+$${profit.toFixed(2)} ganhos. ${remaining} operação restante hoje.`,
+          description: `+$${finalProfit.toFixed(2)} ganhos. ${remaining} operação restante hoje.`,
           variant: "default"
         });
       } else {
         toast({
           title: "Meta Diária Atingida! 🚀",
-          description: `+$${profit.toFixed(2)} ganhos. Próximas operações em 24h.`,
+          description: `+$${finalProfit.toFixed(2)} ganhos. Próximas operações em 24h.`,
           variant: "default"
         });
       }
 
-      setSelectedInvestmentForTrading(updatedInvestment);
+      // Close simulation after delay
+      setTimeout(() => {
+        setShowTradingSimulation(false);
+        setIsLoading(false);
+      }, 3000);
+
     } catch (error) {
       console.error('Erro na operação:', error);
       toast({
@@ -374,7 +497,7 @@ const Investments = () => {
         description: "Tente novamente em alguns instantes",
         variant: "destructive"
       });
-    } finally {
+      setShowTradingSimulation(false);
       setIsLoading(false);
     }
   };
@@ -1162,6 +1285,267 @@ const Investments = () => {
             </Button>
           </div>
         )}
+
+        {/* Trading Simulation Modal */}
+        <Dialog open={showTradingSimulation} onOpenChange={() => {}}>
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto bg-gradient-to-br from-gray-900 via-slate-900 to-black border border-gray-700/50 text-white p-0">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600/20 via-blue-600/20 to-purple-600/20 p-6 border-b border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center animate-pulse shadow-2xl">
+                      <TrendingUp className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-ping">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                      ARBITRAGEM EM TEMPO REAL
+                    </h2>
+                    <p className="text-gray-400 flex items-center space-x-2 mt-1">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span>Executando operação • {currentTradingPair}</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-400 mb-1">
+                    +${currentProfit.toFixed(2)}
+                  </div>
+                  <div className="text-sm text-gray-400">Lucro Atual</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Progress Bar */}
+              <div className="bg-black/30 rounded-2xl p-6 border border-gray-700/50">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-gray-300 text-lg font-semibold">Progresso da Operação</span>
+                  <span className="text-white font-bold text-xl">{tradingProgress.toFixed(0)}%</span>
+                </div>
+                <div className="relative">
+                  <Progress 
+                    value={tradingProgress} 
+                    className="h-4 bg-gray-800/50"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/40 via-blue-500/40 to-purple-500/40 rounded-full animate-pulse opacity-80"></div>
+                </div>
+                
+                {/* Status Steps */}
+                <div className="flex justify-between mt-6 text-sm">
+                  <div className={`flex flex-col items-center ${tradingStatus === 'analyzing' ? 'text-green-400' : simulationStep > 20 ? 'text-green-400' : 'text-gray-500'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 border-2 ${
+                      tradingStatus === 'analyzing' ? 'border-green-400 bg-green-400/20' : 
+                      simulationStep > 20 ? 'border-green-400 bg-green-400/20' : 'border-gray-600'
+                    }`}>
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <span>Análise</span>
+                  </div>
+                  <div className={`flex flex-col items-center ${tradingStatus === 'buying' ? 'text-blue-400' : simulationStep > 40 ? 'text-blue-400' : 'text-gray-500'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 border-2 ${
+                      tradingStatus === 'buying' ? 'border-blue-400 bg-blue-400/20' : 
+                      simulationStep > 40 ? 'border-blue-400 bg-blue-400/20' : 'border-gray-600'
+                    }`}>
+                      <ArrowUpDown className="w-4 h-4" />
+                    </div>
+                    <span>Compra</span>
+                  </div>
+                  <div className={`flex flex-col items-center ${tradingStatus === 'waiting' ? 'text-yellow-400' : simulationStep > 80 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 border-2 ${
+                      tradingStatus === 'waiting' ? 'border-yellow-400 bg-yellow-400/20' : 
+                      simulationStep > 80 ? 'border-yellow-400 bg-yellow-400/20' : 'border-gray-600'
+                    }`}>
+                      <Timer className="w-4 h-4" />
+                    </div>
+                    <span>Aguardo</span>
+                  </div>
+                  <div className={`flex flex-col items-center ${tradingStatus === 'selling' || tradingStatus === 'completed' ? 'text-purple-400' : 'text-gray-500'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 border-2 ${
+                      tradingStatus === 'selling' || tradingStatus === 'completed' ? 'border-purple-400 bg-purple-400/20' : 'border-gray-600'
+                    }`}>
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                    <span>Venda</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Real-time Chart */}
+                <div className="lg:col-span-2 bg-black/30 rounded-2xl p-6 border border-gray-700/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white">{currentTradingPair} - Gráfico em Tempo Real</h3>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-sm font-mono">LIVE</span>
+                    </div>
+                  </div>
+                  
+                  {priceData.length > 0 && (
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={priceData.slice(-20)}>
+                          <defs>
+                            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                            </linearGradient>
+                          </defs>
+                          <XAxis 
+                            dataKey="time" 
+                            tickFormatter={(value) => new Date(value).toLocaleTimeString('pt-BR', { 
+                              minute: '2-digit', 
+                              second: '2-digit' 
+                            })}
+                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                          />
+                          <YAxis 
+                            domain={['dataMin - 50', 'dataMax + 50']}
+                            tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                            tickFormatter={(value) => `$${value.toFixed(0)}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: '#1f2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: 'white'
+                            }}
+                            formatter={(value: any) => [`$${value.toFixed(2)}`, 'Preço']}
+                            labelFormatter={(value) => new Date(value).toLocaleTimeString('pt-BR')}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="price" 
+                            stroke="#10b981" 
+                            strokeWidth={2}
+                            fill="url(#priceGradient)" 
+                          />
+                          {buyPrice > 0 && (
+                            <ReferenceLine 
+                              y={buyPrice} 
+                              stroke="#3b82f6" 
+                              strokeDasharray="5 5" 
+                              label={{ value: `Compra: $${buyPrice.toFixed(2)}`, position: 'left' }}
+                            />
+                          )}
+                          {sellPrice > 0 && tradingStatus !== 'analyzing' && (
+                            <ReferenceLine 
+                              y={sellPrice} 
+                              stroke="#10b981" 
+                              strokeDasharray="5 5" 
+                              label={{ value: `Meta: $${sellPrice.toFixed(2)}`, position: 'left' }}
+                            />
+                          )}
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trading Info Panel */}
+                <div className="space-y-4">
+                  {/* Current Operation */}
+                  <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 rounded-2xl p-6 border border-blue-500/30">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-bold text-blue-300">Operação Atual</h4>
+                      <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Par:</span>
+                        <span className="text-white font-mono">{currentTradingPair}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Status:</span>
+                        <span className="text-blue-400 font-semibold capitalize">{
+                          tradingStatus === 'analyzing' ? 'Analisando' :
+                          tradingStatus === 'buying' ? 'Comprando' :
+                          tradingStatus === 'waiting' ? 'Aguardando' :
+                          tradingStatus === 'selling' ? 'Vendendo' :
+                          'Concluída'
+                        }</span>
+                      </div>
+                      {buyPrice > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Preço Compra:</span>
+                          <span className="text-white font-mono">${buyPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {sellPrice > 0 && tradingStatus !== 'analyzing' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Meta Venda:</span>
+                          <span className="text-green-400 font-mono">${sellPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Profit Tracker */}
+                  <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 rounded-2xl p-6 border border-green-500/30">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-bold text-green-300">Lucro em Tempo Real</h4>
+                      <TrendingUp className="w-5 h-5 text-green-400 animate-pulse" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-400 mb-2">
+                        +${currentProfit.toFixed(4)}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {currentProfit > 0 ? `+${((currentProfit / (selectedInvestmentForTrading?.amount || 1)) * 100).toFixed(3)}%` : '0.000%'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Investment Info */}
+                  {selectedInvestmentForTrading && (
+                    <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 rounded-2xl p-6 border border-purple-500/30">
+                      <h4 className="text-lg font-bold text-purple-300 mb-4">Informações do Investimento</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Capital:</span>
+                          <span className="text-white font-mono">${selectedInvestmentForTrading.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Robô:</span>
+                          <span className="text-white">{selectedInvestmentForTrading.investmentName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Operações Hoje:</span>
+                          <span className="text-white">{selectedInvestmentForTrading.operationsCompleted}/{selectedInvestmentForTrading.dailyOperations}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom Status Bar */}
+              <div className="bg-black/50 rounded-2xl p-4 border border-gray-700/30">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 font-mono">SISTEMA ATIVO</span>
+                    </div>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-gray-400">Tempo: {new Date().toLocaleTimeString('pt-BR')}</span>
+                  </div>
+                  <div className="text-gray-400">
+                    Algoritmo: AlphaTrade AI v4.0.0
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Investment Dialog */}
         <Dialog open={!!selectedPlan} onOpenChange={() => setSelectedPlan(null)}>
