@@ -24,7 +24,7 @@ async function testarCriacaoDeposito() {
         cpf: '12345678909',
         name: 'Teste Usuário',
         callbackUrl: 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook',
-        userId: '00000000-0000-0000-0000-000000000000'
+        userId: '0a9325f4-911d-431b-a8ae-1132b4167711'
       })
     });
     
