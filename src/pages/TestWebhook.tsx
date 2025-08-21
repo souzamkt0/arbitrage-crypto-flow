@@ -16,7 +16,7 @@ import {
   DollarSign,
   AlertTriangle,
   Play,
-  Stop,
+  Square,
   Zap
 } from "lucide-react";
 
@@ -252,9 +252,9 @@ const TestWebhook = () => {
                   variant={isMonitoring ? "destructive" : "outline"}
                   className="w-full"
                 >
-                  {isMonitoring ? (
-                    <Stop className="h-4 w-4 mr-2" />
-                  ) : (
+                                                {isMonitoring ? (
+                                <Square className="h-4 w-4 mr-2" />
+                              ) : (
                     <Activity className="h-4 w-4 mr-2" />
                   )}
                   {isMonitoring ? 'Parar Monitoramento' : 'Iniciar Monitoramento'}

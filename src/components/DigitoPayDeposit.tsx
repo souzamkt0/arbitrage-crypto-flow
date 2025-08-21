@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Copy, Download, QrCode, DollarSign } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/CurrencyDisplay';
 import { useCurrency } from '@/hooks/useCurrency';
+import { supabase } from '@/integrations/supabase/client';
 interface DigitoPayDepositProps {
   onSuccess?: () => void;
 }
@@ -39,6 +40,18 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     usdAmount?: number;
     brlAmount?: number;
   } | null>(null);
+
+  // Monitorar mudanças no depositData
+  useEffect(() => {
+    if (depositData) {
+      console.log('🔄 Estado depositData atualizado:', {
+        hasTrxId: !!depositData.trxId,
+        hasPixCode: !!depositData.pixCode,
+        hasQrCode: !!depositData.qrCodeBase64,
+        qrCodeLength: depositData.qrCodeBase64?.length || 0
+      });
+    }
+  }, [depositData]);
 
   // Função para formatar CPF
   const formatCPF = (value: string) => {
@@ -108,11 +121,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       const conversion = await convertUSDToBRL(usdAmount);
       const brlAmount = conversion.brlAmount;
       
-      // Verificar se o valor em BRL é aceito pelo DigitoPay (mínimo R$ 5,00)
-      if (brlAmount < 5) {
+      // Permitir valores a partir de R$ 1,00
+      if (brlAmount < 1) {
         toast({
           title: 'Valor muito baixo',
-          description: `O valor mínimo em reais é R$ 5,00. Tente um valor maior que $${(5 / conversion.exchangeRate).toFixed(2)}`,
+          description: `O valor mínimo em reais é R$ 1,00. Tente um valor maior que $${(1 / conversion.exchangeRate).toFixed(2)}`,
           variant: 'destructive'
         });
         return;
@@ -125,7 +138,11 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       });
 
       // URL de callback para webhook - Via proxy do domínio da empresa
-      const callbackUrl = `https://www.alphabit.vu/api/webhook/digitopay`;
+      // Usar localhost para desenvolvimento, alphabit.vu para produção
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const callbackUrl = isLocalhost 
+        ? `https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook`
+        : `https://www.alphabit.vu/api/webhook/digitopay`;
       console.log('🚀 Iniciando criação de depósito...');
       console.log('🔗 URL do webhook configurada:', callbackUrl);
 
@@ -137,13 +154,22 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       console.log('📋 Resultado do depósito:', result);
       if (result.success && result.id) {
         console.log('✅ Depósito criado com sucesso:', result);
-        setDepositData({
+        console.log('🔍 Verificando dados do QR Code:');
+        console.log('  - ID:', result.id);
+        console.log('  - PIX Code:', result.pixCopiaECola ? 'Presente' : 'Ausente');
+        console.log('  - QR Code Base64:', result.qrCodeBase64 ? `Presente (${result.qrCodeBase64.length} chars)` : 'Ausente');
+        
+        const depositDataToSet = {
           trxId: result.id,
           pixCode: result.pixCopiaECola || '',
           qrCodeBase64: result.qrCodeBase64 || '',
           usdAmount: usdAmount,
-          brlAmount: brlAmount
-        });
+          brlAmount: brlAmount,
+          createdAt: Date.now() // Adicionar timestamp para simulação
+        };
+        
+        console.log('📱 Configurando dados do depósito:', depositDataToSet);
+        setDepositData(depositDataToSet);
         console.log('📱 Dados do depósito configurados:', {
           trxId: result.id,
           hasPixCode: !!result.pixCopiaECola,
@@ -176,6 +202,63 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   const checkStatus = async () => {
     if (!depositData?.trxId) return;
     try {
+      // Em desenvolvimento, simular verificação
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      if (isLocalhost) {
+        // Simular verificação para desenvolvimento
+        console.log('🔄 Modo desenvolvimento - simulando verificação...');
+        
+        // Simular que o pagamento foi confirmado após alguns segundos
+        const timeSinceCreation = Date.now() - (depositData as any).createdAt;
+        if (timeSinceCreation > 10000) { // 10 segundos
+          console.log('✅ Simulando pagamento confirmado em desenvolvimento');
+          
+          // Processar transação
+          try {
+            const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/process-transaction', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                trxId: depositData.trxId
+              })
+            });
+            const processResult = await response.json();
+            console.log('🔧 Resultado do processamento:', processResult);
+            
+            if (processResult.success) {
+              toast({
+                title: 'Pagamento confirmado!',
+                description: 'Seu saldo foi atualizado automaticamente'
+              });
+              // Atualizar o perfil do usuário
+              if (profile) {
+                const newBalance = parseFloat(profile.balance || '0') + parseFloat(depositData.brlAmount.toString());
+                await supabase
+                  .from('profiles')
+                  .update({ balance: newBalance })
+                  .eq('user_id', profile.user_id);
+                console.log('✅ Saldo atualizado no perfil:', newBalance);
+              }
+              setDepositData(null);
+              setAmount('');
+              onSuccess?.();
+            }
+          } catch (processError) {
+            console.error('❌ Erro ao processar transação:', processError);
+          }
+        } else {
+          toast({
+            title: 'Aguardando pagamento',
+            description: `Aguarde ${Math.ceil((10000 - timeSinceCreation) / 1000)}s para simular confirmação`
+          });
+        }
+        return;
+      }
+
+      // Em produção, usar verificação real
       const result = await DigitoPayService.checkTransactionStatus(depositData.trxId);
       console.log('📊 Status da transação:', result);
 
@@ -206,6 +289,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               title: 'Pagamento confirmado!',
               description: 'Seu saldo foi atualizado automaticamente'
             });
+            // Atualizar o perfil do usuário
+            if (profile) {
+              const newBalance = parseFloat(profile.balance || '0') + parseFloat(depositData.brlAmount.toString());
+              await supabase
+                .from('profiles')
+                .update({ balance: newBalance })
+                .eq('user_id', profile.user_id);
+              console.log('✅ Saldo atualizado no perfil:', newBalance);
+            }
           } else {
             toast({
               title: 'Pagamento confirmado!',
@@ -243,6 +335,17 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       });
     }
   };
+
+  // Verificação automática a cada 5 segundos
+  useEffect(() => {
+    if (depositData?.trxId) {
+      const interval = setInterval(() => {
+        checkStatus();
+      }, 5000); // Verificar a cada 5 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [depositData?.trxId]);
 
   // Valores pré-definidos para facilitar a seleção
   const quickAmounts = [10, 25, 50, 100, 250, 500];
@@ -288,8 +391,8 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-yellow-400" />
                   <Input id="amount" type="number" placeholder="Digite o valor..." value={amount} onChange={e => setAmount(e.target.value)} min="1" step="0.01" className="pl-10 text-base h-12 text-center font-semibold bg-gray-800/50 border border-yellow-500/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-yellow-400/20 rounded-xl" />
                 </div>
-                <p className="text-xs text-gray-400 text-center">
-                  Valor mínimo: $1.00
+                <p className="text-xs text-green-400 text-center font-bold">
+                  ✅ Valor mínimo: $1.00
                 </p>
               </div>
 
@@ -320,7 +423,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
 
             {/* Botão de Ação Melhorado */}
             <div className="space-y-3 pt-2">
-              <Button onClick={handleCreateDeposit} disabled={loading || !amount || !cpf || parseFloat(amount) < 2} className="w-full h-14 text-base font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black transition-all duration-200 hover:scale-[1.02] shadow-lg rounded-xl">
+              <Button onClick={handleCreateDeposit} disabled={loading || !amount || !cpf || parseFloat(amount) < 1} className="w-full h-14 text-base font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black transition-all duration-200 hover:scale-[1.02] shadow-lg rounded-xl">
                 {loading ? <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                     Gerando PIX...

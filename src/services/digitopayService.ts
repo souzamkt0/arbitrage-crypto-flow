@@ -269,21 +269,23 @@ export class DigitoPayService {
   // Verificar status de uma transação - Conforme documentação oficial
   static async checkTransactionStatus(trxId: string): Promise<any> {
     try {
-      if (!(await this.ensureValidToken())) {
-        return { success: false, message: 'Erro na autenticação' };
-      }
-
-      const response = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/statusTransaction/${trxId}`, {
-        method: 'GET',
+      // Usar Edge Function para evitar problemas de CORS
+      const response = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-status', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ trxId })
       });
 
-      const data = await response.json();
-      await this.logDebug('checkStatus', { trxId, response: data });
+      const result = await response.json();
+      await this.logDebug('checkStatus', { trxId, response: result });
 
-      return data;
+      if (result.success) {
+        return result.data;
+      } else {
+        return { success: false, message: result.message || 'Erro ao verificar status' };
+      }
     } catch (error) {
       await this.logDebug('checkStatus_exception', { trxId, error: String(error) });
       return { success: false, message: 'Erro de conexão' };
