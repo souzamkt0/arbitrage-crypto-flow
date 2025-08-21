@@ -219,8 +219,10 @@ const Withdrawal = () => {
         throw new Error("Valor deve ser maior que zero");
       }
 
-      if (amountValue > userBalance) {
-        throw new Error("Saldo insuficiente");
+      // Verificar saldo total (principal + indicação + residual)
+      const totalBalance = userBalance + referralBalance + residualBalance;
+      if (amountValue > totalBalance) {
+        throw new Error(`Saldo insuficiente. Saldo total: $${totalBalance.toFixed(2)}`);
       }
 
       const remainingLimit = getRemainingLimit();
@@ -313,7 +315,7 @@ const Withdrawal = () => {
           </div>
           
           {/* Balance Cards - Mobile Optimized */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
             {/* Main Balance */}
             <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
               <CardContent className="p-3 sm:p-4">
@@ -369,6 +371,21 @@ const Withdrawal = () => {
                     </p>
                   </div>
                   <CreditCard className="h-6 w-6 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Balance */}
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Saldo Total</p>
+                    <p className="text-lg sm:text-xl font-bold text-green-600">
+                      {showBalance ? `$${(userBalance + referralBalance + residualBalance).toLocaleString()}` : "••••••"}
+                    </p>
+                  </div>
+                  <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
               </CardContent>
             </Card>
