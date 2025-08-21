@@ -620,44 +620,6 @@ const Dashboard = () => {
             />
           </div>
         </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Button
-            onClick={() => navigate('/deposit')}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-6"
-          >
-            <DollarSign className="mr-2 h-5 w-5" />
-            Depositar
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/withdrawal')}
-            variant="outline"
-            className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 font-medium py-6"
-          >
-            <ArrowUpDown className="mr-2 h-5 w-5" />
-            Sacar
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/investments')}
-            variant="outline"
-            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20 font-medium py-6"
-          >
-            <BarChart3 className="mr-2 h-5 w-5" />
-            Investimentos
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/referrals')}
-            variant="outline"
-            className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20 font-medium py-6"
-          >
-            <Users className="mr-2 h-5 w-5" />
-            Indicações
-          </Button>
-        </div>
       </div>
     </div>
   );
