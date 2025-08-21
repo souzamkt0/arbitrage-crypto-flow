@@ -46,6 +46,9 @@ import ResidualBalanceBox from "@/components/ResidualBalanceBox";
 import { TradingHeader } from "@/components/TradingHeader";
 import { TradingStats } from "@/components/TradingStats";
 import { TradingChart } from "@/components/TradingChart";
+import { EthereumChart } from "@/components/EthereumChart";
+import { SolanaChart } from "@/components/SolanaChart";
+import { CardanoChart } from "@/components/CardanoChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
@@ -717,6 +720,13 @@ const Dashboard = () => {
               updateAlphaBot={updateAlphaBot}
             />
           </div>
+        </div>
+
+        {/* Additional Crypto Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <EthereumChart />
+          <SolanaChart />
+          <CardanoChart />
         </div>
       </div>
     </div>
