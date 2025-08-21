@@ -146,7 +146,6 @@ const Investments = () => {
   ]);
   const [hiddenTables, setHiddenTables] = useState<Record<string, boolean>>({});
 
-  // Trading Simulation States
   const [showTradingSimulation, setShowTradingSimulation] = useState(false);
   const [tradingProgress, setTradingProgress] = useState(0);
   const [currentTradingPair, setCurrentTradingPair] = useState('');
@@ -156,47 +155,99 @@ const Investments = () => {
   const [tradingStatus, setTradingStatus] = useState<'analyzing' | 'buying' | 'waiting' | 'selling' | 'completed'>('analyzing');
   const [priceData, setPriceData] = useState<any[]>([]);
   const [simulationStep, setSimulationStep] = useState(0);
+  const [showPlanSimulator, setShowPlanSimulator] = useState<string | null>(null);
+  const [simulatorAmount, setSimulatorAmount] = useState<number>(1000);
+  const [userReferrals, setUserReferrals] = useState<number>(0);
 
   useEffect(() => {
     if (user) {
       fetchInvestments();
       fetchUserInvestments();
       fetchOperationHistory();
+      fetchUserReferrals();
     }
   }, [user]);
 
+  const fetchUserReferrals = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data: referralsData, error } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_id', user.id)
+        .eq('status', 'active');
+        
+      if (error) throw error;
+      
+      setUserReferrals(referralsData?.length || 0);
+    } catch (error) {
+      console.error('Erro ao buscar indicações:', error);
+    }
+  };
+
   const fetchInvestments = async () => {
     try {
-      // Forçar limpeza do cache
-      const timestamp = Date.now();
-      const { data: plansData, error: plansError } = await supabase
-        .from('investment_plans')
-        .select('*')
-        .eq('status', 'active')
-        .order('minimum_amount');
+      // Definir planos fixos com as especificações solicitadas
+      const predefinedPlans: Investment[] = [
+        {
+          id: 'robo-400',
+          name: 'Robô 4.0.0',
+          dailyRate: 2.0,
+          minimumAmount: 100,
+          maximumAmount: 10000,
+          duration: 30,
+          description: 'Sistema Automatizado - Paga até 2% variável. O sistema faz arbitragem e os ganhos não são garantidos fixos.',
+          status: "active",
+          operations: 1,
+          requiredReferrals: 0,
+          contractFee: 0
+        },
+        {
+          id: 'robo-405',
+          name: 'Robô 4.0.5',
+          dailyRate: 3.0,
+          minimumAmount: 500,
+          maximumAmount: 25000,
+          duration: 30,
+          description: 'Paga até 3%, porém precisa ter 10 pessoas ativas no primeiro plano (Robô 4.0.0) com planos ativos.',
+          status: "active",
+          operations: 1,
+          requiredReferrals: 10,
+          contractFee: 0
+        },
+        {
+          id: 'robo-410',
+          name: 'Robô 4.1.0',
+          dailyRate: 4.0,
+          minimumAmount: 1000,
+          maximumAmount: 50000,
+          duration: 30,
+          description: 'Sistema Automatizado - Pode ganhar até 4%, porém precisa ter 40 pessoas ativas no plano Robô 4.0.5.',
+          status: "active",
+          operations: 1,
+          requiredReferrals: 40,
+          contractFee: 0
+        },
+        {
+          id: 'seja-socio',
+          name: 'Seja Sócio',
+          dailyRate: 2.0,
+          minimumAmount: 10000,
+          maximumAmount: 100000,
+          duration: 365,
+          description: 'Ganhe até 2% do faturamento da empresa. Para participar, entre em contato via WhatsApp. Saque todo sexta-feira.',
+          status: "active",
+          operations: 1,
+          requiredReferrals: 0,
+          contractFee: 0
+        }
+      ];
 
-      if (plansError) throw plansError;
-
-      const formattedPlans: Investment[] = plansData.map(plan => ({
-        id: plan.id,
-        name: plan.name,
-        dailyRate: plan.daily_rate,
-        minimumAmount: plan.minimum_amount,
-        maximumAmount: plan.max_investment_amount || 999999,
-        duration: plan.duration_days,
-        description: plan.description || '',
-        status: plan.status === 'active' ? "active" : "inactive",
-        operations: 1,
-        requiredReferrals: plan.minimum_indicators || 0,
-        contractFee: 0
-      }));
-
-      console.log('🔍 Planos carregados do banco:', plansData.length, plansData);
-      console.log('🔍 Planos formatados:', formattedPlans.length, formattedPlans);
-      setInvestments(formattedPlans);
-      console.log('✅ Estado atualizado com', formattedPlans.length, 'planos');
+      setInvestments(predefinedPlans);
+      console.log('✅ Planos configurados:', predefinedPlans.length);
     } catch (error) {
-      console.error('Erro ao buscar investimentos:', error);
+      console.error('Erro ao configurar planos:', error);
       toast({
         title: "Erro",
         description: "Falha ao carregar planos de investimento",
@@ -507,6 +558,124 @@ const Investments = () => {
     }
   };
 
+  const canActivatePlan = (plan: Investment) => {
+    if (plan.id === 'robo-400' || plan.id === 'seja-socio') {
+      return { canActivate: true, message: '' };
+    }
+    
+    if (plan.id === 'robo-405') {
+      const hasRequiredReferrals = userReferrals >= 10;
+      if (!hasRequiredReferrals) {
+        return { 
+          canActivate: false, 
+          message: `Você precisa de 10 indicações ativas no Robô 4.0.0. Você tem ${userReferrals}.` 
+        };
+      }
+    }
+    
+    if (plan.id === 'robo-410') {
+      const hasRequiredReferrals = userReferrals >= 40;
+      if (!hasRequiredReferrals) {
+        return { 
+          canActivate: false, 
+          message: `Você precisa de 40 indicações ativas no Robô 4.0.5. Você tem ${userReferrals}.` 
+        };
+      }
+    }
+    
+    return { canActivate: true, message: '' };
+  };
+
+  const getPlanSimulation = (plan: Investment, amount: number) => {
+    const dailyProfit = (amount * plan.dailyRate) / 100;
+    const weeklyProfit = dailyProfit * 7;
+    const monthlyProfit = dailyProfit * 30;
+    const totalProfit = dailyProfit * plan.duration;
+    
+    return {
+      daily: dailyProfit,
+      weekly: weeklyProfit,
+      monthly: monthlyProfit,
+      total: totalProfit,
+      roi: (totalProfit / amount) * 100
+    };
+  };
+
+  const renderPlanSimulator = (plan: Investment) => (
+    <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-xl p-6 border border-blue-500/30">
+      <h4 className="text-blue-300 font-bold mb-4 flex items-center">
+        <BarChart3 className="h-4 w-4 mr-2" />
+        Simulador de Ganhos
+      </h4>
+      
+      <div className="space-y-4">
+        <div>
+          <Label className="text-gray-300 text-xs">Valor do Investimento</Label>
+          <Input
+            type="number"
+            value={simulatorAmount}
+            onChange={(e) => setSimulatorAmount(Number(e.target.value))}
+            min={plan.minimumAmount}
+            max={plan.maximumAmount}
+            className="bg-gray-800/50 border-gray-600 text-white mt-1"
+          />
+        </div>
+        
+        {(() => {
+          const simulation = getPlanSimulation(plan, simulatorAmount);
+          return (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-gray-800/40 rounded-lg p-3 border border-gray-700/50">
+                <div className="text-gray-400 text-xs">Ganho Diário</div>
+                <div className="text-green-400 font-bold">
+                  ${simulation.daily.toFixed(2)}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-3 border border-gray-700/50">
+                <div className="text-gray-400 text-xs">Ganho Semanal</div>
+                <div className="text-green-400 font-bold">
+                  ${simulation.weekly.toFixed(2)}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-3 border border-gray-700/50">
+                <div className="text-gray-400 text-xs">Ganho Mensal</div>
+                <div className="text-green-400 font-bold">
+                  ${simulation.monthly.toFixed(2)}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-3 border border-gray-700/50">
+                <div className="text-gray-400 text-xs">ROI Total</div>
+                <div className="text-yellow-400 font-bold">
+                  +{simulation.roi.toFixed(1)}%
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+        
+        <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-4 border border-green-500/30">
+          <div className="text-green-300 text-xs mb-1">Retorno Total Estimado</div>
+          <div className="text-green-400 font-bold text-lg">
+            ${getPlanSimulation(plan, simulatorAmount).total.toFixed(2)}
+          </div>
+          <div className="text-green-300 text-xs mt-1">
+            em {plan.duration} dias
+          </div>
+        </div>
+        
+        {plan.id === 'seja-socio' && (
+          <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-500/30">
+            <div className="text-purple-300 text-xs mb-2">⚠️ Plano Especial</div>
+            <div className="text-purple-200 text-sm">
+              Entre em contato via WhatsApp para mais informações sobre este plano exclusivo.
+              Saque permitido toda sexta-feira.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const handleActivatePlan = async (planId: string, amount?: number) => {
     if (!user) {
       toast({
@@ -523,6 +692,27 @@ const Investments = () => {
         title: "Plano não encontrado",
         description: "O plano selecionado não foi encontrado",
         variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar se o usuário pode ativar este plano
+    const validation = canActivatePlan(plan);
+    if (!validation.canActivate) {
+      toast({
+        title: "Requisitos não atendidos",
+        description: validation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificação especial para plano Seja Sócio
+    if (plan.id === 'seja-socio') {
+      toast({
+        title: "Contato Necessário",
+        description: "Entre em contato via WhatsApp para ativar este plano exclusivo.",
+        variant: "default"
       });
       return;
     }
@@ -1241,67 +1431,155 @@ const Investments = () => {
                         </div>
                       </CardHeader>
 
-                      <CardContent className="space-y-6 relative z-10">
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50 group-hover:border-yellow-500/30 transition-colors">
-                              <div className="text-xs text-gray-400 mb-1">Investimento Mín.</div>
-                              <div className="text-white font-bold">{formatCurrency(investment.minimumAmount)}</div>
-                            </div>
-                            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50 group-hover:border-yellow-500/30 transition-colors">
-                              <div className="text-xs text-gray-400 mb-1">Duração</div>
-                              <div className="text-white font-bold">{investment.duration} dias</div>
-                            </div>
-                          </div>
+                       <CardContent className="space-y-6 relative z-10">
+                         {/* Verificação de Requisitos */}
+                         {(() => {
+                           const validation = canActivatePlan(investment);
+                           if (!validation.canActivate) {
+                             return (
+                               <div className="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-500/30 rounded-xl p-4 mb-4">
+                                 <div className="flex items-center space-x-2 mb-2">
+                                   <Lock className="h-4 w-4 text-red-400" />
+                                   <span className="text-red-300 font-semibold text-sm">Requisitos não atendidos</span>
+                                 </div>
+                                 <p className="text-red-200 text-xs">{validation.message}</p>
+                                 <div className="mt-3 text-center">
+                                   <div className="text-yellow-400 text-xs">
+                                     Suas indicações ativas: {userReferrals}
+                                   </div>
+                                 </div>
+                               </div>
+                             );
+                           }
+                           return null;
+                         })()}
 
-                          <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg p-4 border border-gray-600/50 group-hover:border-yellow-500/30 transition-colors">
-                            <div className="text-xs text-yellow-400 mb-2 font-semibold">PROJEÇÃO DE RETORNO</div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <div className="text-gray-400">Retorno Diário</div>
-                                <div className="text-green-400 font-bold">+{investment.dailyRate}%</div>
-                              </div>
-                              <div>
-                                <div className="text-gray-400">Retorno Total</div>
-                                <div className="text-green-400 font-bold">+{(investment.dailyRate * investment.duration).toFixed(1)}%</div>
-                              </div>
-                            </div>
-                          </div>
+                         {/* Descrição do Plano */}
+                         <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg p-4 border border-gray-600/50 group-hover:border-yellow-500/30 transition-colors">
+                           <div className="text-xs text-gray-400 mb-2">Descrição:</div>
+                           <div className="text-gray-300 text-sm">{investment.description}</div>
+                         </div>
 
-                          <div className="space-y-2">
-                            <div className="text-xs text-gray-400 uppercase tracking-wider">Características do Robô</div>
-                            <div className="grid grid-cols-2 gap-3 text-xs">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <span className="text-gray-300">Arbitragem Automática</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                <span className="text-gray-300">Trading 24/7</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                                <span className="text-gray-300">Multi-Exchange</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                                <span className="text-gray-300">Stop Loss Inteligente</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                         <div className="space-y-4">
+                           <div className="grid grid-cols-2 gap-4">
+                             <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50 group-hover:border-yellow-500/30 transition-colors">
+                               <div className="text-xs text-gray-400 mb-1">Investimento Mín.</div>
+                               <div className="text-white font-bold">{formatCurrency(investment.minimumAmount)}</div>
+                             </div>
+                             <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50 group-hover:border-yellow-500/30 transition-colors">
+                               <div className="text-xs text-gray-400 mb-1">Duração</div>
+                               <div className="text-white font-bold">{investment.duration} dias</div>
+                             </div>
+                           </div>
 
-                        <Button
-                          onClick={() => setSelectedPlan(investment)}
-                          className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 rounded-xl shadow-lg hover:shadow-yellow-500/25 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group-button"
-                          size="lg"
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-button-hover:translate-x-full transition-transform duration-700"></div>
-                          <Zap className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
-                          <span className="relative z-10">Ativar Robô Agora</span>
-                          <ChevronRight className="h-5 w-5 ml-2 relative z-10 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </CardContent>
+                           {/* Requisitos de Indicações */}
+                           {investment.requiredReferrals > 0 && (
+                             <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-3 border border-purple-500/30">
+                               <div className="text-xs text-purple-300 mb-1">Requisitos:</div>
+                               <div className="text-purple-200 text-sm flex items-center">
+                                 <Users className="h-4 w-4 mr-2" />
+                                 {investment.requiredReferrals} indicações ativas necessárias
+                               </div>
+                             </div>
+                           )}
+
+                           {/* Simulador de Ganhos */}
+                           {showPlanSimulator === investment.id && (
+                             <div className="animate-fade-in">
+                               {renderPlanSimulator(investment)}
+                             </div>
+                           )}
+
+                           <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg p-4 border border-gray-600/50 group-hover:border-yellow-500/30 transition-colors">
+                             <div className="text-xs text-yellow-400 mb-2 font-semibold">PROJEÇÃO DE RETORNO</div>
+                             <div className="grid grid-cols-2 gap-4 text-sm">
+                               <div>
+                                 <div className="text-gray-400">Retorno Diário</div>
+                                 <div className="text-green-400 font-bold">+{investment.dailyRate}%</div>
+                               </div>
+                               <div>
+                                 <div className="text-gray-400">Retorno Total</div>
+                                 <div className="text-green-400 font-bold">+{(investment.dailyRate * investment.duration).toFixed(1)}%</div>
+                               </div>
+                             </div>
+                           </div>
+
+                           <div className="space-y-2">
+                             <div className="text-xs text-gray-400 uppercase tracking-wider">Características do Robô</div>
+                             <div className="grid grid-cols-2 gap-3 text-xs">
+                               <div className="flex items-center space-x-2">
+                                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                 <span className="text-gray-300">Arbitragem Automática</span>
+                               </div>
+                               <div className="flex items-center space-x-2">
+                                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                                 <span className="text-gray-300">Trading 24/7</span>
+                               </div>
+                               <div className="flex items-center space-x-2">
+                                 <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                                 <span className="text-gray-300">Multi-Exchange</span>
+                               </div>
+                               <div className="flex items-center space-x-2">
+                                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                                 <span className="text-gray-300">Stop Loss Inteligente</span>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+
+                         {/* Botões de Ação */}
+                         <div className="space-y-3">
+                           {/* Botão Simulador */}
+                           <Button
+                             onClick={() => setShowPlanSimulator(
+                               showPlanSimulator === investment.id ? null : investment.id
+                             )}
+                             variant="outline"
+                             className="w-full border-blue-600 text-blue-300 hover:text-white hover:bg-blue-600/20 transition-all duration-300"
+                           >
+                             <BarChart3 className="h-4 w-4 mr-2" />
+                             {showPlanSimulator === investment.id ? 'Fechar Simulador' : 'Ver Simulador'}
+                           </Button>
+
+                           {/* Botão de Ativação */}
+                           <Button
+                             onClick={() => {
+                               if (investment.id === 'seja-socio') {
+                                 window.open('https://wa.me/5511999999999?text=Olá, gostaria de informações sobre o plano Seja Sócio', '_blank');
+                               } else {
+                                 setSelectedPlan(investment);
+                               }
+                             }}
+                             disabled={!canActivatePlan(investment).canActivate && investment.id !== 'seja-socio'}
+                             className={`w-full relative overflow-hidden transition-all duration-300 ${
+                               canActivatePlan(investment).canActivate || investment.id === 'seja-socio'
+                                 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black'
+                                 : 'bg-gradient-to-r from-gray-600 to-gray-700 text-gray-300 cursor-not-allowed'
+                             } font-bold py-3 rounded-xl shadow-lg hover:shadow-yellow-500/25 transform hover:scale-105 group-button`}
+                             size="lg"
+                           >
+                             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-button-hover:translate-x-full transition-transform duration-700"></div>
+                             
+                             {investment.id === 'seja-socio' ? (
+                               <>
+                                 <Crown className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
+                                 <span className="relative z-10">Contatar via WhatsApp</span>
+                               </>
+                             ) : canActivatePlan(investment).canActivate ? (
+                               <>
+                                 <Zap className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
+                                 <span className="relative z-10">Ativar Robô Agora</span>
+                                 <ChevronRight className="h-5 w-5 ml-2 relative z-10 group-hover:translate-x-1 transition-transform" />
+                               </>
+                             ) : (
+                               <>
+                                 <Lock className="h-4 w-4 mr-2 relative z-10" />
+                                 <span className="relative z-10 text-sm">Requisitos não atendidos</span>
+                               </>
+                             )}
+                           </Button>
+                         </div>
+                       </CardContent>
                     </Card>
                   ))}
                 </div>
