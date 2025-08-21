@@ -233,10 +233,10 @@ const Investments = () => {
           id: 'seja-socio',
           name: 'Seja Sócio',
           dailyRate: 2.0,
-          minimumAmount: 10000,
-          maximumAmount: 100000,
+          minimumAmount: 5000,
+          maximumAmount: 2000000,
           duration: 365,
-          description: 'Ganhe até 2% do faturamento da empresa. Para participar, entre em contato via WhatsApp. Saque todo sexta-feira.',
+          description: 'Ganhe até 2% do faturamento da empresa. Projeção de $200mil a $2milhões por dia. Para participar, entre em contato via WhatsApp. Saque todo sexta-feira.',
           status: "active",
           operations: 1,
           requiredReferrals: 0,
@@ -667,8 +667,8 @@ const Investments = () => {
           <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-500/30">
             <div className="text-purple-300 text-xs mb-2">⚠️ Plano Especial</div>
             <div className="text-purple-200 text-sm">
-              Entre em contato via WhatsApp para mais informações sobre este plano exclusivo.
-              Saque permitido toda sexta-feira.
+              Entre em contato via WhatsApp (61) 99853-0891 para mais informações sobre este plano exclusivo.
+              Projeção de $200mil a $2milhões por dia. Saque permitido toda sexta-feira.
             </div>
           </div>
         )}
@@ -1544,9 +1544,9 @@ const Investments = () => {
                            {/* Botão de Ativação */}
                            <Button
                              onClick={() => {
-                               if (investment.id === 'seja-socio') {
-                                 window.open('https://wa.me/5511999999999?text=Olá, gostaria de informações sobre o plano Seja Sócio', '_blank');
-                               } else {
+                                if (investment.id === 'seja-socio') {
+                                  window.open('https://wa.me/5561998530891?text=Olá, gostaria de informações sobre o plano Seja Sócio', '_blank');
+                                } else {
                                  setSelectedPlan(investment);
                                }
                              }}
