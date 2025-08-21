@@ -1720,53 +1720,41 @@ const Admin = () => {
         return;
       }
 
-      // Aviso especial para admins
-      if (selectedUserForPartner.role === 'admin') {
-        console.log('⚠️ Transformando admin em sócio:', selectedUserForPartner);
-      }
+      // Usar a função RPC que já existe no banco e gerencia tudo automaticamente
+      console.log('🔄 Usando função RPC para adicionar sócio:', {
+        email: selectedUserForPartner.email,
+        commission: customCommission
+      });
 
-      // Preparar dados para atualização
-      const updateData: any = { role: 'partner' };
-      
-      // Tentar adicionar comissão personalizada se a coluna existir
-      try {
-        updateData.partner_commission = customCommission;
-      } catch (e) {
-        console.log('⚠️ Coluna partner_commission não disponível');
-      }
+      const { data: result, error } = await supabase.rpc('add_partner_by_email', {
+        partner_email: selectedUserForPartner.email,
+        commission_percentage: customCommission || 1.0
+      });
 
-      console.log('📊 Dados para atualização:', updateData);
-      console.log('🆔 User ID:', selectedUserForPartner.user_id);
+      console.log('📊 Resultado da função RPC:', { result, error });
 
-      // Atualizar usuário para sócio
-      console.log('🔄 Atualizando para sócio com comissão:', customCommission);
-      const { data: updateResult, error: updateError } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('user_id', selectedUserForPartner.user_id)
-        .select();
-
-      console.log('📊 Resultado do update:', { updateResult, updateError });
-
-      if (updateError) {
-        console.log('❌ Erro no update:', updateError);
-        console.log('❌ Detalhes do erro:', {
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-          code: updateError.code
-        });
-        
+      if (error) {
+        console.log('❌ Erro na função RPC:', error);
         toast({
           title: "Erro ao adicionar sócio",
-          description: `Erro: ${updateError.message}`,
+          description: `Erro: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Verificar se a operação foi bem-sucedida
+      if (result && !result.success) {
+        toast({
+          title: "Erro ao adicionar sócio",
+          description: result.error || "Erro desconhecido ao adicionar sócio",
           variant: "destructive"
         });
         return;
       }
 
       console.log('✅ Sócio adicionado com sucesso!');
-      console.log('✅ Resultado:', updateResult);
+      console.log('✅ Resultado:', result);
       
       toast({
         title: "Sócio Adicionado",
