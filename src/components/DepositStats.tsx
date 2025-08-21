@@ -63,8 +63,8 @@ export const DepositStats = () => {
   return (
     <div className="space-y-6">
       {/* Live Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl p-4 border border-blue-500/20">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-lg p-3 border border-blue-500/20">
           <div className="flex items-center justify-between mb-2">
             <DollarSign className="h-8 w-8 text-blue-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -76,7 +76,7 @@ export const DepositStats = () => {
           <div className="text-xs text-green-400 mt-1">+12.5% from yesterday</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-xl p-4 border border-green-500/20">
+        <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg p-3 border border-green-500/20">
           <div className="flex items-center justify-between mb-2">
             <Users className="h-8 w-8 text-green-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -88,7 +88,7 @@ export const DepositStats = () => {
           <div className="text-xs text-green-400 mt-1">+8 in last hour</div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-xl p-4 border border-purple-500/20">
+        <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-lg p-3 border border-purple-500/20">
           <div className="flex items-center justify-between mb-2">
             <Clock className="h-8 w-8 text-purple-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -100,7 +100,7 @@ export const DepositStats = () => {
           <div className="text-xs text-green-400 mt-1">-15% faster</div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 rounded-xl p-4 border border-emerald-500/20">
+        <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 rounded-lg p-3 border border-emerald-500/20">
           <div className="flex items-center justify-between mb-2">
             <CheckCircle className="h-8 w-8 text-emerald-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -112,7 +112,7 @@ export const DepositStats = () => {
           <div className="text-xs text-green-400 mt-1">99.9% uptime</div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-xl p-4 border border-orange-500/20">
+        <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 rounded-lg p-3 border border-orange-500/20">
           <div className="flex items-center justify-between mb-2">
             <TrendingUp className="h-8 w-8 text-orange-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -124,7 +124,7 @@ export const DepositStats = () => {
           <div className="text-xs text-green-400 mt-1">Above target</div>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-xl p-4 border border-yellow-500/20">
+        <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-lg p-3 border border-yellow-500/20">
           <div className="flex items-center justify-between mb-2">
             <Zap className="h-8 w-8 text-yellow-400" />
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
