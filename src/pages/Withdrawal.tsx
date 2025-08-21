@@ -86,20 +86,39 @@ const Withdrawal = () => {
   // Load user data and withdrawal history
   useEffect(() => {
     const loadUserData = async () => {
-      if (!user) return;
+      console.log('🔄 Carregando dados do usuário...', { user: user?.email, userId: user?.id });
+      
+      if (!user) {
+        console.log('❌ Nenhum usuário logado');
+        return;
+      }
       
       try {
         // Fetch user profile data
-        const { data: profile } = await supabase
+        console.log('🔍 Buscando perfil do usuário:', user.id);
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('balance, referral_balance')
           .eq('user_id', user.id)
           .single();
 
+        if (error) {
+          console.error('❌ Erro ao buscar perfil:', error);
+          return;
+        }
+
+        console.log('✅ Perfil encontrado:', profile);
+
         if (profile) {
           setUserBalance(profile.balance || 0);
           setReferralBalance(profile.referral_balance || 0);
           setResidualBalance(0); // Coluna não existe na tabela
+          
+          console.log('💰 Saldos configurados:', {
+            balance: profile.balance || 0,
+            referral_balance: profile.referral_balance || 0,
+            total: (profile.balance || 0) + (profile.referral_balance || 0)
+          });
         }
 
         // Fetch withdrawal history
