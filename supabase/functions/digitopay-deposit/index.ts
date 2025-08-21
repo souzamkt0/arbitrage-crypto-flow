@@ -20,6 +20,21 @@ serve(async (req) => {
 
     const { amount, cpf, name, callbackUrl, userId } = await req.json();
 
+    // Validar se userId é um UUID válido
+    if (!userId || typeof userId !== 'string' || userId.length !== 36) {
+      console.error('❌ userId inválido:', userId);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'userId inválido - deve ser um UUID válido'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
+    }
+
     console.log('💰 Criando depósito:', { amount, cpf, name, userId });
 
     // 1. Primeiro, obter token de autenticação
