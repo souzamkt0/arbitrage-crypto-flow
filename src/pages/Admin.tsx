@@ -66,7 +66,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "partner";
   status: "active" | "inactive";
   balance: number;
   totalProfit: number;
@@ -3620,6 +3620,23 @@ const Admin = () => {
                         >
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
+                        {user.role !== 'partner' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openPartnerSelectionModal({
+                              user_id: user.id,
+                              email: user.email,
+                              display_name: user.name,
+                              role: user.role,
+                              balance: user.balance
+                            })}
+                            className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
+                            title={user.role === 'admin' ? "Tornar Admin Sócio" : "Selecionar como sócio"}
+                          >
+                            <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
