@@ -22,7 +22,10 @@ serve(async (req) => {
 
     if (!trxId) {
       return new Response(
-        JSON.stringify({ error: 'Transaction ID required' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Transaction ID required' 
+        }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
@@ -45,15 +48,41 @@ serve(async (req) => {
       })
     });
 
+    if (!authResponse.ok) {
+      console.error('❌ Erro na autenticação:', authResponse.status);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Falha na autenticação DigitoPay'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
+    }
+
     const authData = await authResponse.json();
     console.log('🔐 Auth response:', authData);
 
-    if (!authResponse.ok || !authData.accessToken) {
-      throw new Error('Falha na autenticação');
+    if (!authData.accessToken) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Token de acesso não recebido'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
     }
 
-    // 2. Verificar status da transação
-    const statusResponse = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/statusTransaction/${trxId}`, {
+    // 2. Verificar status da transação usando o endpoint correto
+    const statusUrl = `${DIGITOPAY_CONFIG.baseUrl}/getTransaction?id=${trxId}`;
+    console.log('📡 Consultando URL:', statusUrl);
+
+    const statusResponse = await fetch(statusUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${authData.accessToken}`,
@@ -68,18 +97,40 @@ serve(async (req) => {
     await supabase
       .from('digitopay_debug')
       .insert({
-        tipo: 'status_check_via_edge',
+        tipo: 'status_check_corrected',
         payload: {
           trxId,
+          url: statusUrl,
           response: statusData,
-          status: statusResponse.status
+          httpStatus: statusResponse.status
         }
       });
+
+    // Se a transação foi confirmada, atualizar no banco
+    if (statusData.status === 'REALIZADO' || statusData.status === 'PAID' || statusData.status === 'COMPLETED') {
+      console.log('✅ Transação confirmada! Atualizando status...');
+      
+      const { error: updateError } = await supabase
+        .from('digitopay_transactions')
+        .update({ 
+          status: 'paid',
+          callback_data: statusData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('trx_id', trxId);
+
+      if (updateError) {
+        console.error('❌ Erro ao atualizar status:', updateError);
+      } else {
+        console.log('✅ Status atualizado com sucesso!');
+      }
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: statusData
+        data: statusData,
+        isConfirmed: statusData.status === 'REALIZADO' || statusData.status === 'PAID' || statusData.status === 'COMPLETED'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
