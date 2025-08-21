@@ -145,11 +145,14 @@ Deno.serve(async (req) => {
         .from('deposits')
         .insert({
           user_id: transaction.user_id,
-          amount: transaction.amount_brl,
-          payment_method: 'pix',
-          status: 'completed',
-          gateway_transaction_id: trxId,
-          gateway_response: webhookData
+          amount_usd: transaction.amount,
+          amount_brl: transaction.amount_brl,
+          type: 'pix',
+          status: 'paid',
+          holder_name: transaction.person_name,
+          cpf: transaction.person_cpf,
+          pix_code: transaction.pix_code,
+          exchange_rate: 1.0
         });
 
       if (depositError) {

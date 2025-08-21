@@ -153,8 +153,6 @@ Deno.serve(async (req) => {
           holder_name: transaction.person_name,
           cpf: transaction.person_cpf,
           pix_code: transaction.pix_code,
-          gateway_transaction_id: trxId,
-          gateway_response: webhookData,
           exchange_rate: 1.0
         });
 
