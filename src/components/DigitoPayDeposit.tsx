@@ -83,18 +83,18 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         console.log('🔄 Verificação automática de status...');
         
         // Verificar diretamente no banco se há atualização via webhook
-        const { data: transaction } = await supabase
+        const { data: transaction, error: dbError } = await supabase
           .from('digitopay_transactions')
           .select('status, amount_brl, user_id')
           .eq('trx_id', depositData.trxId)
-          .single();
+          .maybeSingle();
 
-        if (transaction && (transaction.status === 'completed' || transaction.status === 'paid')) {
+        if (!dbError && transaction && (transaction.status === 'completed' || transaction.status === 'paid')) {
           console.log('🎉 Depósito confirmado automaticamente!');
           
           toast({
-            title: "🎉 SEU DEPÓSITO FOI CONCLUÍDO!",
-            description: `Parabéns! R$ ${transaction.amount_brl} foi adicionado à sua conta automaticamente.`,
+            title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
+            description: `Seu depósito de R$ ${transaction.amount_brl} foi confirmado e o saldo foi adicionado à sua conta!`,
             duration: 15000,
           });
 
@@ -251,8 +251,8 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       // Se a transação foi confirmada
       if (statusResult?.isConfirmed || statusResult?.data?.status === 'REALIZADO') {
         toast({
-          title: "🎉 SEU DEPÓSITO FOI CONCLUÍDO!",
-          description: `Parabéns! Seu depósito de $${depositData.usdAmount} foi aprovado e o saldo foi adicionado à sua conta.`,
+          title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
+          description: `Seu depósito de $${depositData.usdAmount} foi aprovado e o saldo foi adicionado à sua conta.`,
           duration: 15000,
         });
 
