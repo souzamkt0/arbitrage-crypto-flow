@@ -48,6 +48,7 @@ import { TradingStats } from "@/components/TradingStats";
 import { TradingChart } from "@/components/TradingChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
+import { PartnerStats } from "@/components/PartnerStats";
 import { CommunityFeed } from "@/components/CommunityFeed";
 
 const Dashboard = () => {
@@ -579,6 +580,9 @@ const Dashboard = () => {
           {/* Left Column - Market Overview */}
           <div className="lg:col-span-1 space-y-6">
             <MarketOverview />
+            
+            {/* Partner Stats - Only shows if user is a partner */}
+            <PartnerStats />
             
             {/* Residual Balance */}
             <ResidualBalanceBox />
