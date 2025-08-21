@@ -667,7 +667,7 @@ const Investments = () => {
           <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-500/30">
             <div className="text-purple-300 text-xs mb-2">⚠️ Plano Especial</div>
             <div className="text-purple-200 text-sm">
-              Entre em contato via WhatsApp (61) 99853-0891 para mais informações sobre este plano exclusivo.
+              Entre em contato via WhatsApp para mais informações sobre este plano exclusivo.
               Projeção de $200mil a $2milhões por dia. Saque permitido toda sexta-feira.
             </div>
           </div>
@@ -1560,12 +1560,12 @@ const Investments = () => {
                            >
                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-button-hover:translate-x-full transition-transform duration-700"></div>
                              
-                             {investment.id === 'seja-socio' ? (
-                               <>
-                                 <Crown className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
-                                 <span className="relative z-10">Contatar via WhatsApp</span>
-                               </>
-                             ) : canActivatePlan(investment).canActivate ? (
+                              {investment.id === 'seja-socio' ? (
+                                <>
+                                  <Crown className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
+                                  <span className="relative z-10">Contatar via WhatsApp</span>
+                                </>
+                              ) : canActivatePlan(investment).canActivate ? (
                                <>
                                  <Zap className="h-5 w-5 mr-2 relative z-10 animate-pulse" />
                                  <span className="relative z-10">Ativar Robô Agora</span>
