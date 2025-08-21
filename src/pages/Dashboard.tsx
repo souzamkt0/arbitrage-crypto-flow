@@ -41,7 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
 import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
 import { executeSupabaseOperation, connectionMonitor } from "@/services/connectionMonitor";
-
+import { PartnerStatusBanner } from "@/components/PartnerStatusBanner";
 
 const Dashboard = () => {
   const [botActive, setBotActive] = useState(false);
@@ -79,54 +79,6 @@ const Dashboard = () => {
   const [deletedCommunityPosts, setDeletedCommunityPosts] = useState<string[]>([]);
   const [editingUserName, setEditingUserName] = useState<string | null>(null);
   const [editingUserNameValue, setEditingUserNameValue] = useState("");
-
-  // Função para forçar atualização do perfil e tradingBalance
-  const refreshProfileAndTradingBalance = async () => {
-    if (!user?.id) return;
-    
-    try {
-      console.log('🔄 Forçando atualização do perfil e tradingBalance...');
-      
-      // Buscar perfil atualizado
-      const { data: updatedProfile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('❌ Erro ao buscar perfil atualizado:', error);
-        return;
-      }
-
-      // Atualizar estados com dados frescos
-      setBalance(updatedProfile.balance || 0);
-      setTotalProfit(updatedProfile.total_profit || 0);
-      setTradingBalance(updatedProfile.total_profit || 0);
-      setReferralBalance(updatedProfile.referral_balance || 0);
-      setResidualBalance(updatedProfile.residual_balance || 0);
-      setMonthlyEarnings(updatedProfile.monthly_earnings || 0);
-      setDailyProfit(updatedProfile.earnings || 0);
-
-      console.log('✅ Perfil e tradingBalance atualizados:', {
-        total_profit: updatedProfile.total_profit,
-        tradingBalance: updatedProfile.total_profit || 0
-      });
-      
-      // Mostrar toast de sucesso
-      toast({
-        title: "Dados Atualizados",
-        description: `Saldo Trading: $${updatedProfile.total_profit || 0}`,
-      });
-    } catch (error) {
-      console.error('❌ Erro ao atualizar perfil:', error);
-      toast({
-        title: "Erro na Atualização",
-        description: "Não foi possível atualizar os dados",
-        variant: "destructive"
-      });
-    }
-  };
 
   // Carregar posts excluídos do localStorage ao inicializar
   useEffect(() => {
@@ -644,11 +596,6 @@ const Dashboard = () => {
   // Carregar dados reais do usuário e dados de sócio
   useEffect(() => {
     if (!profile) return;
-    
-    // Forçar atualização do perfil para garantir dados frescos
-    refreshProfileAndTradingBalance();
-    
-    // Também usar os dados do profile atual como fallback
     setBalance(profile.balance || 0);
     setTotalProfit(profile.total_profit || 0);
     setReferralBalance(profile.referral_balance || 0);
@@ -723,29 +670,17 @@ const Dashboard = () => {
 
       setActiveOrders(operations?.length || 0);
 
-      // Sincronizar saldo de trading com o total_profit do perfil
+      // Calcular saldo de trading baseado nas operações dos investimentos
       const loadTradingBalance = async () => {
-        // Buscar perfil atualizado do banco de dados
-        const { data: updatedProfile, error } = await supabase
-          .from('profiles')
-          .select('total_profit')
+        const { data: tradingHistory } = await supabase
+          .from('trading_history')
+          .select('profit')
           .eq('user_id', profile.user_id)
-          .single();
+          .eq('status', 'completed')
+          .in('type', ['investment_trading', 'arbitrage']); // Incluir operações de investimento e arbitragem
 
-        if (error) {
-          console.error('❌ Erro ao buscar perfil atualizado:', error);
-          // Fallback para o profile atual
-          setTradingBalance(profile.total_profit || 0);
-        } else {
-          // Usar o total_profit atualizado do banco
-          setTradingBalance(updatedProfile.total_profit || 0);
-          
-          // Log para debug
-          console.log('🔄 Sincronizando tradingBalance com total_profit atualizado:', {
-            total_profit: updatedProfile.total_profit,
-            tradingBalance: updatedProfile.total_profit || 0
-          });
-        }
+        const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
+        setTradingBalance(totalTradingProfit);
       };
 
       await loadTradingBalance();
@@ -790,27 +725,15 @@ const Dashboard = () => {
     // Atualizar saldo de trading a cada 30 segundos
     const tradingBalanceInterval = setInterval(async () => {
       if (profile?.user_id) {
-        // Buscar perfil atualizado do banco de dados
-        const { data: updatedProfile, error } = await supabase
-          .from('profiles')
-          .select('total_profit')
+        const { data: tradingHistory } = await supabase
+          .from('trading_history')
+          .select('profit')
           .eq('user_id', profile.user_id)
-          .single();
+          .eq('status', 'completed')
+          .in('type', ['investment_trading', 'arbitrage']); // Incluir operações de investimento e arbitragem
 
-        if (error) {
-          console.error('❌ Erro ao buscar perfil atualizado no intervalo:', error);
-          // Fallback para o profile atual
-          setTradingBalance(profile.total_profit || 0);
-        } else {
-          // Sincronizar tradingBalance com o total_profit atualizado
-          setTradingBalance(updatedProfile.total_profit || 0);
-          
-          // Log para debug
-          console.log('🔄 Atualizando tradingBalance com dados do banco:', {
-            total_profit: updatedProfile.total_profit,
-            tradingBalance: updatedProfile.total_profit || 0
-          });
-        }
+        const totalTradingProfit = tradingHistory?.reduce((sum, trade) => sum + (trade.profit || 0), 0) || 0;
+        setTradingBalance(totalTradingProfit);
 
         // Atualizar total de depósitos
         const { data: digitopayDeposits } = await supabase
@@ -946,7 +869,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-
+        {/* Partner Status Banner */}
+        <PartnerStatusBanner />
 
         {/* Enhanced Partner/Socio Status Box */}
         {partnerData && (
@@ -1207,18 +1131,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium text-card-foreground">
                 Saldo Trading
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4 text-trading-green" />
-                <Button
-                  onClick={refreshProfileAndTradingBalance}
-                  variant="outline"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-trading-green/10"
-                  title="Atualizar dados"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-              </div>
+              <ArrowUpDown className="h-4 w-4 text-trading-green" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-trading-green">

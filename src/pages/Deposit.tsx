@@ -204,7 +204,7 @@ const Deposit = () => {
                     <div className="inline-flex items-center space-x-3 bg-yellow-500/20 border border-yellow-500/30 px-6 py-3 rounded-full">
                       <Zap className="h-5 w-5 text-yellow-400" />
                       <span className="text-yellow-400 font-medium">Depósito Instantâneo via PIX</span>
-                    </div>
+                  </div>
                 </div>
 
                 {user ? (
@@ -254,7 +254,7 @@ const Deposit = () => {
                     <div className="inline-flex items-center space-x-3 bg-yellow-500/20 border border-yellow-500/30 px-6 py-3 rounded-full">
                       <Clock className="h-5 w-5 text-yellow-400" />
                       <span className="text-yellow-400 font-medium">Depósito via USDT BNB20 - 15 min</span>
-                    </div>
+                  </div>
                 </div>
 
                   <form onSubmit={handleBnbSubmit} className="space-y-6">
