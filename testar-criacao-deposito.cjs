@@ -20,7 +20,7 @@ async function testarCriacaoDeposito() {
         'Authorization': `Bearer ${supabaseAnonKey}`
       },
       body: JSON.stringify({
-        amount: 5.85,
+        amount: 100,
         cpf: '12345678909',
         name: 'Teste Usuário',
         callbackUrl: 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook',
