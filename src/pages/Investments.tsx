@@ -53,7 +53,7 @@ interface InvestmentPlan {
 
 const Investments: React.FC = () => {
   const { user } = useAuth();
-  const { currency, formatCurrency } = useCurrency();
+  const { formatUSD } = useCurrency();
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
   const [showTradingSimulation, setShowTradingSimulation] = useState(false);
   const [tradingStatus, setTradingStatus] = useState<'analyzing' | 'buying' | 'selling' | 'completed'>('analyzing');
@@ -338,7 +338,7 @@ const Investments: React.FC = () => {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-400">Investimento:</span>
                       <span className="font-semibold text-white">
-                        {formatCurrency(plan.minInvestment)} - {formatCurrency(plan.maxInvestment)}
+                        {formatUSD(plan.minInvestment)} - {formatUSD(plan.maxInvestment)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -575,7 +575,7 @@ const Investments: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Investimento:</span>
-                        <span className="text-white">{formatCurrency(selectedPlan.minInvestment)} - {formatCurrency(selectedPlan.maxInvestment)}</span>
+                        <span className="text-white">{formatUSD(selectedPlan.minInvestment)} - {formatUSD(selectedPlan.maxInvestment)}</span>
                       </div>
                     </div>
                   </div>
