@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { DigitoPayService } from '@/services/digitopayService';
 import { useAuth } from '@/hooks/useAuth';
-import { History, RefreshCw, Eye } from 'lucide-react';
+import { History, RefreshCw, Eye, Clock, AlertCircle } from 'lucide-react';
+
 interface Transaction {
   id: string;
   trx_id: string;
@@ -21,13 +22,10 @@ interface Transaction {
   person_name?: string;
   person_cpf?: string;
 }
+
 export const DigitoPayHistory: React.FC = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -105,7 +103,60 @@ export const DigitoPayHistory: React.FC = () => {
   const translateType = (type: string) => {
     return type === 'deposit' ? 'Depósito' : 'Saque';
   };
-  return <div className="space-y-4">
+
+  // Separar transações por status
+  const pendingTransactions = transactions.filter(t => t.status === 'pending');
+  const completedTransactions = transactions.filter(t => t.status === 'completed');
+  const otherTransactions = transactions.filter(t => t.status !== 'pending' && t.status !== 'completed');
+
+  return (
+    <div className="space-y-6">
+      {/* Seção de Depósitos Pendentes */}
+      {pendingTransactions.length > 0 && (
+        <Card className="border-yellow-500/30 bg-yellow-500/5">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              <CardTitle className="text-yellow-500">Depósitos Pendentes</CardTitle>
+            </div>
+            <CardDescription className="text-yellow-400">
+              Aguardando confirmação do pagamento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingTransactions.map(transaction => (
+                <div key={transaction.id} className="border border-yellow-500/20 rounded-lg p-4 bg-yellow-500/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium text-yellow-400">
+                          {translateType(transaction.type)}
+                        </span>
+                        <Badge className="bg-yellow-500 text-yellow-900">
+                          {translateStatus(transaction.status)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="text-sm text-yellow-300 space-y-1">
+                        <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
+                        <p>Data: {formatDate(transaction.created_at)}</p>
+                        <p>ID: {transaction.trx_id}</p>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)} className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seção de Histórico Geral */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -123,43 +174,97 @@ export const DigitoPayHistory: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? <div className="text-center py-8">
+          {loading ? (
+            <div className="text-center py-8">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
               <p>Carregando transações...</p>
-            </div> : transactions.length === 0 ? <div className="text-center py-8">
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center py-8">
               <History className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">Nenhuma transação encontrada</p>
-            </div> : <div className="space-y-3">
-              {transactions.map(transaction => <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">
-                          {translateType(transaction.type)}
-                        </span>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {translateStatus(transaction.status)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
-                        <p>Data: {formatDate(transaction.created_at)}</p>
-                        <p>ID: {transaction.trx_id}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Transações Concluídas */}
+              {completedTransactions.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-green-600 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Concluídas ({completedTransactions.length})
+                  </h4>
+                  {completedTransactions.map(transaction => (
+                    <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium">
+                              {translateType(transaction.type)}
+                            </span>
+                            <Badge className={getStatusColor(transaction.status)}>
+                              {translateStatus(transaction.status)}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
+                            <p>Data: {formatDate(transaction.created_at)}</p>
+                            <p>ID: {transaction.trx_id}</p>
+                          </div>
+                        </div>
+
+                        <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
 
-                    <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>)}
-            </div>}
+              {/* Outras Transações */}
+              {otherTransactions.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                    Outras ({otherTransactions.length})
+                  </h4>
+                  {otherTransactions.map(transaction => (
+                    <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium">
+                              {translateType(transaction.type)}
+                            </span>
+                            <Badge className={getStatusColor(transaction.status)}>
+                              {translateStatus(transaction.status)}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
+                            <p>Data: {formatDate(transaction.created_at)}</p>
+                            <p>ID: {transaction.trx_id}</p>
+                          </div>
+                        </div>
+
+                        <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Modal de detalhes da transação */}
-      {selectedTransaction && <Card className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      {selectedTransaction && (
+        <Card className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <CardContent className="rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto bg-gray-950">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Detalhes da Transação</h3>
@@ -201,34 +306,46 @@ export const DigitoPayHistory: React.FC = () => {
                 <span className="ml-2">{formatDate(selectedTransaction.updated_at)}</span>
               </div>
 
-              {selectedTransaction.person_name && <div>
+              {selectedTransaction.person_name && (
+                <div>
                   <span className="font-medium">Nome:</span>
                   <span className="ml-2">{selectedTransaction.person_name}</span>
-                </div>}
+                </div>
+              )}
 
-              {selectedTransaction.person_cpf && <div>
+              {selectedTransaction.person_cpf && (
+                <div>
                   <span className="font-medium">CPF:</span>
                   <span className="ml-2">{selectedTransaction.person_cpf}</span>
-                </div>}
+                </div>
+              )}
 
-              {selectedTransaction.pix_code && <div>
+              {selectedTransaction.pix_code && (
+                <div>
                   <span className="font-medium">Código PIX:</span>
                   <div className="mt-1 p-2 rounded font-mono text-xs break-all bg-zinc-700">
                     {selectedTransaction.pix_code}
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {selectedTransaction.pix_key && <div>
+              {selectedTransaction.pix_key && (
+                <div>
                   <span className="font-medium">Chave PIX:</span>
                   <span className="ml-2">{selectedTransaction.pix_key}</span>
-                </div>}
+                </div>
+              )}
 
-              {selectedTransaction.pix_key_type && <div>
+              {selectedTransaction.pix_key_type && (
+                <div>
                   <span className="font-medium">Tipo da Chave:</span>
                   <span className="ml-2">{selectedTransaction.pix_key_type}</span>
-                </div>}
+                </div>
+              )}
             </div>
           </CardContent>
-        </Card>}
-    </div>;
+        </Card>
+      )}
+    </div>
+  );
 };
