@@ -94,10 +94,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       return;
     }
     const usdAmount = parseFloat(amount);
-    if (usdAmount < 2) {
+    if (usdAmount < 1) {
       toast({
         title: 'Valor mínimo',
-        description: 'O valor mínimo é $2.00',
+        description: 'O valor mínimo é $1.00',
         variant: 'destructive'
       });
       return;
@@ -107,6 +107,17 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       // Converter USD para BRL para criar o PIX
       const conversion = await convertUSDToBRL(usdAmount);
       const brlAmount = conversion.brlAmount;
+      
+      // Verificar se o valor em BRL é aceito pelo DigitoPay (mínimo R$ 5,00)
+      if (brlAmount < 5) {
+        toast({
+          title: 'Valor muito baixo',
+          description: `O valor mínimo em reais é R$ 5,00. Tente um valor maior que $${(5 / conversion.exchangeRate).toFixed(2)}`,
+          variant: 'destructive'
+        });
+        return;
+      }
+      
       console.log('💱 Conversão de moeda:', {
         usd: usdAmount,
         brl: brlAmount,
@@ -275,10 +286,10 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                 </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-yellow-400" />
-                  <Input id="amount" type="number" placeholder="Digite o valor..." value={amount} onChange={e => setAmount(e.target.value)} min="2" step="0.01" className="pl-10 text-base h-12 text-center font-semibold bg-gray-800/50 border border-yellow-500/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-yellow-400/20 rounded-xl" />
+                  <Input id="amount" type="number" placeholder="Digite o valor..." value={amount} onChange={e => setAmount(e.target.value)} min="1" step="0.01" className="pl-10 text-base h-12 text-center font-semibold bg-gray-800/50 border border-yellow-500/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-yellow-400/20 rounded-xl" />
                 </div>
                 <p className="text-xs text-gray-400 text-center">
-                  Valor mínimo: $2.00
+                  Valor mínimo: $1.00
                 </p>
               </div>
 
