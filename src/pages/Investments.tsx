@@ -1189,7 +1189,7 @@ const Investments = () => {
                         </div>
                         <div className="flex flex-col items-start">
                           <span className="text-lg font-bold tracking-wide">
-                            {showActivePlans ? '🏠 VOLTAR AOS PLANOS' : '⚡ ACESSAR TRADING'}
+                            {showActivePlans ? '🏠 VOLTAR AOS PLANOS' : '⚡ CONTRATOS ATIVOS'}
                           </span>
                           <span className="text-xs text-white/70 font-normal">
                             {showActivePlans ? 'Gerenciar Investimentos' : 'Dashboard Avançado'}
