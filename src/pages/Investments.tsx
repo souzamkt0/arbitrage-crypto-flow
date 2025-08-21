@@ -203,27 +203,35 @@ const Investments = () => {
 
       const formattedInvestments: UserInvestment[] = investmentsData.map(investment => {
         const startDate = new Date(investment.created_at);
+        // Validar se a data é válida
+        if (isNaN(startDate.getTime())) {
+          console.warn('Data inválida para investimento:', investment.id);
+          return null;
+        }
+        
         const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + investment.duration_days);
+        const durationDays = investment.duration_days || 30; // Fallback para 30 dias
+        endDate.setDate(startDate.getDate() + durationDays);
         
         const now = new Date();
         const daysPassed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, investment.duration_days - daysPassed);
+        const daysRemaining = Math.max(0, durationDays - daysPassed);
         
         // Calcular progresso do dia atual (0-100%)
         const currentHour = now.getHours();
         const currentDayProgress = (currentHour / 24) * 100;
         
         // Ganhos do dia atual baseado no progresso
-        const dailyTarget = investment.amount * (investment.daily_rate / 100);
+        const dailyRate = investment.daily_rate || 0.5; // Fallback para 0.5%
+        const dailyTarget = investment.amount * (dailyRate / 100);
         const todayEarnings = dailyTarget * (currentDayProgress / 100);
 
         return {
           id: investment.id,
           investmentId: investment.investment_plan_id,
-          investmentName: investment.plan_name || 'Plano de Investimento',
+          investmentName: 'Robô de Arbitragem',
           amount: investment.amount,
-          dailyRate: investment.daily_rate,
+          dailyRate: dailyRate,
           startDate: investment.created_at,
           endDate: endDate.toISOString(),
           totalEarned: investment.total_earned || 0,
@@ -238,7 +246,7 @@ const Investments = () => {
           canOperate: true,
           nextOperationIn: 0
         };
-      });
+      }).filter(Boolean); // Remove investimentos com dados inválidos
 
       setUserInvestments(formattedInvestments);
     } catch (error) {
@@ -256,7 +264,7 @@ const Investments = () => {
           *,
           user_investments!inner (
             user_id,
-            plan_name
+            id
           )
         `)
         .eq('user_investments.user_id', user.id)
@@ -319,7 +327,7 @@ const Investments = () => {
 
       // Registrar operação no histórico
       const newOperation = {
-        id: `${Date.now()}-${selectedInvestmentForTrading.operationsCompleted + 1}`,
+        id: `${Date.now()}-${investment.operationsCompleted + 1}`,
         pair: randomPair,
         buyPrice,
         sellPrice,
@@ -511,8 +519,8 @@ const Investments = () => {
           </Button>
         </div>
 
-        {/* Box de Planos Ativos - Movido para cá */}
-        {activeInvestments > 0 && !showActivePlans && activeTab === 'investments' && (
+        {/* Box de Planos Ativos - Sempre visível quando há investimentos */}
+        {activeInvestments > 0 && activeTab === 'investments' && (
           <div className="relative overflow-hidden bg-gradient-to-br from-green-950/80 via-emerald-900/60 to-green-800/80 rounded-2xl p-6 mb-6 border border-green-400/30 backdrop-blur-sm animate-fade-in">
             {/* Animated Background Pattern */}
             <div className="absolute inset-0 opacity-5">
@@ -656,7 +664,7 @@ const Investments = () => {
                       </div>
                       <div>
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                          ALPHA TRADING DASHBOARD
+                          PLANOS ATIVOS
                         </h2>
                         <p className="text-gray-400 text-sm flex items-center space-x-2 mt-1">
                           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -735,63 +743,8 @@ const Investments = () => {
                     </div>
                   </div>
 
-                  {/* Trading Interface */}
-                  <div className="bg-black/30 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                        <h3 className="text-xl font-bold text-white">Centro de Controle</h3>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-xs text-green-400 font-mono bg-green-400/10 px-3 py-1 rounded-full animate-pulse">
-                          ● SISTEMA ATIVO
-                        </div>
-                        <div className="text-xs text-gray-400 font-mono">
-                          {new Date().toLocaleTimeString('pt-BR')}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Button
-                        onClick={() => setShowActivePlans(true)}
-                        className="relative overflow-hidden bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-500 hover:via-emerald-500 hover:to-teal-500 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 group"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                        <div className="relative z-10 flex items-center justify-center space-x-2">
-                          <BarChart3 className="w-5 h-5 group-hover:animate-pulse" />
-                          <span>Gerenciar Robôs</span>
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </Button>
-
-                      <Button
-                        onClick={() => setShowOperationHistory(true)}
-                        variant="outline"
-                        className="border-gray-600 text-gray-300 hover:text-white hover:border-blue-500/50 hover:bg-blue-500/10 py-4 px-6 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden group"
-                      >
-                        <div className="relative z-10 flex items-center justify-center space-x-2">
-                          <Activity className="w-5 h-5" />
-                          <span>Ver Histórico</span>
-                        </div>
-                      </Button>
-
-                      <Button
-                        onClick={() => setShowActivePlans(false)}
-                        variant="outline"
-                        className="border-gray-600 text-gray-300 hover:text-white hover:border-purple-500/50 hover:bg-purple-500/10 py-4 px-6 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden group"
-                      >
-                        <div className="relative z-10 flex items-center justify-center space-x-2">
-                          <Plus className="w-5 h-5" />
-                          <span>Novos Planos</span>
-                        </div>
-                      </Button>
-                    </div>
-                  </div>
-
                   {/* Real-time Market Ticker */}
-                  <div className="mt-6 bg-black/20 rounded-xl p-4 border border-gray-700/30">
+                  <div className="bg-black/20 rounded-xl p-4 border border-gray-700/30">
                     <div className="flex items-center justify-center space-x-8 text-xs font-mono">
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
