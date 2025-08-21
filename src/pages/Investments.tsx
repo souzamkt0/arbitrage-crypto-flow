@@ -2730,127 +2730,6 @@ const Investments = () => {
         </div>
       </div>
 
-      {/* Operation History Modal */}
-      <Dialog open={showOperationHistory} onOpenChange={setShowOperationHistory}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-800 text-white">
-          <DialogHeader className="border-b border-gray-800 pb-4">
-            <DialogTitle className="text-xl text-white flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-green-400" />
-              Histórico de Operações
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-            {/* Resumo Geral */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">
-                    {operationHistory.length}
-                  </div>
-                  <div className="text-sm text-gray-400">Total de Operações</div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">
-                    ${operationHistory.reduce((sum, op) => sum + op.profit, 0).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-400">Lucro Total</div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">
-                    {operationHistory.length > 0 ? (operationHistory.reduce((sum, op) => sum + op.spread, 0) / operationHistory.length).toFixed(3) : '0.000'}%
-                  </div>
-                  <div className="text-sm text-gray-400">Spread Médio</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Lista de Operações */}
-            {operationHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-xl font-bold text-gray-400 mb-2">Nenhuma operação realizada</h3>
-                <p className="text-gray-500">Execute operações para ver o histórico detalhado aqui</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {operationHistory.map((operation) => (
-                  <div key={operation.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                          <ArrowUpDown className="h-5 w-5 text-green-400" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-lg">{operation.pair}</div>
-                          <div className="text-sm text-gray-400">
-                            {operation.investmentName} • {operation.operationType}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-green-400">
-                          +${operation.profit.toFixed(2)}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {new Date(operation.timestamp).toLocaleString('pt-BR')}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-400">Valor Operado</div>
-                        <div className="text-white font-medium">${operation.amount.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Spread</div>
-                        <div className="text-yellow-400 font-medium">{operation.spread.toFixed(3)}%</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Duração</div>
-                        <div className="text-blue-400 font-medium">{operation.duration}s</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Exchanges</div>
-                        <div className="text-purple-400 font-medium text-xs">
-                          {operation.exchanges.join(' ↔ ')}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Indicador de rentabilidade */}
-                    <div className="mt-3 pt-3 border-t border-gray-700">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-400">Rentabilidade:</span>
-                        <span className="text-green-400 font-medium">
-                          +{((operation.profit / operation.amount) * 100).toFixed(3)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="border-t border-gray-800 pt-4 flex justify-end">
-            <Button
-              onClick={() => setShowOperationHistory(false)}
-              className="bg-gray-700 hover:bg-gray-600"
-            >
-              Fechar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Investment Modal - Dark Theme Improved */}
       <Dialog open={isInvestModalOpen} onOpenChange={setIsInvestModalOpen}>
         <DialogContent className="max-w-sm sm:max-w-md mx-4 bg-gray-900 border-gray-800 text-white">
@@ -3226,158 +3105,172 @@ const Investments = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Operation History Modal */}
+      {/* Operation History Modal - Extrato Bancário Style */}
       <Dialog open={showOperationHistory} onOpenChange={setShowOperationHistory}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-800 text-white">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden bg-gray-900 border-gray-800 text-white">
           <DialogHeader className="border-b border-gray-800 pb-4">
-            <DialogTitle className="text-xl text-white flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-green-400" />
-              Histórico Completo de Arbitragem
+            <DialogTitle className="text-xl text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-green-400" />
+                Extrato de Operações - Alpha Trading
+              </div>
+              <Button
+                onClick={() => {
+                  const phoneNumber = '';
+                  const totalLucros = operationHistory.reduce((sum, op) => sum + op.profit, 0);
+                  const message = `🚀 Confira meu extrato Alpha Trading!\n\n💰 Total de lucros hoje: ${totalLucros.toFixed(2)} USDT\n📈 ${operationHistory.length} operações de arbitragem realizadas\n\n🔥 Ganhos consistentes com robôs de arbitragem!\n\nConheça a Alpha Trading: https://app.alphatrading.com.br`;
+                  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                size="sm"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.582-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                </svg>
+                Enviar para Amigo
+              </Button>
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-            {/* Resumo Geral */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">
-                    {operationHistory.length}
-                  </div>
-                  <div className="text-sm text-gray-400">Total de Operações</div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">
-                    ${operationHistory.reduce((sum, op) => sum + op.profit, 0).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-400">Lucro Total</div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">
-                    {operationHistory.length > 0 ? (operationHistory.reduce((sum, op) => sum + op.spread, 0) / operationHistory.length).toFixed(3) : '0.000'}%
-                  </div>
-                  <div className="text-sm text-gray-400">Spread Médio</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Lista de Operações Detalhada */}
-            {operationHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-xl font-bold text-gray-400 mb-2">Nenhuma operação realizada</h3>
-                <p className="text-gray-500">Execute operações para ver o histórico detalhado aqui</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {operationHistory.map((operation) => (
-                  <div key={operation.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                          <ArrowUpDown className="h-6 w-6 text-green-400" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-xl">{operation.pair}</div>
-                          <div className="text-sm text-gray-400">
-                            {operation.investmentName} • {operation.operationType}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-green-400">
-                          +${operation.profit.toFixed(2)}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {new Date(operation.timestamp).toLocaleString('pt-BR')}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Detalhes da Arbitragem */}
-                    <div className="bg-gray-900/50 rounded-lg p-4 mb-4">
-                      <div className="text-sm font-medium text-yellow-400 mb-3">🔍 Detalhes da Arbitragem</div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Compra */}
-                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            <span className="text-blue-400 font-medium text-sm">COMPRA</span>
-                          </div>
-                          <div className="text-white font-bold">{operation.exchanges[0]}</div>
-                          <div className="text-blue-200">
-                            ${operation.buyPrice ? operation.buyPrice.toFixed(4) : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Volume: ${operation.amount.toFixed(2)}
-                          </div>
-                        </div>
-
-                        {/* Venda */}
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-green-400 font-medium text-sm">VENDA</span>
-                          </div>
-                          <div className="text-white font-bold">{operation.exchanges[1]}</div>
-                          <div className="text-green-200">
-                            ${operation.sellPrice ? operation.sellPrice.toFixed(4) : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Lucro: +${operation.profit.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Métricas da Operação */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-400">Spread Capturado</div>
-                        <div className="text-yellow-400 font-bold text-lg">{operation.spread.toFixed(3)}%</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Duração Total</div>
-                        <div className="text-blue-400 font-medium">{operation.duration}s</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Rentabilidade</div>
-                        <div className="text-green-400 font-medium">
-                          +{((operation.profit / operation.amount) * 100).toFixed(3)}%
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Exchanges</div>
-                        <div className="text-purple-400 font-medium text-xs">
-                          {operation.exchanges.join(' ↔ ')}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Fluxo de Arbitragem */}
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <div className="text-xs text-gray-400 mb-2">Fluxo da Operação:</div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-blue-300">🔍 Detectar → 💰 Comprar → 📈 Transferir → 💸 Vender → ✅ Lucro</span>
-                        <span className="text-green-400 font-medium">
-                          ROI: +{((operation.profit / operation.amount) * 100).toFixed(2)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="overflow-y-auto max-h-[75vh]">
+            <TradingHistoryExtrato />
           </div>
 
-          <div className="border-t border-gray-800 pt-4 flex justify-end">
+          <div className="border-t border-gray-800 pt-4 flex justify-between">
+            <Button
+              onClick={() => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 800;
+                canvas.height = 1200;
+                
+                if (ctx) {
+                  // Fundo
+                  ctx.fillStyle = '#0f172a';
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                  
+                  // Cabeçalho
+                  ctx.fillStyle = '#22c55e';
+                  ctx.font = 'bold 32px Arial';
+                  ctx.fillText('ALPHA TRADING', 50, 60);
+                  
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 24px Arial';
+                  ctx.fillText('Extrato de Operações', 50, 100);
+                  
+                  // Data
+                  ctx.font = '18px Arial';
+                  ctx.fillText(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 50, 140);
+                  ctx.fillText(`Hora: ${new Date().toLocaleTimeString('pt-BR')}`, 400, 140);
+                  
+                  // Linha divisória
+                  ctx.strokeStyle = '#22c55e';
+                  ctx.lineWidth = 2;
+                  ctx.beginPath();
+                  ctx.moveTo(50, 160);
+                  ctx.lineTo(750, 160);
+                  ctx.stroke();
+                  
+                  // Operações
+                  let yPos = 200;
+                  const totalOperacoes = Math.min(operationHistory.length, 8);
+                  
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 20px Arial';
+                  ctx.fillText('HISTÓRICO DE OPERAÇÕES', 50, yPos);
+                  yPos += 40;
+                  
+                  operationHistory.slice(0, totalOperacoes).forEach((op, index) => {
+                    // Data/Hora da operação
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(new Date(op.timestamp).toLocaleDateString('pt-BR'), 50, yPos);
+                    
+                    // Tipo de operação
+                    ctx.fillStyle = '#22c55e';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText(`${op.operationType} - ${op.pair}`, 50, yPos + 20);
+                    
+                    // Valor do lucro
+                    ctx.fillStyle = '#22c55e';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText(`+$${op.profit.toFixed(2)} USDT`, 500, yPos + 20);
+                    
+                    // Spread
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(`Spread: ${op.spread.toFixed(3)}%`, 50, yPos + 40);
+                    
+                    // Linha divisória
+                    ctx.strokeStyle = '#374151';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(50, yPos + 50);
+                    ctx.lineTo(750, yPos + 50);
+                    ctx.stroke();
+                    
+                    yPos += 80;
+                  });
+                  
+                  // Total
+                  yPos += 20;
+                  ctx.strokeStyle = '#22c55e';
+                  ctx.lineWidth = 3;
+                  ctx.beginPath();
+                  ctx.moveTo(50, yPos);
+                  ctx.lineTo(750, yPos);
+                  ctx.stroke();
+                  
+                  const total = operationHistory.reduce((sum, op) => sum + op.profit, 0);
+                  ctx.fillStyle = '#22c55e';
+                  ctx.font = 'bold 28px Arial';
+                  ctx.fillText(`TOTAL DE LUCROS: +$${total.toFixed(2)} USDT`, 50, yPos + 40);
+                  
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = '16px Arial';
+                  ctx.fillText(`Total de ${operationHistory.length} operações realizadas`, 50, yPos + 70);
+                  
+                  // Rodapé
+                  yPos += 120;
+                  ctx.fillStyle = '#6b7280';
+                  ctx.font = '14px Arial';
+                  ctx.fillText('Alpha Trading - Arbitragem Automatizada', 50, yPos);
+                  ctx.fillText('www.alphatrading.com.br', 500, yPos);
+                  
+                  // Converter para blob e compartilhar
+                  canvas.toBlob((blob) => {
+                    if (blob && navigator.share) {
+                      const file = new File([blob], 'extrato-alpha-trading.png', { type: 'image/png' });
+                      navigator.share({
+                        files: [file],
+                        title: 'Meu Extrato Alpha Trading',
+                        text: `Confira meus lucros na Alpha Trading! Total de ${total.toFixed(2)} USDT em operações de arbitragem.`
+                      }).catch(console.error);
+                    } else {
+                      // Fallback para download
+                      const url = URL.createObjectURL(blob!);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'extrato-alpha-trading.png';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      
+                      toast({
+                        title: "📷 Extrato Gerado!",
+                        description: "A imagem do seu extrato foi baixada com sucesso!",
+                      });
+                    }
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Gerar Foto
+            </Button>
             <Button
               onClick={() => setShowOperationHistory(false)}
               className="bg-gray-700 hover:bg-gray-600"
