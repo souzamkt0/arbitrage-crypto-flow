@@ -167,6 +167,8 @@ const Investments = () => {
 
   const fetchInvestments = async () => {
     try {
+      // Forçar limpeza do cache
+      const timestamp = Date.now();
       const { data: plansData, error: plansError } = await supabase
         .from('investment_plans')
         .select('*')
@@ -189,7 +191,10 @@ const Investments = () => {
         contractFee: 0
       }));
 
+      console.log('🔍 Planos carregados do banco:', plansData.length, plansData);
+      console.log('🔍 Planos formatados:', formattedPlans.length, formattedPlans);
       setInvestments(formattedPlans);
+      console.log('✅ Estado atualizado com', formattedPlans.length, 'planos');
     } catch (error) {
       console.error('Erro ao buscar investimentos:', error);
       toast({
