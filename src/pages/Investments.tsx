@@ -1156,9 +1156,56 @@ const Investments = () => {
             ) : (
               /* Investment Plans View */
               <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-white mb-3">Planos de Arbitragem Automatizada</h2>
-                  <p className="text-gray-400 text-lg">Escolha seu robô de trading e comece a lucrar com arbitragem de criptomoedas</p>
+                <div className="text-center space-y-6">
+                  <div>
+                    <h2 className="text-3xl font-bold text-white mb-3">Planos de Arbitragem Automatizada</h2>
+                    <p className="text-gray-400 text-lg">Escolha seu robô de trading e comece a lucrar com arbitragem de criptomoedas</p>
+                  </div>
+                  
+                  {/* Trading Access Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={() => setShowActivePlans(!showActivePlans)}
+                      className={`${
+                        showActivePlans 
+                          ? 'bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-700 hover:from-blue-500 hover:via-indigo-600 hover:to-purple-600' 
+                          : 'bg-gradient-to-r from-green-600 via-emerald-700 to-teal-700 hover:from-green-500 hover:via-emerald-600 hover:to-teal-600'
+                      } text-white font-bold px-10 py-4 rounded-2xl transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-110 relative overflow-hidden group border border-white/20 backdrop-blur-sm`}
+                    >
+                      {/* Animated Background Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      
+                      {/* Floating Particles */}
+                      <div className="absolute inset-0">
+                        <div className="absolute top-2 left-4 w-1 h-1 bg-white/40 rounded-full animate-pulse"></div>
+                        <div className="absolute top-6 right-6 w-1 h-1 bg-white/30 rounded-full animate-pulse delay-300"></div>
+                        <div className="absolute bottom-3 left-8 w-1 h-1 bg-white/50 rounded-full animate-pulse delay-700"></div>
+                        <div className="absolute bottom-4 right-4 w-1 h-1 bg-white/25 rounded-full animate-pulse delay-1000"></div>
+                      </div>
+                      
+                      <div className="relative z-10 flex items-center justify-center space-x-4">
+                        <div className="p-2 rounded-xl bg-white/10 backdrop-blur-sm">
+                          <Activity className="h-6 w-6 group-hover:animate-spin transition-all duration-300" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-lg font-bold tracking-wide">
+                            {showActivePlans ? '🏠 VOLTAR AOS PLANOS' : '⚡ ACESSAR TRADING'}
+                          </span>
+                          <span className="text-xs text-white/70 font-normal">
+                            {showActivePlans ? 'Gerenciar Investimentos' : 'Dashboard Avançado'}
+                          </span>
+                        </div>
+                        <ChevronRight className="h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+                      </div>
+                      
+                      {/* Glow Effect */}
+                      <div className={`absolute -inset-1 bg-gradient-to-r ${
+                        showActivePlans 
+                          ? 'from-blue-500/20 via-indigo-600/20 to-purple-600/20' 
+                          : 'from-green-500/20 via-emerald-600/20 to-teal-600/20'
+                      } rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`}></div>
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1261,33 +1308,6 @@ const Investments = () => {
               </div>
             )}
 
-            <Button
-              onClick={() => setShowActivePlans(!showActivePlans)}
-              className={`${
-                showActivePlans 
-                  ? 'bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-400 hover:via-indigo-500 hover:to-purple-500' 
-                  : 'bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 hover:from-green-400 hover:via-emerald-500 hover:to-teal-500'
-              } text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 relative overflow-hidden group border border-white/10`}
-              size="lg"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
-              <div className="relative z-10 flex items-center justify-center space-x-3">
-                <Activity className="h-6 w-6 group-hover:animate-pulse" />
-                <span className="text-lg">
-                  {showActivePlans ? '🏠 Voltar aos Planos' : '⚡ Acessar Trading Dashboard'}
-                </span>
-                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform animate-pulse" />
-              </div>
-              
-              {/* Floating particles effect */}
-              <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute top-2 left-4 w-1 h-1 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0.1s' }}></div>
-                <div className="absolute top-4 right-8 w-1 h-1 bg-white/40 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
-                <div className="absolute bottom-3 left-12 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-              </div>
-            </Button>
           </div>
         )}
 
