@@ -1414,7 +1414,7 @@ const Investments = () => {
               <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-              Investimentos
+              Contratos Alpha
             </h1>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-2xl mx-auto px-4">
@@ -1463,7 +1463,7 @@ const Investments = () => {
             size="sm"
           >
             <Bot className="h-4 w-4 mr-2" />
-            Investimentos
+            Contratos
           </Button>
           <Button
             variant={activeTab === 'history' ? 'default' : 'ghost'}
@@ -1476,7 +1476,7 @@ const Investments = () => {
             size="sm"
           >
             <BarChart3 className="h-4 w-4 mr-2" />
-            Histórico
+            Extrato
           </Button>
         </div>
 
