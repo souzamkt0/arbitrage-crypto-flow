@@ -3872,20 +3872,476 @@ const Admin = () => {
             <p className="text-muted-foreground">Conteúdo de saques será implementado...</p>
           </TabsContent>
           
-          <TabsContent value="plans">
-            <p className="text-muted-foreground">Conteúdo de planos será implementado...</p>
+          {/* Investment Plans Tab */}
+          <TabsContent value="plans" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Planos de Investimento</h2>
+                <p className="text-muted-foreground">Gerencie os planos de trading disponíveis</p>
+              </div>
+              <Button 
+                onClick={() => { setSelectedPlan(null); setIsNewPlan(true); setIsPlanModalOpen(true); }}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Plano
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {investmentPlans.map((plan) => (
+                <Card key={plan.id} className="bg-card/50 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{plan.name}</CardTitle>
+                      <Badge className={plan.status === 'active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}>
+                        {plan.status === 'active' ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    <CardDescription>{plan.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Taxa Diária</p>
+                        <p className="font-semibold text-primary">{plan.dailyRate}%</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Duração</p>
+                        <p className="font-semibold">{plan.duration} dias</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Mín. Investimento</p>
+                        <p className="font-semibold">R$ {plan.minimumAmount.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Referrals</p>
+                        <p className="font-semibold">{plan.requiredReferrals}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => { setSelectedPlan(plan); setIsNewPlan(false); setIsPlanModalOpen(true); }}
+                        className="flex-1"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Excluir
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
           
-          <TabsContent value="partners">
-            <p className="text-muted-foreground">Conteúdo de sócios será implementado...</p>
+          {/* Partners Tab */}
+          <TabsContent value="partners" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Gestão de Sócios</h2>
+                <p className="text-muted-foreground">Controle de sócios e suas comissões</p>
+              </div>
+              <Button 
+                onClick={() => { setIsPartnerSelectionModalOpen(true); }}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Adicionar Sócio
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Partners Stats */}
+              <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total de Sócios</p>
+                      <p className="text-3xl font-bold text-amber-400">{partners.length}</p>
+                    </div>
+                    <Crown className="h-8 w-8 text-amber-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Comissões</p>
+                      <p className="text-3xl font-bold text-emerald-400">R$ {partnerEarnings.toLocaleString()}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-emerald-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Volume Total</p>
+                      <p className="text-3xl font-bold text-blue-400">R$ {totalDeposits.toLocaleString()}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-blue-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Partners Table */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Lista de Sócios</CardTitle>
+                <CardDescription>Gerencie os sócios e suas configurações</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Comissão</TableHead>
+                      <TableHead>Total Ganho</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.map((partner) => (
+                      <TableRow key={partner.id}>
+                        <TableCell className="font-medium">{partner.display_name}</TableCell>
+                        <TableCell>{partner.email}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-amber-400 border-amber-400/30">
+                            {partner.commission_percentage}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell>R$ {partner.total_earnings?.toLocaleString() || '0'}</TableCell>
+                        <TableCell>
+                          <Badge className={partner.status === 'active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}>
+                            {partner.status === 'active' ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {partners.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          Nenhum sócio encontrado
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="trading">
             <p className="text-muted-foreground">Conteúdo de trading será implementado...</p>
           </TabsContent>
           
-          <TabsContent value="settings">
-            <p className="text-muted-foreground">Conteúdo de configurações será implementado...</p>
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Configurações do Sistema</h2>
+              <p className="text-muted-foreground">Configure parâmetros gerais da plataforma</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* General Settings */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-primary" />
+                    Configurações Gerais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="referrals">Sistema de Indicações</Label>
+                        <p className="text-sm text-muted-foreground">Permitir programa de indicações</p>
+                      </div>
+                      <Switch 
+                        id="referrals"
+                        checked={adminSettings.allowReferrals}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, allowReferrals: checked }))}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="referralPercent">Percentual de Indicação (%)</Label>
+                      <Input
+                        id="referralPercent"
+                        type="number"
+                        value={adminSettings.referralPercent}
+                        onChange={(e) => setAdminSettings(prev => ({ ...prev, referralPercent: Number(e.target.value) }))}
+                        min="0"
+                        max="100"
+                        step="0.1"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="gamification">Sistema de Gamificação</Label>
+                        <p className="text-sm text-muted-foreground">Ativar recompensas por atividade</p>
+                      </div>
+                      <Switch 
+                        id="gamification"
+                        checked={adminSettings.allowGamification}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, allowGamification: checked }))}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="postReward">Recompensa por Post</Label>
+                        <Input
+                          id="postReward"
+                          type="number"
+                          value={adminSettings.postReward}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, postReward: Number(e.target.value) }))}
+                          step="0.001"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="likeReward">Recompensa por Like</Label>
+                        <Input
+                          id="likeReward"
+                          type="number"
+                          value={adminSettings.likeReward}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, likeReward: Number(e.target.value) }))}
+                          step="0.001"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="commentReward">Recompensa por Comentário</Label>
+                        <Input
+                          id="commentReward"
+                          type="number"
+                          value={adminSettings.commentReward}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, commentReward: Number(e.target.value) }))}
+                          step="0.001"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Payment Settings */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    Configurações de Pagamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="pixEnabled">PIX Habilitado</Label>
+                        <p className="text-sm text-muted-foreground">Permitir depósitos via PIX</p>
+                      </div>
+                      <Switch 
+                        id="pixEnabled"
+                        checked={adminSettings.pixEnabled}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, pixEnabled: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="usdtEnabled">USDT Habilitado</Label>
+                        <p className="text-sm text-muted-foreground">Permitir depósitos via USDT</p>
+                      </div>
+                      <Switch 
+                        id="usdtEnabled"
+                        checked={adminSettings.usdtEnabled}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, usdtEnabled: checked }))}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="minimumDeposit">Depósito Mínimo (R$)</Label>
+                        <Input
+                          id="minimumDeposit"
+                          type="number"
+                          value={adminSettings.minimumDeposit}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, minimumDeposit: Number(e.target.value) }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="maximumDeposit">Depósito Máximo (R$)</Label>
+                        <Input
+                          id="maximumDeposit"
+                          type="number"
+                          value={adminSettings.maximumDeposit}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, maximumDeposit: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="withdrawalFeePixPercent">Taxa PIX (%)</Label>
+                        <Input
+                          id="withdrawalFeePixPercent"
+                          type="number"
+                          value={adminSettings.withdrawalFeePixPercent}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, withdrawalFeePixPercent: Number(e.target.value) }))}
+                          step="0.1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="withdrawalFeeUsdtPercent">Taxa USDT (%)</Label>
+                        <Input
+                          id="withdrawalFeeUsdtPercent"
+                          type="number"
+                          value={adminSettings.withdrawalFeeUsdtPercent}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, withdrawalFeeUsdtPercent: Number(e.target.value) }))}
+                          step="0.1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="autoApproval">Aprovação Automática</Label>
+                        <p className="text-sm text-muted-foreground">Aprovar depósitos automaticamente</p>
+                      </div>
+                      <Switch 
+                        id="autoApproval"
+                        checked={adminSettings.autoApproval}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, autoApproval: checked }))}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AlphaBot Settings */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-primary" />
+                    Configurações AlphaBot
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="alphabotEnabled">AlphaBot Ativo</Label>
+                        <p className="text-sm text-muted-foreground">Ativar sistema de trading automático</p>
+                      </div>
+                      <Switch 
+                        id="alphabotEnabled"
+                        checked={adminSettings.alphabotEnabled}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, alphabotEnabled: checked }))}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="alphabotDailyRate">Taxa Diária (%)</Label>
+                        <Input
+                          id="alphabotDailyRate"
+                          type="number"
+                          value={adminSettings.alphabotDailyRate}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, alphabotDailyRate: Number(e.target.value) }))}
+                          step="0.01"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="alphabotOperationDuration">Duração Operação (s)</Label>
+                        <Input
+                          id="alphabotOperationDuration"
+                          type="number"
+                          value={adminSettings.alphabotOperationDuration}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, alphabotOperationDuration: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="alphabotMinInvestment">Investimento Mín. (R$)</Label>
+                        <Input
+                          id="alphabotMinInvestment"
+                          type="number"
+                          value={adminSettings.alphabotMinInvestment}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, alphabotMinInvestment: Number(e.target.value) }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="alphabotMaxInvestment">Investimento Máx. (R$)</Label>
+                        <Input
+                          id="alphabotMaxInvestment"
+                          type="number"
+                          value={adminSettings.alphabotMaxInvestment}
+                          onChange={(e) => setAdminSettings(prev => ({ ...prev, alphabotMaxInvestment: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="alphabotAutoRestart">Reinício Automático</Label>
+                        <p className="text-sm text-muted-foreground">Reiniciar operações automaticamente</p>
+                      </div>
+                      <Switch 
+                        id="alphabotAutoRestart"
+                        checked={adminSettings.alphabotAutoRestart}
+                        onCheckedChange={(checked) => setAdminSettings(prev => ({ ...prev, alphabotAutoRestart: checked }))}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Save Settings */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold">Salvar Configurações</h3>
+                      <p className="text-sm text-muted-foreground">Aplicar todas as alterações realizadas</p>
+                    </div>
+                    <Button className="bg-primary hover:bg-primary/90">
+                      <Database className="h-4 w-4 mr-2" />
+                      Salvar Tudo
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
