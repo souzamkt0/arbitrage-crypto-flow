@@ -583,6 +583,13 @@ const Investments = () => {
 
             {/* Right Section */}
             <div className="flex items-center space-x-2">
+              <Button 
+                onClick={() => navigate('/active-plans')}
+                className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg text-sm"
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                Planos Ativos
+              </Button>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 <Bell className="h-4 w-4" />
               </Button>
