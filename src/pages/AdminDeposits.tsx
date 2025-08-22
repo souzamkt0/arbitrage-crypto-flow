@@ -78,16 +78,12 @@ export const AdminDeposits = () => {
   const loadDeposits = async () => {
     setLoading(true);
     try {
+      console.log('🔄 Carregando depósitos...');
+      
+      // Carregar depósitos (sem join que pode estar falhando)
       let query = supabase
         .from('digitopay_transactions')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            email,
-            username
-          )
-        `)
+        .select('*')
         .eq('type', 'deposit')
         .order('created_at', { ascending: false });
 
@@ -95,14 +91,44 @@ export const AdminDeposits = () => {
         query = query.eq('status', selectedStatus);
       }
 
-      const { data, error } = await query;
+      const { data: transactionsData, error: transactionsError } = await query;
 
-      if (error) throw error;
+      if (transactionsError) {
+        console.error('❌ Erro ao carregar transações:', transactionsError);
+        throw transactionsError;
+      }
 
-      setDeposits(data || []);
+      console.log('📊 Transações carregadas:', transactionsData?.length || 0);
+
+      // Carregar profiles separadamente
+      const userIds = [...new Set(transactionsData?.map(t => t.user_id) || [])];
+      let profilesData = [];
+      
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, email, username')
+          .in('user_id', userIds);
+        
+        if (profilesError) {
+          console.error('❌ Erro ao carregar profiles:', profilesError);
+        } else {
+          profilesData = profiles || [];
+          console.log('👥 Profiles carregados:', profilesData.length);
+        }
+      }
+
+      // Combinar dados
+      const depositsWithProfiles = (transactionsData || []).map(transaction => ({
+        ...transaction,
+        profiles: profilesData.find(p => p.user_id === transaction.user_id)
+      }));
+
+      console.log('✅ Depósitos com profiles:', depositsWithProfiles.length);
+      setDeposits(depositsWithProfiles);
 
       // Calcular estatísticas
-      const allDeposits = data || [];
+      const allDeposits = depositsWithProfiles || [];
       const completed = allDeposits.filter(d => d.status === 'completed');
       const pending = allDeposits.filter(d => d.status === 'pending');
       const cancelled = allDeposits.filter(d => d.status === 'cancelled' || d.status === 'failed');
