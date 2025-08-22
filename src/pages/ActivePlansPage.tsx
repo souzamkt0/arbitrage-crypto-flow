@@ -69,56 +69,45 @@ const ActivePlansPage = () => {
   }, [user]);
 
   const loadUserInvestments = async () => {
+    if (!user?.id) {
+      console.log('⚠️ [ActivePlans] Usuário não autenticado');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     try {
-      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user?.id);
-      
-      // Debug: Buscar todos os investimentos para verificar
-      const { data: allInvestments } = await supabase
-        .from('user_investments')
-        .select('*')
-        .eq('status', 'active');
-      
-      console.log('🔍 [ActivePlans] Todos os investimentos ativos:', allInvestments);
+      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user.id);
       
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
-        .select('*')
-        .eq('user_id', user?.id)
+        .select(`
+          *,
+          investment_plans(name, robot_version, daily_rate)
+        `)
+        .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
-        throw error;
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar seus investimentos. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      console.log('📊 [ActivePlans] Investimentos encontrados para o usuário:', investmentsData);
-      console.log('👤 [ActivePlans] ID do usuário atual:', user?.id);
+      console.log('📊 [ActivePlans] Dados recebidos do Supabase:', investmentsData);
 
       if (!investmentsData || investmentsData.length === 0) {
         console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado para este usuário');
         setUserInvestments([]);
-        setLoading(false);
         return;
       }
 
-      // Buscar nomes dos planos
-      const { data: plansData, error: plansError } = await supabase
-        .from('investment_plans')
-        .select('id, name, robot_version')
-        .in('id', investmentsData.map(inv => inv.plan_id));
-
-      if (plansError) {
-        console.error('❌ [ActivePlans] Erro ao buscar planos:', plansError);
-      }
-
-      const plansMap = new Map();
-      if (plansData) {
-        plansData.forEach(plan => {
-          plansMap.set(plan.id, plan.name);
-        });
-      }
-
+      // Formatear os dados recebidos do Supabase
       const formattedInvestments: UserInvestment[] = investmentsData.map(investment => {
         console.log('🔍 [ActivePlans] Processando investimento:', investment.id);
         
@@ -139,7 +128,8 @@ const ActivePlansPage = () => {
         const dailyTarget = investment.amount * (dailyRate / 100);
         const todayEarnings = investment.today_earnings || 0;
 
-        const planName = plansMap.get(investment.plan_id) || 'Robô de Arbitragem';
+        // Usar o nome do plano do relacionamento ou fallback
+        const planName = investment.investment_plans?.name || 'Robô de Arbitragem';
 
         return {
           id: investment.id,
@@ -171,7 +161,12 @@ const ActivePlansPage = () => {
       console.log('✅ [ActivePlans] Investimentos formatados:', formattedInvestments);
       setUserInvestments(formattedInvestments);
     } catch (error) {
-      console.error('Erro ao carregar investimentos:', error);
+      console.error('❌ [ActivePlans] Erro ao carregar investimentos:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar seus investimentos. Tente novamente.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
