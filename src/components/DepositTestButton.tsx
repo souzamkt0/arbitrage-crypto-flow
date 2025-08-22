@@ -36,8 +36,14 @@ export const DepositTestButton: React.FC = () => {
         }
       });
 
-      if (depositError || !depositResult.success) {
-        throw new Error(depositResult?.message || 'Erro ao criar depósito');
+      if (depositError) {
+        console.error('❌ Erro da edge function:', depositError);
+        throw new Error(`Erro da edge function: ${depositError.message}`);
+      }
+
+      if (!depositResult || !depositResult.success) {
+        console.error('❌ Erro no resultado:', depositResult);
+        throw new Error(depositResult?.message || depositResult?.error || 'Erro ao criar depósito');
       }
 
       const trxId = depositResult.id;
