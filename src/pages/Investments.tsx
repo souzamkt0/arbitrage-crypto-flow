@@ -289,61 +289,95 @@ const Investments = () => {
     if (!user?.id) return;
 
     try {
+      console.log('🔄 Buscando investimentos para usuário:', user.id);
+      
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar investimentos:', error);
+        throw error;
+      }
+
+      console.log('📊 Investimentos encontrados:', investmentsData);
+
+      if (!investmentsData || investmentsData.length === 0) {
+        console.log('⚠️ Nenhum investimento ativo encontrado');
+        setUserInvestments([]);
+        return;
+      }
+
+      // Buscar nomes dos planos
+      const { data: plansData, error: plansError } = await supabase
+        .from('investment_plans')
+        .select('id, name, robot_version')
+        .in('id', investmentsData.map(inv => inv.plan_id));
+
+      if (plansError) {
+        console.error('❌ Erro ao buscar planos:', plansError);
+      }
+
+      const plansMap = new Map();
+      if (plansData) {
+        plansData.forEach(plan => {
+          plansMap.set(plan.id, plan.name);
+        });
+      }
 
       const formattedInvestments: UserInvestment[] = investmentsData.map(investment => {
-        const startDate = new Date(investment.created_at);
+        console.log('🔍 Processando investimento:', investment.id);
+        
+        const startDate = new Date(investment.start_date || investment.created_at);
         if (isNaN(startDate.getTime())) {
           console.warn('Data inválida para investimento:', investment.id);
           return null;
         }
         
-        const endDate = new Date(startDate);
-        const durationDays = investment.duration_days || 30;
-        endDate.setDate(startDate.getDate() + durationDays);
+        const endDate = new Date(investment.end_date);
+        const durationDays = investment.total_operations || 30;
         
         const now = new Date();
         const daysPassed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, durationDays - daysPassed);
+        const daysRemaining = Math.max(0, Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
         
         const currentHour = now.getHours();
         const currentDayProgress = (currentHour / 24) * 100;
         
         const dailyRate = investment.daily_rate || 0.5;
         const dailyTarget = investment.amount * (dailyRate / 100);
-        const todayEarnings = dailyTarget * (currentDayProgress / 100);
+        const todayEarnings = investment.today_earnings || (dailyTarget * (currentDayProgress / 100));
+
+        const planName = plansMap.get(investment.plan_id) || 'Robô de Arbitragem';
 
         return {
           id: investment.id,
-          investmentId: investment.investment_plan_id,
-          investmentName: 'Robô de Arbitragem',
+          investmentId: investment.plan_id,
+          investmentName: planName,
           amount: investment.amount,
           dailyRate: dailyRate,
-          startDate: investment.created_at,
-          endDate: endDate.toISOString(),
+          startDate: investment.start_date || investment.created_at,
+          endDate: investment.end_date,
           totalEarned: investment.total_earned || 0,
           status: investment.status,
           daysRemaining,
-          currentDayProgress,
+          currentDayProgress: investment.current_day_progress || currentDayProgress,
           todayEarnings,
-          dailyTarget,
+          dailyTarget: investment.daily_target || dailyTarget,
           operationsCompleted: investment.operations_completed || 0,
-          dailyOperations: 1,
+          dailyOperations: Math.floor(durationDays / 30) || 1,
           lastOperationTime: investment.last_operation_time,
           canOperate: true,
           nextOperationIn: 0
         };
       }).filter(Boolean);
 
+      console.log('✅ Investimentos formatados:', formattedInvestments);
       setUserInvestments(formattedInvestments);
     } catch (error) {
-      console.error('Erro ao buscar investimentos do usuário:', error);
+      console.error('❌ Erro ao buscar investimentos do usuário:', error);
     }
   };
 
