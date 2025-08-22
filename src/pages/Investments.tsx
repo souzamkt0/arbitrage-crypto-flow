@@ -164,6 +164,19 @@ const Investments = () => {
     dailyEarnings: 0
   });
 
+  // Arbitrage Simulation States
+  const [showArbitrageSimulator, setShowArbitrageSimulator] = useState(false);
+  const [simulationData, setSimulationData] = useState<any[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [simulationProgress, setSimulationProgress] = useState(0);
+  const [simulationProfit, setSimulationProfit] = useState(0);
+  const [simulationStatus, setSimulationStatus] = useState<'analyzing' | 'executing' | 'completed'>('analyzing');
+  const [selectedPlanForSimulation, setSelectedPlanForSimulation] = useState<Investment | null>(null);
+  
+  // Plan Simulator States
+  const [showPlanSimulator, setShowPlanSimulator] = useState<string | null>(null);
+  const [simulatorAmount, setSimulatorAmount] = useState<number>(1000);
+
   // Generate mock trading data for charts
   const generateTradingData = () => {
     const data = [];
@@ -211,7 +224,7 @@ const Investments = () => {
 
   const fetchInvestments = async () => {
     try {
-      // Definir planos fixos com as especificações solicitadas (mantendo as regras existentes)
+      // Definir planos fixos com as especificações corretas
       const predefinedPlans: Investment[] = [
         {
           id: 'robo-400',
@@ -220,7 +233,7 @@ const Investments = () => {
           minimumAmount: 100,
           maximumAmount: 10000,
           duration: 30,
-          description: 'Sistema Automatizado - Paga até 2% variável. O sistema faz arbitragem e os ganhos não são garantidos fixos.',
+          description: 'Paga até 2% variável. O sistema faz arbitragem e os ganhos não são garantidos fixos - pode ganhar menos de 2% dependendo das oportunidades de arbitragem.',
           status: "active",
           operations: 1,
           requiredReferrals: 0,
@@ -233,7 +246,7 @@ const Investments = () => {
           minimumAmount: 500,
           maximumAmount: 25000,
           duration: 30,
-          description: 'Paga até 3%, porém precisa ter 10 pessoas ativas no primeiro plano (Robô 4.0.0) com planos ativos.',
+          description: 'Paga até 3%, porém precisa ter 10 pessoas ativas no primeiro plano (Robô 4.0.0) com planos ativos. Não pode ativar se não tiver os 10 indicados ativos.',
           status: "active",
           operations: 1,
           requiredReferrals: 10,
@@ -246,7 +259,7 @@ const Investments = () => {
           minimumAmount: 1000,
           maximumAmount: 50000,
           duration: 30,
-          description: 'Sistema Automatizado - Pode ganhar até 4%, porém precisa ter 40 pessoas ativas no plano Robô 4.0.5.',
+          description: 'Pode ganhar até 4%, porém precisa ter 40 pessoas ativas no plano Robô 4.0.5. As 40 pessoas precisam estar ativas especificamente no plano 4.0.5.',
           status: "active",
           operations: 1,
           requiredReferrals: 40,
@@ -259,7 +272,7 @@ const Investments = () => {
           minimumAmount: 5000,
           maximumAmount: 2000000,
           duration: 365,
-          description: 'Ganhe até 2% do faturamento da empresa. Projeção de $200mil a $2milhões por dia. Para participar, entre em contato via WhatsApp. Saque todo sexta-feira.',
+          description: 'Ganhe até 2% do faturamento da empresa. Projeção de $200mil a $2milhões por dia. Para participar, entre em contato via WhatsApp e siga alguns requisitos. Saque todo sexta-feira.',
           status: "active",
           operations: 1,
           requiredReferrals: 0,
@@ -469,9 +482,108 @@ const Investments = () => {
     }
   };
 
+  // Arbitrage Simulation Function
+  const runArbitrageSimulation = async (plan: Investment) => {
+    setSelectedPlanForSimulation(plan);
+    setShowArbitrageSimulator(true);
+    setSimulationStatus('analyzing');
+    setSimulationProgress(0);
+    setSimulationProfit(0);
+    setCurrentStep(0);
+
+    // Generate initial market data
+    const initialData = Array.from({ length: 30 }, (_, i) => ({
+      time: Date.now() - (30 - i) * 2000,
+      btc: 45000 + (Math.random() - 0.5) * 2000,
+      eth: 3000 + (Math.random() - 0.5) * 300,
+      spread: Math.random() * 0.5
+    }));
+    setSimulationData(initialData);
+
+    // Simulation phases
+    const phases = [
+      { name: 'analyzing', duration: 2000, steps: 30 },
+      { name: 'executing', duration: 3000, steps: 70 },
+      { name: 'completed', duration: 0, steps: 100 }
+    ];
+
+    let totalProgress = 0;
+    
+    for (const phase of phases) {
+      setSimulationStatus(phase.name as any);
+      
+      if (phase.name === 'completed') {
+        // Calculate final profit (variable based on plan rate)
+        const baseAmount = 1000; // Simulation amount
+        const maxDailyRate = plan.dailyRate / 100;
+        const actualRate = Math.random() * maxDailyRate * 0.8 + maxDailyRate * 0.2; // 20-100% of max rate
+        const profit = baseAmount * actualRate;
+        
+        setSimulationProfit(profit);
+        setSimulationProgress(100);
+        setCurrentStep(100);
+        
+        toast({
+          title: "✅ Arbitragem Concluída!",
+          description: `Simulação gerou ${(actualRate * 100).toFixed(2)}% de lucro. Lucro real varia conforme oportunidades de mercado.`,
+        });
+        break;
+      }
+
+      // Animate progress for current phase
+      const stepDuration = phase.duration / (phase.steps - totalProgress);
+      
+      for (let step = totalProgress; step < phase.steps; step++) {
+        await new Promise(resolve => setTimeout(resolve, stepDuration));
+        setSimulationProgress(step);
+        setCurrentStep(step);
+        
+        // Update simulation data
+        setSimulationData(prev => [...prev.slice(-29), {
+          time: Date.now(),
+          btc: 45000 + (Math.random() - 0.5) * 2000,
+          eth: 3000 + (Math.random() - 0.5) * 300,
+          spread: Math.random() * 0.8
+        }]);
+      }
+      
+      totalProgress = phase.steps;
+    }
+  };
+
+  // Plan Simulator Calculator
+  const calculatePlanSimulation = (plan: Investment, amount: number, days: number = 30) => {
+    const results = [];
+    let totalEarned = 0;
+    
+    for (let day = 1; day <= days; day++) {
+      // Variable daily rate (20% to 100% of max rate)
+      const dailyVariation = Math.random() * 0.8 + 0.2;
+      const actualDailyRate = (plan.dailyRate / 100) * dailyVariation;
+      const dailyProfit = amount * actualDailyRate;
+      
+      totalEarned += dailyProfit;
+      
+      results.push({
+        day,
+        dailyRate: actualDailyRate * 100,
+        dailyProfit,
+        totalEarned,
+        amount: amount + totalEarned
+      });
+    }
+    
+    return results;
+  };
+
+  const openWhatsAppContact = () => {
+    const message = `Olá! Tenho interesse no plano "Seja Sócio" e gostaria de conhecer os requisitos para participar. Podemos conversar?`;
+    const whatsappUrl = `https://wa.me/5581999379551?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
-      {/* Trading Header */}
       <div className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -753,83 +865,117 @@ const Investments = () => {
                             </div>
                           )}
 
-                          <Dialog>
-                            <DialogTrigger asChild>
+                          {/* Action Buttons */}
+                          <div className="space-y-3">
+                            {/* Arbitrage Simulator Button */}
+                            <Button 
+                              variant="outline"
+                              onClick={() => runArbitrageSimulation(plan)}
+                              className="w-full border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              Simular Arbitragem
+                            </Button>
+
+                            {/* Plan Calculator Button */}
+                            <Button 
+                              variant="outline"
+                              onClick={() => setShowPlanSimulator(plan.id)}
+                              className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                            >
+                              <BarChart3 className="h-4 w-4 mr-2" />
+                              Calcular Rendimento
+                            </Button>
+
+                            {/* Investment Button */}
+                            {plan.id === 'seja-socio' ? (
                               <Button 
-                                className={`w-full ${canInvest 
-                                  ? `bg-gradient-to-r ${getPlanColor(plan.id)} hover:opacity-90` 
-                                  : 'bg-gray-600 cursor-not-allowed'
-                                } text-white font-semibold py-3`}
-                                disabled={!canInvest}
-                                onClick={() => setSelectedPlan(plan)}
+                                onClick={openWhatsAppContact}
+                                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:opacity-90 text-white font-semibold py-3"
                               >
-                                {canInvest ? (
-                                  <>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Invest Now
-                                  </>
-                                ) : (
-                                  <>
-                                    <Lock className="h-4 w-4 mr-2" />
-                                    Unlock Required
-                                  </>
-                                )}
+                                <Smartphone className="h-4 w-4 mr-2" />
+                                Contatar WhatsApp
                               </Button>
-                            </DialogTrigger>
-                            
-                            {canInvest && (
-                              <DialogContent className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
-                                <DialogHeader>
-                                  <DialogTitle className="flex items-center gap-2">
-                                    <Icon className="h-6 w-6 text-purple-400" />
-                                    Invest in {plan.name}
-                                  </DialogTitle>
-                                </DialogHeader>
-                                
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label htmlFor="amount" className="text-gray-300">Investment Amount</Label>
-                                    <Input
-                                      id="amount"
-                                      type="number"
-                                      value={selectedAmount}
-                                      onChange={(e) => setSelectedAmount(e.target.value)}
-                                      placeholder={`Min: $${plan.minimumAmount}`}
-                                      className="bg-slate-700/50 border-slate-600/50 text-white mt-2"
-                                    />
-                                  </div>
-                                  
-                                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
-                                    <h4 className="font-semibold text-purple-400 mb-2">Investment Summary</h4>
-                                    <div className="space-y-2 text-sm">
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-400">Daily Rate:</span>
-                                        <span className="text-white">Up to {plan.dailyRate}%</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-400">Duration:</span>
-                                        <span className="text-white">{plan.duration} days</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-400">Estimated Return:</span>
-                                        <span className="text-green-400">
-                                          {selectedAmount ? formatCurrency(parseFloat(selectedAmount) * (plan.dailyRate / 100) * plan.duration) : '$0.00'}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
+                            ) : (
+                              <Dialog>
+                                <DialogTrigger asChild>
                                   <Button 
-                                    onClick={handleInvestment} 
-                                    disabled={isLoading}
-                                    className={`w-full bg-gradient-to-r ${getPlanColor(plan.id)} hover:opacity-90 text-white`}
+                                    className={`w-full ${canInvest 
+                                      ? `bg-gradient-to-r ${getPlanColor(plan.id)} hover:opacity-90` 
+                                      : 'bg-gray-600 cursor-not-allowed'
+                                    } text-white font-semibold py-3`}
+                                    disabled={!canInvest}
+                                    onClick={() => setSelectedPlan(plan)}
                                   >
-                                    {isLoading ? 'Processing...' : 'Confirm Investment'}
+                                    {canInvest ? (
+                                      <>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Invest Now
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className="h-4 w-4 mr-2" />
+                                        Unlock Required
+                                      </>
+                                    )}
                                   </Button>
-                                </div>
-                              </DialogContent>
+                                </DialogTrigger>
+                                
+                                {canInvest && (
+                                  <DialogContent className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <Icon className="h-6 w-6 text-purple-400" />
+                                        Invest in {plan.name}
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    
+                                    <div className="space-y-4">
+                                      <div>
+                                        <Label htmlFor="amount" className="text-gray-300">Investment Amount</Label>
+                                        <Input
+                                          id="amount"
+                                          type="number"
+                                          value={selectedAmount}
+                                          onChange={(e) => setSelectedAmount(e.target.value)}
+                                          placeholder={`Min: $${plan.minimumAmount}`}
+                                          className="bg-slate-700/50 border-slate-600/50 text-white mt-2"
+                                        />
+                                      </div>
+                                      
+                                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                                        <h4 className="font-semibold text-purple-400 mb-2">Investment Summary</h4>
+                                        <div className="space-y-2 text-sm">
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Daily Rate:</span>
+                                            <span className="text-white">Up to {plan.dailyRate}%</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Duration:</span>
+                                            <span className="text-white">{plan.duration} days</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-400">Estimated Return:</span>
+                                            <span className="text-green-400">
+                                              {selectedAmount ? formatCurrency(parseFloat(selectedAmount) * (plan.dailyRate / 100) * plan.duration) : '$0.00'}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <Button 
+                                        onClick={handleInvestment} 
+                                        disabled={isLoading}
+                                        className={`w-full bg-gradient-to-r ${getPlanColor(plan.id)} hover:opacity-90 text-white`}
+                                      >
+                                        {isLoading ? 'Processing...' : 'Confirm Investment'}
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                )}
+                              </Dialog>
                             )}
-                          </Dialog>
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -920,6 +1066,276 @@ const Investments = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Arbitrage Simulator Modal */}
+        <Dialog open={showArbitrageSimulator} onOpenChange={setShowArbitrageSimulator}>
+          <DialogContent className="max-w-4xl bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <Play className="h-6 w-6 text-purple-400" />
+                Simulação de Arbitragem - {selectedPlanForSimulation?.name}
+              </DialogTitle>
+              <p className="text-gray-400">
+                Demonstração em tempo real de como o sistema executa arbitragem
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Status Bar */}
+              <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    simulationStatus === 'analyzing' ? 'bg-yellow-500 animate-pulse' :
+                    simulationStatus === 'executing' ? 'bg-blue-500 animate-pulse' :
+                    'bg-green-500'
+                  }`}></div>
+                  <span className="text-white font-medium">
+                    {simulationStatus === 'analyzing' ? 'Analisando Mercado...' :
+                     simulationStatus === 'executing' ? 'Executando Arbitragem...' :
+                     'Arbitragem Concluída!'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-400 text-sm">Lucro Simulado</p>
+                  <p className="text-green-400 font-bold">{formatCurrency(simulationProfit)}</p>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Progresso</span>
+                  <span className="text-purple-400">{simulationProgress.toFixed(0)}%</span>
+                </div>
+                <Progress value={simulationProgress} className="h-3" />
+              </div>
+
+              {/* Market Data Chart */}
+              <Card className="bg-slate-700/30 border border-slate-600/30">
+                <CardHeader>
+                  <CardTitle className="text-white text-lg">
+                    Dados de Mercado em Tempo Real
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RechartsLineChart data={simulationData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis 
+                        dataKey="time"
+                        tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                        stroke="#9CA3AF"
+                        fontSize={12}
+                      />
+                      <YAxis stroke="#9CA3AF" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: '#1F2937',
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#F3F4F6'
+                        }}
+                        labelFormatter={(value) => new Date(value).toLocaleTimeString()}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="btc"
+                        stroke="#F59E0B"
+                        strokeWidth={2}
+                        name="BTC Price"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="eth"
+                        stroke="#3B82F6"
+                        strokeWidth={2}
+                        name="ETH Price"
+                      />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Simulation Details */}
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <h4 className="font-semibold text-purple-400 mb-3">💡 Informações da Simulação</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-400">• Sistema busca diferenças de preço entre exchanges</p>
+                    <p className="text-gray-400">• Executa compra na exchange mais barata</p>
+                    <p className="text-gray-400">• Vende na exchange com preço mais alto</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">• Lucro varia de acordo com oportunidades</p>
+                    <p className="text-gray-400">• Ganhos não são garantidos ou fixos</p>
+                    <p className="text-gray-400">• Taxa máxima: {selectedPlanForSimulation?.dailyRate}% por dia</p>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => setShowArbitrageSimulator(false)}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:opacity-90 text-white"
+              >
+                Fechar Simulação
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Plan Calculator Modal */}
+        <Dialog open={showPlanSimulator !== null} onOpenChange={(open) => !open && setShowPlanSimulator(null)}>
+          <DialogContent className="max-w-3xl bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-blue-400" />
+                Calculadora de Rendimento
+              </DialogTitle>
+              <p className="text-gray-400">
+                Simule os ganhos potenciais com investimento variável
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Calculator Input */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="simulator-amount" className="text-gray-300">Valor do Investimento</Label>
+                  <Input
+                    id="simulator-amount"
+                    type="number"
+                    value={simulatorAmount}
+                    onChange={(e) => setSimulatorAmount(parseFloat(e.target.value) || 1000)}
+                    className="bg-slate-700/50 border-slate-600/50 text-white mt-2"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    onClick={() => {
+                      const plan = investments.find(p => p.id === showPlanSimulator);
+                      if (plan) {
+                        const results = calculatePlanSimulation(plan, simulatorAmount);
+                        console.log('Simulation results:', results);
+                      }
+                    }}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Calcular
+                  </Button>
+                </div>
+              </div>
+
+              {/* Results Summary */}
+              {showPlanSimulator && (() => {
+                const plan = investments.find(p => p.id === showPlanSimulator);
+                if (!plan) return null;
+                
+                const results = calculatePlanSimulation(plan, simulatorAmount);
+                const totalReturn = results[results.length - 1]?.totalEarned || 0;
+                const avgDailyRate = results.reduce((sum, r) => sum + r.dailyRate, 0) / results.length;
+                
+                return (
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-400 mb-3">📊 Resumo da Simulação</h4>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-gray-400 text-sm">Retorno Total</p>
+                        <p className="text-green-400 font-bold text-lg">{formatCurrency(totalReturn)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-sm">Taxa Média</p>
+                        <p className="text-blue-400 font-bold text-lg">{avgDailyRate.toFixed(2)}%</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-sm">Valor Final</p>
+                        <p className="text-white font-bold text-lg">{formatCurrency(simulatorAmount + totalReturn)}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Performance Chart */}
+              {showPlanSimulator && (() => {
+                const plan = investments.find(p => p.id === showPlanSimulator);
+                if (!plan) return null;
+                
+                const results = calculatePlanSimulation(plan, simulatorAmount, 30);
+                
+                return (
+                  <Card className="bg-slate-700/30 border border-slate-600/30">
+                    <CardHeader>
+                      <CardTitle className="text-white text-lg">
+                        Projeção de 30 Dias - {plan.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart data={results}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                          <XAxis 
+                            dataKey="day"
+                            stroke="#9CA3AF"
+                            fontSize={12}
+                          />
+                          <YAxis stroke="#9CA3AF" fontSize={12} />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: '#1F2937',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#F3F4F6'
+                            }}
+                            formatter={(value, name) => [
+                              formatCurrency(value as number), 
+                              name === 'totalEarned' ? 'Total Ganho' : name === 'amount' ? 'Valor Total' : name
+                            ]}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="totalEarned"
+                            stroke="#10B981"
+                            fill="url(#greenGradient)"
+                            strokeWidth={2}
+                          />
+                          <defs>
+                            <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+              {/* Disclaimer */}
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-5 w-5 text-yellow-400 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-yellow-400 mb-1">⚠️ Importante</h4>
+                    <p className="text-gray-300 text-sm">
+                      Esta é uma simulação baseada em taxas variáveis. Os ganhos reais dependem das oportunidades 
+                      de arbitragem do mercado e podem ser menores que os valores apresentados. 
+                      Investimentos sempre envolvem riscos.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => setShowPlanSimulator(null)}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 text-white"
+              >
+                Fechar Calculadora
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
