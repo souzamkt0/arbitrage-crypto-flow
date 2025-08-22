@@ -22,7 +22,8 @@ import {
   Zap,
   Star,
   Crown,
-  Trophy
+  Trophy,
+  RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -75,9 +76,11 @@ const ActivePlansPage = () => {
       return;
     }
 
+    console.log('🔄 [ActivePlans] Iniciando carregamento para usuário:', user.id);
+    console.log('🔄 [ActivePlans] User object completo:', user);
     setLoading(true);
     try {
-      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user.id);
+      console.log('🔄 [ActivePlans] Fazendo query no Supabase...');
       
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
@@ -100,9 +103,16 @@ const ActivePlansPage = () => {
       }
 
       console.log('📊 [ActivePlans] Dados recebidos do Supabase:', investmentsData);
+      console.log('📊 [ActivePlans] Length dos dados:', investmentsData?.length);
 
       if (!investmentsData || investmentsData.length === 0) {
         console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado para este usuário');
+        console.log('⚠️ [ActivePlans] Verificando se há erro de autenticação...');
+        
+        // Verificar se o usuário está autenticado corretamente
+        const { data: authUser } = await supabase.auth.getUser();
+        console.log('🔍 [ActivePlans] Auth user:', authUser?.user?.id);
+        
         setUserInvestments([]);
         return;
       }
@@ -486,12 +496,22 @@ const ActivePlansPage = () => {
             <p className="text-slate-300 mb-8 text-xl">
               Você ainda não possui planos de investimento ativos.
             </p>
-            <Button 
-              onClick={() => navigate('/investments')}
-              className="bg-gradient-to-r from-trading-green to-emerald-400 hover:from-trading-green/90 hover:to-emerald-400/90 text-white text-lg px-8 py-3"
-            >
-              Ver Planos Disponíveis
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => navigate('/investments')}
+                className="bg-gradient-to-r from-trading-green to-emerald-400 hover:from-trading-green/90 hover:to-emerald-400/90 text-white text-lg px-8 py-3"
+              >
+                Ver Planos Disponíveis
+              </Button>
+              <Button 
+                onClick={loadUserInvestments}
+                variant="outline"
+                className="border-trading-green text-trading-green hover:bg-trading-green hover:text-white text-lg px-8 py-3"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                Recarregar
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
