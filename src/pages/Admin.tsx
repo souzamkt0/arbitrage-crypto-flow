@@ -238,6 +238,14 @@ const Admin = () => {
   
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  
+  // Balance management states
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
+  const [selectedUserForBalance, setSelectedUserForBalance] = useState<any>(null);
+  const [balanceOperation, setBalanceOperation] = useState<'add' | 'subtract'>('add');
+  const [balanceAmount, setBalanceAmount] = useState('');
+  const [balanceReason, setBalanceReason] = useState('');
+  const [isUpdatingBalance, setIsUpdatingBalance] = useState(false);
 
   const { toast } = useToast();
 
@@ -339,6 +347,106 @@ const Admin = () => {
     
     setShowAccessAccountModal(false);
     setSelectedUserForAccess(null);
+  };
+
+  // Balance management functions
+  const handleBalanceUpdate = async () => {
+    if (!selectedUserForBalance || !balanceAmount || !balanceReason.trim()) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const amount = parseFloat(balanceAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Erro",
+        description: "Digite um valor válido maior que zero",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingBalance(true);
+
+    try {
+      // Calculate new balance
+      const currentBalance = selectedUserForBalance.balance;
+      const newBalance = balanceOperation === 'add' 
+        ? currentBalance + amount 
+        : currentBalance - amount;
+
+      if (newBalance < 0) {
+        toast({
+          title: "Erro",
+          description: "O saldo não pode ficar negativo",
+          variant: "destructive",
+        });
+        setIsUpdatingBalance(false);
+        return;
+      }
+
+      // Call the admin function to update balance
+      const { data: result, error } = await supabase.rpc('admin_update_user_balance', {
+        target_user_id: selectedUserForBalance.id,
+        new_balance: newBalance,
+        admin_email: user?.email || 'admin@clean.com',
+        reason: `${balanceOperation === 'add' ? 'Adição' : 'Subtração'} de saldo: ${balanceReason}`
+      });
+
+      if (error) {
+        console.error('Error updating balance:', error);
+        toast({
+          title: "Erro",
+          description: `Erro ao atualizar saldo: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: "Sucesso",
+          description: `Saldo ${balanceOperation === 'add' ? 'adicionado' : 'subtraído'} com sucesso!`,
+        });
+
+        // Update local state
+        const updatedUsers = users.map(u => 
+          u.id === selectedUserForBalance.id 
+            ? { ...u, balance: newBalance }
+            : u
+        );
+        setUsers(updatedUsers);
+        setSelectedUserForBalance({ ...selectedUserForBalance, balance: newBalance });
+
+        // Reload data to get updated transactions
+        await loadAdminData();
+
+        // Reset form
+        setBalanceAmount('');
+        setBalanceReason('');
+        setShowBalanceModal(false);
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido ao atualizar saldo",
+          variant: "destructive",
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error updating balance:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao atualizar saldo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingBalance(false);
+    }
   };
 
   // Load investment plans from Supabase
@@ -3679,7 +3787,7 @@ const Admin = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:grid-cols-9 bg-muted/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-10 lg:w-auto lg:grid-cols-10 bg-muted/50 backdrop-blur-sm">
             <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" />
               Visão Geral
@@ -3695,6 +3803,10 @@ const Admin = () => {
             <TabsTrigger value="withdrawals" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Wallet className="h-4 w-4" />
               Saques
+            </TabsTrigger>
+            <TabsTrigger value="balance" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Calculator className="h-4 w-4" />
+              Saldo
             </TabsTrigger>
             <TabsTrigger value="plans" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Target className="h-4 w-4" />
@@ -4260,6 +4372,145 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          {/* Balance Management Tab */}
+          <TabsContent value="balance" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Gerenciar Saldos</h2>
+                <p className="text-muted-foreground">Adicionar ou subtrair saldo dos usuários</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={loadAdminData}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Atualizar
+              </Button>
+            </div>
+
+            {/* Balance Operations */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Quick Balance Operations */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-primary" />
+                    Operações de Saldo
+                  </CardTitle>
+                  <CardDescription>
+                    Selecione um usuário para adicionar ou subtrair saldo
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="userSelect">Selecionar Usuário</Label>
+                      <select 
+                        id="userSelect"
+                        className="w-full p-2 rounded-md border border-border bg-background"
+                        value={selectedUserForBalance?.id || ''}
+                        onChange={(e) => {
+                          const user = users.find(u => u.id === e.target.value);
+                          setSelectedUserForBalance(user);
+                        }}
+                      >
+                        <option value="">Escolha um usuário...</option>
+                        {users.map(user => (
+                          <option key={user.id} value={user.id}>
+                            {user.name} - {user.email} (R$ {user.balance.toFixed(2)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {selectedUserForBalance && (
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{selectedUserForBalance.name}</p>
+                            <p className="text-sm text-muted-foreground">{selectedUserForBalance.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">Saldo atual</p>
+                            <p className="text-lg font-semibold">R$ {selectedUserForBalance.balance.toFixed(2)}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            onClick={() => {
+                              setBalanceOperation('add');
+                              setShowBalanceModal(true);
+                            }}
+                            className="flex-1"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Saldo
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setBalanceOperation('subtract');
+                              setShowBalanceModal(true);
+                            }}
+                            className="flex-1"
+                          >
+                            <ArrowDown className="h-4 w-4 mr-2" />
+                            Subtrair Saldo
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Balance Transactions */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5 text-primary" />
+                    Transações Recentes
+                  </CardTitle>
+                  <CardDescription>
+                    Últimas operações de saldo realizadas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {adminTransactions.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhuma transação encontrada
+                      </div>
+                    ) : (
+                      adminTransactions.slice(0, 10).map((transaction) => (
+                        <div key={transaction.id} className="p-3 border border-border/50 rounded-lg">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-sm">{transaction.userName}</p>
+                              <p className="text-xs text-muted-foreground">{transaction.reason}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-sm font-semibold ${
+                                transaction.amountChanged > 0 ? 'text-green-400' : 'text-red-400'
+                              }`}>
+                                {transaction.amountChanged > 0 ? '+' : ''}R$ {transaction.amountChanged.toFixed(2)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           
           <TabsContent value="withdrawals" className="space-y-6">
@@ -5007,6 +5258,99 @@ const Admin = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Balance Update Modal */}
+        <Dialog open={showBalanceModal} onOpenChange={setShowBalanceModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                {balanceOperation === 'add' ? 'Adicionar Saldo' : 'Subtrair Saldo'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedUserForBalance && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{selectedUserForBalance.name}</p>
+                      <p className="text-sm text-muted-foreground">{selectedUserForBalance.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Saldo atual</p>
+                      <p className="text-lg font-semibold">R$ {selectedUserForBalance.balance.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="balanceAmount">
+                    Valor a {balanceOperation === 'add' ? 'adicionar' : 'subtrair'}
+                  </Label>
+                  <Input
+                    id="balanceAmount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={balanceAmount}
+                    onChange={(e) => setBalanceAmount(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="balanceReason">Motivo *</Label>
+                  <Textarea
+                    id="balanceReason"
+                    value={balanceReason}
+                    onChange={(e) => setBalanceReason(e.target.value)}
+                    placeholder="Digite o motivo desta operação..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                {balanceAmount && (
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Novo saldo será:</p>
+                    <p className="text-lg font-semibold">
+                      R$ {(balanceOperation === 'add' 
+                        ? selectedUserForBalance.balance + parseFloat(balanceAmount || '0')
+                        : selectedUserForBalance.balance - parseFloat(balanceAmount || '0')
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowBalanceModal(false);
+                      setBalanceAmount('');
+                      setBalanceReason('');
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleBalanceUpdate}
+                    disabled={isUpdatingBalance || !balanceAmount || !balanceReason.trim()}
+                    className="flex-1"
+                  >
+                    {isUpdatingBalance ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Calculator className="h-4 w-4 mr-2" />
+                    )}
+                    {balanceOperation === 'add' ? 'Adicionar' : 'Subtrair'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
