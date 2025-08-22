@@ -80,7 +80,7 @@ export const AdminDeposits = () => {
     try {
       console.log('🔄 Carregando depósitos...');
       
-      // Carregar depósitos (sem join que pode estar falhando)
+      // Carregar depósitos (query simples primeiro)
       let query = supabase
         .from('digitopay_transactions')
         .select('*')
@@ -95,59 +95,90 @@ export const AdminDeposits = () => {
 
       if (transactionsError) {
         console.error('❌ Erro ao carregar transações:', transactionsError);
-        throw transactionsError;
+        throw new Error(`Erro na query de transações: ${transactionsError.message}`);
       }
 
       console.log('📊 Transações carregadas:', transactionsData?.length || 0);
 
-      // Carregar profiles separadamente
-      const userIds = [...new Set(transactionsData?.map(t => t.user_id) || [])];
+      // Se não há transações, definir arrays vazios
+      if (!transactionsData || transactionsData.length === 0) {
+        console.log('📋 Nenhuma transação encontrada');
+        setDeposits([]);
+        setStats({
+          total: 0,
+          completed: 0,
+          pending: 0,
+          cancelled: 0,
+          totalValue: 0,
+          completedValue: 0
+        });
+        return;
+      }
+
+      // Carregar profiles separadamente se há transações
+      const userIds = [...new Set(transactionsData.map(t => t.user_id).filter(Boolean))];
       let profilesData = [];
       
       if (userIds.length > 0) {
+        console.log('👥 Carregando profiles para', userIds.length, 'usuários...');
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('user_id, display_name, email, username')
           .in('user_id', userIds);
         
         if (profilesError) {
-          console.error('❌ Erro ao carregar profiles:', profilesError);
+          console.error('⚠️ Erro ao carregar profiles (continuando sem eles):', profilesError);
+          profilesData = [];
         } else {
           profilesData = profiles || [];
           console.log('👥 Profiles carregados:', profilesData.length);
         }
       }
 
-      // Combinar dados
-      const depositsWithProfiles = (transactionsData || []).map(transaction => ({
+      // Combinar dados de forma segura
+      const depositsWithProfiles = transactionsData.map(transaction => ({
         ...transaction,
-        profiles: profilesData.find(p => p.user_id === transaction.user_id)
+        profiles: profilesData.find(p => p && p.user_id === transaction.user_id) || null
       }));
 
-      console.log('✅ Depósitos com profiles:', depositsWithProfiles.length);
+      console.log('✅ Depósitos processados:', depositsWithProfiles.length);
       setDeposits(depositsWithProfiles);
 
-      // Calcular estatísticas
+      // Calcular estatísticas de forma segura
       const allDeposits = depositsWithProfiles || [];
       const completed = allDeposits.filter(d => d.status === 'completed');
       const pending = allDeposits.filter(d => d.status === 'pending');
       const cancelled = allDeposits.filter(d => d.status === 'cancelled' || d.status === 'failed');
 
-      setStats({
+      const stats = {
         total: allDeposits.length,
         completed: completed.length,
         pending: pending.length,
         cancelled: cancelled.length,
-        totalValue: allDeposits.reduce((sum, d) => sum + (d.amount_brl || 0), 0),
-        completedValue: completed.reduce((sum, d) => sum + (d.amount_brl || 0), 0)
-      });
+        totalValue: allDeposits.reduce((sum, d) => sum + (Number(d.amount_brl) || 0), 0),
+        completedValue: completed.reduce((sum, d) => sum + (Number(d.amount_brl) || 0), 0)
+      };
+
+      console.log('📊 Estatísticas calculadas:', stats);
+      setStats(stats);
 
     } catch (error) {
-      console.error('Erro ao carregar depósitos:', error);
+      console.error('❌ Erro ao carregar depósitos:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao carregar depósitos',
+        description: `Erro ao carregar depósitos: ${error.message}`,
         variant: 'destructive'
+      });
+      
+      // Definir estados vazios em caso de erro
+      setDeposits([]);
+      setStats({
+        total: 0,
+        completed: 0,
+        pending: 0,
+        cancelled: 0,
+        totalValue: 0,
+        completedValue: 0
       });
     } finally {
       setLoading(false);
