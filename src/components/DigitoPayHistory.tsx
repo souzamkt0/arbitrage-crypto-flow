@@ -31,17 +31,39 @@ export const DigitoPayHistory: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   // Função para carregar transações
-  const loadTransactions = async () => {
+  const loadTransactions = async (showNotification = false) => {
     if (!user) return;
     setLoading(true);
     try {
       const result = await DigitoPayService.getUserTransactions(user.id);
       if (result.success) {
-        setTransactions(result.data);
+        const newTransactions = result.data;
+        
+        // Verificar se algum PIX foi aprovado (mudou de pending para completed)
+        if (showNotification && transactions.length > 0) {
+          const newlyCompleted = newTransactions.filter(newTx => 
+            newTx.status === 'completed' && 
+            transactions.some(oldTx => 
+              oldTx.trx_id === newTx.trx_id && oldTx.status === 'pending'
+            )
+          );
+          
+          // Notificar sobre PIX aprovados
+          newlyCompleted.forEach(tx => {
+            toast({
+              title: '✅ PIX Aprovado!',
+              description: `Seu depósito de R$ ${tx.amount_brl.toFixed(2)} foi confirmado`,
+            });
+          });
+        }
+        
+        setTransactions(newTransactions);
+        console.log('📊 Histórico carregado:', newTransactions);
       } else {
         throw new Error('Erro ao carregar transações');
       }
     } catch (error) {
+      console.error('❌ Erro ao carregar transações:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao carregar histórico',
@@ -52,9 +74,18 @@ export const DigitoPayHistory: React.FC = () => {
     }
   };
 
-  // Carregar transações ao montar o componente
+  // Carregar transações ao montar o componente e configurar atualização automática
   useEffect(() => {
+    if (!user) return;
+    
     loadTransactions();
+    
+    // Atualizar automaticamente a cada 30 segundos para verificar PIX aprovados
+    const interval = setInterval(() => {
+      loadTransactions(true); // true = mostrar notificação se PIX foi aprovado
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [user]);
 
   // Função para formatar data
@@ -164,7 +195,7 @@ export const DigitoPayHistory: React.FC = () => {
               <History className="h-5 w-5" />
               <CardTitle>Histórico de Transações</CardTitle>
             </div>
-            <Button variant="outline" size="sm" onClick={loadTransactions} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={() => loadTransactions()} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Atualizar
             </Button>
@@ -193,32 +224,33 @@ export const DigitoPayHistory: React.FC = () => {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     Concluídas ({completedTransactions.length})
                   </h4>
-                  {completedTransactions.map(transaction => (
-                    <div key={transaction.id} className="border rounded-lg p-4 transition-colors bg-neutral-800">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">
-                              {translateType(transaction.type)}
-                            </span>
-                            <Badge className={getStatusColor(transaction.status)}>
-                              {translateStatus(transaction.status)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
-                            <p>Data: {formatDate(transaction.created_at)}</p>
-                            <p>ID: {transaction.trx_id}</p>
-                          </div>
-                        </div>
+                   {completedTransactions.map(transaction => (
+                     <div key={transaction.id} className="border border-green-500/20 rounded-lg p-4 transition-colors bg-green-500/5">
+                       <div className="flex items-center justify-between">
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2 mb-2">
+                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                             <span className="font-medium text-green-400">
+                               {translateType(transaction.type)} Aprovado
+                             </span>
+                             <Badge className="bg-green-500 text-green-900">
+                               {translateStatus(transaction.status)}
+                             </Badge>
+                           </div>
+                           
+                           <div className="text-sm text-green-300 space-y-1">
+                             <p className="font-medium">Valor: R$ {transaction.amount_brl.toFixed(2)}</p>
+                             <p>Confirmado em: {formatDate(transaction.updated_at)}</p>
+                             <p>ID: {transaction.trx_id}</p>
+                           </div>
+                         </div>
 
-                        <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                         <Button variant="outline" size="sm" onClick={() => setSelectedTransaction(transaction)} className="border-green-500/30 text-green-400 hover:bg-green-500/20">
+                           <Eye className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </div>
+                   ))}
                 </div>
               )}
 
