@@ -449,6 +449,95 @@ const Admin = () => {
     }
   };
 
+  // Sync withdrawal balances function
+  const syncWithdrawalBalances = async () => {
+    try {
+      toast({
+        title: "Sincronizando...",
+        description: "Sincronizando saldos de saque de todos os usuários",
+      });
+
+      const { data: result, error } = await supabase.rpc('sync_all_withdrawal_balances');
+
+      if (error) {
+        console.error('Error syncing withdrawal balances:', error);
+        toast({
+          title: "Erro",
+          description: `Erro ao sincronizar saldos: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: "Sucesso",
+          description: `${result.users_processed} usuários sincronizados com sucesso!`,
+        });
+
+        // Reload data to show updated balances
+        await loadAdminData();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido ao sincronizar saldos",
+          variant: "destructive",
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error syncing withdrawal balances:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao sincronizar saldos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Sync user specific withdrawal balance
+  const syncUserWithdrawalBalance = async (userId: string) => {
+    try {
+      const { data: result, error } = await supabase.rpc('sync_user_withdrawal_balance', {
+        target_user_id: userId
+      });
+
+      if (error) {
+        console.error('Error syncing user withdrawal balance:', error);
+        toast({
+          title: "Erro",
+          description: `Erro ao sincronizar saldo: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: "Saldo Sincronizado",
+          description: `Saldo disponível: R$ ${result.available_withdrawal_balance.toFixed(2)}`,
+        });
+
+        // Reload data to show updated balances
+        await loadAdminData();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido ao sincronizar saldo",
+          variant: "destructive",
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error syncing user withdrawal balance:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao sincronizar saldo do usuário",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Load investment plans from Supabase
   useEffect(() => {
     const loadInvestmentPlans = async () => {
@@ -4389,6 +4478,13 @@ const Admin = () => {
                 <RefreshCw className="h-4 w-4" />
                 Atualizar
               </Button>
+              <Button
+                onClick={syncWithdrawalBalances}
+                className="flex items-center gap-2"
+              >
+                <Calculator className="h-4 w-4" />
+                Sincronizar Saldos de Saque
+              </Button>
             </div>
 
             {/* Balance Operations */}
@@ -4460,6 +4556,14 @@ const Admin = () => {
                           >
                             <ArrowDown className="h-4 w-4 mr-2" />
                             Subtrair Saldo
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => syncUserWithdrawalBalance(selectedUserForBalance.id)}
+                            className="flex-1"
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Sincronizar Saque
                           </Button>
                         </div>
                       </div>

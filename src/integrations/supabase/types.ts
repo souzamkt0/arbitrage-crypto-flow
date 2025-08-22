@@ -1523,6 +1523,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      calculate_available_withdrawal_balance: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       calculate_daily_progress: {
         Args: { p_investment_id: string }
         Returns: number
@@ -1705,8 +1709,16 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      sync_all_withdrawal_balances: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       sync_arbitrage_plans: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      sync_user_withdrawal_balance: {
+        Args: { target_user_id: string }
         Returns: Json
       }
       test_referral_signup: {
