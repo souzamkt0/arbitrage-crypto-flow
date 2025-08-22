@@ -316,7 +316,15 @@ export type Database = {
           user_id?: string
           wallet_address?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deposits_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       digitopay_debug: {
         Row: {
@@ -397,7 +405,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "digitopay_transactions_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       investment_operations: {
         Row: {
@@ -688,7 +704,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partners_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       photo_uploads: {
         Row: {
@@ -761,7 +785,7 @@ export type Database = {
           status: string | null
           total_profit: number | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           username: string | null
           whatsapp: string | null
         }
@@ -790,7 +814,7 @@ export type Database = {
           status?: string | null
           total_profit?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           username?: string | null
           whatsapp?: string | null
         }
@@ -819,7 +843,7 @@ export type Database = {
           status?: string | null
           total_profit?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           username?: string | null
           whatsapp?: string | null
         }
@@ -859,7 +883,22 @@ export type Database = {
           total_commission?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_profiles_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_profiles_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       residual_earnings: {
         Row: {
@@ -1076,7 +1115,15 @@ export type Database = {
           type?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trading_history_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       trading_profits: {
         Row: {
@@ -1282,6 +1329,20 @@ export type Database = {
             referencedRelation: "investment_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_investments_plans_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_investments_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_profiles: {
@@ -1426,7 +1487,15 @@ export type Database = {
           user_id?: string
           wallet_address?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
