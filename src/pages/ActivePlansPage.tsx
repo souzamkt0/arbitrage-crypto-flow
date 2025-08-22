@@ -70,69 +70,96 @@ const ActivePlansPage = () => {
 
   const loadUserInvestments = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user?.id);
+      
+      const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select('*')
         .eq('user_id', user?.id)
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
+        throw error;
+      }
 
-      // Simular dados de investimentos ativos para demonstração
-      const mockInvestments: UserInvestment[] = [
-        {
-          id: '1',
-          investmentId: '1',
-          investmentName: 'Robô 4.0.0',
-          amount: 100,
-          dailyRate: 2.5,
-          startDate: '2024-01-15',
-          endDate: '2024-02-24',
-          totalEarned: 2.50, // Corrigido: 2.5% de $100 = $2.50
-          status: 'active',
-          daysRemaining: 15,
-          currentDayProgress: 75,
-          todayEarnings: 2.25,
-          dailyTarget: 2.5,
-          operationsCompleted: 0,
-          totalOperations: 2,
+      console.log('📊 [ActivePlans] Investimentos encontrados:', investmentsData);
+
+      if (!investmentsData || investmentsData.length === 0) {
+        console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado');
+        setUserInvestments([]);
+        return;
+      }
+
+      // Buscar nomes dos planos
+      const { data: plansData, error: plansError } = await supabase
+        .from('investment_plans')
+        .select('id, name, robot_version')
+        .in('id', investmentsData.map(inv => inv.plan_id));
+
+      if (plansError) {
+        console.error('❌ [ActivePlans] Erro ao buscar planos:', plansError);
+      }
+
+      const plansMap = new Map();
+      if (plansData) {
+        plansData.forEach(plan => {
+          plansMap.set(plan.id, plan.name);
+        });
+      }
+
+      const formattedInvestments: UserInvestment[] = investmentsData.map(investment => {
+        console.log('🔍 [ActivePlans] Processando investimento:', investment.id);
+        
+        const startDate = new Date(investment.start_date || investment.created_at);
+        if (isNaN(startDate.getTime())) {
+          console.warn('Data inválida para investimento:', investment.id);
+          return null;
+        }
+        
+        const endDate = new Date(investment.end_date);
+        const now = new Date();
+        const daysRemaining = Math.max(0, Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        
+        const currentHour = now.getHours();
+        const currentDayProgress = (currentHour / 24) * 100;
+        
+        const dailyRate = investment.daily_rate || 2.5;
+        const dailyTarget = investment.amount * (dailyRate / 100);
+        const todayEarnings = investment.today_earnings || 0;
+
+        const planName = plansMap.get(investment.plan_id) || 'Robô de Arbitragem';
+
+        return {
+          id: investment.id,
+          investmentId: investment.plan_id,
+          investmentName: planName,
+          amount: investment.amount,
+          dailyRate: dailyRate,
+          startDate: investment.start_date || investment.created_at,
+          endDate: investment.end_date,
+          totalEarned: investment.total_earned || 0,
+          status: investment.status,
+          daysRemaining,
+          currentDayProgress: investment.current_day_progress || currentDayProgress,
+          todayEarnings,
+          dailyTarget: investment.daily_target || dailyTarget,
+          operationsCompleted: investment.operations_completed || 0,
+          totalOperations: investment.total_operations || 40,
           currentOperation: {
             pair: 'BTC/USDT',
             buyPrice: 43250,
             sellPrice: 43320,
-            profit: 0.85,
-            progress: 65,
-            timeRemaining: 180
+            profit: 0,
+            progress: 0,
+            timeRemaining: 0
           }
-        },
-        {
-          id: '2',
-          investmentId: '2',
-          investmentName: 'Robô 4.0.5',
-          amount: 200,
-          dailyRate: 3.0,
-          startDate: '2024-01-10',
-          endDate: '2024-02-19',
-          totalEarned: 5.00, // Corrigido: 2.5% de $200 = $5.00
-          status: 'active',
-          daysRemaining: 12,
-          currentDayProgress: 45,
-          todayEarnings: 3.15,
-          dailyTarget: 6.0,
-          operationsCompleted: 1,
-          totalOperations: 2,
-          currentOperation: {
-            pair: 'ETH/USDT',
-            buyPrice: 2650,
-            sellPrice: 2675,
-            profit: 1.20,
-            progress: 30,
-            timeRemaining: 420
-          }
-        }
-      ];
+        };
+      }).filter(Boolean);
 
-      setUserInvestments(mockInvestments);
+      console.log('✅ [ActivePlans] Investimentos formatados:', formattedInvestments);
+      setUserInvestments(formattedInvestments);
     } catch (error) {
       console.error('Erro ao carregar investimentos:', error);
     } finally {
