@@ -53,20 +53,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "admin_balance_transactions_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "admin_balance_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "fk_admin_balance_transactions_admin_user_id"
             columns: ["admin_user_id"]
             isOneToOne: false
@@ -154,6 +140,65 @@ export type Database = {
         }
         Relationships: []
       }
+      community_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          likes_count: number | null
+          mentions: string[] | null
+          replies_count: number | null
+          reply_to_post_id: string | null
+          reply_to_username: string | null
+          retweets_count: number | null
+          shares_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          mentions?: string[] | null
+          replies_count?: number | null
+          reply_to_post_id?: string | null
+          reply_to_username?: string | null
+          retweets_count?: number | null
+          shares_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          mentions?: string[] | null
+          replies_count?: number | null
+          reply_to_post_id?: string | null
+          reply_to_username?: string | null
+          retweets_count?: number | null
+          shares_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_reply_to_post_id_fkey"
+            columns: ["reply_to_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       current_operations: {
         Row: {
           buy_price: number
@@ -193,6 +238,42 @@ export type Database = {
           time_remaining?: number | null
           updated_at?: string | null
           user_investment_id?: string
+        }
+        Relationships: []
+      }
+      custom_users: {
+        Row: {
+          bio: string | null
+          cover_image_url: string | null
+          created_at: string
+          custom_display_name: string | null
+          custom_username: string | null
+          id: string
+          original_username: string
+          profile_image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          custom_display_name?: string | null
+          custom_username?: string | null
+          id?: string
+          original_username: string
+          profile_image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          custom_display_name?: string | null
+          custom_username?: string | null
+          id?: string
+          original_username?: string
+          profile_image_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -362,6 +443,556 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      facebook_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          privacy: string | null
+          target_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          privacy?: string | null
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          privacy?: string | null
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_albums: {
+        Row: {
+          cover_photo_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          owner_id: string | null
+          photos_count: number | null
+          privacy: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          photos_count?: number | null
+          privacy?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cover_photo_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          photos_count?: number | null
+          privacy?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_albums_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          media_url: string | null
+          parent_comment_id: string | null
+          post_id: string | null
+          replies_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_url?: string | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          replies_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_url?: string | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          replies_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_friendships: {
+        Row: {
+          addressee_id: string | null
+          created_at: string | null
+          id: string
+          requester_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          addressee_id?: string | null
+          created_at?: string | null
+          id?: string
+          requester_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          addressee_id?: string | null
+          created_at?: string | null
+          id?: string
+          requester_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          reaction_type: string | null
+          target_id: string
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reaction_type?: string | null
+          target_id: string
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reaction_type?: string | null
+          target_id?: string
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          recipient_id: string | null
+          sender_id: string | null
+          target_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          target_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          target_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_photos: {
+        Row: {
+          album_id: string | null
+          alt_text: string | null
+          caption: string | null
+          comments_count: number | null
+          created_at: string | null
+          file_size: number | null
+          height: number | null
+          id: string
+          likes_count: number | null
+          owner_id: string | null
+          post_id: string | null
+          tags: Json | null
+          url: string
+          width: number | null
+        }
+        Insert: {
+          album_id?: string | null
+          alt_text?: string | null
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          likes_count?: number | null
+          owner_id?: string | null
+          post_id?: string | null
+          tags?: Json | null
+          url: string
+          width?: number | null
+        }
+        Update: {
+          album_id?: string | null
+          alt_text?: string | null
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          likes_count?: number | null
+          owner_id?: string | null
+          post_id?: string | null
+          tags?: Json | null
+          url?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_photos_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_photos_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_photos_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_posts: {
+        Row: {
+          author_id: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          feeling: string | null
+          hashtags: string[] | null
+          id: string
+          is_pinned: boolean | null
+          likes_count: number | null
+          link_preview: Json | null
+          location: string | null
+          media_urls: string[] | null
+          mentions: string[] | null
+          post_type: string | null
+          privacy: string | null
+          shares_count: number | null
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          feeling?: string | null
+          hashtags?: string[] | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          link_preview?: Json | null
+          location?: string | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          post_type?: string | null
+          privacy?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          feeling?: string | null
+          hashtags?: string[] | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          link_preview?: Json | null
+          location?: string | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          post_type?: string | null
+          privacy?: string | null
+          shares_count?: number | null
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_profiles: {
+        Row: {
+          badge: string | null
+          bio: string | null
+          birth_date: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          display_name: string
+          earnings: number | null
+          education: string | null
+          email_public: boolean | null
+          followers_count: number | null
+          following_count: number | null
+          friends_count: number | null
+          id: string
+          join_date: string | null
+          last_active: string | null
+          level: number | null
+          location: string | null
+          phone: string | null
+          photos_count: number | null
+          posts_count: number | null
+          privacy_settings: Json | null
+          profile_photo_url: string | null
+          relationship_status: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string
+          verified: boolean | null
+          website: string | null
+          work: string | null
+        }
+        Insert: {
+          badge?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name: string
+          earnings?: number | null
+          education?: string | null
+          email_public?: boolean | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          join_date?: string | null
+          last_active?: string | null
+          level?: number | null
+          location?: string | null
+          phone?: string | null
+          photos_count?: number | null
+          posts_count?: number | null
+          privacy_settings?: Json | null
+          profile_photo_url?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+          verified?: boolean | null
+          website?: string | null
+          work?: string | null
+        }
+        Update: {
+          badge?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          display_name?: string
+          earnings?: number | null
+          education?: string | null
+          email_public?: boolean | null
+          followers_count?: number | null
+          following_count?: number | null
+          friends_count?: number | null
+          id?: string
+          join_date?: string | null
+          last_active?: string | null
+          level?: number | null
+          location?: string | null
+          phone?: string | null
+          photos_count?: number | null
+          posts_count?: number | null
+          privacy_settings?: Json | null
+          profile_photo_url?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
+          verified?: boolean | null
+          website?: string | null
+          work?: string | null
+        }
+        Relationships: []
+      }
+      facebook_shares: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          privacy: string | null
+          share_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          privacy?: string | null
+          share_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          privacy?: string | null
+          share_text?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facebook_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investment_operations: {
         Row: {
@@ -699,6 +1330,38 @@ export type Database = {
         }
         Relationships: []
       }
+      post_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_interactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar: string | null
@@ -867,6 +1530,81 @@ export type Database = {
         }
         Relationships: []
       }
+      social_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          parent_comment_id: string | null
+          post_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string | null
+          following_id: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       social_likes: {
         Row: {
           comment_id: string | null
@@ -890,6 +1628,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "social_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "social_likes_post_id_fkey"
             columns: ["post_id"]
@@ -1545,14 +2290,6 @@ export type Database = {
       is_admin_user: {
         Args: { user_email: string }
         Returns: boolean
-      }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      process_investment: {
-        Args: { p_amount: number; p_plan_id: string; p_user_id: string }
-        Returns: Json
       }
       remove_partner: {
         Args: { partner_email: string }

@@ -686,23 +686,6 @@ const Dashboard = () => {
       
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
-        
-        {/* Top Section - 3 Gráficos em Destaque */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-2 gap-6 mb-8">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Bitcoin (BTC)</h3>
-            <TradingChart />
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Ethereum (ETH)</h3>
-            <EthereumChart />
-          </div>
-          <div className="space-y-4 xl:col-span-1 lg:col-span-2 xl:lg:col-span-1">
-            <h3 className="text-lg font-semibold text-white mb-2">Solana (SOL)</h3>
-            <SolanaChart />
-          </div>
-        </div>
-
         {/* Trading Stats */}
         <TradingStats
           balance={balance}
@@ -714,7 +697,7 @@ const Dashboard = () => {
           botActive={botActive}
         />
 
-        {/* Secondary Layout */}
+        {/* Main Trading Layout - Optimized for Desktop */}
         <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-2 gap-6">
           {/* Left Section - Market Overview */}
           <div className="xl:col-span-1 lg:col-span-1 space-y-6">
@@ -722,10 +705,14 @@ const Dashboard = () => {
             <ResidualBalanceBox />
           </div>
 
-          {/* Center Section - Cardano Chart */}
+          {/* Center Section - Trading Chart (Takes more space on desktop) */}
           <div className="xl:col-span-2 lg:col-span-1 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Cardano (ADA)</h3>
+            <TradingChart />
+            
+            {/* Additional Crypto Charts Below BTC - Same Size */}
+            <div className="space-y-6">
+              <EthereumChart />
+              <SolanaChart />
               <CardanoChart />
             </div>
           </div>

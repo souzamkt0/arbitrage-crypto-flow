@@ -47,7 +47,7 @@ interface TwitterPostData {
   replyTo?: string;
   imageUrl?: string;
 }
-
+import { communityUsers } from "@/data/communityUsers";
 import ProfileImageUpload from "@/components/ProfileImageUpload";
 
 const UserProfilePage = () => {
@@ -69,29 +69,8 @@ const UserProfilePage = () => {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editedUsername, setEditedUsername] = useState("");
 
-  // Mock data local
-  const mockUsers: UserProfileData[] = [
-    {
-      id: "user-1",
-      username: "cryptomaster",
-      displayName: "Crypto Master",
-      bio: "Especialista em trading de criptomoedas e arbitragem",
-      avatar: "avatar1",
-      verified: true,
-      followers: 1520,
-      following: 340,
-      posts: 89,
-      joinDate: "Janeiro 2023",
-      city: "São Paulo",
-      state: "SP",
-      location: "São Paulo, SP",
-      isFollowing: false,
-      isBlocked: false,
-      earnings: 3200.50,
-      level: 8,
-      badge: "Master"
-    }
-  ];
+  // Usar os dados reais da comunidade
+  const mockUsers: UserProfileData[] = communityUsers;
 
   const mockPosts: TwitterPostData[] = [
     {

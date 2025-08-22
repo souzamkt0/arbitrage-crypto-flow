@@ -25,6 +25,8 @@ import Investments from "./pages/Investments";
 import ActivePlansPage from "./pages/ActivePlansPage";
 import Referrals from "./pages/Referrals";
 import Partners from "./pages/Partners";
+import Community from "./pages/Community";
+// import Social from "./pages/Social"; // Página removida
 import UserProfilePage from "./pages/UserProfile";
 import FacebookProfile from "./pages/FacebookProfile";
 import EditProfile from "./pages/EditProfile";
@@ -232,6 +234,27 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Partners />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Community />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          {/* Rota Social removida - usar apenas Community */}
+          <Route
+            path="/community/user/:username"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <UserProfilePage />
                 </Layout>
               </ProtectedRoute>
             }

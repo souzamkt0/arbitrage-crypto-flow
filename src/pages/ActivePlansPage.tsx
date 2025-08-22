@@ -69,104 +69,72 @@ const ActivePlansPage = () => {
   }, [user]);
 
   const loadUserInvestments = async () => {
-    if (!user?.id) {
-      console.log('⚠️ [ActivePlans] Usuário não autenticado');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
     try {
-      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user.id);
-      
-      const { data: investmentsData, error } = await supabase
+      const { data, error } = await supabase
         .from('user_investments')
-        .select(`
-          *,
-          investment_plans(name, robot_version, daily_rate)
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
+        .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar seus investimentos. Tente novamente.",
-          variant: "destructive"
-        });
-        return;
-      }
+      if (error) throw error;
 
-      console.log('📊 [ActivePlans] Dados recebidos do Supabase:', investmentsData);
-
-      if (!investmentsData || investmentsData.length === 0) {
-        console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado para este usuário');
-        setUserInvestments([]);
-        return;
-      }
-
-      // Formatear os dados recebidos do Supabase
-      const formattedInvestments: UserInvestment[] = investmentsData.map(investment => {
-        console.log('🔍 [ActivePlans] Processando investimento:', investment.id);
-        
-        const startDate = new Date(investment.start_date || investment.created_at);
-        if (isNaN(startDate.getTime())) {
-          console.warn('Data inválida para investimento:', investment.id);
-          return null;
-        }
-        
-        const endDate = new Date(investment.end_date);
-        const now = new Date();
-        const daysRemaining = Math.max(0, Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-        
-        const currentHour = now.getHours();
-        const currentDayProgress = (currentHour / 24) * 100;
-        
-        const dailyRate = investment.daily_rate || 2.5;
-        const dailyTarget = investment.amount * (dailyRate / 100);
-        const todayEarnings = investment.today_earnings || 0;
-
-        // Usar o nome do plano do relacionamento ou fallback
-        const planName = investment.investment_plans?.name || 'Robô de Arbitragem';
-
-        return {
-          id: investment.id,
-          investmentId: investment.plan_id,
-          investmentName: planName,
-          amount: investment.amount,
-          dailyRate: dailyRate,
-          startDate: investment.start_date || investment.created_at,
-          endDate: investment.end_date,
-          totalEarned: investment.total_earned || 0,
-          status: investment.status,
-          daysRemaining,
-          currentDayProgress: investment.current_day_progress || currentDayProgress,
-          todayEarnings,
-          dailyTarget: investment.daily_target || dailyTarget,
-          operationsCompleted: investment.operations_completed || 0,
-          totalOperations: investment.total_operations || 40,
+      // Simular dados de investimentos ativos para demonstração
+      const mockInvestments: UserInvestment[] = [
+        {
+          id: '1',
+          investmentId: '1',
+          investmentName: 'Robô 4.0.0',
+          amount: 100,
+          dailyRate: 2.5,
+          startDate: '2024-01-15',
+          endDate: '2024-02-24',
+          totalEarned: 2.50, // Corrigido: 2.5% de $100 = $2.50
+          status: 'active',
+          daysRemaining: 15,
+          currentDayProgress: 75,
+          todayEarnings: 2.25,
+          dailyTarget: 2.5,
+          operationsCompleted: 0,
+          totalOperations: 2,
           currentOperation: {
             pair: 'BTC/USDT',
             buyPrice: 43250,
             sellPrice: 43320,
-            profit: 0,
-            progress: 0,
-            timeRemaining: 0
+            profit: 0.85,
+            progress: 65,
+            timeRemaining: 180
           }
-        };
-      }).filter(Boolean);
+        },
+        {
+          id: '2',
+          investmentId: '2',
+          investmentName: 'Robô 4.0.5',
+          amount: 200,
+          dailyRate: 3.0,
+          startDate: '2024-01-10',
+          endDate: '2024-02-19',
+          totalEarned: 5.00, // Corrigido: 2.5% de $200 = $5.00
+          status: 'active',
+          daysRemaining: 12,
+          currentDayProgress: 45,
+          todayEarnings: 3.15,
+          dailyTarget: 6.0,
+          operationsCompleted: 1,
+          totalOperations: 2,
+          currentOperation: {
+            pair: 'ETH/USDT',
+            buyPrice: 2650,
+            sellPrice: 2675,
+            profit: 1.20,
+            progress: 30,
+            timeRemaining: 420
+          }
+        }
+      ];
 
-      console.log('✅ [ActivePlans] Investimentos formatados:', formattedInvestments);
-      setUserInvestments(formattedInvestments);
+      setUserInvestments(mockInvestments);
     } catch (error) {
-      console.error('❌ [ActivePlans] Erro ao carregar investimentos:', error);
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar seus investimentos. Tente novamente.",
-        variant: "destructive"
-      });
+      console.error('Erro ao carregar investimentos:', error);
     } finally {
       setLoading(false);
     }
@@ -193,8 +161,16 @@ const ActivePlansPage = () => {
 
   // Verificar se pode executar operação baseado no tempo
   const canExecuteOperationBasedOnTime = (investment: UserInvestment) => {
-    // Durante os testes, permitir sempre executar se não completou 2 operações
-    return investment.operationsCompleted < 2;
+    // Simular verificação de 24h - em produção seria baseado no timestamp real
+    const now = new Date();
+    const lastOperationTime = investment.currentOperation?.timeRemaining || 0;
+    
+    // Se não há operações hoje ou se passou 24h, pode executar
+    if (investment.operationsCompleted === 0) return true;
+    
+    // Simular que após 24h (86400 segundos) libera novamente
+    const timeSinceLastOperation = 86400 - lastOperationTime;
+    return timeSinceLastOperation >= 86400; // 24h em segundos
   };
 
   // Função para executar operação
