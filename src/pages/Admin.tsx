@@ -480,7 +480,7 @@ const Admin = () => {
     };
 
     loadAdminData();
-  }, []);
+  }, [user]);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2215,6 +2215,24 @@ const Admin = () => {
 
       console.log('✅ Usuários carregados:', users?.length || 0);
       setAllUsers(users || []);
+      
+      // Atualizar também o estado principal users para os cards do dashboard
+      if (users) {
+        const formattedUsers = users.map(profile => ({
+          id: profile.user_id,
+          name: profile.display_name || profile.username || 'Sem nome',
+          username: profile.username || profile.display_name || 'Sem nome',
+          email: profile.email || 'no-email',
+          role: profile.role as "admin" | "user",
+          status: 'active' as "active" | "inactive",
+          balance: profile.balance || 0,
+          totalProfit: 0,
+          joinDate: profile.created_at?.split('T')[0] || '',
+          lastLogin: '',
+          apiConnected: false
+        }));
+        setUsers(formattedUsers);
+      }
       
     } catch (error) {
       console.error('❌ Erro ao carregar usuários:', error);
