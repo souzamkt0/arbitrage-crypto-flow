@@ -52,6 +52,7 @@ import { CardanoChart } from "@/components/CardanoChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
+import BalanceBox from "@/components/BalanceBox";
 
 
 const Dashboard = () => {
@@ -686,6 +687,12 @@ const Dashboard = () => {
       
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
+        
+        {/* Balance Box - Primeiro elemento */}
+        <BalanceBox onRefresh={() => {
+          loadInvestmentStats();
+          loadPartnerData();
+        }} />
         
         {/* Top Section - Gráficos em Coluna */}
         <div className="space-y-6 mb-8">

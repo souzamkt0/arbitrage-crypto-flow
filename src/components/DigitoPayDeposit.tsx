@@ -296,12 +296,12 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <h1 className="text-2xl font-bold text-white">TRADING DEPOSIT</h1>
+          <h1 className="text-2xl font-bold text-white">DEPÓSITO TRADING</h1>
           <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-sm font-medium">
-            LIVE
+            AO VIVO
           </div>
         </div>
-        <p className="text-gray-400">Instant PIX deposits • Real-time confirmation • Trading ready</p>
+        <p className="text-gray-400">Depósitos PIX instantâneos • Confirmação em tempo real • Pronto para trading</p>
       </div>
 
       <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20 shadow-2xl shadow-blue-500/10">
@@ -313,15 +313,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
               <div>
                 <CardTitle className="text-xl font-bold text-white">
-                  Instant PIX Deposit
+                  Depósito PIX Instantâneo
                 </CardTitle>
                 <CardDescription className="text-gray-400 text-sm">
-                  Automated confirmation • Zero delays
+                  Confirmação automática • Sem atrasos
                 </CardDescription>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-gray-500">Exchange Rate</div>
+              <div className="text-xs text-gray-500">Taxa de Câmbio</div>
               <div className="text-lg font-bold text-green-400">
                 1 USD = {formatBRL(exchangeRate || 5.5)}
               </div>
@@ -335,14 +335,14 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
             <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <h3 className="text-lg font-semibold text-white">Trading Deposit Form</h3>
+                <h3 className="text-lg font-semibold text-white">Formulário de Depósito</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <Label htmlFor="amount" className="text-blue-400 font-medium flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Deposit Amount (USD)
+                    Valor do Depósito (USD)
                   </Label>
                   <div className="relative">
                     <Input
@@ -361,7 +361,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Min: $1.00 USD</span>
-                    <span className="text-green-400">✓ Instant confirmation</span>
+                    <span className="text-green-400">✓ Confirmação instantânea</span>
                   </div>
                 </div>
                 
@@ -370,7 +370,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                     <div className="w-4 h-4 border border-blue-400 rounded flex items-center justify-center">
                       <div className="w-2 h-2 bg-blue-400 rounded-sm"></div>
                     </div>
-                    CPF Document
+                    Documento CPF
                   </Label>
                   <Input
                     id="cpf"
@@ -379,7 +379,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                     className="bg-slate-800/60 border-blue-500/30 text-white text-lg font-medium h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     placeholder="000.000.000-00"
                   />
-                  <p className="text-xs text-gray-400">Required for PIX payment</p>
+                  <p className="text-xs text-gray-400">Obrigatório para pagamento PIX</p>
                 </div>
               </div>
             </div>
@@ -391,9 +391,9 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center">
                     <span className="text-white font-bold text-sm">₮</span>
                   </div>
-                  <h4 className="text-emerald-400 font-bold text-lg">Trading Calculator</h4>
+                  <h4 className="text-emerald-400 font-bold text-lg">Calculadora de Trading</h4>
                   <div className="ml-auto px-3 py-1 bg-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium">
-                    REAL-TIME
+                    TEMPO REAL
                   </div>
                 </div>
                 
@@ -401,12 +401,12 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30">
                     <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
                       <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      You Pay (PIX)
+                      Você Paga (PIX)
                     </div>
                     <div className="text-2xl font-bold text-white mb-1">
                       {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
                     </div>
-                    <div className="text-xs text-gray-400">Brazilian Real</div>
+                    <div className="text-xs text-gray-400">Real Brasileiro</div>
                   </div>
                   
                   <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30 relative">
@@ -415,7 +415,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                     </div>
                     <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      Exchange Rate
+                      Taxa de Câmbio
                     </div>
                     <div className="text-lg font-bold text-blue-400 mb-1">
                       {(exchangeRate || 5.5).toFixed(2)}
@@ -426,19 +426,19 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30">
                     <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      You Receive (Trading Balance)
+                      Você Recebe (Saldo Trading)
                     </div>
                     <div className="text-2xl font-bold text-green-400 mb-1">
                       ${parseFloat(amount).toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-400">US Dollar</div>
+                    <div className="text-xs text-gray-400">Dólar Americano</div>
                   </div>
                 </div>
                 
                 <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
                   <div className="flex items-center gap-2 text-sm text-green-400">
                     <CheckCircle className="h-4 w-4" />
-                    <span className="font-medium">Ready for trading immediately after confirmation</span>
+                    <span className="font-medium">Pronto para trading imediatamente após confirmação</span>
                   </div>
                 </div>
               </div>
@@ -456,14 +456,14 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   {loading ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Generating Trading PIX...</span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                        <span className="text-sm">⚡</span>
-                      </div>
-                      <span>EXECUTE INSTANT PIX DEPOSIT</span>
+                       <span>Gerando PIX de Trading...</span>
+                     </>
+                   ) : (
+                     <>
+                       <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                         <span className="text-sm">⚡</span>
+                       </div>
+                       <span>EXECUTAR DEPÓSITO PIX INSTANTÂNEO</span>
                     </>
                   )}
                 </div>
