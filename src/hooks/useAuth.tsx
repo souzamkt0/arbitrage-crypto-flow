@@ -190,67 +190,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("❌ Erro no login:", error);
         
-        // Se for erro de schema/NULL, tentar bypass auth
-        if (error.message.includes('Database error querying schema') || 
-            error.message.includes('converting NULL to string') ||
-            error.message.includes('Scan error')) {
-          
-          console.log('🚀 Tentando login bypass para admin...');
-          
-          // Tentar bypass para admins
-          if ((email === 'admin@clean.com' || email === 'souzamkt0@gmail.com') && password === '123456') {
-            try {
-              const response = await fetch(`https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/admin-bypass-auth`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8`,
-                },
-                body: JSON.stringify({ email, password }),
-              });
-
-              const result = await response.json();
-              
-              if (result.success) {
-                console.log('✅ Login bypass bem-sucedido!');
-                
-                // Simular sessão válida
-                const mockSession = result.session;
-                setUser(mockSession.user);
-                setSession(mockSession);
-                setProfile(mockSession.profile);
-                
-                // Salvar no localStorage para persistência
-                localStorage.setItem('bypass_session', JSON.stringify(mockSession));
-                
-                return { error: null };
-              } else {
-                console.error('❌ Falha no bypass:', result.error);
-              }
-            } catch (bypassError) {
-              console.error('❌ Erro no bypass:', bypassError);
+            // Limpeza completa em caso de erro persistente
+            console.log('🔄 Tentando limpeza completa...');
+            localStorage.clear();
+            sessionStorage.clear();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const finalAttempt = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+            
+            if (finalAttempt.error) {
+              console.error('❌ Todas as tentativas falharam');
+              return { error: new Error('Erro persistente no sistema de autenticação. Contate o suporte.') };
             }
-          }
-          
-          // Se não conseguiu fazer bypass, tentar limpeza completa
-          console.log('🔄 Tentando limpeza completa...');
-          localStorage.clear();
-          sessionStorage.clear();
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          const finalAttempt = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          
-          if (finalAttempt.error) {
-            console.error('❌ Todas as tentativas falharam');
-            return { error: new Error('Erro persistente no sistema de autenticação. Contate o suporte.') };
-          }
-          
-          console.log('✅ Login bem-sucedido após limpeza!');
-          return { error: null };
-        }
+            
+            console.log('✅ Login bem-sucedido após limpeza!');
+            return { error: null };
         
         return { error };
       }
