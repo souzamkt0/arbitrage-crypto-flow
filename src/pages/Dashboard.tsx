@@ -644,53 +644,170 @@ const Dashboard = () => {
           updateAlphaBot={updateAlphaBot}
         />
         
-        {/* Boxes de Saldos - Layout em Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Balance Box Principal */}
-          <div className="lg:col-span-2">
+        {/* Boxes de Saldos e Informações - Layout Principal */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-2 gap-6">
+          {/* Coluna Principal - Saldos */}
+          <div className="xl:col-span-2 lg:col-span-1 space-y-6">
+            {/* Balance Box Principal */}
             <BalanceBox onRefresh={() => {
               loadInvestmentStats();
               loadPartnerData();
             }} />
+            
+            {/* Trading Stats */}
+            <TradingStats
+              balance={balance}
+              dailyProfit={dailyProfit}
+              totalProfit={totalProfit}
+              activeOrders={activeOrders}
+              tradingBalance={tradingBalance}
+              monthlyEarnings={monthlyEarnings}
+              botActive={botActive}
+            />
+
+            {/* Link de Indicação */}
+            <Card className="bg-gradient-to-br from-blue-600/10 to-purple-600/10 backdrop-blur-sm border border-blue-500/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Link className="h-5 w-5 text-blue-400" />
+                  🎯 Sistema de Indicação
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+                  <Label className="text-sm text-gray-300 mb-2 block">Seu Link de Indicação:</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={referralLink || `${window.location.origin}/register?ref=${profile?.referral_code || profile?.username || 'user'}`}
+                      readOnly
+                      className="bg-slate-700/50 border-slate-600 text-white text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const link = referralLink || `${window.location.origin}/register?ref=${profile?.referral_code || profile?.username || 'user'}`;
+                        navigator.clipboard.writeText(link);
+                        toast({ title: "Link copiado!", description: "Link de indicação copiado para área de transferência" });
+                      }}
+                      className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="bg-slate-800/40 rounded-lg p-3">
+                    <div className="text-lg font-bold text-green-400">{referralBalance?.toFixed(2) || '0.00'} USD</div>
+                    <div className="text-xs text-gray-400">Saldo de Indicação</div>
+                  </div>
+                  <div className="bg-slate-800/40 rounded-lg p-3">
+                    <div className="text-lg font-bold text-blue-400">{monthlyEarnings?.toFixed(2) || '0.00'} USD</div>
+                    <div className="text-xs text-gray-400">Ganhos do Mês</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Histórico Simplificado */}
+            <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-600/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-green-400" />
+                  📊 Histórico Recente
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <div>
+                        <div className="text-white text-sm font-medium">Operação BTC/USDT</div>
+                        <div className="text-gray-400 text-xs">Lucro: +0.24%</div>
+                      </div>
+                    </div>
+                    <div className="text-green-400 text-sm font-semibold">+$12.50</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div>
+                        <div className="text-white text-sm font-medium">Depósito PIX</div>
+                        <div className="text-gray-400 text-xs">Aprovado</div>
+                      </div>
+                    </div>
+                    <div className="text-blue-400 text-sm font-semibold">+$100.00</div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div>
+                        <div className="text-white text-sm font-medium">Indicação Ativa</div>
+                        <div className="text-gray-400 text-xs">Comissão gerada</div>
+                      </div>
+                    </div>
+                    <div className="text-purple-400 text-sm font-semibold">+$5.00</div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-600/30">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/history')}
+                    className="w-full border-slate-600/30 text-gray-300 hover:bg-slate-700/50"
+                  >
+                    Ver Histórico Completo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          {/* Saldos Laterais */}
-          <div className="space-y-6">
+
+          {/* Coluna Lateral - Gráficos e Market Overview */}
+          <div className="xl:col-span-1 lg:col-span-1 space-y-6">
             <ResidualBalanceBox />
             <MarketOverview />
-          </div>
-        </div>
+            
+            {/* Gráficos Compactos */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-4">📈 Análise de Mercado</h3>
+              
+              <Card className="bg-slate-800/50 border border-slate-600/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-white">Bitcoin (BTC)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <TradingChart />
+                </CardContent>
+              </Card>
 
-        {/* Trading Stats */}
-        <TradingStats
-          balance={balance}
-          dailyProfit={dailyProfit}
-          totalProfit={totalProfit}
-          activeOrders={activeOrders}
-          tradingBalance={tradingBalance}
-          monthlyEarnings={monthlyEarnings}
-          botActive={botActive}
-        />
-        
-        {/* Gráficos - Seção Inferior */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-white mb-6">📊 Análise de Mercado</h2>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-2">Bitcoin (BTC)</h3>
-              <TradingChart />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-2">Ethereum (ETH)</h3>
-              <EthereumChart />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-2">Solana (SOL)</h3>
-              <SolanaChart />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-2">Cardano (ADA)</h3>
-              <CardanoChart />
+              <Card className="bg-slate-800/50 border border-slate-600/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-white">Ethereum (ETH)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <EthereumChart />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800/50 border border-slate-600/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-white">Solana (SOL)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <SolanaChart />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800/50 border border-slate-600/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-white">Cardano (ADA)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <CardanoChart />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
