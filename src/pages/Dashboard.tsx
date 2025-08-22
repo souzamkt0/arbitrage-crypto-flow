@@ -687,8 +687,8 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
         
-        {/* Top Section - 3 Gráficos em Destaque */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-2 gap-6 mb-8">
+        {/* Top Section - Gráficos em Coluna */}
+        <div className="space-y-6 mb-8">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white mb-2">Bitcoin (BTC)</h3>
             <TradingChart />
@@ -697,9 +697,13 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-white mb-2">Ethereum (ETH)</h3>
             <EthereumChart />
           </div>
-          <div className="space-y-4 xl:col-span-1 lg:col-span-2 xl:lg:col-span-1">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white mb-2">Solana (SOL)</h3>
             <SolanaChart />
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white mb-2">Cardano (ADA)</h3>
+            <CardanoChart />
           </div>
         </div>
 
@@ -715,23 +719,15 @@ const Dashboard = () => {
         />
 
         {/* Secondary Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-2 gap-6">
           {/* Left Section - Market Overview */}
           <div className="xl:col-span-1 lg:col-span-1 space-y-6">
             <MarketOverview />
             <ResidualBalanceBox />
           </div>
 
-          {/* Center Section - Cardano Chart */}
-          <div className="xl:col-span-2 lg:col-span-1 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Cardano (ADA)</h3>
-              <CardanoChart />
-            </div>
-          </div>
-
           {/* Right Section - Trading Bot */}
-          <div className="xl:col-span-1 lg:col-span-2 xl:lg:col-span-1">
+          <div className="xl:col-span-2 lg:col-span-1">
             <TradingBot
               botActive={botActive}
               setBotActive={setBotActive}
