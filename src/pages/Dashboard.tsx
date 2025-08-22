@@ -543,7 +543,7 @@ const Dashboard = () => {
         const stats = investmentStats[0];
         setTradingBalance(stats.total_invested || 0);
         setDailyProfit(stats.today_total_earnings || 0);
-        setActiveOrders(stats.active_investments || 0);
+        setActiveOrders(0); // Removido contagem fake
       }
 
       // Buscar depósitos totais confirmados
@@ -694,7 +694,7 @@ const Dashboard = () => {
               balance={balance}
               dailyProfit={dailyProfit}
               totalProfit={totalProfit}
-              activeOrders={activeOrders}
+              activeOrders={0}
               tradingBalance={tradingBalance}
               monthlyEarnings={monthlyEarnings}
               botActive={botActive}
