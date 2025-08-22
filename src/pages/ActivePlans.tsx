@@ -122,6 +122,33 @@ const ActivePlans = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 space-y-6">
         
+        {/* Trading Ativo Header */}
+        <Card className="bg-gradient-to-r from-green-600 to-green-700 border-green-500">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between text-white">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <TrendingUp className="h-8 w-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">TRADING ATIVO</h2>
+                  <p className="opacity-90">{investments.length} plano gerando lucros</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold">{formatCurrency(calculateTotalEarned())}</div>
+                <Button 
+                  variant="secondary" 
+                  className="mt-2"
+                  onClick={() => window.location.href = '/investments'}
+                >
+                  ⚡ Ver Planos de Investimento
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Planos Ativos Dashboard */}
         <Card className="bg-card border-border">
           <CardHeader>
@@ -196,6 +223,26 @@ const ActivePlans = () => {
               <span className="text-green-500">● ROI Total: +143.42%</span>
             </div>
           </CardContent>
+        </Card>
+
+        {/* Painel de Trading Bots */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-cyan-500 p-3 rounded-lg">
+                  <Target className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle>Painel de Trading Bots</CardTitle>
+                  <CardDescription>Gerencie seus robôs de arbitragem ativos</CardDescription>
+                </div>
+              </div>
+              <Badge variant="outline" className="text-green-500 border-green-500">
+                ● SISTEMAS ATIVOS
+              </Badge>
+            </div>
+          </CardHeader>
         </Card>
 
         {/* Individual Trading Bots */}
