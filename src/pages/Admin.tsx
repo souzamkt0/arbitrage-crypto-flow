@@ -552,50 +552,66 @@ const Admin = () => {
 
   const handleToggleStatus = async (userId: string) => {
     try {
-      // Obter email do admin atual (padrão admin@clean.com)
-      const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
-
-      // Usar a nova função administrativa para alternar status
-      const { data: result, error } = await supabase
-        .rpc('admin_toggle_user_status', {
-          target_user_id: userId,
-          admin_email: adminEmail
-        });
-
-      if (error) {
-        console.error('Erro ao alterar status:', error);
+      // Encontrar o usuário atual
+      const currentUser = users.find(u => u.id === userId);
+      if (!currentUser) {
         toast({
           title: "Erro",
-          description: `Erro ao alterar status: ${error.message}`,
+          description: "Usuário não encontrado.",
           variant: "destructive"
         });
         return;
       }
 
-      if (!result?.success) {
+      // Não permitir banir outros admins
+      if (currentUser.role === 'admin' && currentUser.id !== user?.id) {
         toast({
           title: "Erro",
-          description: result?.error || "Erro ao alterar status do usuário.",
+          description: "Não é possível alterar status de outros administradores.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Alternar status
+      const newStatus = currentUser.status === 'active' ? 'inactive' : 'active';
+
+      // Atualizar no banco
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error updating user status:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao alterar status do usuário.",
           variant: "destructive"
         });
         return;
       }
 
       // Atualizar localmente
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId 
-            ? { ...user, status: result.new_status }
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === userId
+            ? { ...user, status: newStatus }
             : user
         )
       );
 
       toast({
-        title: "Status atualizado",
-        description: result.message,
+        title: newStatus === 'active' ? "Usuário ativado" : "Usuário banido",
+        description: `Status do usuário alterado para ${newStatus === 'active' ? 'ativo' : 'inativo'}.`,
+        variant: "default"
       });
+
     } catch (error) {
-      console.error('Erro ao alterar status:', error);
+      console.error('Error toggling user status:', error);
       toast({
         title: "Erro",
         description: "Erro ao alterar status do usuário.",
@@ -715,54 +731,45 @@ const Admin = () => {
   const handleSaveUser = async () => {
     if (selectedUser && user) {
       try {
-        // Obter email do admin atual (padrão admin@clean.com)
-        const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
-
-        // Usar a nova função administrativa para atualizar saldo
-        const { data: balanceResult, error: balanceError } = await supabase
-          .rpc('admin_update_user_balance', {
-            target_user_id: selectedUser.id,
-            new_balance: selectedUser.balance,
-            admin_email: adminEmail,
-            reason: 'Ajuste de saldo pelo administrador'
-          });
-
-        if (balanceError) {
-          console.error('Error updating balance:', balanceError);
-          toast({
-            title: "Erro",
-            description: `Erro ao atualizar saldo: ${balanceError.message}`,
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (!balanceResult?.success) {
-          toast({
-            title: "Erro",
-            description: balanceResult?.error || "Erro ao atualizar saldo do usuário.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        // Atualizar nome e email (continuamos usando UPDATE direto para estes campos)
-        const { error: updateError } = await supabase
+        // Atualizar todos os campos diretamente no banco
+        const { error } = await supabase
           .from('profiles')
           .update({ 
             display_name: selectedUser.name,
-            email: selectedUser.email
+            email: selectedUser.email,
+            balance: selectedUser.balance,
+            updated_at: new Date().toISOString()
           })
           .eq('user_id', selectedUser.id);
 
-        if (updateError) {
-          console.error('Error updating user profile:', updateError);
+        if (error) {
+          console.error('Error updating user:', error);
           toast({
             title: "Erro",
             description: "Erro ao atualizar dados do usuário.",
             variant: "destructive"
           });
           return;
+        }
+
+        // Registrar transação administrativa se o saldo foi alterado
+        const originalUser = users.find(u => u.id === selectedUser.id);
+        if (originalUser && originalUser.balance !== selectedUser.balance) {
+          try {
+            await supabase
+              .from('admin_balance_transactions')
+              .insert({
+                user_id: selectedUser.id,
+                admin_user_id: user.id,
+                amount_before: originalUser.balance,
+                amount_after: selectedUser.balance,
+                amount_changed: selectedUser.balance - originalUser.balance,
+                transaction_type: 'balance_adjustment',
+                reason: 'Ajuste de saldo pelo administrador'
+              });
+          } catch (logError) {
+            console.warn('Erro ao registrar transação administrativa:', logError);
+          }
         }
 
         setUsers(prevUsers =>
@@ -1103,19 +1110,109 @@ const Admin = () => {
     }
   };
 
-  const handleDepositAction = (depositId: string, action: "approve" | "reject") => {
-    setDeposits(prev =>
-      prev.map(deposit =>
-        deposit.id === depositId
-          ? { ...deposit, status: action === "approve" ? "paid" : "rejected" }
-          : deposit
-      )
-    );
-    
-    toast({
-      title: action === "approve" ? "Depósito aprovado" : "Depósito rejeitado",
-      description: `Depósito foi ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso.`,
-    });
+  const handleDepositAction = async (depositId: string, action: "approve" | "reject") => {
+    try {
+      const deposit = deposits.find(d => d.id === depositId);
+      if (!deposit) {
+        toast({
+          title: "Erro",
+          description: "Depósito não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const newStatus = action === "approve" ? "paid" : "rejected";
+      
+      // Atualizar no banco dependendo da origem
+      if (deposit.source === 'deposits') {
+        const { error } = await supabase
+          .from('deposits')
+          .update({ 
+            status: newStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', depositId);
+
+        if (error) {
+          console.error('Erro ao atualizar depósito:', error);
+          toast({
+            title: "Erro",
+            description: "Erro ao atualizar status do depósito.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else if (deposit.source === 'digitopay') {
+        const { error } = await supabase
+          .from('digitopay_transactions')
+          .update({ 
+            status: action === "approve" ? "completed" : "rejected",
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', depositId);
+
+        if (error) {
+          console.error('Erro ao atualizar transação DigitoPay:', error);
+          toast({
+            title: "Erro",
+            description: "Erro ao atualizar status da transação.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      // Se aprovado, adicionar saldo ao usuário
+      if (action === "approve") {
+        // Buscar saldo atual do usuário
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('balance')
+          .eq('user_id', deposit.userId)
+          .single();
+
+        if (userProfile) {
+          const newBalance = (userProfile.balance || 0) + deposit.amount;
+          
+          const { error: balanceError } = await supabase
+            .from('profiles')
+            .update({ balance: newBalance })
+            .eq('user_id', deposit.userId);
+
+          if (balanceError) {
+            console.error('Erro ao atualizar saldo:', balanceError);
+            toast({
+              title: "Aviso",
+              description: "Depósito aprovado, mas erro ao atualizar saldo. Verifique manualmente.",
+              variant: "destructive"
+            });
+          }
+        }
+      }
+
+      // Atualizar localmente
+      setDeposits(prev =>
+        prev.map(d =>
+          d.id === depositId
+            ? { ...d, status: newStatus }
+            : d
+        )
+      );
+      
+      toast({
+        title: action === "approve" ? "Depósito aprovado" : "Depósito rejeitado",
+        description: `Depósito foi ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso.`,
+      });
+
+    } catch (error) {
+      console.error('Erro ao processar depósito:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar ação do depósito.",
+        variant: "destructive"
+      });
+    }
   };
 
   const exportDepositsReport = () => {
