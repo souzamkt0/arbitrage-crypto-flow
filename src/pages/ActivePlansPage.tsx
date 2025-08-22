@@ -22,8 +22,7 @@ import {
   Zap,
   Star,
   Crown,
-  Trophy,
-  RefreshCw
+  Trophy
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -54,7 +53,7 @@ interface UserInvestment {
 }
 
 const ActivePlansPage = () => {
-  const { user, session, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -63,30 +62,23 @@ const ActivePlansPage = () => {
   const [clickedInvestments, setClickedInvestments] = useState<Set<string>>(new Set());
   const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/login');
-      return;
-    }
     if (user) {
       loadUserInvestments();
     }
-  }, [user, authLoading, navigate]);
+  }, [user]);
 
   const loadUserInvestments = async () => {
     if (!user?.id) {
-      console.log('❌ [ActivePlans] Usuário não autenticado');
+      console.log('⚠️ [ActivePlans] Usuário não autenticado');
       setLoading(false);
       return;
     }
 
-    console.log('🔄 [ActivePlans] SINCRONIZAÇÃO INICIADA para:', user.id);
     setLoading(true);
-    
     try {
-      // Query direta e simples para testar acesso
-      console.log('🔄 [ActivePlans] Fazendo query direta...');
+      console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user.id);
+      
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select(`
@@ -97,87 +89,21 @@ const ActivePlansPage = () => {
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      console.log('📊 [ActivePlans] RESULTADO DA SINCRONIZAÇÃO:');
-      console.log('📊 Erro:', error);
-      console.log('📊 Dados encontrados:', investmentsData?.length || 0);
-      console.log('📊 Primeiro investimento:', investmentsData?.[0]);
-
       if (error) {
-        console.error('❌ [ActivePlans] Erro na query:', error);
-        
-        // Se for erro de RLS, tentar query mais simples
-        if (error.message.includes('RLS') || error.message.includes('policy')) {
-          console.log('🔄 [ActivePlans] Tentando query sem join...');
-          const { data: simpleData, error: simpleError } = await supabase
-            .from('user_investments')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false });
-            
-          if (simpleError) {
-            toast({
-              title: "Erro de acesso",
-              description: "Problema de segurança detectado. Faça login novamente.",
-              variant: "destructive",
-            });
-            navigate('/login');
-            return;
-          }
-          
-          // Usar dados simples se sucesso
-          console.log('✅ [ActivePlans] Query simples funcionou:', simpleData?.length);
-          const formattedData = (simpleData || []).map(investment => ({
-            id: investment.id,
-            investmentId: investment.plan_id,
-            investmentName: 'Robô 4.0.0',
-            amount: investment.amount,
-            dailyRate: investment.daily_rate || 2.5,
-            startDate: investment.start_date || investment.created_at,
-            endDate: investment.end_date,
-            totalEarned: investment.total_earned || 0,
-            status: investment.status,
-            daysRemaining: Math.max(0, Math.floor((new Date(investment.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))),
-            currentDayProgress: investment.current_day_progress || 0,
-            todayEarnings: investment.today_earnings || 0,
-            dailyTarget: investment.daily_target || (investment.amount * (investment.daily_rate || 2.5) / 100),
-            operationsCompleted: investment.operations_completed || 0,
-            totalOperations: investment.total_operations || 40,
-            currentOperation: {
-              pair: 'BTC/USDT',
-              buyPrice: 43250,
-              sellPrice: 43320,
-              profit: 0,
-              progress: 0,
-              timeRemaining: 0
-            }
-          }));
-          
-          setUserInvestments(formattedData);
-          
-          toast({
-            title: "✅ Planos Sincronizados!",
-            description: `${formattedData.length} planos ativos carregados com sucesso.`,
-          });
-          return;
-        }
-        
+        console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
         toast({
           title: "Erro ao carregar dados",
-          description: error.message,
-          variant: "destructive",
+          description: "Não foi possível carregar seus investimentos. Tente novamente.",
+          variant: "destructive"
         });
-        setUserInvestments([]);
         return;
       }
 
+      console.log('📊 [ActivePlans] Dados recebidos do Supabase:', investmentsData);
+
       if (!investmentsData || investmentsData.length === 0) {
-        console.log('⚠️ [ActivePlans] Nenhum investimento encontrado');
+        console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado para este usuário');
         setUserInvestments([]);
-        toast({
-          title: "Nenhum plano ativo",
-          description: "Você não possui investimentos ativos no momento.",
-        });
         return;
       }
 
@@ -202,8 +128,8 @@ const ActivePlansPage = () => {
         const dailyTarget = investment.amount * (dailyRate / 100);
         const todayEarnings = investment.today_earnings || 0;
 
-         // Definir nome do plano baseado no plan_id ou usar fallback
-         const planName = 'Robô 4.0.0'; // Simplificado para teste
+        // Usar o nome do plano do relacionamento ou fallback
+        const planName = investment.investment_plans?.name || 'Robô de Arbitragem';
 
         return {
           id: investment.id,
@@ -560,22 +486,12 @@ const ActivePlansPage = () => {
             <p className="text-slate-300 mb-8 text-xl">
               Você ainda não possui planos de investimento ativos.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={() => navigate('/investments')}
-                className="bg-gradient-to-r from-trading-green to-emerald-400 hover:from-trading-green/90 hover:to-emerald-400/90 text-white text-lg px-8 py-3"
-              >
-                Ver Planos Disponíveis
-              </Button>
-              <Button 
-                onClick={loadUserInvestments}
-                variant="outline"
-                className="border-trading-green text-trading-green hover:bg-trading-green hover:text-white text-lg px-8 py-3"
-              >
-                <RefreshCw className="h-5 w-5 mr-2" />
-                Recarregar
-              </Button>
-            </div>
+            <Button 
+              onClick={() => navigate('/investments')}
+              className="bg-gradient-to-r from-trading-green to-emerald-400 hover:from-trading-green/90 hover:to-emerald-400/90 text-white text-lg px-8 py-3"
+            >
+              Ver Planos Disponíveis
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

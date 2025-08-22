@@ -8,7 +8,6 @@ import CreateAdmin from "./pages/CreateAdmin";
 import SimpleLogin from "./pages/SimpleLogin";
 import Login from "./pages/login";
 import Register from "./pages/Register";
-import AuthRecovery from "./pages/AuthRecovery";
 import CompleteProfile from "./pages/CompleteProfile";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
@@ -23,7 +22,7 @@ import Simulation from "./pages/Simulation";
 import Admin from "./pages/Admin";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
-import ActivePlansPage from "./pages/ActivePlans";
+import ActivePlansPage from "./pages/ActivePlansPage";
 import Referrals from "./pages/Referrals";
 import Partners from "./pages/Partners";
 import UserProfilePage from "./pages/UserProfile";
@@ -126,7 +125,6 @@ const App = () => (
           <Route path="/create-admin" element={<CreateAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/auth-recovery" element={<AuthRecovery />} />
           <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
           <Route path="/complete-profile" element={<CompleteProfileRoute />} />
           <Route path="/api-connection" element={<ApiConnection />} />
