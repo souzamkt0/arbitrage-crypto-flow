@@ -82,6 +82,15 @@ const ActivePlansPage = () => {
     try {
       console.log('🔄 [ActivePlans] Fazendo query no Supabase...');
       
+      // Primeiro, verificar se temos acesso direto
+      console.log('🔍 [ActivePlans] Testando acesso ao Supabase...');
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+      
+      console.log('🔍 [ActivePlans] Teste de conexão:', { testData, testError });
+      
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select(`
@@ -92,11 +101,18 @@ const ActivePlansPage = () => {
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
+      console.log('📊 [ActivePlans] Query completa executada');
+      console.log('📊 [ActivePlans] Error:', error);
+      console.log('📊 [ActivePlans] Data:', investmentsData);
+
       if (error) {
         console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
+        console.error('❌ [ActivePlans] Código do erro:', error.code);
+        console.error('❌ [ActivePlans] Mensagem do erro:', error.message);
+        console.error('❌ [ActivePlans] Detalhes do erro:', error.details);
         toast({
           title: "Erro ao carregar dados",
-          description: "Não foi possível carregar seus investimentos. Tente novamente.",
+          description: `Erro: ${error.message}. Clique em Recarregar para tentar novamente.`,
           variant: "destructive"
         });
         return;
