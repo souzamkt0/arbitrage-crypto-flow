@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,6 +151,7 @@ interface AdminTransaction {
 }
 
 const Admin = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const { user, isAdmin } = useAuth();
   const [investmentPlans, setInvestmentPlans] = useState<InvestmentPlan[]>([]);
@@ -4134,30 +4136,40 @@ const Admin = () => {
                   <CardTitle className="text-white">Depósitos</CardTitle>
                   <CardDescription className="text-gray-400">Gerenciar depósitos dos usuários</CardDescription>
                 </div>
-                <Button 
-                  onClick={async () => {
-                    setDeposits([]);
-                    try {
-                      await loadAdminData();
-                      toast({
-                        title: "✅ Atualizado",
-                        description: "Dados de depósitos atualizados com sucesso!",
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "❌ Erro",
-                        description: "Erro ao atualizar dados",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  variant="outline" 
-                  size="sm"
-                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Atualizar
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => navigate('/admin/deposits')}
+                    variant="outline"
+                    className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Ver Todos PIX
+                  </Button>
+                  <Button 
+                    onClick={async () => {
+                      setDeposits([]);
+                      try {
+                        await loadAdminData();
+                        toast({
+                          title: "✅ Atualizado",
+                          description: "Dados de depósitos atualizados com sucesso!",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "❌ Erro",
+                          description: "Erro ao atualizar dados",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                    variant="outline" 
+                    size="sm"  
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">

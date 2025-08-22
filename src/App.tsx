@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 
 import Admin from "./pages/Admin";
+import { AdminDeposits } from "./pages/AdminDeposits";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
 import ActivePlansPage from "./pages/ActivePlansPage";
@@ -262,6 +263,16 @@ const App = () => (
               <AdminRoute>
                 <Layout>
                   <Admin />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/deposits"
+            element={
+              <AdminRoute>
+                <Layout>
+                  <AdminDeposits />
                 </Layout>
               </AdminRoute>
             }
