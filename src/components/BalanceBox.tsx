@@ -169,7 +169,7 @@ export const BalanceBox: React.FC<BalanceBoxProps> = ({ onRefresh }) => {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-600/30">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-blue-400" />
