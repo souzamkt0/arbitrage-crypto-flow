@@ -49,6 +49,28 @@ const Deposit = () => {
   const [activeTab, setActiveTab] = useState("digitopay");
   const [isLoading, setIsLoading] = useState(false);
   const [bnbAddress] = useState("0x742d35Cc6634C0532925a3b8D39C1234567890AB");
+  const [countdown, setCountdown] = useState(10);
+  const [isActivated, setIsActivated] = useState(false);
+
+  // Auto-activation countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setIsActivated(true);
+          clearInterval(timer);
+          toast({
+            title: "✅ Sistema Ativado!",
+            description: "Depósitos foram ativados automaticamente",
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [toast]);
 
   // BNB Form State
   const [bnbForm, setBnbForm] = useState({
@@ -168,32 +190,61 @@ const Deposit = () => {
 
             {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Trading Chart */}
-              <TradingChart />
-
               {/* Main Deposit Interface */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20">
-                <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-blue-500/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                        <Wallet className="h-5 w-5 text-white" />
+              {!isActivated && (
+                <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm border border-orange-500/30">
+                  <CardContent className="p-6 text-center">
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                        <Clock className="h-8 w-8 text-white" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg font-bold text-white">
-                          Deposit Terminal
-                        </CardTitle>
-                        <p className="text-sm text-gray-400">Choose your deposit method</p>
+                        <h3 className="text-2xl font-bold text-white mb-2">Sistema Iniciando</h3>
+                        <p className="text-gray-400">Ativação automática em...</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
-                        INSTANT
+                    <div className="text-6xl font-bold text-orange-400 mb-4">
+                      {countdown}
+                    </div>
+                    
+                    <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
+                      <div 
+                        className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${((10 - countdown) / 10) * 100}%` }}
+                      />
+                    </div>
+                    
+                    <p className="text-sm text-gray-400">
+                      O sistema será ativado automaticamente. Aguarde...
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              {isActivated && (
+                <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-green-500/20">
+                  <CardHeader className="bg-gradient-to-r from-green-600/10 to-blue-600/10 border-b border-green-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
+                          <Wallet className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg font-bold text-white">
+                            Deposit Terminal - ATIVADO
+                          </CardTitle>
+                          <p className="text-sm text-gray-400">Sistema funcionando perfeitamente</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
+                          ONLINE
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
                 <CardContent className="p-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -217,12 +268,23 @@ const Deposit = () => {
                     {/* PIX Deposit Tab */}
                     <TabsContent value="digitopay" className="space-y-6">
                       {user ? (
-                        <DigitoPayDeposit onSuccess={() => {
-                          toast({
-                            title: "🎉 PARABÉNS!",
-                            description: "Depósito processado com sucesso",
-                          });
-                        }} />
+                        <>
+                          <div className="bg-gradient-to-br from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-xl p-4 mb-4">
+                            <div className="flex items-center gap-3">
+                              <CheckCircle className="h-5 w-5 text-green-400" />
+                              <div>
+                                <p className="text-green-400 font-medium">Sistema Operacional</p>
+                                <p className="text-sm text-gray-400">Processamento instantâneo ativo</p>
+                              </div>
+                            </div>
+                          </div>
+                          <DigitoPayDeposit onSuccess={() => {
+                            toast({
+                              title: "🎉 PARABÉNS!",
+                              description: "Depósito processado com sucesso",
+                            });
+                          }} />
+                        </>
                       ) : (
                         <div className="text-center py-12">
                           <div className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl inline-block">
@@ -330,7 +392,11 @@ const Deposit = () => {
                     </TabsContent>
                   </Tabs>
                 </CardContent>
-              </Card>
+                </Card>
+              )}
+
+              {/* Trading Chart */}
+              <TradingChart />
 
               {/* Transaction History */}
               {user && (
