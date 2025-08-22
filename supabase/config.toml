@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.webhook-proxy]
 verify_jwt = false
+
+[functions.process-investment]
+verify_jwt = false
