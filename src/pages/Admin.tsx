@@ -124,7 +124,7 @@ interface Deposit {
   amount: number;
   amountBRL: number;
   type: "pix" | "usdt";
-  status: "pending" | "paid" | "rejected";
+  status: "pending" | "paid" | "rejected" | "completed";
   holderName?: string;
   cpf?: string;
   senderName?: string;
@@ -163,7 +163,7 @@ const Admin = () => {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [adminTransactions, setAdminTransactions] = useState<AdminTransaction[]>([]);
 
-  const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected">("all");
+  const [depositFilter, setDepositFilter] = useState<"all" | "pending" | "paid" | "rejected" | "completed">("all");
   const [withdrawalFilter, setWithdrawalFilter] = useState<"all" | "pending" | "approved" | "rejected" | "processing">("all");
   
   const [adminSettings, setAdminSettings] = useState({
@@ -374,9 +374,8 @@ const Admin = () => {
   }, []);
 
   // Load real data from database
-  useEffect(() => {
-    const loadAdminData = async () => {
-      if (!user) return;
+  const loadAdminData = async () => {
+    if (!user) return;
 
       try {
         const { data: profiles } = await supabase
@@ -515,7 +514,16 @@ const Admin = () => {
       }
     };
 
+  // Load data on component mount and user change
+  useEffect(() => {
     loadAdminData();
+    
+    // Carregar dados a cada 30 segundos para atualizar automaticamente
+    const interval = setInterval(() => {
+      loadAdminData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [user]);
 
   const filteredUsers = users.filter(user =>
@@ -3901,7 +3909,123 @@ const Admin = () => {
 
           {/* Other tabs content would be similar enhanced versions */}
           <TabsContent value="deposits">
-            <p className="text-muted-foreground">Conteúdo de depósitos será implementado...</p>
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-white">Depósitos</CardTitle>
+                  <CardDescription className="text-gray-400">Gerenciar depósitos dos usuários</CardDescription>
+                </div>
+                <Button 
+                  onClick={async () => {
+                    setDeposits([]);
+                    try {
+                      await loadAdminData();
+                      toast({
+                        title: "✅ Atualizado",
+                        description: "Dados de depósitos atualizados com sucesso!",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "❌ Erro",
+                        description: "Erro ao atualizar dados",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  variant="outline" 
+                  size="sm"
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Atualizar
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <Label htmlFor="deposit-filter">Filtrar por status:</Label>
+                  <select
+                    id="deposit-filter"
+                    value={depositFilter}
+                    onChange={(e) => setDepositFilter(e.target.value as any)}
+                    className="ml-2 px-3 py-1 bg-gray-800 border border-gray-600 rounded text-white"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendente</option>
+                    <option value="paid">Pago</option>
+                    <option value="completed">Completo</option>
+                    <option value="rejected">Rejeitado</option>
+                  </select>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-gray-300">ID</TableHead>
+                        <TableHead className="text-gray-300">Usuário</TableHead>
+                        <TableHead className="text-gray-300">Valor (USD)</TableHead>
+                        <TableHead className="text-gray-300">Valor (BRL)</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Tipo</TableHead>
+                        <TableHead className="text-gray-300">CPF</TableHead>
+                        <TableHead className="text-gray-300">Data</TableHead>
+                        <TableHead className="text-gray-300">Origem</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredDeposits.map((deposit) => (
+                        <TableRow key={deposit.id}>
+                          <TableCell className="text-gray-300 font-mono text-xs">
+                            {deposit.id.substring(0, 8)}...
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {deposit.userName || deposit.holderName || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            ${deposit.amount.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            R${deposit.amountBRL.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              deposit.status === 'paid' || deposit.status === 'completed' ? 'default' : 
+                              deposit.status === 'pending' ? 'secondary' : 'destructive'
+                            }>
+                              {deposit.status === 'paid' ? 'Pago' : 
+                               deposit.status === 'completed' ? 'Completo' :
+                               deposit.status === 'pending' ? 'Pendente' : 'Rejeitado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-300 uppercase">
+                            {deposit.type}
+                          </TableCell>
+                          <TableCell className="text-gray-300 font-mono text-xs">
+                            {deposit.cpf || 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-gray-300 text-xs">
+                            {new Date(deposit.date).toLocaleString('pt-BR')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={
+                              deposit.source === 'digitopay' ? 'border-green-500 text-green-400' : 'border-blue-500 text-blue-400'
+                            }>
+                              {deposit.source === 'digitopay' ? 'DigitoPay' : 'Manual'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {filteredDeposits.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    Nenhum depósito encontrado
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="withdrawals">
