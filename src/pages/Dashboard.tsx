@@ -635,29 +635,29 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 space-y-6">
         
-        {/* Balance Box - Primeiro elemento */}
-        <BalanceBox onRefresh={() => {
-          loadInvestmentStats();
-          loadPartnerData();
-        }} />
+        {/* Alphabot Trading - Topo */}
+        <TradingBot
+          botActive={botActive}
+          setBotActive={setBotActive}
+          alphabotData={alphabotData}
+          isUpdatingAlphabot={isUpdatingAlphabot}
+          updateAlphaBot={updateAlphaBot}
+        />
         
-        {/* Top Section - Gráficos em Coluna */}
-        <div className="space-y-6 mb-8">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Bitcoin (BTC)</h3>
-            <TradingChart />
+        {/* Boxes de Saldos - Layout em Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Balance Box Principal */}
+          <div className="lg:col-span-2">
+            <BalanceBox onRefresh={() => {
+              loadInvestmentStats();
+              loadPartnerData();
+            }} />
           </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Ethereum (ETH)</h3>
-            <EthereumChart />
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Solana (SOL)</h3>
-            <SolanaChart />
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Cardano (ADA)</h3>
-            <CardanoChart />
+          
+          {/* Saldos Laterais */}
+          <div className="space-y-6">
+            <ResidualBalanceBox />
+            <MarketOverview />
           </div>
         </div>
 
@@ -671,24 +671,27 @@ const Dashboard = () => {
           monthlyEarnings={monthlyEarnings}
           botActive={botActive}
         />
-
-        {/* Secondary Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-2 gap-6">
-          {/* Left Section - Market Overview */}
-          <div className="xl:col-span-1 lg:col-span-1 space-y-6">
-            <MarketOverview />
-            <ResidualBalanceBox />
-          </div>
-
-          {/* Right Section - Trading Bot */}
-          <div className="xl:col-span-2 lg:col-span-1">
-            <TradingBot
-              botActive={botActive}
-              setBotActive={setBotActive}
-              alphabotData={alphabotData}
-              isUpdatingAlphabot={isUpdatingAlphabot}
-              updateAlphaBot={updateAlphaBot}
-            />
+        
+        {/* Gráficos - Seção Inferior */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-white mb-6">📊 Análise de Mercado</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Bitcoin (BTC)</h3>
+              <TradingChart />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Ethereum (ETH)</h3>
+              <EthereumChart />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Solana (SOL)</h3>
+              <SolanaChart />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Cardano (ADA)</h3>
+              <CardanoChart />
+            </div>
           </div>
         </div>
       </div>
