@@ -27,14 +27,14 @@ interface Investment {
     robot_version: string;
     description: string;
   };
-  current_operation?: {
+  operations?: {
     id: string;
     pair: string;
     buy_price: number;
     progress: number;
     time_remaining: number;
     status: string;
-  };
+  }[];
 }
 
 const ActivePlans = () => {
@@ -56,7 +56,7 @@ const ActivePlans = () => {
         .select(`
           *,
           plan:investment_plans(name, robot_version, description),
-          current_operation:current_operations(*)
+          operations:investment_operations(*)
         `)
         .eq('user_id', user?.id)
         .eq('status', 'active')
@@ -88,16 +88,16 @@ const ActivePlans = () => {
       
       // Criar nova operação
       const { data: operation, error: operationError } = await supabase
-        .from('current_operations')
+        .from('investment_operations')
         .insert({
-          user_investment_id: investmentId,
+          investment_id: investmentId,
           pair: randomPair,
           buy_price: basePrice,
           sell_price: 0,
           profit: 0,
           progress: 0,
           time_remaining: timeRemaining,
-          status: 'executing'
+          status: 'running'
         })
         .select()
         .single();
@@ -110,7 +110,7 @@ const ActivePlans = () => {
         const remainingTime = Math.max(timeRemaining - 30, 0);
         
         await supabase
-          .from('current_operations')
+          .from('investment_operations')
           .update({
             progress: currentProgress,
             time_remaining: remainingTime
@@ -156,7 +156,7 @@ const ActivePlans = () => {
 
       // Completar operação
       await supabase
-        .from('current_operations')
+        .from('investment_operations')
         .update({
           sell_price: sellPrice,
           profit: profit,
@@ -182,10 +182,10 @@ const ActivePlans = () => {
         .insert({
           user_id: user?.id,
           operation_id: operationId,
-          pair: investment.current_operation?.pair || 'BTC/USDT',
+          pair: investment.operations?.[0]?.pair || 'BTC/USDT',
           type: 'arbitrage',
           amount: investment.amount,
-          buy_price: investment.current_operation?.buy_price || 0,
+          buy_price: investment.operations?.[0]?.buy_price || 0,
           sell_price: sellPrice,
           profit: profit,
           profit_percent: profitPercentage * 100,
@@ -312,16 +312,16 @@ const ActivePlans = () => {
                     </div>
                   </div>
 
-                  {investment.current_operation && investment.current_operation.status === 'executing' ? (
+                  {investment.operations && investment.operations.length > 0 && investment.operations[0].status === 'running' ? (
                     <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">Operação Ativa</span>
-                        <Badge variant="outline">{investment.current_operation.pair}</Badge>
+                        <Badge variant="outline">{investment.operations[0].pair}</Badge>
                       </div>
-                      <Progress value={investment.current_operation.progress} className="h-2" />
+                      <Progress value={investment.operations[0].progress} className="h-2" />
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Preço: {formatCurrency(investment.current_operation.buy_price)}</span>
-                        <span>{Math.floor(investment.current_operation.time_remaining / 60)}min restantes</span>
+                        <span>Preço: {formatCurrency(investment.operations[0].buy_price)}</span>
+                        <span>{Math.floor(investment.operations[0].time_remaining / 60)}min restantes</span>
                       </div>
                     </div>
                   ) : (

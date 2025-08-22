@@ -213,7 +213,9 @@ const App = () => (
             path="/active-plans"
             element={
               <ProtectedRoute>
-                <ActivePlans />
+                <Layout>
+                  <ActivePlans />
+                </Layout>
               </ProtectedRoute>
             }
           />
