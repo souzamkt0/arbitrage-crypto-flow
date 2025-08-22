@@ -82,6 +82,42 @@ export type Database = {
           },
         ]
       }
+      admin_controls: {
+        Row: {
+          admin_email: string
+          created_at: string | null
+          granted_by: string | null
+          id: string
+          permission_granted: boolean | null
+          permission_type: string
+          target_email: string | null
+          target_user_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_email: string
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_granted?: boolean | null
+          permission_type: string
+          target_email?: string | null
+          target_user_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_email?: string
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_granted?: boolean | null
+          permission_type?: string
+          target_email?: string | null
+          target_user_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string | null
@@ -1449,6 +1485,15 @@ export type Database = {
         Args: { p_amount: number; p_plan_id: string; p_user_id: string }
         Returns: string
       }
+      get_admin_permissions: {
+        Args: { admin_email_param: string }
+        Returns: {
+          created_at: string
+          granted_by: string
+          permission_granted: boolean
+          permission_type: string
+        }[]
+      }
       get_digitopay_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1530,6 +1575,10 @@ export type Database = {
           total_operations: number
           total_profit: number
         }[]
+      }
+      has_admin_permission: {
+        Args: { admin_email_param: string; permission_type_param?: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
