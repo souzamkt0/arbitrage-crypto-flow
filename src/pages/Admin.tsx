@@ -131,6 +131,7 @@ interface Deposit {
   date: string;
   pixCode?: string;
   walletAddress?: string;
+  source?: string;
 }
 
 interface AdminTransaction {
@@ -399,11 +400,21 @@ const Admin = () => {
           setUsers(formattedUsers);
         }
 
+        // Carregar dados de depósitos das duas tabelas
         const { data: depositsData } = await supabase
           .from('deposits')
           .select('*')
           .order('created_at', { ascending: false });
 
+        const { data: digitopayDeposits } = await supabase
+          .from('digitopay_transactions')
+          .select('*')
+          .eq('type', 'deposit')
+          .order('created_at', { ascending: false });
+
+        // Combinar os depósitos de ambas as tabelas
+        const allDeposits = [];
+        
         if (depositsData) {
           const formattedDeposits = depositsData.map(deposit => ({
             id: deposit.id,
@@ -418,10 +429,35 @@ const Admin = () => {
             senderName: deposit.sender_name,
             date: deposit.created_at,
             pixCode: deposit.pix_code,
-            walletAddress: deposit.wallet_address
+            walletAddress: deposit.wallet_address,
+            source: 'deposits'
           }));
-          setDeposits(formattedDeposits);
+          allDeposits.push(...formattedDeposits);
         }
+
+        if (digitopayDeposits) {
+          const formattedDigitoPayDeposits = digitopayDeposits.map(deposit => ({
+            id: deposit.id,
+            userId: deposit.user_id,
+            userName: deposit.person_name || 'User',
+            amount: deposit.amount,
+            amountBRL: deposit.amount_brl || 0,
+            type: 'pix' as "pix" | "usdt",
+            status: deposit.status === 'completed' ? 'paid' : deposit.status as "pending" | "paid" | "rejected",
+            holderName: deposit.person_name,
+            cpf: deposit.person_cpf,
+            senderName: deposit.person_name,
+            date: deposit.created_at,
+            pixCode: deposit.pix_code,
+            walletAddress: null,
+            source: 'digitopay'
+          }));
+          allDeposits.push(...formattedDigitoPayDeposits);
+        }
+
+        // Ordenar por data
+        allDeposits.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setDeposits(allDeposits);
 
         const { data: withdrawalsData } = await supabase
           .from('withdrawals')
