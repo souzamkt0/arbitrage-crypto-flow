@@ -407,7 +407,7 @@ const ActivePlansPage = () => {
           </div>
 
           {/* Robôs Ativos */}
-          {activeInvestments === 0 ? (
+          {userInvestments.length === 0 ? (
             <div className="text-center py-12">
               <Target className="h-12 w-12 text-slate-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Nenhum Robô Ativo</h3>
