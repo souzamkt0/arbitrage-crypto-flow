@@ -2305,6 +2305,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: boolean
       }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       remove_partner: {
         Args: { partner_email: string }
         Returns: Json
