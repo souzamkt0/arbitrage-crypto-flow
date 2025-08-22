@@ -73,16 +73,8 @@ export function ActivePlans({ userInvestments, isMobile, activeInvestments, onIn
 
   // Verificar se pode executar operação baseado no tempo
   const canExecuteOperationBasedOnTime = (investment: Investment) => {
-    // Simular verificação de 24h - em produção seria baseado no timestamp real
-    const now = new Date();
-    const lastOperationTime = investment.currentOperation?.timeRemaining || 0;
-    
-    // Se não há operações hoje ou se passou 24h, pode executar
-    if (investment.operationsCompleted === 0) return true;
-    
-    // Simular que após 24h (86400 segundos) libera novamente
-    const timeSinceLastOperation = 86400 - lastOperationTime;
-    return timeSinceLastOperation >= 86400; // 24h em segundos
+    // Durante os testes, permitir sempre que seja menor que 2 operações por dia
+    return investment.operationsCompleted < 2;
   };
 
   // Função para executar operação
