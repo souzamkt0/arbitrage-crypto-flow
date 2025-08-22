@@ -80,36 +80,23 @@ const ActivePlansPage = () => {
     console.log('🔄 [ActivePlans] User object completo:', user);
     setLoading(true);
     try {
-      console.log('🔄 [ActivePlans] Fazendo query no Supabase...');
+      console.log('🔄 [ActivePlans] Fazendo query simples no Supabase...');
       
-      // Primeiro, verificar se temos acesso direto
-      console.log('🔍 [ActivePlans] Testando acesso ao Supabase...');
-      const { data: testData, error: testError } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1);
-      
-      console.log('🔍 [ActivePlans] Teste de conexão:', { testData, testError });
-      
+      // Query simples sem join para testar primeiro
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
-        .select(`
-          *,
-          investment_plans!inner(name, robot_version, daily_rate)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      console.log('📊 [ActivePlans] Query completa executada');
+      console.log('📊 [ActivePlans] Query executada');
       console.log('📊 [ActivePlans] Error:', error);
-      console.log('📊 [ActivePlans] Data:', investmentsData);
+      console.log('📊 [ActivePlans] Data length:', investmentsData?.length);
+      console.log('📊 [ActivePlans] First record:', investmentsData?.[0]);
 
       if (error) {
-        console.error('❌ [ActivePlans] Erro ao buscar investimentos:', error);
-        console.error('❌ [ActivePlans] Código do erro:', error.code);
-        console.error('❌ [ActivePlans] Mensagem do erro:', error.message);
-        console.error('❌ [ActivePlans] Detalhes do erro:', error.details);
+        console.error('❌ [ActivePlans] Erro detalhado:', error);
         toast({
           title: "Erro ao carregar dados",
           description: `Erro: ${error.message}. Clique em Recarregar para tentar novamente.`,
@@ -154,8 +141,8 @@ const ActivePlansPage = () => {
         const dailyTarget = investment.amount * (dailyRate / 100);
         const todayEarnings = investment.today_earnings || 0;
 
-        // Usar o nome do plano do relacionamento ou fallback
-        const planName = investment.investment_plans?.name || 'Robô de Arbitragem';
+         // Definir nome do plano baseado no plan_id ou usar fallback
+         const planName = 'Robô 4.0.0'; // Simplificado para teste
 
         return {
           id: investment.id,
