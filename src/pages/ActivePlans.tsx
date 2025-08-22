@@ -26,8 +26,6 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ActivePlans } from "@/components/ActivePlans";
-
 interface Investment {
   id: string;
   investmentName: string;
@@ -47,12 +45,20 @@ interface Investment {
 }
 
 const ActivePlansPage = () => {
+  console.log('🚀 [ActivePlansPage] Componente carregado!');
+  
   const { user, session, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [userInvestments, setUserInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
+
+  console.log('👤 [ActivePlansPage] Estado do usuário:', { 
+    userId: user?.id, 
+    isLoading: authLoading, 
+    investmentsCount: userInvestments.length 
+  });
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -336,13 +342,120 @@ const ActivePlansPage = () => {
           </div>
         </div>
 
-        {/* ActivePlans Component */}
-        <ActivePlans 
-          userInvestments={userInvestments}
-          isMobile={isMobile}
-          activeInvestments={activeInvestments}
-          onInvestmentUpdate={setUserInvestments}
-        />
+        {/* Planos Ativos */}
+        {activeInvestments === 0 ? (
+          <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 border-2 border-trading-green/20 rounded-2xl p-8 text-center backdrop-blur-sm">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="p-3 bg-trading-green/10 rounded-full">
+                <Target className="h-8 w-8 text-trading-green" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">
+                Nenhum Plano Ativo
+              </h3>
+            </div>
+            <p className="text-slate-300 mb-6 text-lg">
+              Você ainda não possui planos de investimento ativos.
+            </p>
+            <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+              <p className="text-slate-400">
+                Para começar a investir, acesse a aba "Investimentos" e escolha um plano.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 border-2 border-trading-green/30 rounded-2xl p-6 space-y-6 backdrop-blur-sm shadow-2xl">
+            {/* Header Premium */}
+            <div className="text-center py-4">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="p-2 bg-gradient-to-r from-trading-green to-emerald-400 rounded-full">
+                  <Crown className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-trading-green to-emerald-400 bg-clip-text text-transparent">
+                  🟢 PLANOS ATIVOS PREMIUM
+                </h3>
+                <div className="p-2 bg-gradient-to-r from-trading-green to-emerald-400 rounded-full">
+                  <Star className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <p className="text-slate-300 text-lg">
+                {activeInvestments} {activeInvestments === 1 ? 'plano ativo' : 'planos ativos'} gerando rendimentos automaticamente
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <Zap className="h-4 w-4 text-trading-green animate-pulse" />
+                <span className="text-sm text-trading-green font-medium">Sistema de Trading Automatizado</span>
+              </div>
+            </div>
+
+            <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'}`}>
+              {userInvestments
+                .filter(investment => investment.status === "active")
+                .map((investment) => (
+                  <Card key={investment.id} className="bg-gradient-to-br from-slate-800/90 to-slate-700/90 border-2 border-trading-green/20 hover:border-trading-green/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden group">
+                    {/* Efeito de brilho no topo */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-trading-green via-emerald-400 to-trading-green rounded-t-lg"></div>
+                    
+                    {/* Efeito de fundo animado */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-trading-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <CardHeader className="border-b border-slate-600/50 p-6 relative z-10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className="w-12 h-12 bg-gradient-to-br from-trading-green/20 to-emerald-400/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-trading-green/30">
+                            <TrendingUp className="h-6 w-6 text-trading-green" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-xl text-white font-bold truncate">
+                              {investment.investmentName}
+                            </CardTitle>
+                            <p className="text-slate-300 text-sm truncate">
+                              2 operações diárias • Sistema Premium
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className="bg-gradient-to-r from-trading-green to-emerald-400 text-white ml-3 flex-shrink-0 text-xs font-bold border-0">
+                          <PlayCircle className="h-3 w-3 mr-1" />
+                          ATIVO
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="p-6 relative z-10">
+                      <div className="space-y-5">
+                        {/* Valor Investido */}
+                        <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                          <span className="text-slate-300 font-medium">Valor Investido</span>
+                          <span className="font-bold text-xl text-white">${investment.amount.toFixed(2)}</span>
+                        </div>
+                        
+                        {/* Ganhos Totais */}
+                        <div className="flex justify-between items-center p-3 bg-gradient-to-r from-trading-green/10 to-emerald-400/10 rounded-lg border border-trading-green/30">
+                          <span className="text-slate-300 font-medium">Ganhos Totais</span>
+                          <span className="font-bold text-xl text-trading-green">+${investment.totalEarned.toFixed(2)}</span>
+                        </div>
+
+                        {/* Operações Hoje */}
+                        <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                          <span className="text-slate-300 font-medium">Operações Hoje</span>
+                          <span className="font-bold text-lg text-white">
+                            {investment.operationsCompleted}/2
+                          </span>
+                        </div>
+
+                        {/* Dias Restantes */}
+                        <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                          <span className="text-slate-300 font-medium">Dias Restantes</span>
+                          <span className="font-bold text-lg text-white">
+                            {investment.daysRemaining} dias
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              }
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

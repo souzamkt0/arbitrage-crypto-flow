@@ -23,7 +23,7 @@ import Simulation from "./pages/Simulation";
 import Admin from "./pages/Admin";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
-import ActivePlansPage from "./pages/ActivePlansPage";
+import ActivePlansPage from "./pages/ActivePlans";
 import Referrals from "./pages/Referrals";
 import Partners from "./pages/Partners";
 import UserProfilePage from "./pages/UserProfile";
