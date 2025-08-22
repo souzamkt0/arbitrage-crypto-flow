@@ -1558,6 +1558,10 @@ export type Database = {
         Args: { partner_email: string }
         Returns: Json
       }
+      remove_partner_by_admin: {
+        Args: { admin_email?: string; partner_email: string }
+        Returns: Json
+      }
       remove_partner_safe: {
         Args: { partner_email: string }
         Returns: Json

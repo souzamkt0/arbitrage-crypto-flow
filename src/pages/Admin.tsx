@@ -1846,10 +1846,14 @@ const Admin = () => {
         return;
       }
       
-      // Usar a função segura de remoção
+      // Obter email do admin atual (padrão admin@clean.com)
+      const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
+      
+      // Usar a nova função que funciona com bypass
       const { data: result, error } = await supabase
-        .rpc('remove_partner_safe', {
-          partner_email: partner.email
+        .rpc('remove_partner_by_admin', {
+          partner_email: partner.email,
+          admin_email: adminEmail
         });
 
       if (error) {
@@ -2765,9 +2769,13 @@ const Admin = () => {
       console.log('🔄 Removendo sócio por email...');
       console.log('📧 Email:', email);
 
+      // Obter email do admin atual (padrão admin@clean.com)
+      const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
+
       const { data: result, error } = await supabase
-        .rpc('remove_partner_safe', {
-          partner_email: email
+        .rpc('remove_partner_by_admin', {
+          partner_email: email,
+          admin_email: adminEmail
         });
 
       if (error) {
