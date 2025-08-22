@@ -1550,6 +1550,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      process_investment: {
+        Args: { p_amount: number; p_plan_id: string; p_user_id: string }
+        Returns: Json
+      }
       remove_partner: {
         Args: { partner_email: string }
         Returns: Json

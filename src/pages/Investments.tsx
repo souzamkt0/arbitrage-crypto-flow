@@ -406,37 +406,32 @@ const Investments = () => {
       return;
     }
 
-    if (selectedPlan.requiredReferrals && userReferrals < selectedPlan.requiredReferrals) {
-      toast({
-        title: "Indicações insuficientes",
-        description: `Você precisa de ${selectedPlan.requiredReferrals} indicações ativas para este plano. Você tem ${userReferrals}.`,
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       setIsLoading(true);
       
-      // Inserir investimento
-      const { data, error } = await supabase
-        .from('user_investments')
-        .insert({
+      // Chamar edge function para processar investimento
+      const { data, error } = await supabase.functions.invoke('process-investment', {
+        body: {
           user_id: user.id,
           plan_id: selectedPlan.id,
-          amount: amount,
-          daily_rate: selectedPlan.dailyRate,
-          end_date: new Date(Date.now() + selectedPlan.duration * 24 * 60 * 60 * 1000).toISOString(),
-          total_operations: selectedPlan.duration * (selectedPlan.operations || 1)
-        })
-        .select()
-        .single();
+          amount: amount
+        }
+      });
 
       if (error) throw error;
 
+      if (!data.success) {
+        toast({
+          title: "Erro",
+          description: data.error,
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "✅ Investimento realizado!",
-        description: `Investimento de $${amount} no ${selectedPlan.name} foi criado com sucesso!`,
+        description: data.message,
       });
 
       // Recarregar dados
