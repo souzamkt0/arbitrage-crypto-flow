@@ -29,7 +29,7 @@ export const DepositTestButton: React.FC = () => {
       const { data: depositResult, error: depositError } = await supabase.functions.invoke('digitopay-deposit', {
         body: {
           amount: 100, // $100 USD
-          cpf: '123.456.789-00',
+          cpf: '11144477735', // CPF válido para teste
           name: 'Teste Automático',
           callbackUrl: window.location.origin + '/deposit',
           userId: user.id
