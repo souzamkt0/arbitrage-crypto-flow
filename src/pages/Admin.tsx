@@ -1827,27 +1827,58 @@ const Admin = () => {
 
   const removePartner = async (partnerId: string, partnerName: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: 'user' })
-        .eq('user_id', partnerId);
+      console.log('🔄 Removendo sócio:', { partnerId, partnerName });
+      
+      // Buscar email do sócio
+      const { data: partner, error: partnerError } = await supabase
+        .from('partners')
+        .select('email')
+        .eq('user_id', partnerId)
+        .single();
+      
+      if (partnerError || !partner) {
+        console.error('❌ Erro ao buscar sócio:', partnerError);
+        toast({
+          title: "Erro",
+          description: "Sócio não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Usar a função segura de remoção
+      const { data: result, error } = await supabase
+        .rpc('remove_partner_safe', {
+          partner_email: partner.email
+        });
 
       if (error) {
         console.error('❌ Erro ao remover sócio:', error);
         toast({
           title: "Erro",
-          description: "Erro ao remover sócio.",
+          description: `Erro ao remover sócio: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
 
-      toast({
-        title: "Sócio Removido",
-        description: `${partnerName} foi removido como sócio.`,
-      });
-
-      loadPartners();
+      console.log('📊 Resultado da remoção:', result);
+      
+      if (result?.success) {
+        toast({
+          title: "Sócio Removido ✅",
+          description: `${partnerName} foi removido como sócio.`,
+        });
+        
+        await loadPartners();
+        await loadAllUsers();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido ao remover sócio.",
+          variant: "destructive"
+        });
+      }
       
     } catch (error) {
       console.error('❌ Erro ao remover sócio:', error);
@@ -2731,27 +2762,27 @@ const Admin = () => {
       const confirm = window.confirm(`Tem certeza que deseja remover o sócio ${email}?`);
       if (!confirm) return;
 
-      console.log('🔄 Removendo sócio...');
+      console.log('🔄 Removendo sócio por email...');
       console.log('📧 Email:', email);
 
       const { data: result, error } = await supabase
-        .rpc('remove_partner', {
+        .rpc('remove_partner_safe', {
           partner_email: email
         });
 
       if (error) {
-        console.log('❌ Erro ao remover sócio:', error);
+        console.error('❌ Erro ao remover sócio:', error);
         toast({
           title: "Erro",
-          description: "Erro ao remover sócio: " + error.message,
+          description: `Erro ao remover sócio: ${error.message}`,
           variant: "destructive"
         });
       } else {
-        console.log('✅ Resultado:', result);
+        console.log('✅ Resultado da remoção:', result);
         
-        if (result.success) {
+        if (result?.success) {
           toast({
-            title: "Sucesso!",
+            title: "Sucesso! ✅",
             description: result.message,
           });
           
@@ -2760,7 +2791,7 @@ const Admin = () => {
         } else {
           toast({
             title: "Erro",
-            description: result.error,
+            description: result?.error || "Erro desconhecido",
             variant: "destructive"
           });
         }
@@ -3698,13 +3729,37 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/20">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 hover:bg-primary/20"
+                                onClick={() => handleViewUser(user)}
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-amber-500/20">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 hover:bg-amber-500/20"
+                                onClick={() => handleEditUser(user)}
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-500/20">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 hover:bg-red-500/20"
+                                onClick={() => {
+                                  const confirm = window.confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`);
+                                  if (confirm) {
+                                    // Implementar exclusão de usuário se necessário
+                                    toast({
+                                      title: "Aviso",
+                                      description: "Função de exclusão de usuário não implementada por segurança.",
+                                    });
+                                  }
+                                }}
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -4216,10 +4271,52 @@ const Admin = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                const newCommission = prompt('Nova comissão (%):', partner.commission_percentage?.toString() || '1');
+                                if (newCommission && !isNaN(Number(newCommission))) {
+                                  // Atualizar comissão via função do Supabase
+                                  supabase.rpc('update_partner_commission', {
+                                    partner_email: partner.email,
+                                    new_commission_percentage: Number(newCommission)
+                                  }).then(({ data, error }) => {
+                                    if (error) {
+                                      toast({
+                                        title: "Erro",
+                                        description: `Erro ao atualizar comissão: ${error.message}`,
+                                        variant: "destructive"
+                                      });
+                                    } else if (data?.success) {
+                                      toast({
+                                        title: "Sucesso ✅",
+                                        description: "Comissão atualizada com sucesso!",
+                                      });
+                                      loadPartners();
+                                    } else {
+                                      toast({
+                                        title: "Erro",
+                                        description: data?.error || "Erro desconhecido",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  });
+                                }
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="destructive" size="sm">
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => {
+                                const confirm = window.confirm(`Tem certeza que deseja remover o sócio ${partner.display_name}?`);
+                                if (confirm && partner.user_id) {
+                                  removePartner(partner.user_id, partner.display_name || partner.email);
+                                }
+                              }}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

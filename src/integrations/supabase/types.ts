@@ -1558,6 +1558,10 @@ export type Database = {
         Args: { partner_email: string }
         Returns: Json
       }
+      remove_partner_safe: {
+        Args: { partner_email: string }
+        Returns: Json
+      }
       reset_daily_earnings: {
         Args: Record<PropertyKey, never>
         Returns: undefined
