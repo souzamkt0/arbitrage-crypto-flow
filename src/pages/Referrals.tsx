@@ -464,6 +464,59 @@ Alphabit Team`;
 
             {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Referral Link Section - Moved above chart */}
+              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20 overflow-hidden">
+                <CardHeader className="border-b border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+                    <Link className="h-5 w-5 text-purple-400" />
+                    YOUR REFERRAL LINK
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 bg-slate-700/50 rounded-lg border border-purple-500/20">
+                      <Input
+                        value={referralLink}
+                        readOnly
+                        className="flex-1 bg-transparent border-none text-white font-mono text-sm focus:ring-0 focus:border-none"
+                      />
+                      <Button
+                        onClick={copyToClipboard}
+                        className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 transition-all duration-300 hover:scale-105"
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        COPY
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={() => {
+                          const message = `🚀 Join Alphabit and start earning with automated trading!\n\n${referralLink}\n\n✅ Professional arbitrage system\n✅ Guaranteed daily profits\n✅ 24/7 support\n\nStart today!`;
+                          const encodedMessage = encodeURIComponent(message);
+                          window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
+                      >
+                        <Phone className="h-4 w-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Trading Chart */}
               <TradingChart />
 
