@@ -93,6 +93,7 @@ const Dashboard = () => {
   const [editingUserNameValue, setEditingUserNameValue] = useState("");
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [isDataSyncing, setIsDataSyncing] = useState(false);
+  const [userInvestments, setUserInvestments] = useState<any[]>([]);
 
   // ... keep existing code (all utility functions and effects)
 
@@ -455,11 +456,13 @@ const Dashboard = () => {
     loadCommunityMessages();
     loadInvestmentStats();
     loadPartnerData();
+    loadUserInvestments();
     
     // Atualizar dados reais periodicamente (a cada 30 segundos)
     const interval = setInterval(() => {
       loadUserData();
       loadInvestmentStats();
+      loadUserInvestments();
     }, 30000);
 
     return () => clearInterval(interval);
@@ -570,7 +573,7 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       setPartnerData(partner);
 
@@ -605,6 +608,37 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Erro ao carregar dados de parceiro:', error);
+    }
+  };
+
+  // Carregar investimentos ativos do usuário
+  const loadUserInvestments = async () => {
+    if (!user) return;
+
+    try {
+      const { data: investments, error } = await supabase
+        .from('user_investments')
+        .select(`
+          *,
+          investment_plans (
+            name,
+            daily_rate,
+            duration_days
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Erro ao carregar investimentos:', error);
+        return;
+      }
+
+      setUserInvestments(investments || []);
+    } catch (error) {
+      console.error('Erro ao carregar investimentos do usuário:', error);
     }
   };
 
@@ -652,6 +686,7 @@ const Dashboard = () => {
             <BalanceBox onRefresh={() => {
               loadInvestmentStats();
               loadPartnerData();
+              loadUserInvestments();
             }} />
             
             {/* Trading Stats */}
@@ -713,53 +748,62 @@ const Dashboard = () => {
             <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-600/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-green-400" />
-                  📊 Histórico Recente
+                  <Activity className="h-5 w-5 text-green-400" />
+                  📊 Planos Ativos
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <div>
-                        <div className="text-white text-sm font-medium">Operação BTC/USDT</div>
-                        <div className="text-gray-400 text-xs">Lucro: +0.24%</div>
+                  {userInvestments.length > 0 ? (
+                    userInvestments.map((investment, index) => (
+                      <div key={investment.id} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 ${investment.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'} rounded-full`}></div>
+                          <div>
+                            <div className="text-white text-sm font-medium">
+                              Plano ${investment.amount?.toFixed(2) || '0.00'}
+                            </div>
+                            <div className="text-gray-400 text-xs">
+                              Taxa: {(investment.daily_rate * 100)?.toFixed(2) || '0.00'}% • {investment.days_remaining || 0} dias restantes
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-green-400 text-sm font-semibold">
+                            +${investment.total_earned?.toFixed(2) || '0.00'}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {investment.operations_completed || 0}/{investment.total_operations || 0} ops
+                          </div>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6">
+                      <div className="text-gray-400 text-sm mb-2">Nenhum plano ativo</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/investments')}
+                        className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                      >
+                        Ver Planos Disponíveis
+                      </Button>
                     </div>
-                    <div className="text-green-400 text-sm font-semibold">+$12.50</div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div>
-                        <div className="text-white text-sm font-medium">Depósito PIX</div>
-                        <div className="text-gray-400 text-xs">Aprovado</div>
-                      </div>
-                    </div>
-                    <div className="text-blue-400 text-sm font-semibold">+$100.00</div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <div>
-                        <div className="text-white text-sm font-medium">Indicação Ativa</div>
-                        <div className="text-gray-400 text-xs">Comissão gerada</div>
-                      </div>
-                    </div>
-                    <div className="text-purple-400 text-sm font-semibold">+$5.00</div>
-                  </div>
+                  )}
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-600/30">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/history')}
-                    className="w-full border-slate-600/30 text-gray-300 hover:bg-slate-700/50"
-                  >
-                    Ver Histórico Completo
-                  </Button>
-                </div>
+                {userInvestments.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-slate-600/30">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/active-plans')}
+                      className="w-full border-slate-600/30 text-gray-300 hover:bg-slate-700/50"
+                    >
+                      Ver Todos os Planos Ativos
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
