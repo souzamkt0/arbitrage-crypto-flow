@@ -3981,22 +3981,25 @@ const Admin = () => {
                           <TableCell className="text-gray-300">
                             {deposit.userName || deposit.holderName || 'N/A'}
                           </TableCell>
-                          <TableCell className="text-gray-300">
-                            ${deposit.amount.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-gray-300">
-                            R${deposit.amountBRL.toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={
-                              deposit.status === 'paid' || deposit.status === 'completed' ? 'default' : 
-                              deposit.status === 'pending' ? 'secondary' : 'destructive'
-                            }>
-                              {deposit.status === 'paid' ? 'Pago' : 
-                               deposit.status === 'completed' ? 'Completo' :
-                               deposit.status === 'pending' ? 'Pendente' : 'Rejeitado'}
-                            </Badge>
-                          </TableCell>
+                           <TableCell className="text-green-400 font-semibold">
+                             ${(deposit.amount || 0).toFixed(2)}
+                           </TableCell>
+                           <TableCell className="text-gray-300">
+                             R$ {(deposit.amountBRL || 0).toFixed(2)}
+                           </TableCell>
+                           <TableCell>
+                             <Badge variant={
+                               deposit.status === 'paid' || deposit.status === 'completed' ? 'default' : 
+                               deposit.status === 'pending' ? 'secondary' : 'destructive'
+                             } className={
+                               deposit.status === 'paid' || deposit.status === 'completed' ? 'bg-green-100 text-green-800' :
+                               deposit.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                             }>
+                               {deposit.status === 'paid' ? '✅ Pago' : 
+                                deposit.status === 'completed' ? '✅ Completo' :
+                                deposit.status === 'pending' ? '⏳ Pendente' : '❌ Rejeitado'}
+                             </Badge>
+                           </TableCell>
                           <TableCell className="text-gray-300 uppercase">
                             {deposit.type}
                           </TableCell>
