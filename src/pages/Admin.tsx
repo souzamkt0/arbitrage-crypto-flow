@@ -4262,8 +4262,235 @@ const Admin = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="withdrawals">
-            <p className="text-muted-foreground">Conteúdo de saques será implementado...</p>
+          <TabsContent value="withdrawals" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Gerenciar Saques</h2>
+                <p className="text-muted-foreground">Aprovar, rejeitar e gerenciar solicitações de saque</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={exportWithdrawalsReport}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Exportar Relatório
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={loadAdminData}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Atualizar
+                </Button>
+              </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mb-4">
+              {(['all', 'pending', 'approved', 'rejected', 'processing'] as const).map((status) => (
+                <Button
+                  key={status}
+                  variant={withdrawalFilter === status ? "default" : "outline"}
+                  onClick={() => setWithdrawalFilter(status)}
+                  className="capitalize"
+                >
+                  {status === 'all' ? 'Todos' : 
+                   status === 'pending' ? 'Pendentes' :
+                   status === 'approved' ? 'Aprovados' :
+                   status === 'rejected' ? 'Rejeitados' : 'Processando'}
+                  {status !== 'all' && (
+                    <Badge variant="secondary" className="ml-2">
+                      {withdrawals.filter(w => w.status === status).length}
+                    </Badge>
+                  )}
+                </Button>
+              ))}
+            </div>
+
+            {/* Withdrawals Table */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowDown className="h-5 w-5 text-primary" />
+                  Solicitações de Saque
+                </CardTitle>
+                <CardDescription>
+                  Total de {filteredWithdrawals.length} solicitação(ões) 
+                  {withdrawalFilter !== 'all' && ` (filtro: ${withdrawalFilter})`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Chave PIX</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredWithdrawals.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                            {withdrawalFilter === 'all' 
+                              ? 'Nenhuma solicitação de saque encontrada.' 
+                              : `Nenhuma solicitação ${withdrawalFilter} encontrada.`}
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredWithdrawals.map((withdrawal) => (
+                          <TableRow key={withdrawal.id}>
+                            <TableCell>
+                              {new Date(withdrawal.date).toLocaleDateString('pt-BR')}
+                              <br />
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(withdrawal.date).toLocaleTimeString('pt-BR')}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{withdrawal.holderName}</p>
+                                <p className="text-xs text-muted-foreground">{withdrawal.cpf}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-semibold">R$ {withdrawal.amountBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Taxa: R$ {withdrawal.fee.toFixed(2)} | 
+                                  Líquido: R$ {withdrawal.netAmount.toFixed(2)}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="uppercase">
+                                {withdrawal.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="text-sm">{withdrawal.pixKey}</p>
+                                <p className="text-xs text-muted-foreground capitalize">
+                                  {withdrawal.pixKeyType?.toLowerCase()}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                className={
+                                  withdrawal.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
+                                  withdrawal.status === 'approved' ? 'bg-green-500/20 text-green-300' :
+                                  withdrawal.status === 'rejected' ? 'bg-red-500/20 text-red-300' :
+                                  withdrawal.status === 'processing' ? 'bg-blue-500/20 text-blue-300' :
+                                  'bg-gray-500/20 text-gray-300'
+                                }
+                              >
+                                {withdrawal.status === 'pending' ? 'Pendente' :
+                                 withdrawal.status === 'approved' ? 'Aprovado' :
+                                 withdrawal.status === 'rejected' ? 'Rejeitado' :
+                                 withdrawal.status === 'processing' ? 'Processando' : withdrawal.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {withdrawal.status === 'pending' && (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-green-500/10 hover:bg-green-500/20 text-green-300 border-green-500/30"
+                                    onClick={() => handleWithdrawalAction(withdrawal.id, 'approve')}
+                                  >
+                                    <CheckCircle className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-red-500/10 hover:bg-red-500/20 text-red-300 border-red-500/30"
+                                    onClick={() => handleWithdrawalAction(withdrawal.id, 'reject')}
+                                  >
+                                    <XIcon className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                              {withdrawal.status !== 'pending' && (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-yellow-500/10 border-yellow-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pendentes</p>
+                      <p className="text-xl font-bold text-yellow-300">
+                        {withdrawals.filter(w => w.status === 'pending').length}
+                      </p>
+                    </div>
+                    <Clock className="h-6 w-6 text-yellow-300" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-green-500/10 border-green-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Aprovados</p>
+                      <p className="text-xl font-bold text-green-300">
+                        {withdrawals.filter(w => w.status === 'approved').length}
+                      </p>
+                    </div>
+                    <CheckCircle className="h-6 w-6 text-green-300" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-red-500/10 border-red-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Rejeitados</p>
+                      <p className="text-xl font-bold text-red-300">
+                        {withdrawals.filter(w => w.status === 'rejected').length}
+                      </p>
+                    </div>
+                    <XIcon className="h-6 w-6 text-red-300" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-blue-500/10 border-blue-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Valor</p>
+                      <p className="text-xl font-bold text-blue-300">
+                        R$ {withdrawals.reduce((sum, w) => sum + w.amountBRL, 0).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <DollarSign className="h-6 w-6 text-blue-300" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           
           {/* Investment Plans Tab */}
