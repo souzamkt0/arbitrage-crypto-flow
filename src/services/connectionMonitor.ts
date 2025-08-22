@@ -58,7 +58,7 @@ class ConnectionMonitor {
       const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT_DURATION);
 
       const { error } = await supabase
-        .from('community_posts')
+        .from('profiles')
         .select('id')
         .limit(1)
         .abortSignal(controller.signal);

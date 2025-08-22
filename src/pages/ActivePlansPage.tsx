@@ -83,7 +83,7 @@ const ActivePlansPage = () => {
         .from('user_investments')
         .select(`
           *,
-          investment_plans(name, robot_version, daily_rate)
+          investment_plans!inner(name, robot_version, daily_rate)
         `)
         .eq('user_id', user.id)
         .eq('status', 'active')
