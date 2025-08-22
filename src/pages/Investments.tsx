@@ -490,6 +490,65 @@ const Investments = () => {
     }
   };
 
+  // Função para executar operação de arbitragem
+  const executeArbitrageOperation = async (investment: UserInvestment) => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      
+      // Simular operação de arbitragem
+      const operationProfit = (investment.amount * investment.dailyRate) / 100;
+      const updatedTotalEarned = investment.totalEarned + operationProfit;
+      const updatedOperationsCompleted = investment.operationsCompleted + 1;
+      
+      // Atualizar no banco de dados
+      const { error } = await supabase
+        .from('user_investments')
+        .update({
+          total_earned: updatedTotalEarned,
+          operations_completed: updatedOperationsCompleted,
+          today_earnings: investment.todayEarnings + operationProfit,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', investment.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Atualizar estado local
+      setUserInvestments(prev => 
+        prev.map(inv => 
+          inv.id === investment.id 
+            ? {
+                ...inv,
+                totalEarned: updatedTotalEarned,
+                operationsCompleted: updatedOperationsCompleted,
+                todayEarnings: investment.todayEarnings + operationProfit,
+                canOperate: false,
+                nextOperationIn: 86400 // 24 horas
+              }
+            : inv
+        )
+      );
+
+      toast({
+        title: "✅ Arbitragem Executada!",
+        description: `Lucro de ${formatCurrency(operationProfit)} registrado com sucesso.`,
+      });
+
+    } catch (error) {
+      console.error('Erro ao executar arbitragem:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao executar operação de arbitragem.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getPlanColor = (planId: string) => {
     switch (planId) {
       case 'robo-400': return 'from-blue-500 to-cyan-500';
@@ -956,60 +1015,124 @@ const Investments = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {userInvestments.map((investment) => (
-                      <Card key={investment.id} className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-purple-500/20">
-                        <CardHeader className="border-b border-purple-500/20">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-white flex items-center gap-2">
-                                <Bot className="h-5 w-5 text-purple-400" />
-                                {investment.investmentName}
-                              </CardTitle>
-                              <p className="text-gray-400 text-sm">
-                                {formatCurrency(investment.amount)} • {investment.dailyRate}% daily
-                              </p>
-                            </div>
-                            <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
-                              Active
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        
-                        <CardContent className="p-6 space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-gray-400 text-xs mb-1">Total Earned</p>
-                              <p className="text-white font-semibold">{formatCurrency(investment.totalEarned)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400 text-xs mb-1">Days Remaining</p>
-                              <p className="text-white font-semibold">{investment.daysRemaining}</p>
-                            </div>
-                          </div>
+                  <div className="grid gap-6">
+                    {userInvestments.map((investment) => {
+                      const canExecute = investment.canOperate;
+                      const nextOperationTime = investment.nextOperationIn || 0;
+                      
+                      return (
+                        <Card key={investment.id} className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-purple-500/20 overflow-hidden">
+                          {/* Status Bar */}
+                          <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-400"></div>
                           
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-gray-400 text-sm">Today's Progress</span>
-                              <span className="text-purple-400 text-sm">{Math.round(investment.currentDayProgress)}%</span>
+                          <CardHeader className="pb-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                  <Bot className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                  <CardTitle className="text-lg text-white">{investment.investmentName}</CardTitle>
+                                  <p className="text-slate-400 text-sm">
+                                    Capital: {formatCurrency(investment.amount)} • {investment.operationsCompleted} operations
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span className="text-green-400 text-sm font-medium">ACTIVE</span>
+                              </div>
                             </div>
-                            <Progress value={investment.currentDayProgress} className="h-2" />
-                            <p className="text-green-400 text-sm mt-1">
-                              Earned today: {formatCurrency(investment.todayEarnings)}
-                            </p>
-                          </div>
-                          
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardHeader>
+
+                          <CardContent className="space-y-6">
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                                <div className="text-slate-400 text-xs font-medium mb-1">PROFIT</div>
+                                <div className="text-green-400 font-bold text-lg">{formatCurrency(investment.totalEarned)}</div>
+                                <div className="text-slate-500 text-xs">+{((investment.totalEarned / investment.amount) * 100).toFixed(1)}%</div>
+                              </div>
+                              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                                <div className="text-slate-400 text-xs font-medium mb-1">TODAY</div>
+                                <div className="text-blue-400 font-bold text-lg">{formatCurrency(investment.todayEarnings)}</div>
+                                <div className="text-slate-500 text-xs">{investment.dailyRate}% rate</div>
+                              </div>
+                              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                                <div className="text-slate-400 text-xs font-medium mb-1">DAYS LEFT</div>
+                                <div className="text-white font-bold text-lg">{investment.daysRemaining}</div>
+                                <div className="text-slate-500 text-xs">remaining</div>
+                              </div>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 text-sm">Daily Progress</span>
+                                <span className="text-purple-400 text-sm font-medium">
+                                  {Math.round(investment.currentDayProgress)}%
+                                </span>
+                              </div>
+                              <Progress 
+                                value={investment.currentDayProgress} 
+                                className="h-2 bg-slate-700"
+                              />
+                              <div className="flex justify-between text-xs text-slate-500">
+                                <span>Target: {formatCurrency(investment.dailyTarget)}</span>
+                                <span>Earned: {formatCurrency(investment.todayEarnings)}</span>
+                              </div>
+                            </div>
+
+                            {/* Performance Metrics */}
+                            <div className="bg-slate-700/30 rounded-lg p-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                  <span className="text-slate-300 text-sm">Success Rate: 94.2%</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                  <span className="text-slate-300 text-sm">ROI: {((investment.totalEarned / investment.amount) * 100).toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3">
+                              <Button
+                                onClick={() => executeArbitrageOperation(investment)}
+                                disabled={!canExecute}
+                                className={`flex-1 font-semibold py-3 ${
+                                  canExecute 
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:opacity-90 text-white' 
+                                    : 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                                }`}
+                              >
+                                {canExecute ? (
+                                  <>
+                                    <PlayCircle className="h-4 w-4 mr-2" />
+                                    EXECUTAR ARBITRAGEM
+                                  </>
+                                ) : (
+                                  <>
+                                    <Timer className="h-4 w-4 mr-2" />
+                                    Next in {Math.floor(nextOperationTime / 3600)}h {Math.floor((nextOperationTime % 3600) / 60)}m
+                                  </>
+                                )}
+                              </Button>
+                              
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                className="border-slate-600 text-slate-300 hover:bg-slate-700/50 px-4"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </div>
