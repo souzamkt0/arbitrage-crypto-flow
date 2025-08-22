@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -108,6 +110,101 @@ const Referrals = () => {
   });
   const [profile, setProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
+  const [selectedMessageType, setSelectedMessageType] = useState<string>("welcome");
+
+  // Pre-made message templates
+  const messageTemplates = {
+    welcome: {
+      title: "🎉 Boas-vindas",
+      description: "Mensagem de acolhimento para novos usuários",
+      template: (userName: string, referrerName: string) => `Olá ${userName}! 
+
+Bem-vindo(a) ao Alphabit! 🚀
+
+Sou o ${referrerName} e estou muito feliz em ter você conosco!
+
+O que você ganha aqui:
+• Sistema de arbitragem automática
+• Investimentos seguros e lucrativos
+• Suporte 24/7
+• Comunidade exclusiva de traders
+
+Dica: Comece explorando o Dashboard e veja como nosso sistema funciona. Estou aqui para te ajudar em cada passo!
+
+Precisa de ajuda? É só me chamar!
+
+Sucesso!
+${referrerName}
+Equipe Alphabit`
+    },
+    follow_up: {
+      title: "📈 Acompanhamento", 
+      description: "Verificar como está indo o usuário",
+      template: (userName: string, referrerName: string) => `Oi ${userName}! 
+
+Como você está se adaptando ao Alphabit? 
+
+Queria saber se você:
+✅ Já explorou o Dashboard
+✅ Entendeu como funciona o sistema
+✅ Tem alguma dúvida sobre investimentos
+
+Estou aqui para te ajudar a maximizar seus ganhos! 💰
+
+Alguma pergunta específica?
+
+${referrerName}
+Seu mentor Alphabit`
+    },
+    investment: {
+      title: "💰 Investimento",
+      description: "Ajudar com primeiro investimento", 
+      template: (userName: string, referrerName: string) => `${userName}, pronto para começar a lucrar? 🚀
+
+O sistema Alphabit está gerando ótimos resultados:
+• Média de 2-5% de lucro diário
+• Operações 100% automatizadas
+• Retorno garantido em 24h
+
+Que tal começar com um investimento teste?
+Recomendo iniciar com $100-500 para ver os resultados.
+
+Te ajudo com o processo! 💪
+
+${referrerName}
+Especialista Alphabit`
+    },
+    support: {
+      title: "🛠️ Suporte",
+      description: "Oferecer ajuda e suporte",
+      template: (userName: string, referrerName: string) => `${userName}, tudo bem? 
+
+Vi que você pode estar com alguma dificuldade. Estou aqui para ajudar! 
+
+Posso te auxiliar com:
+🔧 Configuração da conta
+📊 Como usar o sistema
+💳 Processo de depósito/saque
+📈 Estratégias de investimento
+
+Qual sua principal dúvida? Respondo em poucos minutos!
+
+${referrerName}
+Suporte Alphabit`
+    },
+    custom: {
+      title: "✍️ Mensagem Personalizada",
+      description: "Escrever sua própria mensagem",
+      template: (userName: string, referrerName: string) => `Olá ${userName}!
+
+[Digite sua mensagem personalizada aqui]
+
+${referrerName}
+Alphabit Team`
+    }
+  };
 
   useEffect(() => {
     console.log('🚀 useEffect Referrals iniciado');
@@ -258,38 +355,32 @@ const Referrals = () => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const sendWhatsAppMessage = (whatsapp: string, userName: string) => {
-    if (!whatsapp) {
+  const openMessageModal = (user: ReferredUser) => {
+    if (!user.whatsapp) {
       toast({
-        title: "❌ WhatsApp unavailable",
-        description: "This user doesn't have WhatsApp registered",
+        title: "❌ WhatsApp indisponível",
+        description: "Este usuário não tem WhatsApp cadastrado",
         variant: "destructive"
       });
       return;
     }
+    setSelectedUser(user);
+    setSelectedMessageType("welcome");
+    setShowMessageModal(true);
+  };
 
-    const cleanWhatsApp = whatsapp.replace(/\D/g, '');
+  const sendWhatsAppMessage = (messageType: string, customMessage?: string) => {
+    if (!selectedUser) return;
+    
+    const cleanWhatsApp = selectedUser.whatsapp.replace(/\D/g, '');
     const referrerName = profile?.display_name || profile?.username || 'Alphabit Team';
     
-    const message = `Hello ${userName}! 
-
-Welcome to Alphabit! 🚀
-
-I'm ${referrerName} and I'm excited to have you with us!
-
-What you get here:
-• Automatic arbitrage system
-• Safe and profitable investments
-• 24/7 support
-• Exclusive trader community
-
-Tip: Start exploring the Dashboard and see how our system works. I'm here to help you every step of the way!
-
-Need help? Just message me!
-
-Success!
-${referrerName}
-Alphabit Team`;
+    let message = '';
+    if (messageType === 'custom' && customMessage) {
+      message = customMessage;
+    } else if (messageTemplates[messageType as keyof typeof messageTemplates]) {
+      message = messageTemplates[messageType as keyof typeof messageTemplates].template(selectedUser.name, referrerName);
+    }
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/55${cleanWhatsApp}?text=${encodedMessage}`;
@@ -297,9 +388,11 @@ Alphabit Team`;
     window.open(whatsappUrl, '_blank');
     
     toast({
-      title: "✅ Message sent!",
-      description: `Message sent to ${userName}`,
+      title: "✅ Mensagem enviada!",
+      description: `Mensagem enviada para ${selectedUser.name}`,
     });
+    
+    setShowMessageModal(false);
   };
 
   return (
@@ -758,7 +851,7 @@ Alphabit Team`;
                                     {user.whatsapp && (
                                       <Button
                                         size="sm"
-                                        onClick={() => sendWhatsAppMessage(user.whatsapp, user.name)}
+                                        onClick={() => openMessageModal(user)}
                                         className="bg-green-600 hover:bg-green-700 text-white"
                                       >
                                         <MessageCircle className="h-4 w-4" />
@@ -821,6 +914,91 @@ Alphabit Team`;
             </div>
           </div>
         </div>
+
+        {/* WhatsApp Message Modal */}
+        <Dialog open={showMessageModal} onOpenChange={setShowMessageModal}>
+          <DialogContent className="max-w-2xl bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <MessageCircle className="h-6 w-6 text-green-400" />
+                Enviar Mensagem para {selectedUser?.name}
+              </DialogTitle>
+              <p className="text-gray-400">
+                {selectedUser?.whatsapp} • souzamkt0@gmail.com
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Message Type Selection */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Tipo de Mensagem</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(messageTemplates).map(([key, template]) => (
+                    <Button
+                      key={key}
+                      variant={selectedMessageType === key ? "default" : "outline"}
+                      onClick={() => setSelectedMessageType(key)}
+                      className={`h-auto p-4 flex flex-col items-start text-left ${
+                        selectedMessageType === key 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500' 
+                          : 'bg-slate-700/50 border-slate-600/50 text-gray-300 hover:border-green-500/50 hover:bg-green-500/10'
+                      }`}
+                    >
+                      <div className="font-semibold mb-1">{template.title}</div>
+                      <div className="text-xs opacity-80">{template.description}</div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message Preview */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Preview da Mensagem</h3>
+                <div className="bg-slate-700/50 border border-slate-600/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                  {selectedMessageType === 'custom' ? (
+                    <Textarea
+                      placeholder="Digite sua mensagem personalizada aqui..."
+                      className="min-h-32 bg-transparent border-none text-white resize-none focus:ring-0"
+                      defaultValue={messageTemplates.custom.template(selectedUser?.name || '', profile?.display_name || 'Alphabit Team')}
+                    />
+                  ) : (
+                    <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
+                      {selectedUser && messageTemplates[selectedMessageType as keyof typeof messageTemplates]?.template(
+                        selectedUser.name, 
+                        profile?.display_name || profile?.username || 'Alphabit Team'
+                      )}
+                    </pre>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setShowMessageModal(false)}
+                  variant="outline"
+                  className="flex-1 border-slate-600/50 text-gray-300 hover:bg-slate-700/50"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedMessageType === 'custom') {
+                      const customMessage = document.querySelector('textarea')?.value || '';
+                      sendWhatsAppMessage('custom', customMessage);
+                    } else {
+                      sendWhatsAppMessage(selectedMessageType);
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Enviar no WhatsApp
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </ErrorBoundary>
   );
