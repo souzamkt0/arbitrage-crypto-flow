@@ -53,6 +53,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "admin_balance_transactions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_balance_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "fk_admin_balance_transactions_admin_user_id"
             columns: ["admin_user_id"]
             isOneToOne: false
@@ -2289,6 +2303,10 @@ export type Database = {
       }
       is_admin_user: {
         Args: { user_email: string }
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       remove_partner: {
