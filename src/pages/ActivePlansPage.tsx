@@ -72,6 +72,14 @@ const ActivePlansPage = () => {
     try {
       console.log('🔄 [ActivePlans] Buscando investimentos ativos para usuário:', user?.id);
       
+      // Debug: Buscar todos os investimentos para verificar
+      const { data: allInvestments } = await supabase
+        .from('user_investments')
+        .select('*')
+        .eq('status', 'active');
+      
+      console.log('🔍 [ActivePlans] Todos os investimentos ativos:', allInvestments);
+      
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select('*')
@@ -84,11 +92,13 @@ const ActivePlansPage = () => {
         throw error;
       }
 
-      console.log('📊 [ActivePlans] Investimentos encontrados:', investmentsData);
+      console.log('📊 [ActivePlans] Investimentos encontrados para o usuário:', investmentsData);
+      console.log('👤 [ActivePlans] ID do usuário atual:', user?.id);
 
       if (!investmentsData || investmentsData.length === 0) {
-        console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado');
+        console.log('⚠️ [ActivePlans] Nenhum investimento ativo encontrado para este usuário');
         setUserInvestments([]);
+        setLoading(false);
         return;
       }
 
