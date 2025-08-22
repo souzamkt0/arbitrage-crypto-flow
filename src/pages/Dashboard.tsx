@@ -264,52 +264,9 @@ const Dashboard = () => {
       }));
 
     try {
-      // Tentar carregar dados do banco em background
-      const result = await executeSupabaseOperation(async () => {
-        const { data, error } = await supabase
-          .from('community_posts')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (error) {
-          throw new Error(`Supabase error: ${error.message}`);
-        }
-
-        return data;
-      });
-
-      // Sempre dar prioridade aos dados padrão para ter usuários interessantes
-      // Apenas usar dados do banco como último recurso se não há dados padrão
-      if (defaultMessages.length >= 2) {
-        // Temos dados padrão suficientes, usar apenas eles
-        setCommunityMessages(defaultMessages);
-      } else if (result && result.length > 0) {
-        // Dados padrão insuficientes, complementar com dados do banco
-        const dbMessages = result.map(post => ({
-        id: post.id,
-        user: post.author_name || 'Trader Experiente',
-        avatar: post.author_name ? post.author_name.charAt(0).toUpperCase() : 'T',
-        message: post.content,
-          imageUrl: post.image_url || null,
-        time: new Date(post.created_at).toLocaleString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          day: '2-digit',
-          month: '2-digit'
-        }),
-        likes: post.likes_count || Math.floor(Math.random() * 50) + 10,
-          isVerified: Math.random() > 0.7,
-          createdAt: post.created_at
-        }));
-        
-        // Combinar dados padrão com dados do banco
-        const combinedMessages = [...defaultMessages, ...dbMessages].slice(0, 5);
-        setCommunityMessages(combinedMessages);
-      } else {
-        // Fallback para dados padrão mesmo que poucos
-        setCommunityMessages(defaultMessages);
-      }
+      // Usar sempre dados padrão para demonstração
+      // Isso garante que sempre mostre usuários interessantes
+      setCommunityMessages(defaultMessages);
       
       // Cache dos dados para uso offline
       localStorage.setItem('community_messages_cache', JSON.stringify(defaultMessages));
@@ -323,16 +280,6 @@ const Dashboard = () => {
 
       setHasNewMessages(hasNewMessagesCheck);
       setLastMessageCount(currentDisplayMessages.length);
-      
-      // Notificar sobre novas mensagens (apenas se realmente há mudança)
-      if (hasNewMessagesCheck && currentDisplayMessages.length > 0 && currentMessages.length > 0) {
-        const newMessage = currentDisplayMessages[0];
-        toast({
-          title: "Nova Mensagem na Comunidade",
-          description: `${newMessage.user}: ${newMessage.message.substring(0, 50)}${newMessage.message.length > 50 ? '...' : ''}`,
-          variant: "default"
-        });
-      }
       
     } catch (error) {
       console.error('Erro ao carregar mensagens da comunidade:', error);
