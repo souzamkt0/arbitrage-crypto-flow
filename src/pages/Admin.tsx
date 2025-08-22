@@ -552,22 +552,30 @@ const Admin = () => {
 
   const handleToggleStatus = async (userId: string) => {
     try {
-      const userToUpdate = users.find(u => u.id === userId);
-      if (!userToUpdate) return;
+      // Obter email do admin atual (padrão admin@clean.com)
+      const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
 
-      const newStatus = userToUpdate.status === "active" ? "inactive" : "active";
-
-      // Atualizar no banco de dados
-      const { error } = await supabase
-        .from('profiles')
-        .update({ status: newStatus })
-        .eq('user_id', userId);
+      // Usar a nova função administrativa para alternar status
+      const { data: result, error } = await supabase
+        .rpc('admin_toggle_user_status', {
+          target_user_id: userId,
+          admin_email: adminEmail
+        });
 
       if (error) {
-        console.error('Erro ao atualizar status:', error);
+        console.error('Erro ao alterar status:', error);
         toast({
           title: "Erro",
-          description: "Erro ao atualizar status do usuário no banco de dados.",
+          description: `Erro ao alterar status: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!result?.success) {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro ao alterar status do usuário.",
           variant: "destructive"
         });
         return;
@@ -577,14 +585,14 @@ const Admin = () => {
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId 
-            ? { ...user, status: newStatus }
+            ? { ...user, status: result.new_status }
             : user
         )
       );
 
       toast({
         title: "Status atualizado",
-        description: `Usuário ${newStatus === 'active' ? 'ativado' : 'banido/inativado'} com sucesso.`,
+        description: result.message,
       });
     } catch (error) {
       console.error('Erro ao alterar status:', error);
@@ -707,59 +715,54 @@ const Admin = () => {
   const handleSaveUser = async () => {
     if (selectedUser && user) {
       try {
-        const { data: currentProfile, error: fetchError } = await supabase
-          .from('profiles')
-          .select('balance')
-          .eq('user_id', selectedUser.id)
-          .single();
+        // Obter email do admin atual (padrão admin@clean.com)
+        const adminEmail = localStorage.getItem('preferred_admin') || 'admin@clean.com';
 
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          console.error('Error fetching current balance:', fetchError);
+        // Usar a nova função administrativa para atualizar saldo
+        const { data: balanceResult, error: balanceError } = await supabase
+          .rpc('admin_update_user_balance', {
+            target_user_id: selectedUser.id,
+            new_balance: selectedUser.balance,
+            admin_email: adminEmail,
+            reason: 'Ajuste de saldo pelo administrador'
+          });
+
+        if (balanceError) {
+          console.error('Error updating balance:', balanceError);
           toast({
             title: "Erro",
-            description: "Erro ao buscar saldo atual do usuário.",
+            description: `Erro ao atualizar saldo: ${balanceError.message}`,
+            variant: "destructive"
           });
           return;
         }
 
-        const currentBalance = currentProfile?.balance || 0;
-        const newBalance = selectedUser.balance;
-        const balanceChanged = newBalance - currentBalance;
+        if (!balanceResult?.success) {
+          toast({
+            title: "Erro",
+            description: balanceResult?.error || "Erro ao atualizar saldo do usuário.",
+            variant: "destructive"
+          });
+          return;
+        }
 
+        // Atualizar nome e email (continuamos usando UPDATE direto para estes campos)
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
-            balance: newBalance,
             display_name: selectedUser.name,
             email: selectedUser.email
           })
           .eq('user_id', selectedUser.id);
 
         if (updateError) {
-          console.error('Error updating user:', updateError);
+          console.error('Error updating user profile:', updateError);
           toast({
             title: "Erro",
-            description: "Erro ao atualizar usuário no banco de dados.",
+            description: "Erro ao atualizar dados do usuário.",
+            variant: "destructive"
           });
           return;
-        }
-
-        if (Math.abs(balanceChanged) > 0.001) {
-          const { error: transactionError } = await supabase
-            .from('admin_balance_transactions')
-            .insert([{
-              user_id: selectedUser.id,
-              admin_user_id: user.id,
-              amount_before: currentBalance,
-              amount_after: newBalance,
-              amount_changed: balanceChanged,
-              transaction_type: 'balance_adjustment',
-              reason: `Saldo ${balanceChanged > 0 ? 'adicionado' : 'removido'} pelo administrador`
-            }]);
-
-          if (transactionError) {
-            console.error('Error creating transaction record:', transactionError);
-          }
         }
 
         setUsers(prevUsers =>
@@ -777,6 +780,7 @@ const Admin = () => {
         toast({
           title: "Erro",
           description: "Erro ao salvar alterações do usuário.",
+          variant: "destructive"
         });
       }
     }

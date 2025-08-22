@@ -1437,6 +1437,19 @@ export type Database = {
         Args: { commission_percentage?: number; partner_email: string }
         Returns: Json
       }
+      admin_toggle_user_status: {
+        Args: { admin_email?: string; target_user_id: string }
+        Returns: Json
+      }
+      admin_update_user_balance: {
+        Args: {
+          admin_email?: string
+          new_balance: number
+          reason?: string
+          target_user_id: string
+        }
+        Returns: Json
+      }
       apply_role_constraint_migration: {
         Args: Record<PropertyKey, never>
         Returns: string
