@@ -23,6 +23,7 @@ import Simulation from "./pages/Simulation";
 import Admin from "./pages/Admin";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
+import ActivePlans from "./pages/ActivePlans";
 
 import Referrals from "./pages/Referrals";
 import Partners from "./pages/Partners";
@@ -205,6 +206,14 @@ const App = () => (
                 <Layout>
                   <Investments />
                 </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/active-plans"
+            element={
+              <ProtectedRoute>
+                <ActivePlans />
               </ProtectedRoute>
             }
           />
