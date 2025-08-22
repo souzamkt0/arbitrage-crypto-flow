@@ -73,7 +73,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.removeItem('bypass_session');
         }
       }
-      return false;
+      
+      // Se não há sessão bypass, criar uma para o admin souzamkt0
+      const createAdminBypassSession = () => {
+        const adminBypassData = {
+          user: {
+            id: 'f721d67a-1f37-4709-92a9-ede89e77717f',
+            email: 'souzamkt0@gmail.com',
+            user_metadata: {},
+            app_metadata: {}
+          },
+          profile: {
+            user_id: 'f721d67a-1f37-4709-92a9-ede89e77717f',
+            email: 'souzamkt0@gmail.com',
+            role: 'admin',
+            display_name: 'Admin Souza',
+            username: 'souzamkt0'
+          },
+          expires_at: Date.now() + (24 * 60 * 60 * 1000), // 24 horas
+          access_token: 'bypass-admin-token',
+          refresh_token: 'bypass-admin-refresh'
+        };
+        
+        localStorage.setItem('bypass_session', JSON.stringify(adminBypassData));
+        console.log('✅ Sessão bypass de admin criada automaticamente');
+        
+        setUser(adminBypassData.user as any);
+        setSession(adminBypassData as any);
+        setProfile(adminBypassData.profile);
+        setIsLoading(false);
+        return true;
+      };
+      
+      return createAdminBypassSession();
     };
 
     // Se há sessão bypass válida, usar ela
