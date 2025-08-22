@@ -69,7 +69,8 @@ import {
   Zap,
   Database,
   Monitor,
-  Globe
+  Globe,
+  Ban
 } from "lucide-react";
 
 interface User {
@@ -549,18 +550,50 @@ const Admin = () => {
   const totalDepositAmount = deposits.filter(d => d.status === "paid").reduce((sum, d) => sum + d.amount, 0);
   const totalWithdrawalAmount = withdrawals.filter(w => w.status === "approved").reduce((sum, w) => sum + w.netAmount, 0);
 
-  const handleToggleStatus = (userId: string) => {
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.id === userId 
-          ? { ...user, status: user.status === "active" ? "inactive" : "active" }
-          : user
-      )
-    );
-    toast({
-      title: "Status atualizado",
-      description: "Status do usuário foi alterado com sucesso.",
-    });
+  const handleToggleStatus = async (userId: string) => {
+    try {
+      const userToUpdate = users.find(u => u.id === userId);
+      if (!userToUpdate) return;
+
+      const newStatus = userToUpdate.status === "active" ? "inactive" : "active";
+
+      // Atualizar no banco de dados
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Erro ao atualizar status:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar status do usuário no banco de dados.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar localmente
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, status: newStatus }
+            : user
+        )
+      );
+
+      toast({
+        title: "Status atualizado",
+        description: `Usuário ${newStatus === 'active' ? 'ativado' : 'banido/inativado'} com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar status do usuário.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -3756,17 +3789,21 @@ const Admin = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
+                                className={`h-8 w-8 p-0 ${user.status === 'active' ? 'hover:bg-red-500/20' : 'hover:bg-emerald-500/20'}`}
+                                onClick={() => handleToggleStatus(user.id)}
+                                title={user.status === 'active' ? 'Banir usuário' : 'Ativar usuário'}
+                              >
+                                {user.status === 'active' ? (
+                                  <Ban className="h-4 w-4" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
                                 className="h-8 w-8 p-0 hover:bg-red-500/20"
-                                onClick={() => {
-                                  const confirm = window.confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`);
-                                  if (confirm) {
-                                    // Implementar exclusão de usuário se necessário
-                                    toast({
-                                      title: "Aviso",
-                                      description: "Função de exclusão de usuário não implementada por segurança.",
-                                    });
-                                  }
-                                }}
+                                onClick={() => handleDeleteUser(user.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
