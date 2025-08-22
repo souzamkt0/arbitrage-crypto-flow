@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
 import { DigitoPayHistory } from "@/components/DigitoPayHistory";
-import { DepositTestButton } from "@/components/DepositTestButton";
+
 import { TradingChart } from "@/components/TradingChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { DepositStats } from "@/components/DepositStats";
@@ -280,16 +280,6 @@ const Deposit = () => {
                             </div>
                           </div>
                           
-                          {/* Botão de Teste */}
-                          <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-xl p-4 mb-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="text-yellow-400 font-medium">Modo de Teste</h3>
-                                <p className="text-sm text-gray-400">Teste o sistema de depósito automaticamente</p>
-                              </div>
-                              <DepositTestButton />
-                            </div>
-                          </div>
                           
                           <DigitoPayDeposit onSuccess={() => {
                             toast({
