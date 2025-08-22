@@ -473,6 +473,11 @@ const Investments = () => {
       setSelectedAmount("");
       setSelectedPlan(null);
       
+      // Redirecionar para página de planos ativos após sucesso
+      setTimeout(() => {
+        navigate('/active-plans');
+      }, 1500); // Aguardar 1.5s para mostrar o toast
+      
     } catch (error) {
       console.error('Erro ao criar investimento:', error);
       toast({
