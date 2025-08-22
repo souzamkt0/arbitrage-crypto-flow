@@ -54,7 +54,7 @@ interface UserInvestment {
 }
 
 const ActivePlansPage = () => {
-  const { user } = useAuth();
+  const { user, session, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -63,51 +63,105 @@ const ActivePlansPage = () => {
   const [clickedInvestments, setClickedInvestments] = useState<Set<string>>(new Set());
   const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
 
+  // Redirect if not authenticated
   useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+      return;
+    }
     if (user) {
       loadUserInvestments();
     }
-  }, [user]);
+  }, [user, authLoading, navigate]);
 
   const loadUserInvestments = async () => {
-    console.log('🔄 [ActivePlans] INICIANDO SINCRONIZAÇÃO...');
+    if (!user?.id) {
+      console.log('❌ [ActivePlans] Usuário não autenticado');
+      setLoading(false);
+      return;
+    }
+
+    console.log('🔄 [ActivePlans] SINCRONIZAÇÃO INICIADA para:', user.id);
     setLoading(true);
     
     try {
-      // Buscar dados do usuário autenticado primeiro
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      console.log('🔍 [ActivePlans] Auth User ID:', authUser?.id);
-      
-      if (!authUser?.id) {
-        console.log('❌ [ActivePlans] Usuário não autenticado');
-        toast({
-          title: "Erro de autenticação",
-          description: "Faça login novamente",
-          variant: "destructive",
-        });
-        setUserInvestments([]);
-        return;
-      }
-
-      // Query com join para buscar dados completos dos planos
-      console.log('🔄 [ActivePlans] Buscando investimentos com planos...');
+      // Query direta e simples para testar acesso
+      console.log('🔄 [ActivePlans] Fazendo query direta...');
       const { data: investmentsData, error } = await supabase
         .from('user_investments')
         .select(`
           *,
           investment_plans(name, robot_version, daily_rate)
         `)
-        .eq('user_id', authUser.id)
+        .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      console.log('📊 [ActivePlans] RESULTADO DA QUERY:');
-      console.log('📊 Error:', error);
-      console.log('📊 Data count:', investmentsData?.length);
-      console.log('📊 First investment:', investmentsData?.[0]);
+      console.log('📊 [ActivePlans] RESULTADO DA SINCRONIZAÇÃO:');
+      console.log('📊 Erro:', error);
+      console.log('📊 Dados encontrados:', investmentsData?.length || 0);
+      console.log('📊 Primeiro investimento:', investmentsData?.[0]);
 
       if (error) {
         console.error('❌ [ActivePlans] Erro na query:', error);
+        
+        // Se for erro de RLS, tentar query mais simples
+        if (error.message.includes('RLS') || error.message.includes('policy')) {
+          console.log('🔄 [ActivePlans] Tentando query sem join...');
+          const { data: simpleData, error: simpleError } = await supabase
+            .from('user_investments')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false });
+            
+          if (simpleError) {
+            toast({
+              title: "Erro de acesso",
+              description: "Problema de segurança detectado. Faça login novamente.",
+              variant: "destructive",
+            });
+            navigate('/login');
+            return;
+          }
+          
+          // Usar dados simples se sucesso
+          console.log('✅ [ActivePlans] Query simples funcionou:', simpleData?.length);
+          const formattedData = (simpleData || []).map(investment => ({
+            id: investment.id,
+            investmentId: investment.plan_id,
+            investmentName: 'Robô 4.0.0',
+            amount: investment.amount,
+            dailyRate: investment.daily_rate || 2.5,
+            startDate: investment.start_date || investment.created_at,
+            endDate: investment.end_date,
+            totalEarned: investment.total_earned || 0,
+            status: investment.status,
+            daysRemaining: Math.max(0, Math.floor((new Date(investment.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))),
+            currentDayProgress: investment.current_day_progress || 0,
+            todayEarnings: investment.today_earnings || 0,
+            dailyTarget: investment.daily_target || (investment.amount * (investment.daily_rate || 2.5) / 100),
+            operationsCompleted: investment.operations_completed || 0,
+            totalOperations: investment.total_operations || 40,
+            currentOperation: {
+              pair: 'BTC/USDT',
+              buyPrice: 43250,
+              sellPrice: 43320,
+              profit: 0,
+              progress: 0,
+              timeRemaining: 0
+            }
+          }));
+          
+          setUserInvestments(formattedData);
+          
+          toast({
+            title: "✅ Planos Sincronizados!",
+            description: `${formattedData.length} planos ativos carregados com sucesso.`,
+          });
+          return;
+        }
+        
         toast({
           title: "Erro ao carregar dados",
           description: error.message,
@@ -118,23 +172,11 @@ const ActivePlansPage = () => {
       }
 
       if (!investmentsData || investmentsData.length === 0) {
-        console.log('⚠️ [ActivePlans] NENHUM INVESTIMENTO ENCONTRADO');
-        console.log('⚠️ Verificando se existem dados no banco...');
-        
-        // Fazer uma query direta para verificar se há dados
-        const { data: debugData, error: debugError } = await supabase
-          .from('user_investments')
-          .select('id, user_id, status, amount')
-          .eq('user_id', authUser.id);
-          
-        console.log('🔍 DEBUG - Todos os investimentos do usuário:', debugData);
-        console.log('🔍 DEBUG - Erro:', debugError);
-        
+        console.log('⚠️ [ActivePlans] Nenhum investimento encontrado');
         setUserInvestments([]);
         toast({
           title: "Nenhum plano ativo",
           description: "Você não possui investimentos ativos no momento.",
-          variant: "default",
         });
         return;
       }

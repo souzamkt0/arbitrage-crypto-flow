@@ -8,6 +8,7 @@ import CreateAdmin from "./pages/CreateAdmin";
 import SimpleLogin from "./pages/SimpleLogin";
 import Login from "./pages/login";
 import Register from "./pages/Register";
+import AuthRecovery from "./pages/AuthRecovery";
 import CompleteProfile from "./pages/CompleteProfile";
 import ApiConnection from "./pages/ApiConnection";
 import Dashboard from "./pages/Dashboard";
@@ -125,6 +126,7 @@ const App = () => (
           <Route path="/create-admin" element={<CreateAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth-recovery" element={<AuthRecovery />} />
           <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
           <Route path="/complete-profile" element={<CompleteProfileRoute />} />
           <Route path="/api-connection" element={<ApiConnection />} />
