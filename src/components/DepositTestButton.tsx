@@ -23,7 +23,7 @@ export const DepositTestButton: React.FC = () => {
     setLoading(true);
     
     try {
-      console.log('🧪 Criando depósito de teste...');
+      console.log('🧪 Criando depósito de teste..., User:', user.id);
       
       // Criar depósito de teste via edge function
       const { data: depositResult, error: depositError } = await supabase.functions.invoke('digitopay-deposit', {
@@ -35,6 +35,8 @@ export const DepositTestButton: React.FC = () => {
           userId: user.id
         }
       });
+
+      console.log('📋 Resposta da edge function:', { depositResult, depositError });
 
       if (depositError) {
         console.error('❌ Erro da edge function:', depositError);
@@ -55,9 +57,10 @@ export const DepositTestButton: React.FC = () => {
       });
 
       // Aguardar 3 segundos e depois simular aprovação
+      console.log('⏳ Aguardando 3 segundos para aprovar...');
       setTimeout(async () => {
         try {
-          console.log('🚀 Simulando aprovação automática...');
+          console.log('🚀 Simulando aprovação automática para trxId:', trxId);
           
           const { data: approvalResult, error: approvalError } = await supabase.functions.invoke('simulate-deposit-approval', {
             body: {
@@ -65,7 +68,15 @@ export const DepositTestButton: React.FC = () => {
             }
           });
 
-          if (approvalError || !approvalResult.success) {
+          console.log('📋 Resposta da aprovação:', { approvalResult, approvalError });
+
+          if (approvalError) {
+            console.error('❌ Erro na edge function de aprovação:', approvalError);
+            throw new Error(`Erro na aprovação: ${approvalError.message}`);
+          }
+
+          if (!approvalResult || !approvalResult.success) {
+            console.error('❌ Erro no resultado da aprovação:', approvalResult);
             throw new Error(approvalResult?.error || 'Erro na aprovação automática');
           }
 
@@ -76,8 +87,9 @@ export const DepositTestButton: React.FC = () => {
             description: `Depósito de $${approvalResult.balance_update.difference} foi creditado na sua conta`,
           });
 
-          // Recarregar a página para mostrar o saldo atualizado
+          // Recarregar a página após 2 segundos
           setTimeout(() => {
+            console.log('🔄 Recarregando página...');
             window.location.reload();
           }, 2000);
 
