@@ -2099,48 +2099,82 @@ const Admin = () => {
 
   const testProfilesUpdate = async () => {
     try {
-      console.log('🧪 Testando update na tabela profiles...');
+      console.log('🧪 Testando permissões de edição completas...');
       
-      const { data: testUser, error: userError } = await supabase
+      // Testar sessão atual
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('🔍 Usuário logado:', sessionData?.session?.user?.email);
+      
+      // Testar leitura básica
+      const { data: users, error: readError } = await supabase
         .from('profiles')
-        .select('user_id, email, role')
-        .limit(1)
-        .single();
+        .select('user_id, email, display_name, balance')
+        .limit(3);
       
-      if (userError || !testUser) {
-        console.log('❌ Erro ao buscar usuário para teste:', userError);
+      if (readError) {
+        console.log('❌ Erro na leitura:', readError);
         toast({
-          title: "Erro no Teste",
-          description: "Não foi possível encontrar usuário para teste.",
+          title: "Erro de Leitura",
+          description: `Sem permissão para ler: ${readError.message}`,
           variant: "destructive"
         });
         return;
       }
       
-      console.log('✅ Usuário para teste encontrado:', testUser);
+      console.log('✅ Leitura OK. Usuários encontrados:', users?.length);
+      
+      if (!users || users.length === 0) {
+        toast({
+          title: "Sem Dados",
+          description: "Nenhum usuário encontrado para teste.",
+        });
+        return;
+      }
+      
+      // Testar edição
+      const testUser = users[0];
+      const originalName = testUser.display_name;
+      const testName = originalName + ' [teste-admin]';
+      
+      console.log(`🔄 Testando edição do usuário: ${testUser.email}`);
       
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ role: testUser.role })
+        .update({ display_name: testName })
         .eq('user_id', testUser.user_id);
       
       if (updateError) {
-        console.log('❌ Erro no update de teste:', updateError);
+        console.log('❌ Erro na edição:', updateError);
         toast({
-          title: "Erro no Teste",
-          description: `Update falhou: ${updateError.message}`,
+          title: "🚫 Sem Permissão de Edição",
+          description: `Erro: ${updateError.message}`,
           variant: "destructive"
         });
       } else {
-        console.log('✅ Update de teste bem-sucedido!');
+        console.log('✅ Edição bem-sucedida! Revertendo...');
+        
+        // Reverter
+        await supabase
+          .from('profiles')
+          .update({ display_name: originalName })
+          .eq('user_id', testUser.user_id);
+        
         toast({
-          title: "Teste Bem-sucedido",
-          description: "Update na tabela profiles funcionando.",
+          title: "✅ Permissões OK!",
+          description: "Você pode ler e editar usuários. Sistema funcionando!",
         });
+        
+        // Recarregar dados
+        await loadAllUsers();
       }
       
     } catch (error) {
-      console.error('❌ Erro no teste de update:', error);
+      console.error('❌ Erro no teste:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno no teste de permissões.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -3185,75 +3219,59 @@ const Admin = () => {
     try {
       console.log('📊 Carregando investimentos ativos...');
       
-      const { data: simpleTest, error: simpleError } = await supabase
+      // Carregar investimentos sem join para evitar problemas de schema cache
+      const { data: investmentsData, error: investmentsError } = await supabase
         .from('user_investments')
         .select('*')
-        .limit(1);
-      
-      console.log('🔍 Teste simples da tabela:', { simpleTest, simpleError });
-      
-      if (simpleError) {
-        console.error('❌ Erro no teste simples:', simpleError);
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (investmentsError) {
+        console.error('❌ Erro ao carregar investimentos:', investmentsError);
         toast({
           title: "Erro",
-          description: `Erro ao acessar tabela: ${simpleError.message}`,
+          description: `Erro ao carregar investimentos: ${investmentsError.message}`,
           variant: "destructive"
         });
         return;
       }
 
-      const { data: investments, error } = await supabase
-        .from('user_investments')
-        .select(`
-          id,
-          user_id,
-          amount,
-          daily_rate,
-          status,
-          created_at,
-          updated_at,
-          profiles!user_investments_user_id_fkey(
-            email,
-            display_name,
-            username
-          )
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+      console.log('📊 Investimentos carregados:', investmentsData?.length || 0);
 
-      console.log('📊 Resultado da consulta completa:', { investments, error });
+      // Carregar dados dos usuários separadamente se houver investimentos
+      let investmentsWithUsers = investmentsData || [];
+      
+      if (investmentsData && investmentsData.length > 0) {
+        const userIds = [...new Set(investmentsData.map(inv => inv.user_id).filter(Boolean))];
+        
+        if (userIds.length > 0) {
+          const { data: usersData, error: usersError } = await supabase
+            .from('profiles')
+            .select('user_id, display_name, email, username')
+            .in('user_id', userIds);
 
-      if (error) {
-        console.error('❌ Erro ao carregar investimentos:', error);
-        
-        console.log('🔄 Tentando consulta sem joins...');
-        const { data: investmentsSimple, error: simpleError2 } = await supabase
-          .from('user_investments')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-        
-        console.log('📊 Resultado da consulta simples:', { investmentsSimple, simpleError2 });
-        
-        if (simpleError2) {
-          toast({
-            title: "Erro",
-            description: `Erro ao carregar investimentos: ${simpleError2.message}`,
-            variant: "destructive"
-          });
-          return;
+          if (usersError) {
+            console.error('❌ Erro ao carregar usuários dos investimentos:', usersError);
+            toast({
+              title: "Aviso",
+              description: "Investimentos carregados sem dados de usuário.",
+            });
+          } else {
+            // Combinar dados localmente
+            investmentsWithUsers = investmentsData.map(investment => {
+              const user = usersData?.find(u => u.user_id === investment.user_id);
+              return {
+                ...investment,
+                profiles: user || null
+              };
+            });
+            console.log('📊 Dados de usuários combinados com investimentos');
+          }
         }
-        
-        setActiveInvestments(investmentsSimple || []);
-        toast({
-          title: "Aviso",
-          description: "Investimentos carregados (sem dados de usuário).",
-        });
-        return;
       }
 
-      console.log('✅ Investimentos carregados com sucesso:', investments);
-      setActiveInvestments(investments || []);
+      console.log('✅ Investimentos carregados com sucesso:', investmentsWithUsers.length);
+      setActiveInvestments(investmentsWithUsers);
       
     } catch (error) {
       console.error('❌ Erro ao carregar investimentos:', error);
