@@ -1103,6 +1103,12 @@ const Dashboard = () => {
               </div>
             </div>
 
+            {/* Statistics Cards - After Crypto Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <TotalProfitCard />
+              <DepositsCard />
+              <WithdrawalsCard />
+            </div>
 
             {/* Active Plans Table */}
             <div className="mb-6">
@@ -1117,16 +1123,6 @@ const Dashboard = () => {
             <div className="space-y-4">
               <BalanceBox />
               <ResidualBalanceBox />
-            </div>
-            
-            {/* Statistics Cards - After Balance */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">📊 Estatísticas</h3>
-              <div className="grid grid-cols-1 gap-4">
-                <TotalProfitCard />
-                <DepositsCard />
-                <WithdrawalsCard />
-              </div>
             </div>
           </div>
         </div>
