@@ -699,18 +699,18 @@ const Dashboard = () => {
 
       {partnerData && <PartnerStatusBanner />}
 
-      <div className="px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="px-4 py-4">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {/* Left Column - Portfolio & Assets */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-3 space-y-4">
             {/* My Portfolio Card */}
-            <div className="bg-[#1a1f2e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-300 mb-1">My Portfolio</h2>
+                  <h2 className="text-base font-semibold text-gray-300 mb-1">My Portfolio</h2>
                   <div className="flex items-center space-x-2">
-                    <span className="text-3xl font-bold">R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                    <span className="text-sm text-green-400 flex items-center">
+                    <span className="text-2xl font-bold">R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-xs text-green-400 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
                       +{dailyProfit.toFixed(2)}%
                     </span>
@@ -719,143 +719,157 @@ const Dashboard = () => {
               </div>
               
               {/* Bitcoin Chart Area */}
-              <div className="relative h-48 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-lg mb-4 overflow-hidden">
-                <div className="absolute top-4 left-4 z-10">
-                  <div className="text-sm text-gray-400 mb-1">Bitcoin Performance</div>
-                  <div className="text-lg font-bold text-white">
+              <div className="relative h-36 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-lg mb-3 overflow-hidden">
+                <div className="absolute top-3 left-3 z-10">
+                  <div className="text-xs text-gray-400 mb-1">Bitcoin Performance</div>
+                  <div className="text-sm font-bold text-white">
                     +R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-                <div className="h-full p-4">
+                <div className="h-full p-3">
                   <TradingChart />
                 </div>
               </div>
             </div>
 
             {/* Asset Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {/* BTC Card */}
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ₿
                   </div>
                   <div>
-                    <div className="text-sm text-gray-300">BTC</div>
+                    <div className="text-xs text-gray-300 font-medium">BTC</div>
                     <div className="text-xs text-gray-500">Bitcoin</div>
                   </div>
                 </div>
-                <div className="text-xl font-bold mb-1">$ 51,020</div>
-                <div className="text-sm text-red-400 flex items-center">
+                <div className="text-lg font-bold mb-1">$ 51,020</div>
+                <div className="text-xs text-red-400 flex items-center">
                   ↓ 20.4%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Highest in 30 Days</div>
               </div>
 
               {/* ETH Card */}
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     Ξ
                   </div>
                   <div>
-                    <div className="text-sm text-gray-300">ETH</div>
+                    <div className="text-xs text-gray-300 font-medium">ETH</div>
                     <div className="text-xs text-gray-500">Ethereum</div>
                   </div>
                 </div>
-                <div className="text-xl font-bold mb-1">$ 3,020</div>
-                <div className="text-sm text-green-400 flex items-center">
+                <div className="text-lg font-bold mb-1">$ 3,020</div>
+                <div className="text-xs text-green-400 flex items-center">
                   ↑ 20.4%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Highest in 30 Days</div>
               </div>
 
               {/* SOL Card */}
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-purple-400 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ◎
                   </div>
                   <div>
-                    <div className="text-sm text-gray-300">SOL</div>
+                    <div className="text-xs text-gray-300 font-medium">SOL</div>
                     <div className="text-xs text-gray-500">Solana</div>
                   </div>
                 </div>
-                <div className="text-xl font-bold mb-1">$ 220</div>
-                <div className="text-sm text-green-400 flex items-center">
+                <div className="text-lg font-bold mb-1">$ 220</div>
+                <div className="text-xs text-green-400 flex items-center">
                   ↑ 15.2%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Highest in 30 Days</div>
+              </div>
+
+              {/* ADA Card */}
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    A
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-300 font-medium">ADA</div>
+                    <div className="text-xs text-gray-500">Cardano</div>
+                  </div>
+                </div>
+                <div className="text-lg font-bold mb-1">$ 0.85</div>
+                <div className="text-xs text-green-400 flex items-center">
+                  ↑ 8.2%
+                </div>
               </div>
             </div>
 
             {/* Trading Tools */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/deposit')}>
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <ArrowUpDown className="w-6 h-6 text-blue-400" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/deposit')}>
+                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <ArrowUpDown className="w-5 h-5 text-blue-400" />
                 </div>
-                <div className="font-medium mb-1">Deposit</div>
+                <div className="text-sm font-medium mb-1">Deposit</div>
                 <div className="text-xs text-gray-500">Add Funds</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/withdrawal')}>
-                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <DollarSign className="w-6 h-6 text-orange-400" />
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/withdrawal')}>
+                <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <DollarSign className="w-5 h-5 text-orange-400" />
                 </div>
-                <div className="font-medium mb-1">Withdraw</div>
+                <div className="text-sm font-medium mb-1">Withdraw</div>
                 <div className="text-xs text-gray-500">Cash Out</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/history')}>
-                <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-pink-400" />
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/history')}>
+                <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Clock className="w-5 h-5 text-pink-400" />
                 </div>
-                <div className="font-medium mb-1">History</div>
+                <div className="text-sm font-medium mb-1">History</div>
                 <div className="text-xs text-gray-500">Transactions</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/market')}>
-                <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-teal-400" />
+              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/market')}>
+                <div className="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <BarChart3 className="w-5 h-5 text-teal-400" />
                 </div>
-                <div className="font-medium mb-1">Analysis</div>
+                <div className="text-sm font-medium mb-1">Analysis</div>
                 <div className="text-xs text-gray-500">Markets</div>
               </div>
             </div>
 
-            {/* Active Plans - Modern Style */}
-            <div className="bg-[#1a1f2e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Active Plans</h3>
-                <Button variant="ghost" size="sm" className="text-teal-400" onClick={() => navigate('/active-plans')}>
+            {/* Active Plans - Compact */}
+            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold">Active Plans</h3>
+                <Button variant="ghost" size="sm" className="text-teal-400 text-xs" onClick={() => navigate('/active-plans')}>
                   See All
                 </Button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {userInvestments.length > 0 ? (
-                  userInvestments.slice(0, 3).map((investment, index) => (
-                    <div key={investment.id} className="flex items-center justify-between p-4 bg-[#0f1419] rounded-lg border border-gray-800">
+                  userInvestments.slice(0, 2).map((investment, index) => (
+                    <div key={investment.id} className="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg border border-gray-800">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center">
-                          <BarChart3 className="w-4 h-4 text-white" />
+                        <div className="w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
+                          <BarChart3 className="w-3 h-3 text-white" />
                         </div>
                         <div>
-                          <div className="text-sm font-medium">Plan ${investment.amount?.toFixed(2) || '0.00'}</div>
+                          <div className="text-xs font-medium">Plan ${investment.amount?.toFixed(2) || '0.00'}</div>
                           <div className="text-xs text-gray-500">{(investment.daily_rate * 100)?.toFixed(2) || '0.00'}% daily</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-green-400">+${investment.total_earned?.toFixed(2) || '0.00'}</div>
-                        <div className="text-xs text-gray-500">{investment.days_remaining || 0} days left</div>
+                        <div className="text-xs font-medium text-green-400">+${investment.total_earned?.toFixed(2) || '0.00'}</div>
+                        <div className="text-xs text-gray-500">{investment.days_remaining || 0} days</div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="text-gray-400 mb-4">No active plans</div>
-                    <Button onClick={() => navigate('/investments')} className="bg-teal-500 hover:bg-teal-600">
+                  <div className="text-center py-4">
+                    <div className="text-gray-400 text-xs mb-2">No active plans</div>
+                    <Button size="sm" onClick={() => navigate('/investments')} className="bg-teal-500 hover:bg-teal-600 text-xs">
                       Start Investing
                     </Button>
                   </div>
@@ -864,87 +878,73 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Right Column - Board & Existing Components */}
-          <div className="space-y-6">
-            {/* Board */}
-            <div className="bg-[#1a1f2e] rounded-2xl p-6 border border-gray-800">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Board</h3>
+          {/* Right Column - Sidebar */}
+          <div className="xl:col-span-1 space-y-4">
+            {/* Board - Compact */}
+            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold">Board</h3>
                 <Button variant="ghost" size="sm" className="text-gray-400">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       F
                     </div>
                     <div>
-                      <div className="text-sm font-medium">FFB</div>
-                      <div className="text-xs text-gray-500">Facebook Inc.</div>
+                      <div className="text-xs font-medium">FFB</div>
+                      <div className="text-xs text-gray-500">Facebook</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-green-400">$ 42.21</div>
+                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
                     <div className="text-xs text-red-400">-21.2%</div>
-                  </div>
-                  <div className="w-12 h-6">
-                    <svg className="w-full h-full">
-                      <path d="M0,15 Q3,5 6,10 T12,8" stroke="rgb(239, 68, 68)" strokeWidth="1" fill="none"/>
-                    </svg>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       V
                     </div>
                     <div>
-                      <div className="text-sm font-medium">VSA</div>
-                      <div className="text-xs text-gray-500">Visa Inc.</div>
+                      <div className="text-xs font-medium">VSA</div>
+                      <div className="text-xs text-gray-500">Visa</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-green-400">$ 42.21</div>
+                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
                     <div className="text-xs text-green-400">+21.2%</div>
-                  </div>
-                  <div className="w-12 h-6">
-                    <svg className="w-full h-full">
-                      <path d="M0,15 Q3,10 6,5 T12,3" stroke="rgb(34, 197, 94)" strokeWidth="1" fill="none"/>
-                    </svg>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       M
                     </div>
                     <div>
-                      <div className="text-sm font-medium">MST</div>
+                      <div className="text-xs font-medium">MST</div>
                       <div className="text-xs text-gray-500">Master</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-green-400">$ 42.21</div>
+                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
                     <div className="text-xs text-red-400">-21.2%</div>
-                  </div>
-                  <div className="w-12 h-6">
-                    <svg className="w-full h-full">
-                      <path d="M0,5 Q3,15 6,10 T12,12" stroke="rgb(239, 68, 68)" strokeWidth="1" fill="none"/>
-                    </svg>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Existing Balance Components */}
-            <BalanceBox />
-            
-            <ResidualBalanceBox />
+            {/* Existing Balance Components - Compact */}
+            <div className="space-y-4">
+              <BalanceBox />
+              <ResidualBalanceBox />
+            </div>
           </div>
         </div>
 
