@@ -85,37 +85,30 @@ const ResidualBalanceBox = () => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-black/95 via-gray-900/90 to-black/95 border border-yellow-500/60 backdrop-blur-sm hover:border-yellow-400/80 transition-all duration-500 animate-fade-in relative overflow-hidden group shadow-xl shadow-yellow-500/10">
+    <Card className="bg-gradient-to-br from-black/95 via-gray-900/90 to-black/95 border border-yellow-500/60 backdrop-blur-sm hover:border-yellow-400/80 transition-all duration-500 animate-fade-in relative overflow-hidden group shadow-lg shadow-yellow-500/10">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/5 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-yellow-400/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      {/* Animated Background Pattern */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(234,179,8,0.1)_0%,_transparent_50%)] animate-pulse"></div>
-      </div>
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-radial from-yellow-400/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-4 right-4 text-yellow-400/80 animate-bounce text-lg" style={{ animationDelay: '0.5s' }}>
+        <div className="absolute top-2 right-2 text-yellow-400/60 animate-bounce text-sm" style={{ animationDelay: '0.5s' }}>
           💰
         </div>
-        <div className="absolute bottom-6 left-6 text-yellow-300/60 animate-bounce text-lg" style={{ animationDelay: '1.5s' }}>
+        <div className="absolute bottom-2 left-2 text-yellow-300/40 animate-bounce text-sm" style={{ animationDelay: '1.5s' }}>
           ⭐
         </div>
-        <div className="absolute top-1/2 left-1/4 w-3 h-3 bg-yellow-400/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/4 right-1/3 w-2 h-2 bg-yellow-300/50 rounded-full animate-pulse" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute bottom-1/3 right-1/4 w-1 h-1 bg-yellow-500/60 rounded-full animate-ping" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-yellow-400/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <CardHeader className="relative z-10">
+      <CardHeader className="relative z-10 pb-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/30 group-hover:shadow-yellow-400/50 transition-shadow duration-300 animate-pulse">
-              <Gift className="w-6 h-6 text-black animate-bounce" />
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-md shadow-yellow-500/30 group-hover:shadow-yellow-400/50 transition-shadow duration-300">
+              <Gift className="w-4 h-4 text-black" />
             </div>
             <div>
-              <CardTitle className="text-yellow-400 text-lg font-bold group-hover:text-yellow-300 transition-colors animate-pulse">
+              <CardTitle className="text-yellow-400 text-sm font-bold group-hover:text-yellow-300 transition-colors">
                 Saldo Residual
               </CardTitle>
               <div className="text-xs text-yellow-500/80">Sistema de Indicações</div>
@@ -123,93 +116,75 @@ const ResidualBalanceBox = () => {
           </div>
           <Badge 
             variant="secondary" 
-            className="bg-gradient-to-r from-yellow-600/90 to-yellow-500/90 text-black font-bold border-yellow-400/50 animate-pulse px-3 py-1 shadow-md shadow-yellow-500/20"
+            className="bg-gradient-to-r from-yellow-600/90 to-yellow-500/90 text-black font-bold border-yellow-400/50 px-2 py-1 text-xs"
           >
-            10% Residual
+            10%
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 relative z-10">
+      <CardContent className="space-y-3 relative z-10 pt-2">
         {/* Saldo Principal */}
-        <div className="text-center space-y-2">
-          <div className="text-3xl font-bold text-yellow-400 mb-2 flex items-center justify-center animate-pulse">
-            <DollarSign className="w-6 h-6 mr-1 text-yellow-500" />
+        <div className="text-center">
+          <div className="text-xl font-bold text-yellow-400 flex items-center justify-center">
+            <DollarSign className="w-4 h-4 mr-1 text-yellow-500" />
             {stats?.residual_balance?.toFixed(2) || '0.00'}
           </div>
-          <div className="text-yellow-300/80 text-sm">Saldo Total Acumulado</div>
+          <div className="text-yellow-300/80 text-xs">Saldo Total</div>
         </div>
 
-        {/* Estatísticas */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="bg-gray-800/60 rounded-lg p-3 border border-yellow-500/40 group-hover:border-yellow-400/70 transition-colors animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="h-4 w-4 text-yellow-400 animate-pulse" />
+        {/* Estatísticas Compactas */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-gray-800/60 rounded p-2 border border-yellow-500/40">
+            <div className="flex items-center justify-between mb-1">
+              <Users className="h-3 w-3 text-yellow-400" />
               <span className="text-yellow-300 text-xs">Indicações</span>
             </div>
-            <div className="text-yellow-400 font-bold text-lg animate-bounce">{stats?.active_referrals || 0}</div>
-            <div className="text-yellow-300/70 text-xs">Ativos de {stats?.total_referrals || 0} totais</div>
+            <div className="text-yellow-400 font-bold">{stats?.active_referrals || 0}</div>
           </div>
 
-          <div className="bg-gray-800/60 rounded-lg p-3 border border-yellow-500/40 group-hover:border-yellow-400/70 transition-colors animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <Calendar className="h-4 w-4 text-yellow-400 animate-pulse" />
+          <div className="bg-gray-800/60 rounded p-2 border border-yellow-500/40">
+            <div className="flex items-center justify-between mb-1">
+              <Calendar className="h-3 w-3 text-yellow-400" />
               <span className="text-yellow-300 text-xs">Este Mês</span>
             </div>
-            <div className="text-yellow-400 font-bold text-lg animate-bounce">
+            <div className="text-yellow-400 font-bold text-xs">
               ${stats?.this_month_earnings?.toFixed(2) || '0.00'}
             </div>
-            <div className="text-yellow-300/70 text-xs">Ganhos mensais</div>
           </div>
         </div>
 
-        {/* Comissões Totais */}
-        <div className="bg-gradient-to-r from-gray-800/80 to-black/60 rounded-lg p-4 border border-yellow-500/60 group-hover:border-yellow-400/90 transition-colors animate-scale-in">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-yellow-400 animate-pulse" />
-              <span className="text-yellow-300 text-sm font-semibold">Total de Comissões</span>
+        {/* Total de Comissões Compacto */}
+        <div className="bg-gradient-to-r from-gray-800/80 to-black/60 rounded-lg p-2 border border-yellow-500/60">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center space-x-1">
+              <TrendingUp className="h-3 w-3 text-yellow-400" />
+              <span className="text-yellow-300 text-xs font-semibold">Total Comissões</span>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-green-400 animate-bounce" />
+            <ArrowUpRight className="h-3 w-3 text-green-400" />
           </div>
-          <div className="text-yellow-400 font-bold text-xl mb-1 animate-pulse">
+          <div className="text-yellow-400 font-bold text-sm">
             ${stats?.total_commissions?.toFixed(2) || '0.00'}
           </div>
-          <div className="text-yellow-300/70 text-xs">
-            Ganhos acumulados desde o início
-          </div>
         </div>
 
-        {/* Sistema de Indicação Info */}
-        <div className="bg-gradient-to-r from-black/80 to-gray-900/60 rounded-lg p-3 border border-yellow-500/50 animate-fade-in">
-          <div className="flex items-center space-x-2 mb-2">
-            <Sparkles className="h-4 w-4 text-yellow-400 animate-spin" />
-            <span className="text-yellow-300 text-sm font-semibold">Como Funciona</span>
-          </div>
-          <div className="text-yellow-300/80 text-xs space-y-1">
-            <div>• Ganhe 10% sobre cada novo cadastro indicado</div>
-            <div>• Receba 10% residual dos investimentos</div>
-            <div>• Saque disponível conforme regulamento</div>
-          </div>
-        </div>
-
-        {/* Ações */}
-        <div className="space-y-2">
+        {/* Ações Compactas */}
+        <div className="space-y-1">
           <Button
             onClick={() => window.location.href = '/referrals'}
-            className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-500/40 animate-pulse"
+            className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-black font-bold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-yellow-500/30 text-xs py-1.5"
           >
-            <Target className="h-4 w-4 mr-2" />
-            Gerenciar Indicações
+            <Target className="h-3 w-3 mr-1" />
+            Gerenciar
           </Button>
           
           <Button
             variant="outline"
             onClick={fetchReferralStats}
-            className="w-full border-yellow-500 text-yellow-400 hover:text-black hover:bg-yellow-500/90 transition-all duration-300 animate-fade-in"
+            className="w-full border-yellow-500 text-yellow-400 hover:text-black hover:bg-yellow-500/90 transition-all duration-300 text-xs py-1"
             size="sm"
           >
-            Atualizar Dados
+            Atualizar
           </Button>
         </div>
       </CardContent>
