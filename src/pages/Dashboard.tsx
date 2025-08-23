@@ -726,9 +726,30 @@ const Dashboard = () => {
                     +R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-                <div className="h-full p-3">
-                  <TradingChart />
-                </div>
+                {/* Gráfico SVG simples */}
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 150">
+                  <defs>
+                    <linearGradient id="bitcoinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0.3"/>
+                      <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0.1"/>
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60"
+                    stroke="rgb(249, 115, 22)"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60 L 380 150 L 20 150 Z"
+                    fill="url(#bitcoinGradient)"
+                  />
+                  {/* Pontos de dados */}
+                  <circle cx="120" cy="85" r="3" fill="rgb(249, 115, 22)" />
+                  <circle cx="200" cy="75" r="3" fill="rgb(249, 115, 22)" />
+                  <circle cx="280" cy="65" r="3" fill="rgb(249, 115, 22)" />
+                  <circle cx="380" cy="60" r="3" fill="rgb(249, 115, 22)" />
+                </svg>
               </div>
             </div>
 
