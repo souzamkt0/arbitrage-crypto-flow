@@ -70,6 +70,14 @@ interface ReferredUser {
   activeInvestments?: number;
 }
 
+interface ExtendedUserDetails extends ReferredUser {
+  detailedProfile?: any;
+  investments?: any[];
+  contracts?: any[];
+  tradingHistory?: any[];
+  transactions?: any[];
+}
+
 interface UserContract {
   id: string;
   contract_type: string;
@@ -109,6 +117,8 @@ const Referrals = () => {
   const [selectedMessageType, setSelectedMessageType] = useState<string>("welcome");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [userContract, setUserContract] = useState<UserContract | null>(null);
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+  const [userDetails, setUserDetails] = useState<ExtendedUserDetails | null>(null);
 
   // Pre-made message templates with more variety
   const messageTemplates = {
@@ -499,6 +509,63 @@ Atenciosamente,
     setShowMessageModal(true);
   };
 
+  const openUserDetailsModal = async (user: ReferredUser) => {
+    try {
+      // Buscar informações detalhadas do usuário
+      const { data: detailedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      // Buscar investimentos do usuário
+      const { data: investments } = await supabase
+        .from('user_investments')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Buscar contratos do usuário
+      const { data: contracts } = await supabase
+        .from('user_contracts')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Buscar histórico de trading
+      const { data: tradingHistory } = await supabase
+        .from('trading_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      // Buscar transações DigiToPay
+      const { data: transactions } = await supabase
+        .from('digitopay_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      const enrichedUser: ExtendedUserDetails = {
+        ...user,
+        detailedProfile,
+        investments,
+        contracts,
+        tradingHistory,
+        transactions
+      };
+
+      setUserDetails(enrichedUser);
+      setShowUserDetailsModal(true);
+    } catch (error) {
+      console.error('Erro ao buscar detalhes do usuário:', error);
+      toast({
+        title: "❌ Erro",
+        description: "Não foi possível carregar os detalhes do usuário",
+        variant: "destructive"
+      });
+    }
+  };
+
   const sendWhatsAppMessage = (messageType: string, customMessage?: string) => {
     if (!selectedUser) return;
     
@@ -591,128 +658,70 @@ Atenciosamente,
         </div>
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-          {/* Contract Status & Referral Link Card */}
+          {/* Referral Link Card */}
           <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
             <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                    <Shield className="h-5 w-5 text-white" />
+                    <Network className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <CardTitle className="text-lg font-bold text-white">
-                      Contract Status & Referral System
+                      Referral System
                     </CardTitle>
-                    <p className="text-sm text-gray-400">Your investment status and referral information</p>
+                    <p className="text-sm text-gray-400">Share your referral link and earn commissions</p>
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Contract Status */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <FileCheck className="h-5 w-5 text-blue-400" />
-                    Contract Status
-                  </h3>
-                  
-                  {userContract ? (
-                    <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                          ✅ ACTIVE CONTRACT
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Plan:</span>
-                          <span className="text-white font-medium">{userContract.plan_name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Amount:</span>
-                          <span className="text-green-400">{formatCurrency(userContract.amount)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Daily Rate:</span>
-                          <span className="text-blue-400">{(userContract.daily_rate * 100).toFixed(2)}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">End Date:</span>
-                          <span className="text-white">{formatDate(userContract.end_date)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Total Earned:</span>
-                          <span className="text-yellow-400">{formatCurrency(userContract.total_earned)}</span>
-                        </div>
-                      </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Network className="h-5 w-5 text-purple-400" />
+                  Your Referral Link
+                </h3>
+                
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Input
+                        value={referralLink}
+                        readOnly
+                        className="pr-12 bg-slate-800/60 border-purple-500/30 text-white font-mono text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={copyToClipboard}
+                        className="absolute right-1 top-1 h-8 bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl p-4">
-                      <div className="text-center">
-                        <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-400 text-lg font-medium mb-2">No Active Contract</p>
-                        <p className="text-gray-500 text-sm mb-4">Start investing to activate your contract and earn daily profits</p>
-                        <Button 
-                          onClick={() => navigate('/investments')}
-                          className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
-                        >
-                          Start Investing
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Referral Link */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <Network className="h-5 w-5 text-purple-400" />
-                    Your Referral Link
-                  </h3>
-                  
-                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
-                    <div className="space-y-3">
-                      <div className="relative">
-                        <Input
-                          value={referralLink}
-                          readOnly
-                          className="pr-12 bg-slate-800/60 border-purple-500/30 text-white font-mono text-sm"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={copyToClipboard}
-                          className="absolute right-1 top-1 h-8 bg-purple-600 hover:bg-purple-700 text-white"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={() => {
+                          const message = `🚀 Join Alphabit and start earning with automated trading!\n\n${referralLink}\n\n✅ Professional arbitrage system\n✅ Guaranteed daily profits\n✅ 24/7 support\n\nStart today!`;
+                          const encodedMessage = encodeURIComponent(message);
+                          window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
+                      >
+                        <Phone className="h-4 w-4 mr-2" />
+                        WhatsApp
+                      </Button>
                       
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          onClick={() => {
-                            const message = `🚀 Join Alphabit and start earning with automated trading!\n\n${referralLink}\n\n✅ Professional arbitrage system\n✅ Guaranteed daily profits\n✅ 24/7 support\n\nStart today!`;
-                            const encodedMessage = encodeURIComponent(message);
-                            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          WhatsApp
-                        </Button>
-                        
-                        <Button
-                          onClick={() => {
-                            const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
-                            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Share
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => {
+                          const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Share
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -982,6 +991,7 @@ Atenciosamente,
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => openUserDetailsModal(user)}
                                 className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
                                 title="View details"
                               >
@@ -1013,6 +1023,231 @@ Atenciosamente,
             </CardContent>
           </Card>
         </div>
+
+        {/* User Details Modal */}
+        <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <Eye className="h-6 w-6 text-purple-400" />
+                Detalhes Completos do Usuário
+              </DialogTitle>
+              {userDetails && (
+                <p className="text-gray-400">
+                  {userDetails.name} • {userDetails.email}
+                </p>
+              )}
+            </DialogHeader>
+            
+            {userDetails && (
+              <div className="space-y-6">
+                {/* Informações Pessoais */}
+                <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <Users className="h-5 w-5 text-blue-400" />
+                    Informações Pessoais
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Nome:</span>
+                      <p className="text-white font-medium">{userDetails.detailedProfile?.display_name || userDetails.name}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Email:</span>
+                      <p className="text-white font-medium">{userDetails.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">WhatsApp:</span>
+                      <p className="text-white font-medium">{userDetails.whatsapp || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">CPF:</span>
+                      <p className="text-white font-medium">{userDetails.detailedProfile?.cpf || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Cidade:</span>
+                      <p className="text-white font-medium">{userDetails.city || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Estado:</span>
+                      <p className="text-white font-medium">{userDetails.state || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Saldo:</span>
+                      <p className="text-green-400 font-medium">{formatCurrency(userDetails.detailedProfile?.balance || 0)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Data de Cadastro:</span>
+                      <p className="text-white font-medium">{formatDate(userDetails.joinDate)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Investimentos */}
+                {userDetails.investments && userDetails.investments.length > 0 && (
+                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-green-400" />
+                      Investimentos Ativos ({userDetails.investments.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {userDetails.investments.map((investment: any) => (
+                        <div key={investment.id} className="bg-slate-800/30 rounded-lg p-3">
+                          <div className="grid grid-cols-4 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-400">Valor:</span>
+                              <p className="text-green-400 font-medium">{formatCurrency(investment.amount)}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Taxa Diária:</span>
+                              <p className="text-blue-400 font-medium">{(investment.daily_rate * 100).toFixed(2)}%</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Ganhos:</span>
+                              <p className="text-yellow-400 font-medium">{formatCurrency(investment.total_earned || 0)}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Status:</span>
+                              <Badge className={investment.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
+                                {investment.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contratos */}
+                {userDetails.contracts && userDetails.contracts.length > 0 && (
+                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <FileCheck className="h-5 w-5 text-purple-400" />
+                      Contratos ({userDetails.contracts.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {userDetails.contracts.map((contract: any) => (
+                        <div key={contract.id} className="bg-slate-800/30 rounded-lg p-3">
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-400">Plano:</span>
+                              <p className="text-white font-medium">{contract.plan_name}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Valor:</span>
+                              <p className="text-purple-400 font-medium">{formatCurrency(contract.amount)}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Status:</span>
+                              <Badge className={contract.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
+                                {contract.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Histórico de Trading */}
+                {userDetails.tradingHistory && userDetails.tradingHistory.length > 0 && (
+                  <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-blue-400" />
+                      Histórico de Trading (Últimas 10)
+                    </h3>
+                    <div className="space-y-2">
+                      {userDetails.tradingHistory.map((trade: any) => (
+                        <div key={trade.id} className="bg-slate-800/30 rounded-lg p-3">
+                          <div className="grid grid-cols-4 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-400">Par:</span>
+                              <p className="text-white font-medium">{trade.pair}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Lucro:</span>
+                              <p className="text-green-400 font-medium">{formatCurrency(trade.profit)}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">%:</span>
+                              <p className="text-blue-400 font-medium">{trade.profit_percent}%</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Data:</span>
+                              <p className="text-gray-300 font-medium">{formatDate(trade.created_at)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Transações DigiToPay */}
+                {userDetails.transactions && userDetails.transactions.length > 0 && (
+                  <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-orange-400" />
+                      Transações DigiToPay ({userDetails.transactions.length})
+                    </h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {userDetails.transactions.map((transaction: any) => (
+                        <div key={transaction.id} className="bg-slate-800/30 rounded-lg p-3">
+                          <div className="grid grid-cols-4 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-400">Tipo:</span>
+                              <Badge className={transaction.type === 'deposit' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
+                                {transaction.type}
+                              </Badge>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Valor (BRL):</span>
+                              <p className="text-orange-400 font-medium">R$ {transaction.amount_brl}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Status:</span>
+                              <Badge className={transaction.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
+                                {transaction.status}
+                              </Badge>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Data:</span>
+                              <p className="text-gray-300 font-medium">{formatDate(transaction.created_at)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Ações */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={() => setShowUserDetailsModal(false)}
+                    className="bg-slate-600 hover:bg-slate-700 text-white"
+                  >
+                    Fechar
+                  </Button>
+                  {userDetails.whatsapp && (
+                    <Button
+                      onClick={() => {
+                        setShowUserDetailsModal(false);
+                        openMessageModal(userDetails);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Enviar WhatsApp
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* WhatsApp Message Modal */}
         <Dialog open={showMessageModal} onOpenChange={setShowMessageModal}>
