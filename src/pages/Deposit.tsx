@@ -258,7 +258,7 @@ const Deposit = () => {
           </div>
 
           {/* Center - Main Chart Area */}
-          <div className="flex-1 bg-[#0a0e1a] p-4 space-y-4 overflow-hidden">
+          <div className="flex-1 bg-[#0a0e1a] p-4 space-y-4 overflow-y-auto">
             {/* Deposit Interface - Moved to top */}
             <Card className="bg-[#151b2b] border border-gray-800">
               <CardHeader className="border-b border-gray-800 py-3">
@@ -461,11 +461,8 @@ const Deposit = () => {
               {/* Buy Orders */}
               <div className="bg-[#151b2b] rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
-                  <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
-                  <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
-                    LIVE
-                  </div>
+                  <TrendingUp className="h-4 w-4 text-green-400" />
+                  <h3 className="text-sm font-semibold text-white">Buy Orders</h3>
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
                 </div>
                 
@@ -511,6 +508,54 @@ const Deposit = () => {
             </div>
           </div>
 
+          {/* Right Sidebar - Trading Panel */}
+          <div className="w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
+            {/* Buy Orders */}
+            <div className="animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
+                <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
+                <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
+                  LIVE
+                </div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
+              </div>
+              
+              <div className="space-y-1">
+                <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
+                  <div>CORRETORA</div>
+                  <div>PREÇO</div>
+                  <div>QTD</div>
+                  <div>BID</div>
+                  <div>TOTAL</div>
+                </div>
+                
+                {sideBuyOrders.map((order, index) => (
+                  <div 
+                    key={`side-${order.timestamp}-${index}`}
+                    className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate">
+                      {order.exchange}
+                    </div>
+                    <div className="text-green-400 font-medium transition-colors duration-300 hover:text-green-300">
+                      {order.value}
+                    </div>
+                    <div className="text-white transition-colors duration-300 hover:text-green-400">
+                      {order.amount}
+                    </div>
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-white">
+                      {order.bid}
+                    </div>
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-green-400">
+                      {order.total}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </ErrorBoundary>
