@@ -9,6 +9,7 @@ import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
 import { TradingChart } from "@/components/TradingChart";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   CreditCard, 
   Smartphone, 
@@ -41,6 +42,41 @@ const Deposit = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sellOrders, setSellOrders] = useState(() => Array(8).fill(null).map(() => generateMarketData()));
   const [buyOrders, setBuyOrders] = useState(() => Array(8).fill(null).map(() => generateMarketData()));
+  const [depositBalance, setDepositBalance] = useState(0);
+  const [totalDeposits, setTotalDeposits] = useState(0);
+  const [pendingDeposits, setPendingDeposits] = useState(0);
+
+  // Load deposit data from DigiToPay
+  const loadDepositData = async () => {
+    if (!user) return;
+
+    try {
+      const { data: deposits } = await supabase
+        .from('digitopay_transactions')
+        .select('amount, amount_brl, status')
+        .eq('user_id', user.id)
+        .eq('type', 'deposit');
+
+      if (deposits) {
+        const completed = deposits.filter(d => d.status === 'completed');
+        const pending = deposits.filter(d => d.status === 'pending');
+        
+        const totalUSD = completed.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+        const pendingUSD = pending.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+        
+        setDepositBalance(totalUSD);
+        setTotalDeposits(completed.length);
+        setPendingDeposits(pending.length);
+      }
+    } catch (error) {
+      console.error('Error loading deposit data:', error);
+    }
+  };
+
+  // Load deposit data when user changes
+  useEffect(() => {
+    loadDepositData();
+  }, [user]);
 
   // Update orders every 2 seconds to simulate real-time data
   useEffect(() => {
@@ -106,38 +142,44 @@ const Deposit = () => {
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Portfolio */}
           <div className="w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-y-auto flex-shrink-0">
-            {/* Portfolio Header */}
+            {/* Deposit Balance Header */}
             <div className="border-b border-gray-800 pb-3">
-              <h2 className="text-base font-semibold mb-2">Watchlist</h2>
-              <div className="text-xl font-bold text-green-400">$56,450.10</div>
-              <div className="text-xs text-gray-400">175° USD EUR</div>
-            </div>
-
-            {/* Portfolio Tabs */}
-            <div className="flex gap-2">
-              <button className="px-2 py-1 bg-[#1f2937] text-white rounded text-xs">BASIC</button>
-              <button className="px-2 py-1 text-gray-400 hover:text-white text-xs">GRAPH</button>
-            </div>
-
-            {/* Search */}
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="w-full bg-[#1f2937] border border-gray-700 rounded px-2 py-1 text-xs"
-              />
-            </div>
-
-            {/* Favorites */}
-            <div>
-              <h3 className="text-xs font-semibold mb-2">Favourite</h3>
-              <div className="space-y-1">
-                {['BCH', 'EUR', 'USD', 'BTC'].map((currency) => (
-                  <div key={currency} className="text-xs text-gray-400 hover:text-white cursor-pointer">
-                    {currency}
-                  </div>
-                ))}
+              <h2 className="text-base font-semibold mb-2 text-cyan-400">Saldo Depósitos</h2>
+              <div className="text-xl font-bold text-green-400">
+                ${depositBalance.toFixed(2)}
               </div>
+              <div className="text-xs text-gray-400">
+                {totalDeposits} depósitos • {pendingDeposits} pendentes
+              </div>
+            </div>
+
+            {/* Deposit Stats */}
+            <div className="space-y-2">
+              <div className="bg-[#1f2937] rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-gray-400">Depósitos Completos</div>
+                    <div className="text-lg font-bold text-green-400">{totalDeposits}</div>
+                  </div>
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-green-400" />
+                  </div>
+                </div>
+              </div>
+              
+              {pendingDeposits > 0 && (
+                <div className="bg-[#1f2937] rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-gray-400">Pendentes</div>
+                      <div className="text-lg font-bold text-yellow-400">{pendingDeposits}</div>
+                    </div>
+                    <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                      <Activity className="h-4 w-4 text-yellow-400 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Assets List */}
@@ -220,6 +262,8 @@ const Deposit = () => {
                           title: "🎉 PARABÉNS!",
                           description: "Depósito processado com sucesso",
                         });
+                        // Recarregar dados de depósito após sucesso
+                        loadDepositData();
                       }} />
                     ) : (
                       <div className="text-center py-8">
