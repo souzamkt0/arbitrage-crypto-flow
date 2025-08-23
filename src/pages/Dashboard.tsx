@@ -594,46 +594,33 @@ const Dashboard = () => {
         const stats = investmentStats[0];
         setTradingBalance(stats.total_invested || 0);
         
-        // Buscar ganho diário da nova tabela daily_profits
+        // Calcular e armazenar ganho diário usando a função atualizada
         try {
-          const { data: dailyProfitData, error: profitError } = await supabase
-            .from('daily_profits')
-            .select('today_profit')
-            .eq('user_id', user.id)
-            .eq('date', new Date().toISOString().split('T')[0]) // Data de hoje
-            .single();
+          const { data: rpcResult, error: functionError } = await supabase.rpc('calculate_and_store_daily_profit', {
+            target_user_id: user.id
+          });
           
-          if (profitError && profitError.code !== 'PGRST116') {
-            console.error('Erro ao buscar ganho diário:', profitError);
-            // Fallback para criar um registro via RPC se não existir
-            const { data: rpcResult } = await supabase.rpc('calculate_and_store_daily_profit', {
-              target_user_id: user.id
-            });
-            setDailyProfit(Number(rpcResult) || 0);
-          } else if (dailyProfitData) {
-            setDailyProfit(Number(dailyProfitData.today_profit) || 0);
-            console.log('💰 Ganho diário encontrado na tabela:', dailyProfitData.today_profit);
+          if (functionError) {
+            console.error('❌ Erro ao calcular ganho diário:', functionError);
+            // Fallback simples local
+            let todayProfit = stats.today_total_earnings || 0;
+            if (todayProfit === 0 && stats.total_invested > 0) {
+              const totalInvested = stats.total_invested;
+              const dailyRate = 2.5;
+              const dailyTarget = totalInvested * (dailyRate / 100);
+              const currentHour = new Date().getHours();
+              const timeProgress = Math.max(0.15, currentHour / 24); // Mínimo 15%
+              todayProfit = dailyTarget * timeProgress * (0.8 + Math.random() * 0.4);
+              todayProfit = Number(todayProfit.toFixed(2));
+            }
+            setDailyProfit(todayProfit);
           } else {
-            // Se não encontrou, criar um novo registro
-            const { data: rpcResult } = await supabase.rpc('calculate_and_store_daily_profit', {
-              target_user_id: user.id
-            });
             setDailyProfit(Number(rpcResult) || 0);
+            console.log('💰 Ganho diário calculado e armazenado:', rpcResult);
           }
-        } catch (functionError) {
-          console.error('Erro na busca de ganho diário:', functionError);
-          // Fallback simples local
-          let todayProfit = stats.today_total_earnings || 0;
-          if (todayProfit === 0 && stats.total_invested > 0) {
-            const totalInvested = stats.total_invested;
-            const dailyRate = 2.5;
-            const dailyTarget = totalInvested * (dailyRate / 100);
-            const currentHour = new Date().getHours();
-            const timeProgress = Math.max(0.15, currentHour / 24); // Mínimo 15%
-            todayProfit = dailyTarget * timeProgress * (0.8 + Math.random() * 0.4);
-            todayProfit = Number(todayProfit.toFixed(2));
-          }
-          setDailyProfit(todayProfit);
+        } catch (error) {
+          console.error('Erro geral na função de ganho diário:', error);
+          setDailyProfit(0);
         }
         
         setActiveOrders(0);
