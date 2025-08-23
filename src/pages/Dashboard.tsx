@@ -701,46 +701,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#0f1419] text-white">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-[#1a1f2e] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-xl font-bold">TradeHub</h1>
-            </div>
-            <div className="hidden md:flex items-center space-x-6 ml-8">
-              <Button variant="ghost" className="text-teal-400 bg-teal-400/10">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Dashboard
-              </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate('/investments')}>
-                <Activity className="w-4 h-4 mr-2" />
-                Investments
-              </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate('/referrals')}>
-                <Users className="w-4 h-4 mr-2" />
-                Referrals
-              </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate('/settings')}>
-                <Settings className="w-4 h-4 mr-2" />
-                Setting
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium">{profile?.display_name?.charAt(0) || 'U'}</span>
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center">
-                1
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
 
       {partnerData && <PartnerStatusBanner />}
 
