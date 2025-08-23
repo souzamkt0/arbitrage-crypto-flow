@@ -467,7 +467,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                          <span className="text-sm">⚡</span>
                        </div>
-                       <span>EXECUTAR DEPÓSITO PIX INSTANTÂNEO</span>
+                       <span>GERAR PIX INSTANTÂNEO</span>
                     </>
                   )}
                 </div>
