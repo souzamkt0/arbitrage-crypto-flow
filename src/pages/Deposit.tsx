@@ -378,40 +378,6 @@ const Deposit = () => {
               </CardContent>
             </Card>
 
-            {/* Chart Header */}
-            <div className="bg-[#151b2b] rounded-lg p-3">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex gap-2">
-                  <button className="px-2 py-1 bg-[#3b82f6] text-white rounded text-xs">XRP</button>
-                  <button className="px-2 py-1 bg-[#1f2937] text-gray-300 rounded text-xs">BTC</button>
-                  <button className="px-2 py-1 bg-[#1f2937] text-gray-300 rounded text-xs">USD</button>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-white">0.913</div>
-                  <div className="text-xs text-gray-400">24h change: <span className="text-green-400">+6.01%</span></div>
-                </div>
-              </div>
-              
-              {/* Market Stats */}
-              <div className="grid grid-cols-4 gap-3 text-xs">
-                <div>
-                  <div className="text-gray-400">24h Low</div>
-                  <div className="text-white">0.753%</div>
-                </div>
-                <div>
-                  <div className="text-gray-400">Volume</div>
-                  <div className="text-white">1.1453 BTC.00</div>
-                </div>
-                <div>
-                  <div className="text-gray-400">Market Cap</div>
-                  <div className="text-white">144.89</div>
-                </div>
-                <div>
-                  <div className="text-gray-400">Last price</div>
-                  <div className="text-white">144.89</div>
-                </div>
-              </div>
-            </div>
 
 
             {/* Main Chart */}
