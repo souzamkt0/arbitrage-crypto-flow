@@ -702,39 +702,18 @@ const Dashboard = () => {
     try {
       console.log('🔄 Carregando investimentos do usuário:', user.id);
       
-      const { data: investments, error } = await supabase
-        .from('user_investments')
-        .select(`
-          *,
-          investment_plans (
-            name,
-            daily_rate,
-            duration_days
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('❌ Erro ao carregar investimentos:', error);
-        // Tentar query mais simples sem JOIN
-        const { data: simpleInvestments, error: simpleError } = await supabase
+      // Query direta usando RPC ou busca específica
+      const { data: investments, error } = await executeSupabaseOperation(async () => {
+        return await supabase
           .from('user_investments')
           .select('*')
           .eq('user_id', user.id)
           .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(5);
+          .order('created_at', { ascending: false });
+      });
 
-        if (simpleError) {
-          console.error('❌ Erro na query simples:', simpleError);
-          return;
-        }
-
-        console.log('✅ Investimentos carregados (query simples):', simpleInvestments);
-        setUserInvestments(simpleInvestments || []);
+      if (error) {
+        console.error('❌ Erro ao carregar investimentos:', error);
         return;
       }
 
