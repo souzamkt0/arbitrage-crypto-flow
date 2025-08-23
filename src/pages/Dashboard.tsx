@@ -753,7 +753,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
-                    <h2 className="text-base font-semibold text-gray-300">My Portfolio</h2>
+                    <h2 className="text-base font-semibold text-gray-300">Saldo de Trading</h2>
                     {isDataSyncing && (
                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" title="Sincronizando dados..."></div>
                     )}
@@ -762,7 +762,8 @@ const Dashboard = () => {
                         Atualizado: {lastSyncTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     )}
-                  </div>
+                   </div>
+                  <p className="text-xs text-gray-500 mb-2">Saldo disponível para investimentos</p>
                   <div className="flex items-center space-x-2">
                     <span className="text-2xl font-bold animate-[number-tick_2s_ease-in-out_infinite]">
                       R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
