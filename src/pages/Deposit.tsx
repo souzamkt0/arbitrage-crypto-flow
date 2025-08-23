@@ -517,37 +517,48 @@ const Deposit = () => {
               </div>
             </div>
 
-            {/* Recent Activity */}
+            {/* Buy Orders */}
             <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <div className="flex items-center gap-2 mb-3">
-                <Activity className="h-4 w-4 text-blue-400 animate-pulse" />
-                <h3 className="text-sm font-semibold text-white">Recent Activity</h3>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse ml-auto"></div>
+                <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
+                <h3 className="text-sm font-semibold text-white">Buy Orders</h3>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
               </div>
-              <div className="space-y-2">
+              
+              <div className="space-y-1">
+                <div className="grid grid-cols-4 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
+                  <div>VALUE</div>
+                  <div>AMOUNT</div>
+                  <div>BID</div>
+                  <div>TOTAL</div>
+                </div>
+                
                 {[
-                  { amount: '1265.00 XRP', time: 'Today, 9:30PM', type: 'buy' },
-                  { amount: '100 USD to 56.54 XRP', time: 'Today, 9:30PM', type: 'convert' },
-                  { amount: '0.50043 BTC', time: 'Yesterday, 11:51PM', type: 'sell' },
-                  { amount: '45.6 USD', time: 'Yesterday, 11:12PM', type: 'withdraw' },
-                  { amount: '1265.00 XRP', time: 'Yesterday, 23:52PM', type: 'buy' },
-                  { amount: '1265.00 XRP to 0.0051 BTC', time: 'Yesterday, 23:52PM', type: 'convert' }
-                ].map((activity, index) => (
+                  { value: '$42,390', amount: '0.325', bid: '$42,350', total: '$13,777' },
+                  { value: '$42,320', amount: '0.289', bid: '$42,280', total: '$12,230' },
+                  { value: '$42,250', amount: '0.412', bid: '$42,200', total: '$17,407' },
+                  { value: '$42,180', amount: '0.156', bid: '$42,140', total: '$6,580' },
+                  { value: '$42,115', amount: '0.487', bid: '$42,070', total: '$20,510' },
+                  { value: '$42,050', amount: '0.203', bid: '$42,010', total: '$8,536' },
+                  { value: '$41,980', amount: '0.351', bid: '$41,940', total: '$14,735' },
+                  { value: '$41,915', amount: '0.278', bid: '$41,870', total: '$11,652' }
+                ].map((order, index) => (
                   <div 
                     key={index} 
-                    className="flex items-center gap-2 p-2 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-blue-500/50"
+                    className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
                     style={{ animationDelay: `${0.5 + index * 0.1}s` }}
                   >
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${
-                      activity.type === 'buy' ? 'bg-green-400' : 
-                      activity.type === 'sell' ? 'bg-red-400' : 
-                      'bg-blue-400'
-                    }`}></div>
-                    <div className="flex-1">
-                      <div className="text-xs text-white font-medium transition-colors duration-300 hover:text-blue-400">
-                        {activity.amount}
-                      </div>
-                      <div className="text-xs text-gray-400">{activity.time}</div>
+                    <div className="text-green-400 font-medium transition-colors duration-300 hover:text-green-300">
+                      {order.value}
+                    </div>
+                    <div className="text-white transition-colors duration-300 hover:text-green-400">
+                      {order.amount}
+                    </div>
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-white">
+                      {order.bid}
+                    </div>
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-green-400">
+                      {order.total}
                     </div>
                   </div>
                 ))}
