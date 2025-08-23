@@ -531,9 +531,6 @@ const Deposit = () => {
                   <div className="text-xs text-gray-400">TOTAL = 0.00000000</div>
                 </div>
                 
-                <Button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 text-xs animate-fade-in hover:scale-105 transition-all duration-300" style={{ animationDelay: '0.3s' }}>
-                  Place buy order
-                </Button>
               </div>
             </div>
 
