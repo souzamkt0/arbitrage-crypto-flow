@@ -1672,6 +1672,10 @@ export type Database = {
         Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
       }
+      calculate_referral_commission_auto: {
+        Args: { investment_amount: number; referred_user_id: string }
+        Returns: undefined
+      }
       check_daily_withdrawal_limit: {
         Args: { user_id_param: string }
         Returns: boolean
