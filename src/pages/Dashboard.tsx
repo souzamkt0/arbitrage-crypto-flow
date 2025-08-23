@@ -1100,44 +1100,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Active Plans - Compact */}
-            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold">Active Plans</h3>
-                <Button variant="ghost" size="sm" className="text-teal-400 text-xs" onClick={() => navigate('/active-plans')}>
-                  See All
-                </Button>
-              </div>
-              
-              <div className="space-y-3">
-                {userInvestments.length > 0 ? (
-                  userInvestments.slice(0, 2).map((investment, index) => (
-                    <div key={investment.id} className="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg border border-gray-800">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
-                          <BarChart3 className="w-3 h-3 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-medium">Plan ${investment.amount?.toFixed(2) || '0.00'}</div>
-                          <div className="text-xs text-gray-500">{(investment.daily_rate * 100)?.toFixed(2) || '0.00'}% daily</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-medium text-green-400">+${investment.total_earned?.toFixed(2) || '0.00'}</div>
-                        <div className="text-xs text-gray-500">{investment.days_remaining || 0} days</div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4">
-                    <div className="text-gray-400 text-xs mb-2">No active plans</div>
-                    <Button size="sm" onClick={() => navigate('/investments')} className="bg-teal-500 hover:bg-teal-600 text-xs">
-                      Start Investing
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Active Plans Table */}
             <div className="mb-6">
