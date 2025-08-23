@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { DigitoPayService } from '@/services/digitopayService';
 import { useAuth } from '@/hooks/useAuth';
-import { Copy, Download, QrCode, DollarSign, CheckCircle } from 'lucide-react';
-import { CurrencyDisplay } from '@/components/CurrencyDisplay';
+import { Copy, QrCode, DollarSign, Timer, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useCurrency } from '@/hooks/useCurrency';
 import { supabase } from '@/integrations/supabase/client';
+import { QRCodeDisplay } from '@/components/QRCodeDisplay';
+import { DepositTimer } from '@/components/DepositTimer';
+import { PixCodeDisplay } from '@/components/PixCodeDisplay';
 
 interface DigitoPayDepositProps {
   onSuccess?: () => void;
@@ -20,128 +21,50 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
 }) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const { convertBRLToUSD, formatBRL, formatUSD, convertUSDToBRL, exchangeRate } = useCurrency();
+  const { convertUSDToBRL, formatBRL, formatUSD, exchangeRate } = useCurrency();
   
   const [amount, setAmount] = useState('');
   const [cpf, setCpf] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(false);
-  const [autoCheck, setAutoCheck] = useState(false);
-  const [depositHistory, setDepositHistory] = useState<Array<{
-    trxId: string;
-    pixCode: string;
-    qrCodeBase64: string;
-    usdAmount?: number;
-    brlAmount?: number;
-    createdAt: number;
-    status: 'pending' | 'completed' | 'failed';
-  }>>([]);
   const [depositData, setDepositData] = useState<{
     trxId: string;
     pixCode: string;
     qrCodeBase64: string;
-    usdAmount?: number;
-    brlAmount?: number;
+    usdAmount: number;
+    brlAmount: number;
+    expiresAt: number;
   } | null>(null);
 
-  // Carregar histórico de depósitos
-  const loadDepositHistory = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: transactions } = await supabase
-        .from('digitopay_transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('type', 'deposit')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const history = (transactions || []).map(tx => ({
-        trxId: tx.trx_id,
-        pixCode: tx.pix_code || '',
-        qrCodeBase64: tx.qr_code_base64 || '',
-        usdAmount: tx.amount,
-        brlAmount: tx.amount_brl,
-        createdAt: new Date(tx.created_at).getTime(),
-        status: tx.status as 'pending' | 'completed' | 'failed'
-      }));
-
-      setDepositHistory(history);
-      console.log('📊 Histórico carregado:', history);
-    } catch (error) {
-      console.log('Erro ao carregar histórico:', error);
-    }
-  };
-
-  // Auto verificação de status em intervalos quando há depósito pendente
+  // Auto verificação de status
   useEffect(() => {
     if (!depositData?.trxId) return;
 
     const interval = setInterval(async () => {
       try {
-        console.log('🔄 Verificação automática de status...');
-        
-        // Verificar diretamente no banco se há atualização via webhook
-        const { data: transaction, error: dbError } = await supabase
+        const { data: transaction } = await supabase
           .from('digitopay_transactions')
-          .select('status, amount_brl, user_id')
+          .select('status, amount_brl')
           .eq('trx_id', depositData.trxId)
           .maybeSingle();
 
-        if (!dbError && transaction && (transaction.status === 'completed' || transaction.status === 'paid')) {
-          console.log('🎉 Depósito confirmado automaticamente!');
-          
+        if (transaction && (transaction.status === 'completed' || transaction.status === 'paid')) {
           toast({
-            title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
-            description: `Seu depósito de R$ ${transaction.amount_brl} foi confirmado e o saldo foi adicionado à sua conta!`,
-            duration: 15000,
+            title: "🎉 DEPÓSITO CONFIRMADO!",
+            description: `Pagamento de ${formatBRL(transaction.amount_brl)} confirmado com sucesso!`,
+            duration: 10000,
           });
 
-          // Atualizar status local
-          setDepositHistory(prev => 
-            prev.map(deposit => 
-              deposit.trxId === depositData.trxId 
-                ? { ...deposit, status: 'completed' as const }
-                : deposit
-            )
-          );
-
-          // Limpar dados do depósito
           setDepositData(null);
-          
-          // Parar o polling
           clearInterval(interval);
-          
-          // Recarregar dados
-          loadDepositHistory();
-          
           if (onSuccess) onSuccess();
         }
       } catch (error) {
-        console.log('Verificação automática silenciosa:', error);
+        console.log('Verificação automática:', error);
       }
-    }, 10000); // Verifica a cada 10 segundos
+    }, 5000); // Verifica a cada 5 segundos
 
-    // Limpar quando componente desmontar ou depositData mudar
     return () => clearInterval(interval);
   }, [depositData?.trxId]);
-
-  // Carregar histórico ao montar o componente
-  useEffect(() => {
-    loadDepositHistory();
-  }, [user]);
-
-  // Função para formatar data
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const handleCreateDeposit = async () => {
     if (!amount || !cpf) {
@@ -154,9 +77,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     }
 
     const usdAmount = parseFloat(amount);
-    const brlAmount = await convertUSDToBRL(usdAmount);
-
-    // Validação de valor mínimo
+    
     if (usdAmount < 1) {
       toast({
         title: 'Valor mínimo',
@@ -169,9 +90,8 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     setLoading(true);
 
     try {
-      console.log('💰 Criando depósito...', { usdAmount, brlAmount, cpf });
+      const brlResult = await convertUSDToBRL(usdAmount);
 
-      // Usar a edge function diretamente para maior confiabilidade
       const { data: result, error } = await supabase.functions.invoke('digitopay-deposit', {
         body: {
           amount: usdAmount,
@@ -186,30 +106,20 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         throw new Error(error.message || 'Erro ao criar depósito');
       }
 
-      console.log('✅ Depósito criado:', result);
+      const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minutos
 
-      const depositDataToSet = {
+      setDepositData({
         trxId: result.id,
         pixCode: result.pixCopiaECola || '',
         qrCodeBase64: result.qrCodeBase64 || '',
         usdAmount: usdAmount,
-        brlAmount: brlAmount.brlAmount,
-      };
-
-      console.log('📱 Configurando dados do depósito:', depositDataToSet);
-      setDepositData(depositDataToSet);
-
-      // Adicionar ao histórico local
-      const newDeposit = {
-        ...depositDataToSet,
-        createdAt: Date.now(),
-        status: 'pending' as const
-      };
-      setDepositHistory(prev => [newDeposit, ...prev.slice(0, 9)]);
+        brlAmount: brlResult.brlAmount,
+        expiresAt
+      });
 
       toast({
-        title: '✅ PIX gerado com sucesso!',
-        description: 'Escaneie o QR Code ou copie o código PIX. Verificaremos automaticamente quando o pagamento for confirmado.',
+        title: '✅ PIX Gerado com Sucesso!',
+        description: 'Escaneie o QR Code ou copie o código PIX para pagamento',
         duration: 8000,
       });
 
@@ -224,606 +134,223 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     }
   };
 
-  const checkStatus = async () => {
-    if (!depositData?.trxId) return;
+  const handleExpired = () => {
+    setDepositData(null);
+    toast({
+      title: "PIX Expirado",
+      description: "Gere um novo código PIX para continuar",
+      variant: "destructive"
+    });
+  };
 
-    setCheckingStatus(true);
-
-    try {
-      console.log('🔍 Verificando status do depósito:', depositData.trxId);
-
-      // Usar a edge function corrigida para verificar status
-      const { data: statusResult, error: statusError } = await supabase.functions.invoke('digitopay-status', {
-        body: { trxId: depositData.trxId }
-      });
-
-      if (statusError) {
-        toast({
-          title: "Erro ao verificar status",
-          description: "Houve um problema ao consultar o status do depósito",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('✅ Status verificado:', statusResult);
-
-      // Se a transação foi confirmada
-      if (statusResult?.isConfirmed || statusResult?.data?.status === 'REALIZADO') {
-        toast({
-          title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
-          description: `Seu depósito de $${depositData.usdAmount} foi aprovado e o saldo foi adicionado à sua conta.`,
-          duration: 15000,
-        });
-
-        // Atualizar status local
-        setDepositHistory(prev => 
-          prev.map(deposit => 
-            deposit.trxId === depositData.trxId 
-              ? { ...deposit, status: 'completed' as const }
-              : deposit
-          )
-        );
-
-        // Limpar dados do depósito atual
-        setDepositData(null);
-        
-        // Recarregar histórico
-        loadDepositHistory();
-        
-        if (onSuccess) onSuccess();
-      } else {
-        toast({
-          title: "⏳ Aguardando Pagamento",
-          description: "Seu depósito ainda está pendente. Continuaremos verificando automaticamente.",
-        });
-      }
-
-    } catch (error) {
-      toast({
-        title: "Erro na verificação",
-        description: "Não foi possível verificar o status do depósito",
-        variant: "destructive"
-      });
-    } finally {
-      setCheckingStatus(false);
-    }
+  const handleNewDeposit = () => {
+    setDepositData(null);
+    setAmount('');
+    setCpf('');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-2 sm:p-4">
-      {/* Trading Header - Responsive */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">DEPÓSITO TRADING</h1>
-            <div className="px-2 sm:px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs sm:text-sm font-medium">
-              AO VIVO
+    <div className="space-y-6">
+      {!depositData ? (
+        <>
+          {/* Formulário de Depósito */}
+          <div className="bg-gradient-to-br from-card to-muted/5 rounded-xl p-6 border border-border">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+              <h3 className="text-lg font-semibold text-foreground">Formulário de Depósito</h3>
             </div>
-          </div>
-        </div>
-        <p className="text-sm sm:text-base text-gray-400">Depósitos PIX instantâneos • Confirmação em tempo real • Pronto para trading</p>
-      </div>
-
-      <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20 shadow-2xl shadow-blue-500/10">
-        <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-blue-500/20">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-lg sm:text-xl font-bold text-white">
-                  Depósito PIX Instantâneo
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-xs sm:text-sm">
-                  Confirmação automática • Sem atrasos
-                </CardDescription>
-              </div>
-            </div>
-            <div className="text-left sm:text-right">
-              <div className="text-xs text-gray-500">Taxa de Câmbio</div>
-              <div className="text-base sm:text-lg font-bold text-green-400">
-                1 USD = {formatBRL(exchangeRate || 5.5)}
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-        {!depositData ? (
-          <>
-            {/* Trading Form - Responsive */}
-            <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-4 sm:p-6 border border-slate-600/30">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <h3 className="text-base sm:text-lg font-semibold text-white">Formulário de Depósito</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="amount" className="text-blue-400 font-medium flex items-center gap-2 text-sm sm:text-base">
-                    <DollarSign className="h-4 w-4 flex-shrink-0" />
-                    Valor do Depósito (USD)
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="bg-slate-800/60 border-blue-500/30 text-white text-base sm:text-lg font-medium pl-10 sm:pl-12 h-10 sm:h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                      placeholder="0.00"
-                      min="1"
-                      step="0.01"
-                    />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 font-bold">
-                      $
-                    </div>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs">
-                    <span className="text-gray-400">Min: $1.00 USD</span>
-                    <span className="text-green-400">✓ Confirmação instantânea</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <Label htmlFor="cpf" className="text-blue-400 font-medium flex items-center gap-2 text-sm sm:text-base">
-                    <div className="w-4 h-4 border border-blue-400 rounded flex items-center justify-center flex-shrink-0">
-                      <div className="w-2 h-2 bg-blue-400 rounded-sm"></div>
-                    </div>
-                    Documento CPF
-                  </Label>
+            
+            <div className="grid gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="amount" className="text-foreground font-medium flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-success" />
+                  Valor em USD
+                </Label>
+                <div className="relative">
                   <Input
-                    id="cpf"
-                    value={cpf}
-                    onChange={(e) => setCpf(e.target.value)}
-                    className="bg-slate-800/60 border-blue-500/30 text-white text-base sm:text-lg font-medium h-10 sm:h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                    placeholder="000.000.000-00"
+                    id="amount"
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-background border-border text-foreground text-lg font-medium pl-12 h-12"
+                    placeholder="0.00"
+                    min="1"
+                    step="0.01"
                   />
-                  <p className="text-xs text-gray-400">Obrigatório para pagamento PIX</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Trading Calculator - Responsive */}
-            {amount && (
-              <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-xl p-4 sm:p-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-xs sm:text-sm">₮</span>
-                    </div>
-                    <h4 className="text-emerald-400 font-bold text-base sm:text-lg">Calculadora de Trading</h4>
-                  </div>
-                  <div className="sm:ml-auto px-2 sm:px-3 py-1 bg-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium">
-                    TEMPO REAL
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-success font-bold">
+                    $
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30">
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
-                      Você Paga (PIX)
-                    </div>
-                    <div className="text-lg sm:text-2xl font-bold text-white mb-1">
-                      {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
-                    </div>
-                    <div className="text-xs text-gray-400">Real Brasileiro</div>
-                  </div>
-                  
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30 relative">
-                    <div className="hidden sm:block absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-blue-500 rounded-full">
-                      <div className="text-xs text-white font-bold">→</div>
-                    </div>
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                      Taxa de Câmbio
-                    </div>
-                    <div className="text-base sm:text-lg font-bold text-blue-400 mb-1">
-                      {(exchangeRate || 5.5).toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-400">BRL/USD</div>
-                  </div>
-                  
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30">
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                      Você Recebe (Saldo Trading)
-                    </div>
-                    <div className="text-lg sm:text-2xl font-bold text-green-400 mb-1">
-                      ${parseFloat(amount).toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-400">Dólar Americano</div>
-                  </div>
-                </div>
-                
-                <div className="mt-3 sm:mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-green-400">
-                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                    <span className="font-medium">Pronto para trading imediatamente após confirmação</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Trading Action Button - Touch friendly */}
-            <div className="relative">
-              <Button
-                onClick={handleCreateDeposit}
-                disabled={loading}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 hover:from-blue-700 hover:via-purple-700 hover:to-emerald-700 text-white font-bold text-lg shadow-lg shadow-blue-500/25 border-0 relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center justify-center gap-3">
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                       <span>Gerando PIX de Trading...</span>
-                     </>
-                   ) : (
-                     <>
-                       <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                         <span className="text-sm">⚡</span>
-                       </div>
-                       <span>EXECUTAR DEPÓSITO PIX INSTANTÂNEO</span>
-                    </>
-                  )}
-                </div>
-              </Button>
-              
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full opacity-50"></div>
-            </div>
-          </>
-        ) : (
-          <div className="space-y-8">
-            {/* Trading Success Header */}
-            <div className="text-center bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-blue-500/10 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center animate-pulse">
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-xl font-bold text-green-400">TRADING PIX GENERATED</h3>
-                  <p className="text-sm text-gray-300">System ready for automatic confirmation</p>
-                </div>
-                <div className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
-                  ACTIVE
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Mínimo: $1.00 USD</span>
+                  <span className="text-success">✓ Confirmação instantânea</span>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300">Auto-detection enabled</span>
+              <div className="space-y-3">
+                <Label htmlFor="cpf" className="text-foreground font-medium flex items-center gap-2">
+                  <div className="w-4 h-4 border border-foreground rounded flex items-center justify-center">
+                    <div className="w-2 h-2 bg-foreground rounded-sm"></div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300">Real-time verification</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300">Instant notification</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* QR Code Section */}
-            {depositData.qrCodeBase64 && (
-              <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
-                <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <QrCode className="h-5 w-5 text-blue-400" />
-                    <h4 className="text-lg font-semibold text-white">PIX QR Code</h4>
-                  </div>
-                  
-                  <div className="relative inline-block">
-                    <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 rounded-2xl border border-blue-500/20">
-                      <div className="bg-white p-4 rounded-xl shadow-2xl">
-                        <img
-                          src={`data:image/png;base64,${depositData.qrCodeBase64}`}
-                          alt="PIX QR Code"
-                          className="w-56 h-56 mx-auto"
-                        />
-                      </div>
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">✓</span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-400 max-w-md mx-auto">
-                    Scan this QR code with your banking app to complete the PIX payment
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* PIX Code Section */}
-            {depositData.pixCode && (
-              <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-6 border border-slate-600/30">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Copy className="h-5 w-5 text-blue-400" />
-                    <Label className="text-lg font-semibold text-white">PIX Copy & Paste Code</Label>
-                  </div>
-                  
-                  <div className="relative">
-                    <Input
-                      value={depositData.pixCode}
-                      readOnly
-                      className="bg-slate-800/60 border-slate-600/30 text-white font-mono text-sm h-12 pr-24"
-                    />
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(depositData.pixCode);
-                          toast({
-                            title: '📋 PIX Code Copied!',
-                            description: 'Paste in your banking app to pay'
-                          });
-                        } catch (error) {
-                          toast({
-                            title: 'Copy Error',
-                            description: 'Copy manually',
-                            variant: 'destructive'
-                          });
-                        }
-                      }}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium"
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      COPY
-                    </Button>
-                  </div>
-                  
-                  <p className="text-xs text-gray-400">
-                    Copy this code and paste it in your banking app's PIX payment section
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Trading Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 rounded-xl p-6 border border-red-500/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">OUT</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-red-400 font-medium">PIX Payment</div>
-                    <div className="text-sm text-gray-400">Brazilian Real</div>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-white mb-2">
-                  {depositData.brlAmount ? formatBRL(depositData.brlAmount) : 'Calculating...'}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span>From your bank account</span>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-6 border border-green-500/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">IN</span>
-                  </div>
-                  <div>
-                    <div className="text-xs text-green-400 font-medium">Trading Balance</div>
-                    <div className="text-sm text-gray-400">US Dollar</div>
-                  </div>
-                </div>
-                <div className="text-3xl font-bold text-green-400 mb-2">
-                  {depositData.usdAmount ? formatUSD(depositData.usdAmount) : 'N/A'}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Available for trading</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Auto System Status */}
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-purple-400 font-bold text-lg">⚡ AUTO-CONFIRMATION SYSTEM</span>
-                <div className="ml-auto px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
-                  MONITORING
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <div className="text-sm text-gray-300">
-                    <div className="font-medium">Payment Detection</div>
-                    <div className="text-xs text-gray-400">Real-time monitoring</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
-                  <DollarSign className="h-5 w-5 text-blue-400" />
-                  <div className="text-sm text-gray-300">
-                    <div className="font-medium">Balance Update</div>
-                    <div className="text-xs text-gray-400">Instant credit</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
-                  <span className="text-purple-400 text-lg">🎉</span>
-                  <div className="text-sm text-gray-300">
-                    <div className="font-medium">Notification</div>
-                    <div className="text-xs text-gray-400">Success alert</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-sm text-gray-300">
-                Our trading system will automatically detect your PIX payment and instantly credit your account.
-                <strong className="text-purple-400"> No manual verification required!</strong>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                onClick={checkStatus}
-                disabled={checkingStatus}
-                className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold border-0"
-              >
-                {checkingStatus ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Checking Status...
-                  </>
-                ) : (
-                  <>
-                    <span className="text-lg mr-2">🔍</span>
-                    CHECK STATUS NOW
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                onClick={() => {
-                  setDepositData(null);
-                  setAmount('');
-                  setCpf('');
-                }}
-                className="h-12 px-8 bg-slate-700 hover:bg-slate-600 text-white font-medium border border-slate-600"
-              >
-                <span className="mr-2">↻</span>
-                NEW PIX
-              </Button>
-            </div>
-
-            {/* Transaction ID */}
-            <div className="text-center">
-              <div className="inline-block bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-600/30">
-                <div className="text-xs text-gray-500 mb-1">Transaction ID</div>
-                <div className="text-sm font-mono text-gray-300">{depositData.trxId}</div>
+                  CPF do Pagador
+                </Label>
+                <Input
+                  id="cpf"
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value)}
+                  className="bg-background border-border text-foreground text-lg font-medium h-12"
+                  placeholder="000.000.000-00"
+                />
+                <p className="text-xs text-muted-foreground">Obrigatório para transações PIX</p>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Histórico de Depósitos */}
-        {depositHistory.length > 0 && (
-          <div className="space-y-4 mt-8 pt-6 border-t border-gray-700">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-yellow-400 mb-2">📋 Histórico de Depósitos</h3>
-              <p className="text-sm text-gray-400">Seus depósitos PIX recentes</p>
+          {/* Calculadora */}
+          {amount && (
+            <div className="bg-gradient-to-br from-success/10 to-trading-green/10 rounded-xl p-6 border border-success/20">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-success to-trading-green rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">₮</span>
+                </div>
+                <h4 className="text-success font-bold text-lg">Calculadora em Tempo Real</h4>
+                <div className="ml-auto px-3 py-1 bg-success/20 rounded-full text-success text-xs font-medium">
+                  TEMPO REAL
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-background/60 rounded-lg p-4 border border-border">
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                    Você Paga (PIX)
+                  </div>
+                  <div className="text-2xl font-bold text-foreground mb-1">
+                    {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Real Brasileiro</div>
+                </div>
+                
+                <div className="bg-background/60 rounded-lg p-4 border border-border relative">
+                  <div className="hidden sm:block absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-binance-yellow rounded-full">
+                    <div className="text-xs text-binance-black font-bold">→</div>
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-binance-yellow rounded-full"></div>
+                    Taxa de Câmbio
+                  </div>
+                  <div className="text-lg font-bold text-binance-yellow mb-1">
+                    {(exchangeRate || 5.5).toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">BRL/USD</div>
+                </div>
+                
+                <div className="bg-background/60 rounded-lg p-4 border border-border">
+                  <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-success rounded-full"></div>
+                    Você Recebe
+                  </div>
+                  <div className="text-2xl font-bold text-success mb-1">
+                    ${parseFloat(amount).toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Saldo Trading</div>
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Botão de Gerar PIX */}
+          <Button
+            onClick={handleCreateDeposit}
+            disabled={loading || !amount || !cpf}
+            className="w-full h-14 bg-gradient-to-r from-success to-trading-green hover:from-success/90 hover:to-trading-green/90 text-white text-lg font-bold shadow-lg"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Gerando PIX...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <QrCode className="h-5 w-5" />
+                Gerar PIX Instantâneo
+              </div>
+            )}
+          </Button>
+        </>
+      ) : (
+        <>
+          {/* PIX Gerado */}
+          <Card className="bg-gradient-to-br from-success/5 to-trading-green/5 border border-success/20">
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CheckCircle2 className="h-6 w-6 text-success" />
+                <CardTitle className="text-success">PIX Gerado com Sucesso!</CardTitle>
+              </div>
+              <CardDescription>
+                Escaneie o QR Code ou copie o código PIX para efetuar o pagamento
+              </CardDescription>
+            </CardHeader>
             
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {depositHistory.map((deposit, index) => (
-                <div key={deposit.trxId} className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl p-4 border border-gray-600/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-full flex items-center justify-center">
-                        <QrCode className="h-4 w-4 text-yellow-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-yellow-400">
-                          Depósito #{index + 1}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {formatDate(deposit.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-                      deposit.status === 'completed' ? 'bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-400 border border-green-500/30' :
-                      deposit.status === 'pending' ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/30' :
-                      'bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-400 border border-red-500/30'
-                    }`}>
-                      {deposit.status === 'completed' ? '✅ Concluído' :
-                       deposit.status === 'pending' ? '⏳ Pendente' :
-                       '❌ Falhou'}
+            <CardContent className="space-y-6">
+              {/* Timer */}
+              <DepositTimer 
+                expiresAt={depositData.expiresAt}
+                onExpired={handleExpired}
+              />
+
+              {/* Informações do Depósito */}
+              <div className="bg-background rounded-lg p-4 border border-border">
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Valor USD</div>
+                    <div className="text-lg font-bold text-success">
+                      ${depositData.usdAmount.toFixed(2)}
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-gray-400 mb-1">Valor PIX</div>
-                      <div className="text-sm font-bold text-white">
-                        {deposit.brlAmount ? `R$ ${deposit.brlAmount.toFixed(2)}` : 'N/A'}
-                      </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Valor PIX</div>
+                    <div className="text-lg font-bold text-foreground">
+                      {formatBRL(depositData.brlAmount)}
                     </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-gray-400 mb-1">Crédito USD</div>
-                      <div className="text-sm font-bold text-white">
-                        {deposit.usdAmount ? `$${deposit.usdAmount.toFixed(2)}` : 'N/A'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    {deposit.pixCode && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(deposit.pixCode);
-                            toast({
-                              title: '📋 Código PIX copiado!',
-                              description: 'Cole no seu app bancário'
-                            });
-                          } catch (error) {
-                            toast({
-                              title: 'Erro ao copiar',
-                              description: 'Copie manualmente',
-                              variant: 'destructive'
-                            });
-                          }
-                        }}
-                        className="flex-1 text-xs border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-                      >
-                        📋 Copiar PIX
-                      </Button>
-                    )}
-                    {deposit.qrCodeBase64 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = `data:image/png;base64,${deposit.qrCodeBase64}`;
-                          link.download = `pix-qr-${deposit.trxId}.png`;
-                          link.click();
-                        }}
-                        className="flex-1 text-xs border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-                      >
-                        📱 Baixar QR
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="mt-3 text-xs text-gray-500 font-mono text-center bg-gray-900/50 rounded p-2">
-                    ID: {deposit.trxId}
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <Button
-              variant="outline"
-              onClick={loadDepositHistory}
-              className="w-full text-sm border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-            >
-              🔄 Atualizar Histórico
-            </Button>
-          </div>
-        )}
-      </CardContent>
-      </Card>
+              </div>
+
+              {/* QR Code */}
+              <QRCodeDisplay 
+                qrCodeBase64={depositData.qrCodeBase64}
+                amount={formatBRL(depositData.brlAmount)}
+              />
+
+              {/* Código PIX */}
+              <PixCodeDisplay pixCode={depositData.pixCode} />
+
+              {/* Status */}
+              <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Timer className="h-5 w-5 text-warning" />
+                  <div>
+                    <div className="font-medium text-warning">Aguardando Pagamento</div>
+                    <div className="text-sm text-muted-foreground">
+                      Verificaremos automaticamente quando o pagamento for confirmado
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão Novo Depósito */}
+              <Button
+                onClick={handleNewDeposit}
+                variant="outline"
+                className="w-full border-border hover:bg-accent"
+              >
+                Gerar Novo PIX
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 };
