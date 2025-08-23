@@ -258,7 +258,7 @@ const Deposit = () => {
           </div>
 
           {/* Center - Main Chart Area */}
-          <div className="flex-1 bg-[#0a0e1a] p-4 space-y-4 overflow-y-auto">
+          <div className="flex-1 bg-[#0a0e1a] p-4 space-y-4 overflow-hidden">
             {/* Deposit Interface - Moved to top */}
             <Card className="bg-[#151b2b] border border-gray-800">
               <CardHeader className="border-b border-gray-800 py-3">
