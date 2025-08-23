@@ -128,69 +128,100 @@ const Deposit = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900">
-        {/* Trading Header */}
-        <div className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 backdrop-blur-sm border-b border-blue-500/20 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Left Section */}
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(-1)}
-                  className="hover:bg-blue-500/10 text-blue-400 border border-blue-500/20 p-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold text-white">TRADING DEPOSIT</h1>
-                    <p className="text-xs text-gray-400">Advanced deposit terminal</p>
-                  </div>
-                </div>
-              </div>
+      <div className="min-h-screen bg-[#0a0e1a] text-white">
+        {/* Header Navigation */}
+        <header className="bg-[#151b2b] border-b border-gray-800 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-xl font-bold text-cyan-400">finrax</div>
+              <nav className="hidden md:flex gap-6 text-sm text-gray-400">
+                <button className="hover:text-white transition-colors">Dashboard</button>
+                <button className="text-cyan-400">Exchange</button>
+                <button className="hover:text-white transition-colors">Analytics</button>
+                <button className="hover:text-white transition-colors">Convert</button>
+                <button className="hover:text-white transition-colors">NFT Helpdesk</button>
+              </nav>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Bell className="h-4 w-4" />
+              </Button>
+              <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2">
+                Wallet
+              </Button>
+            </div>
+          </div>
+        </header>
 
-              {/* Center Section - Status */}
-              <div className="hidden md:flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-400 text-sm font-medium">SYSTEM ONLINE</span>
-                </div>
-                
-                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/20 rounded-full">
-                  <Activity className="h-4 w-4 text-blue-400" />
-                  <span className="text-blue-400 text-sm font-medium">REAL-TIME</span>
-                </div>
-              </div>
+        {/* Main Layout */}
+        <div className="flex h-[calc(100vh-73px)]">
+          {/* Left Sidebar - Portfolio */}
+          <div className="w-80 bg-[#151b2b] border-r border-gray-800 p-4 space-y-4">
+            {/* Portfolio Header */}
+            <div className="border-b border-gray-800 pb-4">
+              <h2 className="text-lg font-semibold mb-2">Watchlist</h2>
+              <div className="text-2xl font-bold text-green-400">$56,450.10</div>
+              <div className="text-sm text-gray-400">175° USD EUR</div>
+            </div>
 
-              {/* Right Section */}
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                  <Bell className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                  <Settings className="h-4 w-4" />
-                </Button>
+            {/* Portfolio Tabs */}
+            <div className="flex gap-2">
+              <button className="px-3 py-1 bg-[#1f2937] text-white rounded text-sm">BASIC</button>
+              <button className="px-3 py-1 text-gray-400 hover:text-white text-sm">GRAPH</button>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="w-full bg-[#1f2937] border border-gray-700 rounded px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* Favorites */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3">Favourite</h3>
+              <div className="space-y-2">
+                {['BCH', 'EUR', 'USD', 'BTC'].map((currency) => (
+                  <div key={currency} className="text-sm text-gray-400 hover:text-white cursor-pointer">
+                    {currency}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Assets List */}
+            <div className="space-y-2 text-sm">
+              {[
+                { pair: 'BTC-DASH', price: '1245.54€2643', change: '+5.024%' },
+                { pair: 'BTC-DASH', price: '1245.54€2643', change: '+5.024%' },
+                { pair: 'BTC-DASH', price: '1245.54€2643', change: '+5.024%' },
+                { pair: 'BTC-DASH', price: '1245.54€2643', change: '+5.024%' },
+                { pair: 'BTC-DASH', price: '1245.54€2643', change: '+5.024%' },
+              ].map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-1 hover:bg-[#1f2937] px-2 rounded">
+                  <span className="text-white">{item.pair}</span>
+                  <div className="text-right">
+                    <div className="text-white">{item.price}</div>
+                    <div className="text-green-400 text-xs">{item.change}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* XRP/CBN Chart */}
+            <div className="mt-6">
+              <div className="text-sm font-semibold mb-2">XRP/CBN</div>
+              <div className="text-red-400 text-sm">-6.01%</div>
+              <div className="h-20 bg-[#1f2937] rounded mt-2 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-transparent"></div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-          {/* Main Trading Layout - Responsive */}
-          <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 sm:gap-6 min-h-screen">
-            {/* Left Sidebar - Market Data - Hidden on mobile by default, can be toggled */}
-            <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-              <MarketOverview />
-            </div>
-
-            {/* Main Content Area - Full width on mobile */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6 w-full">
+          {/* Center - Main Chart Area */}
+          <div className="flex-1 bg-[#0a0e1a] p-6 space-y-6">
               {/* Main Deposit Interface - Responsive */}
               {!isActivated && (
                 <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm border border-orange-500/30">
@@ -403,162 +434,302 @@ const Deposit = () => {
               {/* Trading Chart */}
               <TradingChart />
 
-              {/* Transaction History */}
-              {user && (
-                <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-green-500/20">
-                  <CardHeader className="border-b border-green-500/20">
-                    <div className="flex items-center gap-3">
-                      <History className="h-5 w-5 text-green-400" />
-                      <CardTitle className="text-lg font-bold text-white">Transaction History</CardTitle>
-                      <div className="ml-auto px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-medium">
-                        REAL-TIME
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="max-h-96 overflow-y-auto">
-                      <DigitoPayHistory />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+            {/* Chart Header */}
+            <div className="bg-[#151b2b] rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex gap-4">
+                  <button className="px-3 py-1 bg-[#3b82f6] text-white rounded text-sm">XRP</button>
+                  <button className="px-3 py-1 bg-[#1f2937] text-gray-300 rounded text-sm">BTC</button>
+                  <button className="px-3 py-1 bg-[#1f2937] text-gray-300 rounded text-sm">USD</button>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">0.913</div>
+                  <div className="text-sm text-gray-400">24h change: <span className="text-green-400">+6.01%</span></div>
+                </div>
+              </div>
+              
+              {/* Market Stats */}
+              <div className="grid grid-cols-4 gap-4 text-sm">
+                <div>
+                  <div className="text-gray-400">24h Low</div>
+                  <div className="text-white">0.753%</div>
+                </div>
+                <div>
+                  <div className="text-gray-400">Volume</div>
+                  <div className="text-white">1.1453 BTC.00</div>
+                </div>
+                <div>
+                  <div className="text-gray-400">Market Cap</div>
+                  <div className="text-white">144.89</div>
+                </div>
+                <div>
+                  <div className="text-gray-400">Last price</div>
+                  <div className="text-white">144.89</div>
+                </div>
+              </div>
             </div>
 
-            {/* Right Sidebar - Show only on large screens */}
-            <div className="hidden lg:block lg:col-span-1 space-y-4 sm:space-y-6">
-              <DepositStats />
-              
-              {/* Security Info - Mobile optimized */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20">
-                <CardHeader className="bg-gradient-to-r from-blue-600/10 to-green-600/10 border-b border-blue-500/20">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg">
-                      <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            {/* Main Chart */}
+            <div className="bg-[#151b2b] rounded-lg p-4 mb-6" style={{ height: '400px' }}>
+              <TradingChart />
+            </div>
+
+            {/* Deposit Interface */}
+            {!isActivated && (
+              <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm border border-orange-500/30 mb-6">
+                <CardContent className="p-6 text-center">
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                      <Clock className="h-8 w-8 text-white" />
                     </div>
-                    <CardTitle className="text-base sm:text-lg font-bold text-white">Security Features</CardTitle>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-2">Sistema Iniciando</h3>
+                      <p className="text-gray-400">Ativação automática em...</p>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
-                      <div>
-                        <h4 className="text-green-400 font-medium text-xs sm:text-sm">Real-time Processing</h4>
-                        <p className="text-gray-400 text-xs">Instant verification and confirmation</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
-                      <div>
-                        <h4 className="text-blue-400 font-medium text-xs sm:text-sm">Bank-grade Security</h4>
-                        <p className="text-gray-400 text-xs">256-bit SSL encryption</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
-                      <div>
-                        <h4 className="text-purple-400 font-medium text-xs sm:text-sm">24/7 Monitoring</h4>
-                        <p className="text-gray-400 text-xs">Advanced fraud detection</p>
-                      </div>
-                    </div>
+                  
+                  <div className="text-6xl font-bold text-orange-400 mb-4">
+                    {countdown}
+                  </div>
+                  
+                  <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
+                    <div 
+                      className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${((10 - countdown) / 10) * 100}%` }}
+                    />
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {isActivated && (
+              <Card className="bg-[#151b2b] border border-gray-800 mb-6">
+                <CardHeader className="border-b border-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
+                        <Wallet className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg font-bold text-white">
+                          Deposit Terminal
+                        </CardTitle>
+                        <p className="text-sm text-gray-400">Sistema ativo</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-xs font-medium">ONLINE</span>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-[#1f2937] border border-gray-700 p-1">
+                      <TabsTrigger 
+                        value="digitopay" 
+                        className="flex items-center justify-center space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-3"
+                      >
+                        <Smartphone className="h-4 w-4" />
+                        <span className="font-medium">PIX Instant</span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="usdt" 
+                        className="flex items-center justify-center space-x-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white py-3"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        <span className="font-medium">USDT Crypto</span>
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="digitopay" className="space-y-6">
+                      {user ? (
+                        <DigitoPayDeposit onSuccess={() => {
+                          toast({
+                            title: "🎉 PARABÉNS!",
+                            description: "Depósito processado com sucesso",
+                          });
+                        }} />
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl inline-block mx-auto">
+                            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                            <p className="text-red-400 text-lg font-medium">Authentication Required</p>
+                            <p className="text-gray-400 mt-2">Please login to access deposits</p>
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="usdt" className="space-y-6">
+                      <form onSubmit={handleBnbSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6">
+                          <div className="space-y-3">
+                            <Label htmlFor="usdt-amount" className="text-purple-400 font-medium">Amount (USDT)</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-4 top-4 h-4 w-4 text-purple-400" />
+                              <Input
+                                id="usdt-amount"
+                                type="number"
+                                placeholder="100.00"
+                                className="pl-12 bg-[#1f2937] border-gray-700 text-white h-12 focus:border-purple-500"
+                                min="10"
+                                step="0.01"
+                                value={bnbForm.amount}
+                                onChange={(e) => setBnbForm({...bnbForm, amount: e.target.value})}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <Label htmlFor="sender-name" className="text-purple-400 font-medium">Sender Name</Label>
+                            <Input
+                              id="sender-name"
+                              type="text"
+                              placeholder="Full name"
+                              className="bg-[#1f2937] border-gray-700 text-white h-12 focus:border-purple-500"
+                              value={bnbForm.senderName}
+                              onChange={(e) => setBnbForm({...bnbForm, senderName: e.target.value})}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-12"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center justify-center space-x-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>Processing...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Zap className="h-4 w-4 mr-2" />
+                              CONFIRM CRYPTO DEPOSIT
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Orders Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Sell Orders */}
+              <div className="bg-[#151b2b] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Sell Orders</h3>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-2">
+                    <div>VALUE</div>
+                    <div>AMOUNT</div>
+                    <div>BID</div>
+                    <div>VALUE</div>
+                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="grid grid-cols-4 gap-2 text-xs text-white py-1">
+                      <div>65.6642</div>
+                      <div className="text-red-400">0.8775</div>
+                      <div>51.50</div>
+                      <div>13.32</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buy Orders */}
+              <div className="bg-[#151b2b] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Buy Orders</h3>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-2">
+                    <div>VALUE</div>
+                    <div>AMOUNT</div>
+                    <div>BID</div>
+                    <div>VALUE</div>
+                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="grid grid-cols-4 gap-2 text-xs text-white py-1">
+                      <div>65.6642</div>
+                      <div className="text-green-400">0.8775</div>
+                      <div>51.50</div>
+                      <div>13.32</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Mobile Market Overview - Show on mobile only */}
-          <div className="lg:hidden">
-            <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-              <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-                    <BarChart3 className="h-4 w-4 text-white" />
-                  </div>
-                  <CardTitle className="text-base font-bold text-white">Market Data</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="p-3">
-                <MarketOverview />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Transaction History Section - Mobile First */}
-          <div className="space-y-4 sm:space-y-6">
-            <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-green-500/20">
-              <CardHeader className="bg-gradient-to-r from-green-600/10 to-blue-600/10 border-b border-green-500/20">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
-                      <History className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base sm:text-lg font-bold text-white">
-                        Transaction History
-                      </CardTitle>
-                      <p className="text-xs sm:text-sm text-gray-400">Recent deposit transactions</p>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                {user ? (
-                  <DigitoPayHistory />
-                ) : (
-                  <div className="text-center py-6 sm:py-8">
-                    <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl inline-block max-w-xs mx-auto">
-                      <History className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mx-auto mb-2 sm:mb-3" />
-                      <p className="text-blue-400 font-medium text-sm sm:text-base">Login Required</p>
-                      <p className="text-gray-400 text-xs sm:text-sm mt-1">Access your transaction history</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Support Section - Fully responsive */}
-            <Card className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-yellow-500/20">
-              <CardContent className="p-4 sm:p-6 lg:p-8 text-center">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="p-3 sm:p-4 bg-yellow-500/20 border border-yellow-500/20 rounded-xl">
-                    <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-400" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="text-lg sm:text-xl font-bold text-white">24/7 Trading Support</h3>
-                    <p className="text-sm sm:text-base text-gray-400">Expert assistance for all deposit operations</p>
-                  </div>
+          {/* Right Sidebar - Trading Panel */}
+          <div className="w-80 bg-[#151b2b] border-l border-gray-800 p-4 space-y-4">
+            {/* Trading Panel Header */}
+            <div className="border-b border-gray-800 pb-4">
+              <div className="flex gap-2 mb-4">
+                <button className="px-3 py-1 bg-[#3b82f6] text-white rounded text-sm">BUY ETH</button>
+                <button className="px-3 py-1 bg-[#1f2937] text-gray-300 rounded text-sm">SELL ETH</button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">PRICE</div>
+                  <div className="text-lg font-bold text-white">0.04524300</div>
+                  <div className="text-xs text-gray-400">≈ 1,779.94 USD</div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="p-3 sm:p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
-                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto mb-2" />
-                    <div className="text-sm text-white font-medium">Instant Support</div>
-                    <div className="text-xs text-gray-400">Response in seconds</div>
-                  </div>
-                  
-                  <div className="p-3 sm:p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
-                    <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 mx-auto mb-2" />
-                    <div className="text-sm text-white font-medium">Secure Process</div>
-                    <div className="text-xs text-gray-400">Bank-level security</div>
-                  </div>
-                  
-                  <div className="p-3 sm:p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
-                    <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400 mx-auto mb-2" />
-                    <div className="text-sm text-white font-medium">Fast Processing</div>
-                    <div className="text-xs text-gray-400">Average 2 minutes</div>
-                  </div>
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">AMOUNT</div>
+                  <input 
+                    type="text" 
+                    placeholder="0" 
+                    className="w-full bg-[#1f2937] border border-gray-700 rounded px-3 py-2 text-white text-sm"
+                  />
+                  <div className="text-xs text-gray-400 mt-1">ETH</div>
                 </div>
-
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base">
-                  <Users className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">CONTACT TRADING SUPPORT</span>
-                  <span className="sm:hidden">CONTACT SUPPORT</span>
+                
+                <div>
+                  <div className="text-sm text-gray-400">TOTAL = 0.00000000</div>
+                </div>
+                
+                <Button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-3">
+                  Place buy order
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                {[
+                  { amount: '1265.00 XRP', time: 'Today, 9:30PM', type: 'buy' },
+                  { amount: '100 USD to 56.54 XRP', time: 'Today, 9:30PM', type: 'convert' },
+                  { amount: '0.50043 BTC', time: 'Yesterday, 11:51PM', type: 'sell' },
+                  { amount: '45.6 USD', time: 'Yesterday, 11:12PM', type: 'withdraw' },
+                  { amount: '1265.00 XRP', time: 'Yesterday, 23:52PM', type: 'buy' },
+                  { amount: '1265.00 XRP to 0.0051 BTC', time: 'Yesterday, 23:52PM', type: 'convert' }
+                ].map((activity, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 hover:bg-[#1f2937] rounded">
+                    <div className={`w-2 h-2 rounded-full ${
+                      activity.type === 'buy' ? 'bg-green-400' : 
+                      activity.type === 'sell' ? 'bg-red-400' : 
+                      'bg-blue-400'
+                    }`}></div>
+                    <div className="flex-1">
+                      <div className="text-sm text-white">{activity.amount}</div>
+                      <div className="text-xs text-gray-400">{activity.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
