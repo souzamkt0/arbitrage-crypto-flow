@@ -184,39 +184,6 @@ const Deposit = () => {
 
             {/* Deposit Stats */}
             <div className="space-y-2">
-              <div className="bg-[#1f2937] rounded-lg p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="h-4 w-4 text-red-400" />
-                    <div className="text-xs text-gray-400">Sell Orders</div>
-                  </div>
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
-                
-                {/* Sell Orders List */}
-                <div className="space-y-1 text-xs">
-                  {[
-                    { pair: 'BTC-USDT', price: '$42,850', amount: '0.142 BTC', change: '+5.024%' },
-                    { pair: 'ETH-USDT', price: '$2,543', amount: '0.789 ETH', change: '+3.122%' },
-                    { pair: 'XRP-USDT', price: '$0.54', amount: '1,567 XRP', change: '-2.845%' },
-                    { pair: 'ADA-USDT', price: '$0.89', amount: '234 ADA', change: '+1.456%' },
-                    { pair: 'DOT-USDT', price: '$7.23', amount: '89.1 DOT', change: '+4.567%' },
-                  ].map((order, index) => (
-                    <div key={index} className="flex justify-between items-center py-1 hover:bg-[#2a3441] px-2 rounded transition-colors border-l-2 border-red-500/30">
-                      <div>
-                        <div className="text-white font-medium">{order.pair}</div>
-                        <div className="text-gray-400 text-xs">{order.amount}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-red-400 font-bold">{order.price}</div>
-                        <div className={`text-xs ${order.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
-                          {order.change}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
               
               {pendingDeposits > 0 && (
                 <div className="bg-[#1f2937] rounded-lg p-3">
