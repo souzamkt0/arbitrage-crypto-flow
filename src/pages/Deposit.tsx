@@ -8,13 +8,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { DepositHistory } from "@/components/DepositHistory";
 import { UserInfoCard } from "@/components/UserInfoCard";
 import { TradingStatusBar } from "@/components/TradingStatusBar";
+import { MarketOverview } from "@/components/MarketOverview";
+import { PriceTicker } from "@/components/PriceTicker";
+import { TradingChart } from "@/components/TradingChart";
+import { EthereumChart } from "@/components/EthereumChart";
 import { 
   ArrowLeft, 
   TrendingUp,
   Zap,
   Shield,
   Activity,
-  DollarSign
+  DollarSign,
+  BarChart3
 } from "lucide-react";
 
 const Deposit = () => {
@@ -26,6 +31,9 @@ const Deposit = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Live Price Ticker */}
+      <PriceTicker />
+      
       {/* Trading Header */}
       <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -60,6 +68,9 @@ const Deposit = () => {
           {/* Sidebar - Informações do usuário */}
           <div className="lg:col-span-3 space-y-6">
             <UserInfoCard user={user} profile={profile} />
+            
+            {/* Market Overview */}
+            <MarketOverview />
             
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
@@ -165,8 +176,42 @@ const Deposit = () => {
             </Card>
           </div>
 
-          {/* Sidebar direita - Histórico */}
+          {/* Sidebar direita - Charts e Histórico */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Trading Charts */}
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-binance-yellow" />
+                  Live Charts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Mini Charts Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-muted/20 rounded-lg p-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">BTC/USDT</span>
+                      <span className="text-xs text-success">+2.45%</span>
+                    </div>
+                    <div className="h-20">
+                      <TradingChart />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/20 rounded-lg p-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">ETH/USDT</span>
+                      <span className="text-xs text-destructive">-1.23%</span>
+                    </div>
+                    <div className="h-20">
+                      <EthereumChart />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
             <DepositHistory />
           </div>
         </div>
