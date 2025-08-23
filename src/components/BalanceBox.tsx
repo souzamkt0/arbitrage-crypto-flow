@@ -115,7 +115,7 @@ export const BalanceBox: React.FC<BalanceBoxProps> = ({ onRefresh }) => {
 
   return (
     <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20 shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-green-600/10 to-emerald-600/10 border-b border-green-500/20 pb-4">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
