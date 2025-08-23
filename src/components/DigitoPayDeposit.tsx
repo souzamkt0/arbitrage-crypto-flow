@@ -508,43 +508,29 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
             )}
 
-            {/* Enhanced Trading Action Button */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+            {/* Minimalist PIX Button */}
+            <div className="flex justify-center">
               <Button
                 onClick={handleCreateDeposit}
                 disabled={loading}
-                className="relative w-full h-20 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 hover:from-violet-500 hover:via-purple-500 hover:to-indigo-600 text-white font-black text-2xl shadow-2xl shadow-purple-500/40 border-0 overflow-hidden transform transition-all duration-500 hover:scale-[1.03] rounded-xl"
+                className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-base shadow-lg shadow-emerald-500/20 border-0 rounded-lg transition-all duration-300 hover:scale-105"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/30 opacity-0 hover:opacity-100 transition-all duration-700 animate-pulse"></div>
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-white/10 to-transparent opacity-50"></div>
-                
-                <div className="relative flex items-center justify-center gap-4 z-10">
+                <div className="flex items-center justify-center gap-3">
                   {loading ? (
                     <>
-                      <div className="relative">
-                        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-                        <div className="absolute inset-0 w-8 h-8 border-4 border-transparent border-t-purple-300 rounded-full animate-spin" style={{animationDirection: 'reverse'}}></div>
-                      </div>
-                      <span className="tracking-wider font-black">GERANDO PIX...</span>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Gerando PIX...</span>
                     </>
                   ) : (
                     <>
-                      <div className="w-12 h-12 bg-gradient-to-br from-white/30 to-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30 shadow-lg">
-                        <span className="text-2xl animate-pulse">⚡</span>
+                      <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
+                        <span className="text-xs font-bold">PIX</span>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <span className="tracking-wider font-black text-2xl">GERAR PIX</span>
-                        <span className="tracking-widest font-bold text-lg opacity-90">INSTANTÂNEO</span>
-                      </div>
+                      <span>Gerar PIX</span>
                     </>
                   )}
                 </div>
-                
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
               </Button>
-              
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-4/5 h-3 bg-gradient-to-r from-transparent via-purple-500/60 to-transparent rounded-full blur-lg group-hover:blur-xl transition-all duration-300"></div>
             </div>
 
           </>
