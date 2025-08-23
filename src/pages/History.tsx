@@ -588,163 +588,165 @@ const History = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background p-3 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+    <div className="min-h-screen bg-background p-2 sm:p-3 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 lg:space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center">
-              <HistoryIcon className="h-8 w-8 mr-3 text-primary" />
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+              <HistoryIcon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
               Histórico Completo
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
               Relatório consolidado de todos os seus ganhos, operações e atividades do robô
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col xs:flex-row gap-2 w-full">
             <Button 
               variant="outline" 
               onClick={loadAllData}
               disabled={isLoading}
+              className="text-xs sm:text-sm h-8 sm:h-9"
               size="sm"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Atualizar
             </Button>
             <Button 
               variant="outline" 
               onClick={generatePDFReport}
               disabled={isExporting}
+              className="text-xs sm:text-sm h-8 sm:h-9"
               size="sm"
             >
-              <FileText className={`h-4 w-4 mr-2 ${isExporting ? 'animate-pulse' : ''}`} />
+              <FileText className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isExporting ? 'animate-pulse' : ''}`} />
               Gerar PDF
             </Button>
             <Button 
-              className="bg-green-600 hover:bg-green-700 text-white" 
+              className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-8 sm:h-9" 
               onClick={shareViaWhatsApp}
               size="sm"
             >
-              <MessageCircle className="h-4 w-4 mr-2" />
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               WhatsApp
             </Button>
           </div>
         </div>
 
         {/* Enhanced Stats Dashboard */}
-        <div ref={reportRef} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div ref={reportRef} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
             {/* Total Profit */}
             <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20">
-              <CardContent className="p-4">
+              <CardContent className="p-2 sm:p-3 lg:p-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Lucro Total</p>
-                    <p className="text-xl font-bold text-emerald-400">
+                  <div className="w-full">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Lucro Total</p>
+                    <p className="text-sm sm:text-lg lg:text-xl font-bold text-emerald-400 truncate">
                       R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs text-emerald-300 mt-1">
+                    <p className="text-xs text-emerald-300 mt-1 hidden sm:block">
                       +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR')} este mês
                     </p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-emerald-400" />
+                  <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Current Balance */}
             <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-              <CardContent className="p-4">
+              <CardContent className="p-2 sm:p-3 lg:p-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Saldo Atual</p>
-                    <p className="text-xl font-bold text-blue-400">
+                  <div className="w-full">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Saldo Atual</p>
+                    <p className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400 truncate">
                       R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs text-blue-300 mt-1">
+                    <p className="text-xs text-blue-300 mt-1 hidden sm:block">
                       {stats.activeInvestments} investimentos ativos
                     </p>
                   </div>
-                  <Wallet className="h-8 w-8 text-blue-400" />
+                  <Wallet className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Referral Earnings */}
             <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
-              <CardContent className="p-4">
+              <CardContent className="p-2 sm:p-3 lg:p-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ganhos Indicação</p>
-                    <p className="text-xl font-bold text-purple-400">
+                  <div className="w-full">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Ganhos Indicação</p>
+                    <p className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400 truncate">
                       R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs text-purple-300 mt-1">
+                    <p className="text-xs text-purple-300 mt-1 hidden sm:block">
                       {stats.activeReferrals} indicados ativos
                     </p>
                   </div>
-                  <Users className="h-8 w-8 text-purple-400" />
+                  <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
             {/* Success Rate */}
             <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
-              <CardContent className="p-4">
+              <CardContent className="p-2 sm:p-3 lg:p-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Taxa de Sucesso</p>
-                    <p className="text-xl font-bold text-amber-400">
+                  <div className="w-full">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Taxa de Sucesso</p>
+                    <p className="text-sm sm:text-lg lg:text-xl font-bold text-amber-400">
                       {stats.successRate}%
                     </p>
-                    <p className="text-xs text-amber-300 mt-1">
+                    <p className="text-xs text-amber-300 mt-1 hidden sm:block">
                       {stats.totalOperations} operações
                     </p>
                   </div>
-                  <Target className="h-8 w-8 text-amber-400" />
+                  <Target className="h-6 w-6 sm:h-8 sm:w-8 text-amber-400 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
             <Card>
-              <CardContent className="p-4 text-center">
-                <DollarSign className="h-6 w-6 mx-auto text-green-400 mb-2" />
-                <p className="text-sm text-muted-foreground">Total Investido</p>
-                <p className="text-lg font-semibold">
+              <CardContent className="p-2 sm:p-3 lg:p-4 text-center">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto text-green-400 mb-1 sm:mb-2" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Investido</p>
+                <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">
                   R$ {stats.totalInvested.toLocaleString('pt-BR')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4 text-center">
-                <BarChart3 className="h-6 w-6 mx-auto text-blue-400 mb-2" />
-                <p className="text-sm text-muted-foreground">ROI Médio</p>
-                <p className="text-lg font-semibold text-emerald-400">
+              <CardContent className="p-2 sm:p-3 lg:p-4 text-center">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto text-blue-400 mb-1 sm:mb-2" />
+                <p className="text-xs sm:text-sm text-muted-foreground">ROI Médio</p>
+                <p className="text-sm sm:text-base lg:text-lg font-semibold text-emerald-400">
                   {stats.averageROI}%
                 </p>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4 text-center">
-                <CreditCard className="h-6 w-6 mx-auto text-purple-400 mb-2" />
-                <p className="text-sm text-muted-foreground">Depósitos</p>
-                <p className="text-lg font-semibold">
+              <CardContent className="p-2 sm:p-3 lg:p-4 text-center">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto text-purple-400 mb-1 sm:mb-2" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Depósitos</p>
+                <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">
                   R$ {stats.totalDeposits.toLocaleString('pt-BR')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4 text-center">
-                <Banknote className="h-6 w-6 mx-auto text-orange-400 mb-2" />
-                <p className="text-sm text-muted-foreground">Saques</p>
-                <p className="text-lg font-semibold">
+              <CardContent className="p-2 sm:p-3 lg:p-4 text-center">
+                <Banknote className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto text-orange-400 mb-1 sm:mb-2" />
+                <p className="text-xs sm:text-sm text-muted-foreground">Saques</p>
+                <p className="text-sm sm:text-base lg:text-lg font-semibold truncate">
                   R$ {stats.totalWithdrawals.toLocaleString('pt-BR')}
                 </p>
               </CardContent>
@@ -851,21 +853,21 @@ const History = () => {
             </TabsContent>
 
             {/* Trading Tab */}
-            <TabsContent value="trading" className="space-y-4">
+            <TabsContent value="trading" className="space-y-3 sm:space-y-4">
               {/* Filters */}
-              <div className="flex flex-wrap gap-4 items-center">
-                <div className="flex items-center space-x-2">
-                  <Search className="h-4 w-4" />
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <Search className="h-4 w-4 flex-shrink-0" />
                   <Input
                     placeholder="Buscar por par ou ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
+                    className="text-sm"
                   />
                 </div>
                 
                 <Select value={filter} onValueChange={setFilter}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48 text-sm">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -875,69 +877,119 @@ const History = () => {
                   </SelectContent>
                 </Select>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
                   <Input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-40"
+                    className="text-sm"
                   />
                   <Input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-40"
+                    className="text-sm"
                   />
                 </div>
               </div>
 
               {/* Trading History Table */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Histórico de Trading ({filteredTradingHistory.length} operações)</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg">
+                    Histórico de Trading ({filteredTradingHistory.length} operações)
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 sm:p-6">
                   <div className="overflow-x-auto">
-                    <Table>
+                    {/* Mobile Card View */}
+                    <div className="block sm:hidden space-y-3 p-4">
+                      {filteredTradingHistory.map((trade) => (
+                        <Card key={trade.id} className="p-3">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-semibold text-sm">{trade.pair}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(trade.timestamp).toLocaleString('pt-BR')}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className={getStatusColor(trade.status)}>
+                                {trade.status}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Tipo:</span>
+                                <p className="font-medium">{trade.type}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Valor:</span>
+                                <p className="font-medium">R$ {trade.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Lucro:</span>
+                                <p className={`font-semibold ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">%:</span>
+                                <p className={`font-semibold ${trade.profitPercent > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {trade.profitPercent > 0 ? '+' : ''}{trade.profitPercent.toFixed(2)}%
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">Exchanges:</span>
+                              <p>{trade.exchange1} → {trade.exchange2}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <Table className="hidden sm:table">
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Data/Hora</TableHead>
-                          <TableHead>Par</TableHead>
-                          <TableHead>Tipo</TableHead>
-                          <TableHead>Preço Compra</TableHead>
-                          <TableHead>Preço Venda</TableHead>
-                          <TableHead>Valor</TableHead>
-                          <TableHead>Lucro</TableHead>
-                          <TableHead>%</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Exchanges</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Data/Hora</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Par</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Tipo</TableHead>
+                          <TableHead className="text-xs lg:text-sm hidden lg:table-cell">Preço Compra</TableHead>
+                          <TableHead className="text-xs lg:text-sm hidden lg:table-cell">Preço Venda</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Valor</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Lucro</TableHead>
+                          <TableHead className="text-xs lg:text-sm">%</TableHead>
+                          <TableHead className="text-xs lg:text-sm">Status</TableHead>
+                          <TableHead className="text-xs lg:text-sm hidden md:table-cell">Exchanges</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredTradingHistory.map((trade) => (
                           <TableRow key={trade.id}>
-                            <TableCell className="font-mono text-xs">
-                              {trade.timestamp}
+                            <TableCell className="font-mono text-xs lg:text-sm">
+                              {new Date(trade.timestamp).toLocaleDateString('pt-BR')}
                             </TableCell>
-                            <TableCell className="font-semibold">
+                            <TableCell className="font-semibold text-xs lg:text-sm">
                               {trade.pair}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-xs">
                               <Badge variant="outline">{trade.type}</Badge>
                             </TableCell>
-                            <TableCell>
-                              ${trade.buyPrice.toLocaleString('en-US', { minimumFractionDigits: 8 })}
+                            <TableCell className="text-xs hidden lg:table-cell">
+                              ${trade.buyPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                             </TableCell>
-                            <TableCell>
-                              ${trade.sellPrice.toLocaleString('en-US', { minimumFractionDigits: 8 })}
+                            <TableCell className="text-xs hidden lg:table-cell">
+                              ${trade.sellPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-xs lg:text-sm">
                               R$ {trade.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </TableCell>
-                            <TableCell className={trade.profit > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                            <TableCell className={`text-xs lg:text-sm ${trade.profit > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}`}>
                               {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </TableCell>
-                            <TableCell className={trade.profitPercent > 0 ? 'text-emerald-400' : 'text-red-400'}>
+                            <TableCell className={`text-xs lg:text-sm ${trade.profitPercent > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                               {trade.profitPercent > 0 ? '+' : ''}{trade.profitPercent.toFixed(2)}%
                             </TableCell>
                             <TableCell>
@@ -945,7 +997,7 @@ const History = () => {
                                 {trade.status}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-xs">
+                            <TableCell className="text-xs hidden md:table-cell">
                               {trade.exchange1} → {trade.exchange2}
                             </TableCell>
                           </TableRow>
