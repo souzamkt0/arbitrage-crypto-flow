@@ -18,8 +18,8 @@ All colors MUST be HSL.
     --popover: 0 0% 11%;             /* #1C1C1C */
     --popover-foreground: 0 0% 98%;  /* #FAFAFA */
 
-    --primary: 43 100% 50%;          /* #FCD535 - Amarelo Binance autêntico */
-    --primary-foreground: 0 0% 7%;   /* #121212 - Texto preto no amarelo */
+    --primary: 220 100% 50%;         /* #007BFF - Azul principal */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - Texto branco no azul */
 
     --secondary: 0 0% 15%;           /* #262626 - Cinza escuro */
     --secondary-foreground: 0 0% 95%; /* #F2F2F2 */
@@ -41,13 +41,13 @@ All colors MUST be HSL.
 
     --border: 0 0% 25%;              /* #404040 - Bordas cinza escuro */
     --input: 0 0% 15%;               /* #262626 - Inputs */
-    --ring: 43 100% 50%;             /* #FCD535 - Focus ring amarelo */
+    --ring: 220 100% 50%;            /* #007BFF - Focus ring azul */
 
     --trading-green: 120 100% 40%;   /* #02C076 - Verde trading */
     --trading-red: 0 91% 58%;        /* #F84960 - Vermelho trading */
     
     /* Gradients Binance */
-    --gradient-primary: linear-gradient(135deg, hsl(43 100% 50%), hsl(45 100% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(220 100% 50%), hsl(220 100% 60%));
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 11%));
     --gradient-card: linear-gradient(135deg, hsl(0 0% 11%), hsl(0 0% 15%));
     
@@ -60,21 +60,21 @@ All colors MUST be HSL.
     --binance-gray: 0 0% 15%;        /* #262626 */
     
     /* Enhanced shadows */
-    --shadow-glow: 0 0 30px hsl(43 100% 50% / 0.25);
+    --shadow-glow: 0 0 30px hsl(220 100% 50% / 0.25);
     --shadow-card: 0 8px 25px hsl(0 0% 0% / 0.4);
-    --shadow-yellow: 0 0 20px hsl(43 100% 50% / 0.3);
+    --shadow-blue: 0 0 20px hsl(220 100% 50% / 0.3);
 
     --radius: 0.375rem;
 
     /* Sidebar Binance Theme */
     --sidebar-background: 0 0% 11%;    /* #1C1C1C */
     --sidebar-foreground: 0 0% 98%;    /* #FAFAFA */
-    --sidebar-primary: 43 100% 50%;    /* #FCD535 */
-    --sidebar-primary-foreground: 0 0% 7%; /* #121212 */
+    --sidebar-primary: 220 100% 50%;   /* #007BFF */
+    --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
     --sidebar-accent: 0 0% 15%;        /* #262626 */
     --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
     --sidebar-border: 0 0% 25%;        /* #404040 */
-    --sidebar-ring: 43 100% 50%;       /* #FCD535 */
+    --sidebar-ring: 220 100% 50%;      /* #007BFF */
 }
 
 /* Trading Chart Animations - Binance Style */
@@ -110,8 +110,8 @@ All colors MUST be HSL.
     --popover: 0 0% 11%;             /* #1C1C1C */
     --popover-foreground: 0 0% 98%;  /* #FAFAFA */
 
-    --primary: 43 100% 50%;          /* #FCD535 - Amarelo Binance autêntico */
-    --primary-foreground: 0 0% 7%;   /* #121212 - Texto preto no amarelo */
+    --primary: 220 100% 50%;         /* #007BFF - Azul principal */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - Texto branco no azul */
 
     --secondary: 0 0% 15%;           /* #262626 - Cinza escuro */
     --secondary-foreground: 0 0% 95%; /* #F2F2F2 */
@@ -127,17 +127,17 @@ All colors MUST be HSL.
 
     --border: 0 0% 25%;              /* #404040 - Bordas cinza escuro */
     --input: 0 0% 15%;               /* #262626 - Inputs */
-    --ring: 43 100% 50%;             /* #FCD535 - Focus ring amarelo */
+    --ring: 220 100% 50%;             /* #007BFF - Focus ring azul */
     
     /* Sidebar mantém consistência */
     --sidebar-background: 0 0% 11%;    /* #1C1C1C */
     --sidebar-foreground: 0 0% 98%;    /* #FAFAFA */
-    --sidebar-primary: 43 100% 50%;    /* #FCD535 */
-    --sidebar-primary-foreground: 0 0% 7%; /* #121212 */
+    --sidebar-primary: 220 100% 50%;   /* #007BFF */
+    --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
     --sidebar-accent: 0 0% 15%;        /* #262626 */
     --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
     --sidebar-border: 0 0% 25%;        /* #404040 */
-    --sidebar-ring: 43 100% 50%;       /* #FCD535 */
+    --sidebar-ring: 220 100% 50%;      /* #007BFF */
   }
 
   @keyframes marketOscillation {
@@ -160,10 +160,10 @@ All colors MUST be HSL.
 
   @keyframes glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(43 100% 50% / 0.2);
+      box-shadow: 0 0 20px hsl(220 100% 50% / 0.2);
     }
     50% {
-      box-shadow: 0 0 30px hsl(43 100% 50% / 0.4);
+      box-shadow: 0 0 30px hsl(220 100% 50% / 0.4);
     }
   }
 
@@ -196,10 +196,10 @@ All colors MUST be HSL.
   
   @keyframes glow-pulse {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(43 100% 50% / 0.3);
+      box-shadow: 0 0 20px hsl(220 100% 50% / 0.3);
     }
     50% {
-      box-shadow: 0 0 40px hsl(43 100% 50% / 0.6), 0 0 60px hsl(43 100% 50% / 0.3);
+      box-shadow: 0 0 40px hsl(220 100% 50% / 0.6), 0 0 60px hsl(220 100% 50% / 0.3);
     }
   }
   
@@ -226,11 +226,11 @@ All colors MUST be HSL.
   @keyframes floatGlow {
     0%, 100% {
       transform: translateY(0px);
-      filter: drop-shadow(0 5px 15px hsl(43 100% 50% / 0.3));
+      filter: drop-shadow(0 5px 15px hsl(220 100% 50% / 0.3));
     }
     50% {
       transform: translateY(-5px);
-      filter: drop-shadow(0 10px 25px hsl(43 100% 50% / 0.5));
+      filter: drop-shadow(0 10px 25px hsl(220 100% 50% / 0.5));
     }
   }
   
@@ -323,7 +323,7 @@ All colors MUST be HSL.
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(43 100% 50% / 0.1),
+      hsl(220 100% 50% / 0.1),
       transparent
     );
     background-size: 200% 100%;
