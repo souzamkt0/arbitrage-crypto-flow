@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, 
-  Download, 
   Filter, 
   History as HistoryIcon, 
   Search, 
@@ -30,7 +29,6 @@ import {
   CreditCard,
   Banknote,
   Share,
-  FileText,
   MessageCircle,
   Send,
   Phone,
@@ -42,8 +40,6 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { PerformanceCharts } from "@/components/PerformanceCharts";
 
 interface TradingRecord {
@@ -121,7 +117,6 @@ const History = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const reportRef = useRef<HTMLDivElement>(null);
   
   // State for different data types
   const [tradingHistory, setTradingHistory] = useState<TradingRecord[]>([]);
@@ -476,49 +471,6 @@ const History = () => {
     loadAllData();
   }, [user]);
 
-  // Generate comprehensive PDF report
-  const generatePDFReport = async () => {
-    if (!reportRef.current) return;
-    
-    setIsExporting(true);
-    toast({
-      title: "Gerando Relatório",
-      description: "Preparando seu relatório completo em PDF...",
-    });
-
-    try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      const fileName = `relatorio-completo-${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
-      
-      toast({
-        title: "✅ Relatório Gerado",
-        description: `PDF salvo como ${fileName}`,
-      });
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar relatório PDF",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   // Share via WhatsApp
   const shareViaWhatsApp = () => {
     const message = `
@@ -621,16 +573,6 @@ const History = () => {
                   <span className="sm:hidden">Sync</span>
                 </Button>
                 <Button 
-                  variant="outline" 
-                  onClick={generatePDFReport}
-                  disabled={isExporting}
-                  size="sm"
-                  className="flex-1 sm:flex-none"
-                >
-                  <FileText className={`h-4 w-4 mr-2 ${isExporting ? 'animate-pulse' : ''}`} />
-                  PDF
-                </Button>
-                <Button 
                   className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none" 
                   onClick={shareViaWhatsApp}
                   size="sm"
@@ -643,17 +585,7 @@ const History = () => {
             </div>
           </div>
 
-          {/* PDF Report Container */}
-          <div ref={reportRef} className="space-y-4 md:space-y-6 bg-white dark:bg-background rounded-lg">
-            {/* PDF Header */}
-            <div className="hidden print:block bg-primary text-primary-foreground p-6 rounded-t-lg">
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold">RELATÓRIO DE PERFORMANCE</h1>
-                <h2 className="text-lg">Robô de Arbitragem - Análise Completa</h2>
-                <p className="text-sm opacity-90">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
-                <p className="text-sm opacity-90">Usuário: {user?.email}</p>
-              </div>
-            </div>
+          <div className="space-y-4 md:space-y-6 bg-white dark:bg-background rounded-lg">
 
             {/* Responsive Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 p-3 md:p-0">
