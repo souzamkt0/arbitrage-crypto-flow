@@ -718,47 +718,63 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Bitcoin Chart Area */}
-              <div className="relative h-36 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-lg mb-3 overflow-hidden">
-                <div className="absolute top-3 left-3 z-10 animate-fade-in">
-                  <div className="text-xs text-gray-400 mb-1">Bitcoin Performance</div>
-                  <div className="text-sm font-bold text-white">
+              {/* Animated Trading Chart */}
+              <div className="relative h-40 bg-gradient-to-br from-blue-950/50 via-slate-900/50 to-cyan-950/50 rounded-lg mb-3 overflow-hidden border border-blue-500/20">
+                {/* Live Price Display */}
+                <div className="absolute top-3 left-3 z-20">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-white text-xs font-bold">₿</span>
+                    </div>
+                    <div className="text-xs text-gray-400">BTC/USD</div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="text-lg font-bold text-white animate-[number-tick_2s_ease-in-out_infinite]">
                     $52,420.85
                   </div>
                   <div className="text-xs text-green-400 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-1" />
+                    <TrendingUp className="w-3 h-3 mr-1 animate-bounce" />
                     +2.34% (24h)
                   </div>
                 </div>
                 
-                {/* Valores nos pontos do gráfico */}
-                <div className="absolute top-3 right-3 z-10 text-right animate-fade-in">
-                  <div className="text-xs text-blue-400 font-mono">High: $53,100</div>
-                  <div className="text-xs text-red-400 font-mono">Low: $51,200</div>
+                {/* Trading Stats */}
+                <div className="absolute top-3 right-3 z-20 text-right space-y-1">
+                  <div className="text-xs text-green-400 font-mono animate-fade-in">H: $53,100</div>
+                  <div className="text-xs text-red-400 font-mono animate-fade-in">L: $51,200</div>
+                  <div className="text-xs text-blue-400 font-mono animate-fade-in">Vol: $2.1B</div>
                 </div>
                 
-                {/* Gráfico SVG animado estilo trading azul */}
-                <svg className="absolute inset-0 w-full h-full animate-fade-in" viewBox="0 0 400 150">
+                {/* Animated Trading Chart SVG */}
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 160">
                   <defs>
-                    <linearGradient id="bitcoinBlueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.4"/>
-                      <stop offset="50%" stopColor="rgb(37, 99, 235)" stopOpacity="0.2"/>
+                    {/* Trading Grid Pattern */}
+                    <pattern id="tradingGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgb(59, 130, 246)" strokeWidth="0.3" opacity="0.3"/>
+                    </pattern>
+                    
+                    {/* Chart Gradients */}
+                    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.6"/>
+                      <stop offset="50%" stopColor="rgb(37, 99, 235)" stopOpacity="0.3"/>
                       <stop offset="100%" stopColor="rgb(29, 78, 216)" stopOpacity="0.1"/>
                     </linearGradient>
-                    <linearGradient id="blueGlowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0">
-                        <animate attributeName="stop-opacity" values="0;0.8;0" dur="3s" repeatCount="indefinite"/>
+                    
+                    {/* Animated Line Gradient */}
+                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.8">
+                        <animate attributeName="stop-opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
                       </stop>
-                      <stop offset="50%" stopColor="rgb(96, 165, 250)" stopOpacity="0.8">
-                        <animate attributeName="stop-opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+                      <stop offset="50%" stopColor="rgb(96, 165, 250)" stopOpacity="1">
+                        <animate attributeName="stop-opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
                       </stop>
-                      <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0">
-                        <animate attributeName="stop-opacity" values="0;0.8;0" dur="3s" repeatCount="indefinite"/>
+                      <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0.8">
+                        <animate attributeName="stop-opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
                       </stop>
                     </linearGradient>
                     
-                    {/* Filtro de brilho */}
-                    <filter id="glow">
+                    {/* Glow Filter */}
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
                       <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                       <feMerge> 
                         <feMergeNode in="coloredBlur"/>
@@ -767,146 +783,128 @@ const Dashboard = () => {
                     </filter>
                   </defs>
                   
-                  {/* Grid de fundo estilo trading */}
-                  <defs>
-                    <pattern id="tradingGrid" width="40" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 40 0 L 0 0 0 20" fill="none" stroke="rgb(59, 130, 246)" strokeWidth="0.5" opacity="0.2"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#tradingGrid)" />
+                  {/* Grid Background */}
+                  <rect width="100%" height="100%" fill="url(#tradingGrid)" opacity="0.5"/>
                   
-                  {/* Área preenchida com animação */}
+                  {/* Price Chart Area */}
                   <path
-                    d="M 20 120 Q 60 90 100 85 Q 140 75 180 70 Q 220 65 260 60 Q 300 58 340 55 Q 360 54 380 52 L 380 150 L 20 150 Z"
-                    fill="url(#bitcoinBlueGradient)"
+                    d="M 30 130 Q 70 110 110 105 Q 150 95 190 85 Q 230 75 270 70 Q 310 65 350 60 Q 370 58 390 55 L 390 160 L 30 160 Z"
+                    fill="url(#chartGradient)"
                     className="animate-[scale-in_2s_ease-out]"
                   />
                   
-                  {/* Linha principal com animação progressiva */}
+                  {/* Main Trading Line */}
                   <path
-                    d="M 20 120 Q 60 90 100 85 Q 140 75 180 70 Q 220 65 260 60 Q 300 58 340 55 Q 360 54 380 52"
-                    stroke="url(#blueGlowGradient)"
+                    d="M 30 130 Q 70 110 110 105 Q 150 95 190 85 Q 230 75 270 70 Q 310 65 350 60 Q 370 58 390 55"
+                    stroke="url(#lineGradient)"
                     strokeWidth="3"
                     fill="none"
                     filter="url(#glow)"
-                    className="animate-[drawLine_2.5s_ease-out_forwards]"
                     style={{
                       strokeDasharray: '1200',
-                      strokeDashoffset: '1200'
+                      strokeDashoffset: '1200',
+                      animation: 'drawLine 3s ease-out forwards'
                     }}
                   />
                   
-                  {/* Linha de base em azul sólido */}
-                  <path
-                    d="M 20 120 Q 60 90 100 85 Q 140 75 180 70 Q 220 65 260 60 Q 300 58 340 55 Q 360 54 380 52"
-                    stroke="rgb(59, 130, 246)"
-                    strokeWidth="2"
-                    fill="none"
-                    className="animate-[drawLine_2.5s_ease-out_0.3s_forwards]"
-                    style={{
-                      strokeDasharray: '1200',
-                      strokeDashoffset: '1200'
-                    }}
-                  />
-                  
-                  {/* Pontos de dados com valores */}
-                  <g className="animate-[scale-in_0.5s_ease-out_1.5s_forwards]">
-                    <circle cx="100" cy="85" r="4" fill="rgb(59, 130, 246)" className="animate-pulse" 
-                      style={{ animationDelay: '1.5s', animationDuration: '2s' }} />
-                    <circle cx="100" cy="85" r="2" fill="rgb(255, 255, 255)" />
-                    <text x="100" y="75" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$51.8k</text>
-                  </g>
-                  
-                  <g className="animate-[scale-in_0.5s_ease-out_1.8s_forwards]">
-                    <circle cx="180" cy="70" r="4" fill="rgb(59, 130, 246)" className="animate-pulse"
-                      style={{ animationDelay: '1.8s', animationDuration: '2s' }} />
-                    <circle cx="180" cy="70" r="2" fill="rgb(255, 255, 255)" />
-                    <text x="180" y="60" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$52.1k</text>
-                  </g>
-                  
-                  <g className="animate-[scale-in_0.5s_ease-out_2.1s_forwards]">
-                    <circle cx="260" cy="60" r="4" fill="rgb(59, 130, 246)" className="animate-pulse"
-                      style={{ animationDelay: '2.1s', animationDuration: '2s' }} />
-                    <circle cx="260" cy="60" r="2" fill="rgb(255, 255, 255)" />
-                    <text x="260" y="50" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$52.4k</text>
-                  </g>
-                  
-                  <g className="animate-[scale-in_0.5s_ease-out_2.4s_forwards]">
-                    <circle cx="340" cy="55" r="4" fill="rgb(59, 130, 246)" className="animate-pulse"
-                      style={{ animationDelay: '2.4s', animationDuration: '2s' }} />
-                    <circle cx="340" cy="55" r="2" fill="rgb(255, 255, 255)" />
-                    <text x="340" y="45" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$52.6k</text>
-                  </g>
-                  
-                  {/* Linha de suporte */}
-                  <path
-                    d="M 20 130 L 380 130"
-                    stroke="rgb(239, 68, 68)"
-                    strokeWidth="1"
-                    strokeDasharray="3,3"
-                    fill="none"
-                    opacity="0.5"
-                    className="animate-[drawLine_1s_ease-out_3s_forwards]"
+                  {/* Support Line */}
+                  <line x1="30" y1="140" x2="390" y2="140" 
+                    stroke="rgb(239, 68, 68)" 
+                    strokeWidth="1" 
+                    strokeDasharray="4,4" 
+                    opacity="0.6"
                     style={{
                       strokeDasharray: '400',
-                      strokeDashoffset: '400'
+                      strokeDashoffset: '400',
+                      animation: 'drawLine 1s ease-out 2s forwards'
                     }}
                   />
-                  <text x="385" y="134" className="fill-red-400 text-[8px] font-mono">Support: $51.2k</text>
                   
-                  {/* Linha de resistência */}
-                  <path
-                    d="M 20 40 L 380 45"
-                    stroke="rgb(34, 197, 94)"
-                    strokeWidth="1"
-                    strokeDasharray="3,3"
-                    fill="none"
-                    opacity="0.5"
-                    className="animate-[drawLine_1s_ease-out_3.2s_forwards]"
+                  {/* Resistance Line */}
+                  <line x1="30" y1="45" x2="390" y2="50" 
+                    stroke="rgb(34, 197, 94)" 
+                    strokeWidth="1" 
+                    strokeDasharray="4,4" 
+                    opacity="0.6"
                     style={{
                       strokeDasharray: '400',
-                      strokeDashoffset: '400'
+                      strokeDashoffset: '400',
+                      animation: 'drawLine 1s ease-out 2.5s forwards'
                     }}
                   />
-                  <text x="385" y="49" className="fill-green-400 text-[8px] font-mono">Resistance: $53.1k</text>
                   
-                  {/* Candlesticks estilo trading */}
-                  <g className="animate-[fade-in_1s_ease-out_2.8s_forwards]" opacity="0">
-                    {/* Candle 1 - Verde (alta) */}
-                    <line x1="120" y1="95" x2="120" y2="75" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
-                    <rect x="117" y="85" width="6" height="10" fill="rgb(34, 197, 94)" />
+                  {/* Trading Candlesticks */}
+                  <g style={{ animation: 'fade-in 1s ease-out 3s forwards', opacity: 0 }}>
+                    {/* Green Candles */}
+                    <rect x="107" y="100" width="6" height="15" fill="rgb(34, 197, 94)" opacity="0.8"/>
+                    <line x1="110" y1="95" x2="110" y2="115" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
                     
-                    {/* Candle 2 - Verde (alta) */}
-                    <line x1="200" y1="80" x2="200" y2="65" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
-                    <rect x="197" y="70" width="6" height="10" fill="rgb(34, 197, 94)" />
+                    <rect x="187" y="80" width="6" height="12" fill="rgb(34, 197, 94)" opacity="0.8"/>
+                    <line x1="190" y1="75" x2="190" y2="92" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
                     
-                    {/* Candle 3 - Verde (alta) */}
-                    <line x1="280" y1="70" x2="280" y2="55" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
-                    <rect x="277" y="60" width="6" height="10" fill="rgb(34, 197, 94)" />
+                    <rect x="267" y="65" width="6" height="10" fill="rgb(34, 197, 94)" opacity="0.8"/>
+                    <line x1="270" y1="60" x2="270" y2="75" stroke="rgb(34, 197, 94)" strokeWidth="1"/>
                   </g>
                   
-                  {/* Volume bars */}
-                  <g className="animate-[scale-in_1s_ease-out_3.5s_forwards]" opacity="0">
-                    <rect x="95" y="140" width="10" height="8" fill="rgb(59, 130, 246)" opacity="0.6"/>
-                    <rect x="175" y="138" width="10" height="10" fill="rgb(59, 130, 246)" opacity="0.6"/>
-                    <rect x="255" y="142" width="10" height="6" fill="rgb(59, 130, 246)" opacity="0.6"/>
-                    <rect x="335" y="139" width="10" height="9" fill="rgb(59, 130, 246)" opacity="0.6"/>
+                  {/* Volume Bars */}
+                  <g style={{ animation: 'fade-in 1s ease-out 3.5s forwards', opacity: 0 }}>
+                    <rect x="105" y="145" width="10" height="8" fill="rgb(59, 130, 246)" opacity="0.7"/>
+                    <rect x="185" y="143" width="10" height="10" fill="rgb(59, 130, 246)" opacity="0.7"/>
+                    <rect x="265" y="147" width="10" height="6" fill="rgb(59, 130, 246)" opacity="0.7"/>
+                    <rect x="345" y="144" width="10" height="9" fill="rgb(59, 130, 246)" opacity="0.7"/>
+                  </g>
+                  
+                  {/* Moving Price Indicator */}
+                  <circle r="4" fill="rgb(59, 130, 246)" filter="url(#glow)">
+                    <animateMotion dur="4s" repeatCount="indefinite">
+                      <path d="M 30 130 Q 70 110 110 105 Q 150 95 190 85 Q 230 75 270 70 Q 310 65 350 60 Q 370 58 390 55"/>
+                    </animateMotion>
+                  </circle>
+                  
+                  {/* Data Points with Values */}
+                  <g style={{ animation: 'scale-in 0.5s ease-out 2s forwards', opacity: 0 }}>
+                    <circle cx="110" cy="105" r="3" fill="rgb(59, 130, 246)" className="animate-pulse"/>
+                    <text x="110" y="95" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$51.8k</text>
+                  </g>
+                  
+                  <g style={{ animation: 'scale-in 0.5s ease-out 2.3s forwards', opacity: 0 }}>
+                    <circle cx="190" cy="85" r="3" fill="rgb(59, 130, 246)" className="animate-pulse"/>
+                    <text x="190" y="75" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$52.1k</text>
+                  </g>
+                  
+                  <g style={{ animation: 'scale-in 0.5s ease-out 2.6s forwards', opacity: 0 }}>
+                    <circle cx="270" cy="70" r="3" fill="rgb(59, 130, 246)" className="animate-pulse"/>
+                    <text x="270" y="60" textAnchor="middle" className="fill-blue-400 text-[8px] font-mono">$52.4k</text>
                   </g>
                 </svg>
                 
-                {/* Overlay com efeito de brilho azul */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent opacity-0 animate-shine"></div>
+                {/* Floating Data Particles */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute top-16 left-16 w-1 h-1 bg-blue-400 rounded-full animate-[float_3s_ease-in-out_infinite]"></div>
+                  <div className="absolute top-20 right-20 w-1 h-1 bg-green-400 rounded-full animate-[float_4s_ease-in-out_infinite_0.5s]"></div>
+                  <div className="absolute bottom-16 left-24 w-1 h-1 bg-cyan-400 rounded-full animate-[float_3.5s_ease-in-out_infinite_1s]"></div>
+                </div>
                 
-                {/* Indicadores de mercado */}
-                <div className="absolute bottom-3 left-3 flex space-x-4 text-xs animate-fade-in" style={{ animationDelay: '2s' }}>
+                {/* Scanning Line Effect */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="w-0.5 h-full bg-gradient-to-b from-transparent via-blue-400 to-transparent opacity-60 animate-[slide-wave_3s_linear_infinite]"></div>
+                </div>
+                
+                {/* Trading Session Indicator */}
+                <div className="absolute bottom-3 left-3 flex items-center space-x-4 text-xs">
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 font-mono">24h Vol: $2.1B</span>
+                    <span className="text-green-400 font-mono">Market Open</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span className="text-blue-400 font-mono">Market Cap: $1.03T</span>
+                    <span className="text-blue-400 font-mono">Live Data</span>
                   </div>
+                </div>
+                
+                {/* Real-time Price Tag */}
+                <div className="absolute top-16 right-8 bg-blue-600/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-mono text-white border border-blue-400/50 animate-[breathe_2s_ease-in-out_infinite]">
+                  $52.42k
                 </div>
               </div>
             </div>
