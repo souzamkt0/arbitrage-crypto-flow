@@ -50,4 +50,4 @@ else
     exit 1
 fi
 
-echo "🎉 Deploy finalizado!"
+echo "🎉 Deploy finalizado com UI/UX azul animado!"
