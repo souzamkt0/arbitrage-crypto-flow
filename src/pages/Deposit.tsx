@@ -57,13 +57,12 @@ const Deposit = () => {
   
   const [activeTab, setActiveTab] = useState("digitopay");
   const [isLoading, setIsLoading] = useState(false);
-  const [sellOrders, setSellOrders] = useState(() => generateOrderBook(50, 'sell'));
-  const [buyOrders, setBuyOrders] = useState(() => generateOrderBook(50, 'buy'));
+  const [sellOrders, setSellOrders] = useState(() => generateOrderBook(8, 'sell'));
+  const [buyOrders, setBuyOrders] = useState(() => generateOrderBook(8, 'buy'));
   const [sideBuyOrders, setSideBuyOrders] = useState(() => generateOrderBook(8, 'buy'));
   const [depositBalance, setDepositBalance] = useState(0);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [pendingDeposits, setPendingDeposits] = useState(0);
-  const [liveOrders, setLiveOrders] = useState(0);
 
   // Load deposit data from DigiToPay
   const loadDepositData = async () => {
@@ -100,25 +99,10 @@ const Deposit = () => {
   // Simulate real-time order book updates from CoinMarketCap
   useEffect(() => {
     const interval = setInterval(() => {
-      // Update main order books with new orders
-      setSellOrders(prev => {
-        const newOrders = generateOrderBook(Math.floor(Math.random() * 10) + 45, 'sell');
-        return newOrders;
-      });
-      
-      setBuyOrders(prev => {
-        const newOrders = generateOrderBook(Math.floor(Math.random() * 10) + 45, 'buy');
-        return newOrders;
-      });
-      
-      // Update sidebar buy orders with animation
-      setSideBuyOrders(prev => {
-        const newOrders = generateOrderBook(8, 'buy');
-        return newOrders;
-      });
-      
-      // Update live order count
-      setLiveOrders(prev => prev + Math.floor(Math.random() * 50) + 20);
+      // Generate fresh orders instead of accumulating
+      setSellOrders(generateOrderBook(8, 'sell'));
+      setBuyOrders(generateOrderBook(8, 'buy'));
+      setSideBuyOrders(generateOrderBook(8, 'buy'));
     }, 1500); // Update every 1.5 seconds
 
     return () => clearInterval(interval);
@@ -438,8 +422,8 @@ const Deposit = () => {
                   </div>
                 )}
                 
-                <div className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
-                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1 sticky top-0 bg-[#151b2b]">
+                <div className="space-y-1">
+                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1">
                     <div>PREÇO</div>
                     <div>QTD</div>
                     <div>TOTAL</div>
@@ -448,10 +432,10 @@ const Deposit = () => {
                   {/* Live order count indicator */}
                   <div className="text-xs text-red-400 mb-2 flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    {sellOrders.length} ordens ativas • {liveOrders.toLocaleString()} total hoje
+                    {sellOrders.slice(0, 8).length} ordens ativas
                   </div>
-                  {sellOrders.map((order, i) => (
-                    <div key={`${order.timestamp}-${i}`} className="grid grid-cols-4 gap-2 text-xs text-white py-0.5 hover:bg-[#1f2937] rounded transition-all duration-300 animate-fade-in border-l-2 border-red-500/20 hover:border-red-500/50">
+                  {sellOrders.slice(0, 8).map((order, i) => (
+                    <div key={`sell-${order.timestamp}-${i}`} className="grid grid-cols-4 gap-2 text-xs text-white py-0.5 hover:bg-[#1f2937] rounded transition-all duration-300 animate-fade-in border-l-2 border-red-500/20 hover:border-red-500/50">
                       <div className="text-red-400 transition-all duration-500 hover:text-red-300">{order.value}</div>
                       <div className="transition-all duration-500 hover:text-red-400">{order.amount}</div>
                       <div className="transition-all duration-500 hover:text-white">{order.total}</div>
@@ -481,8 +465,8 @@ const Deposit = () => {
                   </div>
                 )}
                 
-                <div className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
-                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1 sticky top-0 bg-[#151b2b]">
+                <div className="space-y-1">
+                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1">
                     <div>PREÇO</div>
                     <div>QTD</div>
                     <div>TOTAL</div>
@@ -491,10 +475,10 @@ const Deposit = () => {
                   {/* Live order count indicator */}
                   <div className="text-xs text-green-400 mb-2 flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    {buyOrders.length} ordens ativas • {(liveOrders * 1.2).toLocaleString()} total hoje
+                    {buyOrders.slice(0, 8).length} ordens ativas
                   </div>
-                  {buyOrders.map((order, i) => (
-                    <div key={`${order.timestamp}-${i}`} className="grid grid-cols-4 gap-2 text-xs text-white py-0.5 hover:bg-[#1f2937] rounded transition-all duration-300 animate-fade-in border-l-2 border-green-500/20 hover:border-green-500/50">
+                  {buyOrders.slice(0, 8).map((order, i) => (
+                    <div key={`buy-${order.timestamp}-${i}`} className="grid grid-cols-4 gap-2 text-xs text-white py-0.5 hover:bg-[#1f2937] rounded transition-all duration-300 animate-fade-in border-l-2 border-green-500/20 hover:border-green-500/50">
                       <div className="text-green-400 transition-all duration-500 hover:text-green-300">{order.value}</div>
                       <div className="transition-all duration-500 hover:text-green-400">{order.amount}</div>
                       <div className="transition-all duration-500 hover:text-white">{order.total}</div>
@@ -559,13 +543,13 @@ const Deposit = () => {
                 <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
                 <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
                 <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
-                  {sideBuyOrders.length} LIVE
+                  LIVE
                 </div>
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
               </div>
               
-              <div className="space-y-1 max-h-48 overflow-y-auto">
-                <div className="grid grid-cols-4 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2 sticky top-0 bg-[#151b2b]">
+              <div className="space-y-1">
+                <div className="grid grid-cols-4 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
                   <div>PREÇO</div>
                   <div>QTD</div>
                   <div>BID</div>
@@ -574,7 +558,7 @@ const Deposit = () => {
                 
                 {sideBuyOrders.map((order, index) => (
                   <div 
-                    key={`${order.timestamp}-${index}`}
+                    key={`side-${order.timestamp}-${index}`}
                     className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
@@ -592,16 +576,6 @@ const Deposit = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-              
-              {/* Real-time stats */}
-              <div className="mt-3 p-2 bg-green-500/5 rounded border border-green-500/20">
-                <div className="text-xs text-green-400 font-medium">
-                  📊 Volume 24h: ${(Math.random() * 500 + 200).toFixed(1)}M
-                </div>
-                <div className="text-xs text-gray-400">
-                  🔄 Atualizando a cada 1.5s via CoinMarketCap
-                </div>
               </div>
             </div>
           </div>
