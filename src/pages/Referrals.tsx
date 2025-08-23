@@ -376,11 +376,12 @@ Atenciosamente,
         if (referredUsers && referredUsers.length > 0) {
           // Buscar investimentos ativos dos usuários indicados
           const userIds = referredUsers.map(user => user.user_id);
+          
+          // Buscar todos os investimentos (não apenas ativos)
           const { data: investments } = await supabase
             .from('user_investments')
             .select('user_id, amount, total_earned, status')
-            .in('user_id', userIds)
-            .eq('status', 'active');
+            .in('user_id', userIds);
 
           // Buscar estatísticas de trading
           const { data: tradingStats } = await supabase
@@ -388,9 +389,24 @@ Atenciosamente,
             .select('user_id, total_profit, investment_amount, completed_operations')
             .in('user_id', userIds);
 
+          // Buscar comissões dos referrals (dados reais de comissão)
+          const { data: referralCommissions } = await supabase
+            .from('referrals')
+            .select('referred_id, total_commission')
+            .in('referred_id', userIds);
+
+          // Buscar ganhos residuais
+          const { data: residualEarnings } = await supabase
+            .from('residual_earnings')
+            .select('from_user_id, amount, status')
+            .in('from_user_id', userIds)
+            .eq('status', 'active');
+
           // Calcular estatísticas detalhadas
           const activeReferrals = referredUsers.filter(user => user.status === 'active').length;
-          const totalCommission = referredUsers.reduce((sum, user) => sum + (user.total_profit || 0) * 0.1, 0); // 10% commission
+          
+          // Calcular comissão total real baseada nos dados da tabela referrals
+          const totalCommission = referralCommissions?.reduce((sum, ref) => sum + (ref.total_commission || 0), 0) || 0;
           
           setStats({
             totalReferrals: referredUsers.length,
@@ -405,14 +421,32 @@ Atenciosamente,
           const convertedUsers: ReferredUser[] = referredUsers.map((user) => {
             const userInvestments = investments?.filter(inv => inv.user_id === user.user_id) || [];
             const userTrading = tradingStats?.filter(trade => trade.user_id === user.user_id) || [];
+            const userReferralData = referralCommissions?.find(ref => ref.referred_id === user.user_id);
+            const userResidualEarnings = residualEarnings?.filter(res => res.from_user_id === user.user_id) || [];
             
-            const activeInvestmentsCount = userInvestments.length;
+            // Calcular investimentos totais (todos os investimentos, não apenas ativos)
             const totalInvested = userInvestments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
-            const totalEarned = userInvestments.reduce((sum, inv) => sum + (inv.total_earned || 0), 0);
+            
+            // Calcular ganhos totais dos investimentos
+            const totalEarnedFromInvestments = userInvestments.reduce((sum, inv) => sum + (inv.total_earned || 0), 0);
+            
+            // Calcular lucros de trading
             const tradingProfit = userTrading.reduce((sum, trade) => sum + (trade.total_profit || 0), 0);
             
-            // Calcular performance (percentual de lucro)
-            const performance = totalInvested > 0 ? ((totalEarned + tradingProfit) / totalInvested) * 100 : 0;
+            // Calcular ganhos residuais
+            const userResidualEarningsAmount = userResidualEarnings.reduce((sum, res) => sum + (res.amount || 0), 0);
+            
+            // Total de lucros = saldo atual + lucros dos investimentos + trading + residuais
+            const totalUserProfit = (user.balance || 0) + totalEarnedFromInvestments + tradingProfit + userResidualEarningsAmount;
+            
+            // Comissão real da tabela referrals
+            const realCommission = userReferralData?.total_commission || 0;
+            
+            // Contar investimentos ativos
+            const activeInvestmentsCount = userInvestments.filter(inv => inv.status === 'active').length;
+            
+            // Calcular performance (percentual de lucro sobre investimento)
+            const performance = totalInvested > 0 ? (totalUserProfit / totalInvested) * 100 : 0;
 
             return {
               id: user.user_id,
@@ -420,14 +454,14 @@ Atenciosamente,
               email: user.email || '',
               whatsapp: user.whatsapp || '',
               plan: activeInvestmentsCount > 0 ? 'Alphabot Pro' : 'Free',
-              investmentAmount: totalInvested,
-              commission: (user.total_profit || 0) * 0.1, // 10% commission
+              investmentAmount: totalInvested, // Total investido real da tabela user_investments
+              commission: realCommission, // Comissão real da tabela referrals
               status: user.status as "active" | "inactive",
               joinDate: user.created_at,
               lastActivity: user.updated_at || user.created_at,
               city: user.city,
               state: user.state,
-              totalProfit: totalEarned + tradingProfit,
+              totalProfit: totalUserProfit, // Lucro total calculado corretamente
               performance: Math.round(performance * 100) / 100, // Round to 2 decimal places
               activeInvestments: activeInvestmentsCount
             };
