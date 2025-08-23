@@ -90,13 +90,6 @@ const Deposit = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="text-xl font-bold text-cyan-400">finrax</div>
-              <nav className="hidden md:flex gap-6 text-sm text-gray-400">
-                <button className="hover:text-white transition-colors">Dashboard</button>
-                <button className="text-cyan-400">Exchange</button>
-                <button className="hover:text-white transition-colors">Analytics</button>
-                <button className="hover:text-white transition-colors">Convert</button>
-                <button className="hover:text-white transition-colors">NFT Helpdesk</button>
-              </nav>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
