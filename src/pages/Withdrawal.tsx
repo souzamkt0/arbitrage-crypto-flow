@@ -374,82 +374,67 @@ const Withdrawal = () => {
                 <CardHeader className="border-b border-border p-4 md:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg">
+                      <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
                         <ArrowDown className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <CardTitle className="text-base md:text-lg font-bold">Withdrawal Terminal</CardTitle>
-                        <p className="text-sm text-muted-foreground">Sistema ativo</p>
+                        <CardTitle className="text-base md:text-lg font-bold">Sistema de Saque</CardTitle>
+                        <p className="text-sm text-muted-foreground">Escolha o tipo de saque</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2 self-start sm:self-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-red-400 text-sm font-medium">ONLINE</span>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-blue-400 text-sm font-medium">SISTEMA ATIVO</span>
                     </div>
                   </div>
                 </CardHeader>
 
                 <CardContent className="p-4 md:p-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-1 mb-4 md:mb-6 bg-muted border border-border p-1">
-                      <TabsTrigger 
-                        value="digitopay" 
-                        className="flex items-center justify-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white py-2 px-3 text-sm font-medium"
-                      >
-                        <Smartphone className="h-4 w-4" />
-                        <span className="hidden sm:inline">PIX Withdrawal</span>
-                        <span className="sm:hidden">PIX</span>
-                      </TabsTrigger>
-                    </TabsList>
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center space-x-2 bg-blue-500/20 border border-blue-500/30 px-3 py-2 rounded-full text-sm">
+                      <Activity className="h-4 w-4 text-blue-400" />
+                      <span className="text-blue-400 font-medium">3 Tipos de Saque • Limite: 1 por dia</span>
+                    </div>
+                  </div>
 
-                    {/* PIX Withdrawal Tab */}
-                    <TabsContent value="digitopay" className="space-y-4 md:space-y-6">
-                      <div className="text-center mb-4">
-                        <div className="inline-flex items-center space-x-2 bg-red-500/20 border border-red-500/30 px-3 py-2 rounded-full text-sm">
-                          <Activity className="h-4 w-4 text-red-400" />
-                          <span className="text-red-400 font-medium">PIX Instant • Processamento em 2 horas</span>
-                        </div>
+                  {user ? (
+                    <DigitoPayWithdrawal 
+                      userBalance={userBalance}
+                      referralBalance={referralBalance}
+                      onSuccess={() => {
+                        toast({
+                          title: "✅ SAQUE ENVIADO!",
+                          description: "Seu saque foi processado com sucesso",
+                        });
+                        loadWithdrawalData(); // Refresh data
+                      }} 
+                    />
+                  ) : (
+                    <div className="text-center py-8 md:py-12">
+                      <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl inline-block">
+                        <AlertTriangle className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+                        <p className="text-blue-400 text-lg font-medium">Autenticação Necessária</p>
+                        <p className="text-muted-foreground mt-2">Faça login para acessar o sistema de saques</p>
                       </div>
+                    </div>
+                  )}
 
-                      {user ? (
-                        <DigitoPayWithdrawal 
-                          userBalance={userBalance}
-                          referralBalance={referralBalance}
-                          onSuccess={() => {
-                            toast({
-                              title: "✅ SAQUE ENVIADO!",
-                              description: "Seu saque foi processado com sucesso",
-                            });
-                            loadWithdrawalData(); // Refresh data
-                          }} 
-                        />
-                      ) : (
-                        <div className="text-center py-8 md:py-12">
-                          <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl inline-block">
-                            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                            <p className="text-red-400 text-lg font-medium">Autenticação Necessária</p>
-                            <p className="text-muted-foreground mt-2">Faça login para acessar o sistema de saques</p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                        <div className="flex items-start space-x-3">
-                          <AlertTriangle className="h-5 w-5 text-red-400 mt-1 flex-shrink-0" />
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-red-400 mb-2">Informações sobre Saques:</h4>
-                            <ul className="text-muted-foreground space-y-1 text-sm">
-                              <li>• Tempo de processamento: Até 2 horas úteis</li>
-                              <li>• Disponível: Segunda a Sexta, 9h - 17h</li>
-                              <li>• Limite diário: $2.000 PIX</li>
-                              <li>• Taxa: 2% sobre o valor do saque PIX</li>
-                            </ul>
-                          </div>
-                        </div>
+                  <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mt-6">
+                    <div className="flex items-start space-x-3">
+                      <AlertTriangle className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <h4 className="font-semibold text-blue-400 mb-2">Sistema de Saques:</h4>
+                        <ul className="text-muted-foreground space-y-1 text-sm">
+                          <li>• 🏦 <strong>Residual:</strong> Ganhos acumulados do sistema</li>
+                          <li>• 👥 <strong>Indicação:</strong> Comissões por referrals</li>
+                          <li>• 📈 <strong>Rentabilidade:</strong> Lucros dos investimentos</li>
+                          <li>• ⏰ Limite: 1 saque por dia por usuário</li>
+                          <li>• 💰 Valor mínimo: $10.00 USD</li>
+                        </ul>
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
