@@ -664,7 +664,7 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Lucro Total</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-emerald-400 truncate">
-                        R$ {stats.totalProfit.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                        R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
                       </p>
                       <p className="text-xs text-emerald-300 mt-1 truncate">
                         +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} mês
@@ -682,7 +682,7 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Saldo Atual</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-400 truncate">
-                        R$ {stats.currentBalance.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                        R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
                       </p>
                       <p className="text-xs text-blue-300 mt-1 truncate">
                         {stats.activeInvestments} ativos
@@ -700,7 +700,7 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Indicações</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-purple-400 truncate">
-                        R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                        R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
                       </p>
                       <p className="text-xs text-purple-300 mt-1 truncate">
                         {stats.activeReferrals} ativos
@@ -859,7 +859,7 @@ const History = () => {
                             </div>
                             <div className="text-right ml-2">
                               <p className={`font-semibold text-xs md:text-sm ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
                               </p>
                               <Badge variant="outline" className={`text-xs ${getStatusColor(trade.status)}`}>
                                 {trade.status}
@@ -897,7 +897,7 @@ const History = () => {
                             </div>
                             <div className="text-right ml-2">
                               <p className="font-semibold text-emerald-400 text-xs md:text-sm">
-                                R$ {referral.commission.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Nível {referral.level}
