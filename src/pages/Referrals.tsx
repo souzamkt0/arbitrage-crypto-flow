@@ -632,21 +632,6 @@ Atenciosamente,
         <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
           {/* Referral Link Card */}
           <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                    <Network className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold text-white">
-                      Sistema de Indicações
-                    </CardTitle>
-                    <p className="text-sm text-gray-400">Compartilhe seu link de indicação e ganhe comissões</p>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
