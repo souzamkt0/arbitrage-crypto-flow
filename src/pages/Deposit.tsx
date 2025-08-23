@@ -372,6 +372,20 @@ const Deposit = () => {
                           </>
                         )}
                       </Button>
+
+                      {/* Small Pay Now Button */}
+                      <Button 
+                        type="button"
+                        className="mt-3 h-10 px-6 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-105"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex items-center justify-center gap-2">
+                          <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                            <span className="text-xs">💳</span>
+                          </div>
+                          <span className="tracking-wide">PAGAR AGORA</span>
+                        </div>
+                      </Button>
                     </form>
                   </TabsContent>
                 </Tabs>
