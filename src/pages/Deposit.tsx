@@ -413,51 +413,6 @@ const Deposit = () => {
               </div>
             </div>
 
-            {/* Orders Section - Above Chart */}
-            <div className="w-full">
-              {/* Buy Orders */}
-              <div className="bg-[#151b2b] rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-green-400" />
-                  <h3 className="text-sm font-semibold text-white">Buy Orders</h3>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
-                </div>
-                
-                {/* Saldo Depósito na seção Buy Orders */}
-                {depositBalance > 0 && (
-                  <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-500/20">
-                    <div className="text-xs text-green-400 font-medium">
-                      💰 Saldo Disponível: ${depositBalance.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-300">
-                      ✅ Seu saldo está no sistema e pronto para trading
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-1">
-                  <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1">
-                    <div>PREÇO</div>
-                    <div>QTD</div>
-                    <div>TOTAL</div>
-                    <div>%</div>
-                  </div>
-                  {/* Live order count indicator */}
-                  <div className="text-xs text-green-400 mb-2 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    {buyOrders.slice(0, 8).length} ordens ativas
-                  </div>
-                  {buyOrders.slice(0, 8).map((order, i) => (
-                    <div key={`buy-${order.timestamp}-${i}`} className="grid grid-cols-4 gap-2 text-xs text-white py-0.5 hover:bg-[#1f2937] rounded transition-all duration-300 animate-fade-in border-l-2 border-green-500/20 hover:border-green-500/50">
-                      <div className="text-green-400 transition-all duration-500 hover:text-green-300">{order.value}</div>
-                      <div className="transition-all duration-500 hover:text-green-400">{order.amount}</div>
-                      <div className="transition-all duration-500 hover:text-white">{order.total}</div>
-                      <div className="transition-all duration-500 text-gray-400 hover:text-green-400">{((Math.random() * 40) + 10).toFixed(1)}%</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* Main Chart */}
             <div className="bg-[#151b2b] rounded-lg p-3 flex-1 min-h-0">
