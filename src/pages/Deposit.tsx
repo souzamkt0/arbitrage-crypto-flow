@@ -125,7 +125,6 @@ const Deposit = () => {
         <header className="bg-[#151b2b] border-b border-gray-800 px-6 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="text-xl font-bold text-cyan-400">finrax</div>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
