@@ -48,6 +48,9 @@ import { TradingStats } from "@/components/TradingStats";
 import { TradingChart } from "@/components/TradingChart";
 import { EthereumChart } from "@/components/EthereumChart";
 import { SolanaChart } from "@/components/SolanaChart";
+import { TotalProfitCard } from "@/components/TotalProfitCard";
+import { DepositsCard } from "@/components/DepositsCard";
+import { WithdrawalsCard } from "@/components/WithdrawalsCard";
 import { InvestmentPlanCard } from "@/components/InvestmentPlanCard";
 import { CardanoChart } from "@/components/CardanoChart";
 import { MarketOverview } from "@/components/MarketOverview";
@@ -1109,6 +1112,13 @@ const Dashboard = () => {
 
           {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-4">
+
+            {/* New Stat Cards */}
+            <div className="grid grid-cols-1 gap-4">
+              <TotalProfitCard />
+              <DepositsCard />
+              <WithdrawalsCard />
+            </div>
 
             {/* Existing Balance Components - Compact */}
             <div className="space-y-4">
