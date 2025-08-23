@@ -18,7 +18,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { amount, cpf, name, callbackUrl, userId } = await req.json();
+    const { amount, cpf, name, callbackUrl, userId, external_reference, transaction_id } = await req.json();
 
     // Validar se userId é um UUID válido
     if (!userId || typeof userId !== 'string' || userId.length !== 36) {
@@ -35,7 +35,14 @@ serve(async (req) => {
       );
     }
 
-    console.log('💰 Criando depósito:', { amount, cpf, name, userId });
+    console.log('💰 Criando depósito:', { 
+      amount, 
+      cpf, 
+      name, 
+      userId, 
+      external_reference,
+      transaction_id 
+    });
 
     // 1. Primeiro, obter token de autenticação
     const authResponse = await fetch(`${DIGITOPAY_CONFIG.baseUrl}/token/api`, {
@@ -57,7 +64,7 @@ serve(async (req) => {
       throw new Error('Falha na autenticação');
     }
 
-    // 2. Criar depósito com token válido
+    // 2. Criar depósito com token válido e external_reference
     const depositData = {
       dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min
       paymentOptions: ['PIX'],
@@ -67,7 +74,9 @@ serve(async (req) => {
       },
       value: amount,
       callbackUrl: callbackUrl,
-      idempotencyKey: `deposit_${Date.now()}_${userId}`
+      idempotencyKey: `deposit_${Date.now()}_${userId}`,
+      // Adicionar external_reference para vincular com Supabase
+      externalReference: external_reference || `ext_${Date.now()}_${userId.slice(-6)}`
     };
 
     console.log('📦 Dados do depósito:', depositData);
@@ -97,70 +106,80 @@ serve(async (req) => {
       });
 
     if (depositResponse.ok && depositResult.id) {
-      // 3. Salvar transação no banco
-      const { error: saveError } = await supabase
-        .from('digitopay_transactions')
-        .insert({
-          user_id: userId,
-          trx_id: depositResult.id,
-          type: 'deposit',
-          amount: amount,
-          amount_brl: amount,
-          status: 'pending', // Status inicial como pendente
-          pix_code: depositResult.pixCopiaECola,
-          qr_code_base64: depositResult.qrCodeBase64,
-          person_name: name,
-          person_cpf: cpf,
-          gateway_response: depositResult
-        });
+      // 3. Se transaction_id foi fornecido, atualizar transação existente
+      // Caso contrário, criar nova transação (modo fallback)
+      if (transaction_id) {
+        console.log('🔄 Atualizando transação existente:', transaction_id);
+        
+        const { error: updateError } = await supabase
+          .from('digitopay_transactions')
+          .update({
+            trx_id: depositResult.id,
+            pix_code: depositResult.pixCopiaECola,
+            qr_code_base64: depositResult.qrCodeBase64,
+            status: 'waiting_payment',
+            gateway_response: depositResult
+          })
+          .eq('id', transaction_id);
 
-      if (saveError) {
-        console.error('❌ Erro ao salvar transação:', saveError);
-        
-        // Log do erro para debug
-        await supabase
-          .from('digitopay_debug')
-          .insert({
-            tipo: 'save_transaction_error',
-            payload: {
-              error: saveError,
-              transactionData: {
-                user_id: userId,
-                trx_id: depositResult.id,
-                type: 'deposit',
-                amount: amount,
-                amount_brl: amount,
-                status: 'pending',
-                pix_code: depositResult.pixCopiaECola,
-                qr_code_base64: depositResult.qrCodeBase64,
-                person_name: name,
-                person_cpf: cpf
-              }
-            }
-          });
+        if (updateError) {
+          console.error('❌ Erro ao atualizar transação existente:', updateError);
+          // Não falhar por isso, o PIX foi gerado
+        } else {
+          console.log('✅ Transação existente atualizada com sucesso');
+        }
       } else {
-        console.log('✅ Transação salva com sucesso:', depositResult.id);
+        // Modo fallback: criar nova transação
+        console.log('📝 Criando nova transação (modo fallback)');
         
-        // Log do sucesso
-        await supabase
-          .from('digitopay_debug')
+        const { error: saveError } = await supabase
+          .from('digitopay_transactions')
           .insert({
-            tipo: 'save_transaction_success',
-            payload: {
-              trx_id: depositResult.id,
-              user_id: userId,
-              amount: amount
-            }
+            user_id: userId,
+            trx_id: depositResult.id,
+            type: 'deposit',
+            amount: amount,
+            amount_brl: amount,
+            status: 'pending',
+            pix_code: depositResult.pixCopiaECola,
+            qr_code_base64: depositResult.qrCodeBase64,
+            person_name: name,
+            person_cpf: cpf,
+            external_id: external_reference,
+            gateway_response: depositResult
           });
+
+        if (saveError) {
+          console.error('❌ Erro ao salvar nova transação:', saveError);
+        } else {
+          console.log('✅ Nova transação salva com sucesso:', depositResult.id);
+        }
       }
+
+      // Log de sucesso
+      await supabase
+        .from('digitopay_debug')
+        .insert({
+          tipo: 'digitopay_deposit_success_v2',
+          payload: {
+            trx_id: depositResult.id,
+            user_id: userId,
+            amount: amount,
+            external_reference: external_reference,
+            transaction_id: transaction_id,
+            mode: transaction_id ? 'update_existing' : 'create_new'
+          }
+        });
 
       return new Response(
         JSON.stringify({
           success: true,
           id: depositResult.id,
+          transaction_id: depositResult.id,
           pixCopiaECola: depositResult.pixCopiaECola,
           qrCodeBase64: depositResult.qrCodeBase64,
-          message: 'Depósito criado com sucesso'
+          external_reference: external_reference,
+          message: 'PIX gerado com sucesso - transação vinculada para webhook automático'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

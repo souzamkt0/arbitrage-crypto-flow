@@ -171,32 +171,91 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
     try {
       console.log('💰 Criando depósito...', { usdAmount, brlAmount, cpf });
 
-      // Usar a edge function diretamente para maior confiabilidade
+      // FLUXO CORRIGIDO: 
+      // 1. Criar transação no Supabase PRIMEIRO (com external_id único)
+      const external_id = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log('📝 1. Criando transação no Supabase com external_id:', external_id);
+      
+      const { data: transaction, error: transactionError } = await supabase
+        .from('digitopay_transactions')
+        .insert({
+          user_id: user?.id,
+          type: 'deposit',
+          amount: usdAmount,
+          amount_brl: brlAmount.brlAmount,
+          person_name: profile?.display_name || 'Usuário',
+          person_cpf: cpf,
+          status: 'pending',
+          external_id: external_id,
+          trx_id: external_id // Temporário, será atualizado quando o DigitoPay responder
+        })
+        .select()
+        .single();
+
+      if (transactionError) {
+        throw new Error(`Erro ao criar transação: ${transactionError.message}`);
+      }
+
+      console.log('✅ 1. Transação criada no Supabase:', transaction);
+
+      // 2. Gerar PIX no DigitoPay com external_reference
+      console.log('🏦 2. Gerando PIX no DigitoPay...');
+      
       const { data: result, error } = await supabase.functions.invoke('digitopay-deposit', {
         body: {
           amount: usdAmount,
           cpf: cpf,
           name: profile?.display_name || 'Usuário',
-          callbackUrl: 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook',
-          userId: user?.id
+          callbackUrl: 'https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-webhook',
+          external_reference: external_id, // Vincular ao Supabase
+          userId: user?.id,
+          transaction_id: transaction.id
         }
       });
 
       if (error) {
-        throw new Error(error.message || 'Erro ao criar depósito');
+        // Se falhou, remover transação criada
+        await supabase
+          .from('digitopay_transactions')
+          .delete()
+          .eq('id', transaction.id);
+        
+        throw new Error(error.message || 'Erro ao gerar PIX no DigitoPay');
       }
 
-      console.log('✅ Depósito criado:', result);
+      console.log('✅ 2. PIX gerado no DigitoPay:', result);
 
+      // 3. Atualizar transação com dados do DigitoPay
+      console.log('🔄 3. Atualizando transação com dados do DigitoPay...');
+      
+      const { error: updateError } = await supabase
+        .from('digitopay_transactions')
+        .update({
+          trx_id: result.id || result.transaction_id,
+          pix_code: result.pixCopiaECola,
+          qr_code_base64: result.qrCodeBase64,
+          status: 'waiting_payment',
+          gateway_response: result
+        })
+        .eq('id', transaction.id);
+
+      if (updateError) {
+        console.error('⚠️ Erro ao atualizar transação, mas PIX foi gerado:', updateError);
+      }
+
+      console.log('✅ 3. Transação atualizada com dados do DigitoPay');
+
+      // 4. Configurar dados para exibição
       const depositDataToSet = {
-        trxId: result.id,
+        trxId: result.id || result.transaction_id,
         pixCode: result.pixCopiaECola || '',
         qrCodeBase64: result.qrCodeBase64 || '',
         usdAmount: usdAmount,
         brlAmount: brlAmount.brlAmount,
       };
 
-      console.log('📱 Configurando dados do depósito:', depositDataToSet);
+      console.log('📱 4. Configurando dados do depósito:', depositDataToSet);
       setDepositData(depositDataToSet);
 
       // Adicionar ao histórico local
@@ -209,11 +268,12 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
 
       toast({
         title: '✅ PIX gerado com sucesso!',
-        description: 'Escaneie o QR Code ou copie o código PIX. Verificaremos automaticamente quando o pagamento for confirmado.',
-        duration: 8000,
+        description: `Transação vinculada (${external_id.slice(-6)}). Escaneie o QR Code ou copie o código PIX. O saldo será creditado automaticamente após o pagamento.`,
+        duration: 10000,
       });
 
     } catch (error) {
+      console.error('❌ Erro no processo de depósito:', error);
       toast({
         title: 'Erro ao gerar PIX',
         description: error instanceof Error ? error.message : 'Erro desconhecido',

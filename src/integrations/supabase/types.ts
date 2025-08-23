@@ -389,6 +389,7 @@ export type Database = {
           amount_brl: number
           callback_data: Json | null
           created_at: string | null
+          external_id: string | null
           gateway_response: Json | null
           id: string
           person_cpf: string | null
@@ -408,6 +409,7 @@ export type Database = {
           amount_brl: number
           callback_data?: Json | null
           created_at?: string | null
+          external_id?: string | null
           gateway_response?: Json | null
           id?: string
           person_cpf?: string | null
@@ -427,6 +429,7 @@ export type Database = {
           amount_brl?: number
           callback_data?: Json | null
           created_at?: string | null
+          external_id?: string | null
           gateway_response?: Json | null
           id?: string
           person_cpf?: string | null
@@ -1456,6 +1459,45 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          external_id: string | null
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          received_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          external_id?: string | null
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          external_id?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string | null
+          status?: string | null
         }
         Relationships: []
       }

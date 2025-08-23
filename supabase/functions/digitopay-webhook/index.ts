@@ -1,241 +1,302 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-// Handle CORS preflight requests
+interface DigitopayWebhookPayload {
+  id: string
+  external_reference?: string
+  status?: string
+  event_type?: string
+  value?: number
+  amount?: number
+  person?: {
+    name?: string
+    cpf?: string
+  }
+  transaction?: {
+    id: string
+    status: string
+    amount: number
+    external_reference?: string
+  }
+  pix?: {
+    id: string
+    status: string
+    amount: number
+    external_reference?: string
+  }
+  withdrawal?: {
+    id: string
+    status: string
+    amount: number
+    external_reference?: string
+  }
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    // Parse webhook payload
-    const webhookData = await req.json();
-    console.log('🔔 Webhook recebido:', JSON.stringify(webhookData, null, 2));
+    const payload: DigitopayWebhookPayload = await req.json()
+    
+    console.log('📥 Webhook DigitoPay recebido:', JSON.stringify(payload, null, 2))
 
-    // Log webhook para debug
-    await supabase.from('digitopay_debug').insert({
-      tipo: 'webhook_received',
-      payload: webhookData,
-      timestamp: new Date().toISOString()
-    });
+    // Determinar external_id e event_type
+    const external_id = payload.external_reference || payload.id
+    const event_type = payload.event_type || 'status_update'
 
-    // Extrair dados do webhook
-    const { id: trxId, status, value, person } = webhookData;
+    // Log do webhook recebido na nova tabela
+    const { error: logError } = await supabase
+      .from('webhook_logs')
+      .insert({
+        provider: 'digitopay',
+        event_type: event_type,
+        external_id: external_id,
+        payload: payload,
+        status: 'received'
+      })
 
-    if (!trxId) {
-      console.error('❌ Webhook sem ID da transação');
-      return new Response(JSON.stringify({ error: 'Missing transaction ID' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    if (logError) {
+      console.error('❌ Erro ao salvar log do webhook:', logError)
     }
 
-    // Buscar transação no banco
-    const { data: transaction, error: transactionError } = await supabase
+    // Buscar transação usando external_id ou trx_id
+    console.log('🔍 Procurando transação com external_id:', external_id)
+
+    let transaction = null
+    let searchField = 'external_id'
+
+    // Primeiro, tentar por external_id
+    const { data: externalTransactions, error: externalError } = await supabase
       .from('digitopay_transactions')
       .select('*')
-      .eq('trx_id', trxId)
-      .single();
+      .eq('external_id', external_id)
+      .limit(1)
 
-    if (transactionError || !transaction) {
-      console.error('❌ Transação não encontrada:', trxId);
-      await supabase.from('digitopay_debug').insert({
-        tipo: 'transaction_not_found',
-        payload: { trxId, error: transactionError },
-        timestamp: new Date().toISOString()
-      });
-      return new Response(JSON.stringify({ error: 'Transaction not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    if (externalTransactions && externalTransactions.length > 0) {
+      transaction = externalTransactions[0]
+    } else {
+      // Fallback: buscar por trx_id
+      const { data: trxTransactions, error: trxError } = await supabase
+        .from('digitopay_transactions')
+        .select('*')
+        .eq('trx_id', external_id)
+        .limit(1)
+
+      if (trxTransactions && trxTransactions.length > 0) {
+        transaction = trxTransactions[0]
+        searchField = 'trx_id'
+      }
     }
 
-    console.log('📋 Transação encontrada:', transaction);
+    if (!transaction) {
+      console.log('⚠️ Transação não encontrada para external_id:', external_id)
+      
+      // Atualizar log como erro
+      await supabase
+        .from('webhook_logs')
+        .update({
+          status: 'error',
+          error_message: `Transação não encontrada para external_id: ${external_id}`,
+          processed_at: new Date().toISOString()
+        })
+        .eq('external_id', external_id)
+        .eq('provider', 'digitopay')
+        .eq('status', 'received')
+
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Transação não encontrada',
+          external_id: external_id
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404 
+        }
+      )
+    }
+
+    console.log('📄 Transação encontrada:', {
+      id: transaction.id,
+      status_atual: transaction.status,
+      user_id: transaction.user_id,
+      amount: transaction.amount,
+      searchField: searchField
+    })
 
     // Mapear status do DigitoPay para status interno
-    let internalStatus = 'pending';
-    switch (status?.toLowerCase()) {
-      case 'paid':
-      case 'approved':
-      case 'completed':
-      case 'realizado': // Status do DigitoPay para pagamento confirmado
-        internalStatus = 'completed';
-        break;
-      case 'cancelled':
-      case 'canceled':
-      case 'cancelado':
-        internalStatus = 'cancelled';
-        break;
-      case 'failed':
-      case 'error':
-      case 'falhou':
-        internalStatus = 'failed';
-        break;
-      case 'expired':
-      case 'expirado':
-        internalStatus = 'expired';
-        break;
-      default:
-        internalStatus = 'pending';
+    let internalStatus = 'pending'
+    const webhookStatus = payload.status?.toLowerCase()
+    
+    // Determinar status baseado no event_type e status
+    if (event_type === 'pix.received' || 
+        event_type === 'pix.confirmed' || 
+        event_type === 'payment.approved' ||
+        webhookStatus === 'paid' ||
+        webhookStatus === 'approved' ||
+        webhookStatus === 'completed' ||
+        webhookStatus === 'realizado') {
+      internalStatus = 'completed'
+    } else if (event_type?.includes('failed') || 
+               event_type?.includes('rejected') ||
+               webhookStatus === 'failed' ||
+               webhookStatus === 'error' ||
+               webhookStatus === 'falhou') {
+      internalStatus = 'failed'
+    } else if (webhookStatus === 'cancelled' ||
+               webhookStatus === 'canceled' ||
+               webhookStatus === 'cancelado') {
+      internalStatus = 'cancelled'
+    } else if (webhookStatus === 'expired' ||
+               webhookStatus === 'expirado') {
+      internalStatus = 'expired'
     }
 
-    console.log(`🔄 Atualizando status de ${transaction.status} para ${internalStatus}`);
+    console.log(`🔄 Atualizando status de ${transaction.status} para ${internalStatus}`)
+
+    // Verificar se o status realmente mudou
+    if (transaction.status === internalStatus) {
+      console.log('ℹ️ Status já está correto, não há necessidade de atualizar')
+      
+      await supabase
+        .from('webhook_logs')
+        .update({
+          status: 'skipped',
+          error_message: `Status já era ${internalStatus}`,
+          processed_at: new Date().toISOString()
+        })
+        .eq('external_id', external_id)
+        .eq('provider', 'digitopay')
+        .eq('status', 'received')
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Status já atualizado',
+          transaction_id: transaction.id,
+          status: internalStatus
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
+    }
 
     // Atualizar status da transação
     const { error: updateError } = await supabase
       .from('digitopay_transactions')
       .update({
         status: internalStatus,
-        callback_data: webhookData,
+        gateway_response: payload,
         updated_at: new Date().toISOString()
       })
-      .eq('trx_id', trxId);
+      .eq('id', transaction.id)
 
     if (updateError) {
-      console.error('❌ Erro ao atualizar transação:', updateError);
-      throw updateError;
-    }
-
-    console.log('✅ Status da transação atualizado');
-
-    // Se é um depósito aprovado, atualizar saldo do usuário
-    if (internalStatus === 'completed' && transaction.type === 'deposit') {
-      console.log('💰 Processando depósito aprovado...');
-
-      // Atualizar saldo do usuário
-      const { data: currentProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('user_id', transaction.user_id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Erro ao buscar perfil:', profileError);
-        throw profileError;
-      }
-
-      const currentBalance = parseFloat(currentProfile.balance || '0');
-      const newBalance = currentBalance + parseFloat(transaction.amount_brl);
-
-      const { error: balanceError } = await supabase
-        .from('profiles')
+      console.error('❌ Erro ao atualizar transação:', updateError)
+      
+      // Atualizar log como erro
+      await supabase
+        .from('webhook_logs')
         .update({
-          balance: newBalance.toString()
+          status: 'error',
+          error_message: `Erro ao atualizar transação: ${updateError.message}`,
+          processed_at: new Date().toISOString()
         })
-        .eq('user_id', transaction.user_id);
+        .eq('external_id', external_id)
+        .eq('provider', 'digitopay')
+        .eq('status', 'received')
 
-      if (balanceError) {
-        console.error('❌ Erro ao atualizar saldo:', balanceError);
-        throw balanceError;
-      }
-
-      console.log(`✅ Saldo atualizado: +R$ ${transaction.amount_brl}`);
-
-      // Registrar na tabela de depósitos
-      const { error: depositError } = await supabase
-        .from('deposits')
-        .insert({
-          user_id: transaction.user_id,
-          amount_usd: transaction.amount,
-          amount_brl: transaction.amount_brl,
-          type: 'pix',
-          status: 'paid',
-          holder_name: transaction.person_name,
-          cpf: transaction.person_cpf,
-          pix_code: transaction.pix_code,
-          exchange_rate: 1.0
-        });
-
-      if (depositError) {
-        console.error('❌ Erro ao registrar depósito:', depositError);
-        // Não vamos falhar por isso, só logar
-      } else {
-        console.log('✅ Depósito registrado na tabela deposits');
-      }
+      throw new Error(`Erro ao atualizar transação: ${updateError.message}`)
     }
 
-    // Se é um saque aprovado, registrar na tabela de saques
-    if (internalStatus === 'completed' && transaction.type === 'withdrawal') {
-      console.log('💸 Processando saque aprovado...');
+    console.log(`✅ Transação ${transaction.id} atualizada para status: ${internalStatus}`)
 
-      // Registrar na tabela de saques
-      const { error: withdrawalError } = await supabase
-        .from('withdrawals')
-        .insert({
-          user_id: transaction.user_id,
-          amount: transaction.amount_brl,
-          payment_method: 'pix',
-          status: 'completed',
-          gateway_transaction_id: trxId,
-          gateway_response: webhookData
-        });
+    // Atualizar log como processado
+    await supabase
+      .from('webhook_logs')
+      .update({
+        status: 'processed',
+        processed_at: new Date().toISOString()
+      })
+      .eq('external_id', external_id)
+      .eq('provider', 'digitopay')
+      .eq('status', 'received')
 
-      if (withdrawalError) {
-        console.error('❌ Erro ao registrar saque:', withdrawalError);
-        // Não vamos falhar por isso, só logar
-      } else {
-        console.log('✅ Saque registrado na tabela withdrawals');
-      }
-    }
-
-    // Log sucesso
+    // Log adicional para debug
     await supabase.from('digitopay_debug').insert({
-      tipo: 'webhook_processed',
+      tipo: 'webhook_processed_v2',
       payload: {
-        trxId,
-        oldStatus: transaction.status,
-        newStatus: internalStatus,
-        type: transaction.type,
-        amount: transaction.amount_brl
-      },
-      timestamp: new Date().toISOString()
-    });
+        transaction_id: transaction.id,
+        old_status: transaction.status,
+        new_status: internalStatus,
+        event_type: event_type,
+        external_id: external_id,
+        search_field: searchField
+      }
+    })
 
-    console.log('🎉 Webhook processado com sucesso');
+    // O trigger automático já vai processar a ativação do saldo
+    console.log('🎯 Webhook processado com sucesso! Trigger automático ativará o saldo.')
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: 'Webhook processed successfully',
-      transactionId: trxId,
-      status: internalStatus
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Webhook processado com sucesso',
+        transaction_id: transaction.id,
+        status: internalStatus,
+        trigger_will_activate: internalStatus === 'completed'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error);
+    console.error('❌ Erro no webhook DigitoPay:', error)
     
-    // Log erro
+    // Log erro na tabela de debug
     try {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
       
       await supabase.from('digitopay_debug').insert({
-        tipo: 'webhook_error',
-        payload: { error: error.message, stack: error.stack },
-        timestamp: new Date().toISOString()
-      });
+        tipo: 'webhook_error_v2',
+        payload: { 
+          error: error.message, 
+          stack: error.stack,
+          timestamp: new Date().toISOString()
+        }
+      })
     } catch (logError) {
-      console.error('❌ Erro ao logar erro:', logError);
+      console.error('❌ Erro ao logar erro:', logError)
     }
-
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Erro interno do servidor'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    )
   }
-});
+})
