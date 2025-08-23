@@ -596,10 +596,10 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Lucro Total</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-emerald-400 truncate">
-                        R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
+                        R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-emerald-300 mt-1 truncate">
-                        +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} mês
+                        +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mês
                       </p>
                     </div>
                     <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400 flex-shrink-0" />
@@ -614,7 +614,7 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Saldo Atual</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-400 truncate">
-                        R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
+                        R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-blue-300 mt-1 truncate">
                         {stats.activeInvestments} ativos
@@ -632,7 +632,7 @@ const History = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">Indicações</p>
                       <p className="text-sm sm:text-lg md:text-xl font-bold text-purple-400 truncate">
-                        R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
+                        R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-purple-300 mt-1 truncate">
                         {stats.activeReferrals} ativos
@@ -669,7 +669,7 @@ const History = () => {
                   <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-green-400 mb-1 md:mb-2" />
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Investido</p>
                   <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalInvested.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                    R$ {stats.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </CardContent>
               </Card>
@@ -689,7 +689,7 @@ const History = () => {
                   <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-purple-400 mb-1 md:mb-2" />
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Depósitos</p>
                   <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalDeposits.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                    R$ {stats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </CardContent>
               </Card>
@@ -699,7 +699,7 @@ const History = () => {
                   <Banknote className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-orange-400 mb-1 md:mb-2" />
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Saques</p>
                   <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalWithdrawals.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                    R$ {stats.totalWithdrawals.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </CardContent>
               </Card>
@@ -719,7 +719,7 @@ const History = () => {
                   <Award className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-yellow-400 mb-1 md:mb-2" />
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Comissões</p>
                   <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalCommissions.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                    R$ {stats.totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </CardContent>
               </Card>
@@ -791,7 +791,7 @@ const History = () => {
                             </div>
                             <div className="text-right ml-2">
                               <p className={`font-semibold text-xs md:text-sm ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
+                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </p>
                               <Badge variant="outline" className={`text-xs ${getStatusColor(trade.status)}`}>
                                 {trade.status}
@@ -829,7 +829,7 @@ const History = () => {
                             </div>
                             <div className="text-right ml-2">
                               <p className="font-semibold text-emerald-400 text-xs md:text-sm">
-                                R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 0 })}
+                                R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Nível {referral.level}
