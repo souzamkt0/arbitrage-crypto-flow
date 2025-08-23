@@ -53,7 +53,7 @@ import { DepositsCard } from "@/components/DepositsCard";
 import { WithdrawalsCard } from "@/components/WithdrawalsCard";
 import { InvestmentPlanCard } from "@/components/InvestmentPlanCard";
 import { CardanoChart } from "@/components/CardanoChart";
-import { MarketOverview } from "@/components/MarketOverview";
+
 import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
 import BalanceBox from "@/components/BalanceBox";
