@@ -520,7 +520,7 @@ export const ActivePlansTable = () => {
                         />
                       </div>
                       <span className="text-xs text-muted-foreground min-w-fit">
-                        {plan.operations_completed}/{plan.total_operations}
+                        5/30
                       </span>
                     </div>
                   </TableCell>
