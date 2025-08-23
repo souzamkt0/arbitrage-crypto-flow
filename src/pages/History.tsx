@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   RefreshCw,
   MessageCircle,
-  Smartphone
+  BarChart3,
+  Users,
+  CreditCard,
+  Bot,
+  Eye,
+  ArrowUpDown,
+  TrendingUp,
+  TrendingDown
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,6 +153,7 @@ const CircularProgress = ({ percentage, color, title, subtitle }: {
 const History = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activePeriod, setActivePeriod] = useState("Month");
+  const [activeTab, setActiveTab] = useState("overview");
   
   // State for different data types
   const [tradingHistory, setTradingHistory] = useState<TradingRecord[]>([]);
@@ -229,7 +238,7 @@ const History = () => {
     { name: 'School Information', value: 30, percentage: 50 }
   ];
 
-  // Load all data functions (keeping original logic)
+  // Load all data functions
   const loadAllData = async () => {
     if (!user) return;
     
@@ -294,55 +303,84 @@ const History = () => {
       const { data: referralData } = await supabase
         .from('referrals')
         .select(`
-          *,
-          referred_user_profile:profiles!referrals_referred_user_id_fkey(
-            full_name,
-            email
-          )
+          id,
+          total_commission,
+          status,
+          created_at,
+          profiles!referrals_referred_id_fkey(display_name, email, total_profit)
         `)
-        .eq('referrer_user_id', user?.id)
+        .eq('referrer_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (referralData) {
-        const formattedReferrals = referralData.map(referral => ({
-          id: referral.id,
-          referred_user: referral.referred_user_profile?.full_name || 'Usuário',
-          referred_email: referral.referred_user_profile?.email || '',
-          commission: referral.commission_earned || 0,
-          status: referral.status || 'active',
-          created_at: referral.created_at,
-          level: referral.level || 1,
-          total_invested: referral.total_invested || 0
+        const formattedReferrals = referralData.map(ref => ({
+          id: ref.id,
+          referred_user: (ref.profiles as any)?.display_name || 'Usuário',
+          referred_email: (ref.profiles as any)?.email || '',
+          commission: ref.total_commission || 0,
+          status: ref.status,
+          created_at: ref.created_at,
+          level: 1,
+          total_invested: (ref.profiles as any)?.total_profit || 0
         }));
         setReferralHistory(formattedReferrals);
       }
     } catch (error) {
-      console.error('Erro ao carregar histórico de indicações:', error);
+      console.error('Erro ao carregar histórico de referrals:', error);
     }
   };
 
   const loadTransactionHistory = async () => {
     try {
-      const { data: transactionData } = await supabase
-        .from('transactions')
+      // Load deposits
+      const { data: depositsData } = await supabase
+        .from('deposits')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(100);
+        .order('created_at', { ascending: false });
 
-      if (transactionData) {
-        const formattedTransactions = transactionData.map(transaction => ({
-          id: transaction.id,
-          type: transaction.type as 'deposit' | 'withdrawal',
-          amount: transaction.amount || 0,
-          amount_brl: transaction.amount_brl || 0,
-          status: transaction.status || 'pending',
-          created_at: transaction.created_at,
-          payment_type: transaction.payment_type || 'pix',
-          trx_id: transaction.trx_id
-        }));
-        setTransactionHistory(formattedTransactions);
+      // Load digitopay transactions
+      const { data: digitopayData } = await supabase
+        .from('digitopay_transactions')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      const allTransactions: TransactionRecord[] = [];
+
+      // Process deposits
+      if (depositsData) {
+        depositsData.forEach(deposit => {
+          allTransactions.push({
+            id: deposit.id,
+            type: 'deposit',
+            amount: deposit.amount_usd || 0,
+            amount_brl: deposit.amount_brl || 0,
+            status: deposit.status,
+            created_at: deposit.created_at,
+            payment_type: deposit.type || 'pix'
+          });
+        });
       }
+
+      // Process digitopay transactions
+      if (digitopayData) {
+        digitopayData.forEach(transaction => {
+          allTransactions.push({
+            id: transaction.id,
+            type: transaction.type === 'deposit' ? 'deposit' : 'withdrawal',
+            amount: transaction.amount || 0,
+            amount_brl: transaction.amount_brl || 0,
+            status: transaction.status,
+            created_at: transaction.created_at,
+            payment_type: 'digitopay',
+            trx_id: transaction.trx_id
+          });
+        });
+      }
+
+      allTransactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setTransactionHistory(allTransactions);
     } catch (error) {
       console.error('Erro ao carregar histórico de transações:', error);
     }
@@ -350,22 +388,21 @@ const History = () => {
 
   const loadProfitHistory = async () => {
     try {
-      const { data: profitData } = await supabase
-        .from('daily_profits')
+      const { data: profitsData } = await supabase
+        .from('trading_profits')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(100);
+        .order('created_at', { ascending: false });
 
-      if (profitData) {
-        const formattedProfits = profitData.map(profit => ({
+      if (profitsData) {
+        const formattedProfits = profitsData.map(profit => ({
           id: profit.id,
-          investment_amount: profit.investment_amount || 0,
-          daily_rate: profit.daily_rate || 0,
-          plan_name: profit.plan_name || 'Plano Básico',
-          total_profit: profit.profit_amount || 0,
+          investment_amount: profit.investment_amount,
+          daily_rate: profit.daily_rate,
+          plan_name: profit.plan_name,
+          total_profit: profit.total_profit,
           created_at: profit.created_at,
-          status: profit.status || 'completed',
+          status: profit.status,
           completed_operations: profit.completed_operations || 0,
           exchanges_count: profit.exchanges_count || 0
         }));
@@ -378,32 +415,29 @@ const History = () => {
 
   const loadUserInvestments = async () => {
     try {
-      const { data: investmentData } = await supabase
+      const { data: investmentsData } = await supabase
         .from('user_investments')
         .select(`
           *,
-          plan:investment_plans(
-            name,
-            robot_version
-          )
+          investment_plans!user_investments_plan_id_fkey(name, robot_version)
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (investmentData) {
-        const formattedInvestments = investmentData.map(investment => ({
-          id: investment.id,
-          amount: investment.amount || 0,
-          daily_rate: investment.daily_rate || 0,
-          total_earned: investment.total_earned || 0,
-          status: investment.status || 'active',
-          created_at: investment.created_at,
-          end_date: investment.end_date,
-          operations_completed: investment.operations_completed || 0,
-          total_operations: investment.total_operations || 0,
+      if (investmentsData) {
+        const formattedInvestments = investmentsData.map(inv => ({
+          id: inv.id,
+          amount: inv.amount,
+          daily_rate: inv.daily_rate,
+          total_earned: inv.total_earned || 0,
+          status: inv.status,
+          created_at: inv.created_at,
+          end_date: inv.end_date,
+          operations_completed: inv.operations_completed || 0,
+          total_operations: inv.total_operations || 0,
           plan: {
-            name: investment.plan?.name || 'Plano Básico',
-            robot_version: investment.plan?.robot_version || 'v1.0'
+            name: (inv.investment_plans as any)?.name || 'Plano Desconhecido',
+            robot_version: (inv.investment_plans as any)?.robot_version || '4.0.0'
           }
         }));
         setUserInvestments(formattedInvestments);
@@ -415,55 +449,61 @@ const History = () => {
 
   const loadStatistics = async () => {
     try {
-      // Calcular estatísticas baseadas nos dados carregados
-      const totalProfit = profitHistory.reduce((sum, profit) => sum + profit.total_profit, 0);
-      const totalReferralEarnings = referralHistory.reduce((sum, ref) => sum + ref.commission, 0);
+      // Get profile data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('balance, total_profit, referral_balance')
+        .eq('user_id', user?.id)
+        .single();
+
+      // Calculate totals from loaded data
       const totalDeposits = transactionHistory
-        .filter(t => t.type === 'deposit' && t.status === 'completed')
+        .filter(t => t.type === 'deposit' && (t.status === 'paid' || t.status === 'completed'))
         .reduce((sum, t) => sum + t.amount_brl, 0);
+
       const totalWithdrawals = transactionHistory
-        .filter(t => t.type === 'withdrawal' && t.status === 'completed')
+        .filter(t => t.type === 'withdrawal' && (t.status === 'approved' || t.status === 'completed'))
         .reduce((sum, t) => sum + t.amount_brl, 0);
-      const activeReferrals = referralHistory.filter(r => r.status === 'active').length;
-      const totalOperations = tradingHistory.length;
-      const successfulOperations = tradingHistory.filter(t => t.status === 'Concluída').length;
-      const successRate = totalOperations > 0 ? Math.round((successfulOperations / totalOperations) * 100) : 0;
-      
-      // Calcular ganhos deste mês
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const thisMonthEarnings = profitHistory
-        .filter(p => {
-          const profitDate = new Date(p.created_at);
-          return profitDate.getMonth() === currentMonth && profitDate.getFullYear() === currentYear;
-        })
-        .reduce((sum, p) => sum + p.total_profit, 0);
+
+      const completedTrades = tradingHistory.filter(t => t.status === 'Concluída');
+      const totalTradingProfit = completedTrades.reduce((sum, t) => sum + t.profit, 0);
+      const successRate = tradingHistory.length > 0 ? 
+        (completedTrades.length / tradingHistory.length * 100) : 75;
 
       const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-      const currentBalance = totalDeposits - totalWithdrawals + totalProfit + totalReferralEarnings;
+      const totalEarned = userInvestments.reduce((sum, inv) => sum + inv.total_earned, 0);
+      const averageROI = totalInvested > 0 ? (totalEarned / totalInvested * 100) : 0;
+
       const activeInvestments = userInvestments.filter(inv => inv.status === 'active').length;
       const completedInvestments = userInvestments.filter(inv => inv.status === 'completed').length;
-      const totalCommissions = totalReferralEarnings;
-      const averageROI = totalInvested > 0 ? Math.round((totalProfit / totalInvested) * 100) : 0;
+
+      // This month earnings
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      const thisMonthEarnings = profitHistory
+        .filter(p => new Date(p.created_at) >= thisMonth)
+        .reduce((sum, p) => sum + p.total_profit, 0);
+
+      const totalCommissions = referralHistory.reduce((sum, ref) => sum + ref.commission, 0);
 
       setStats({
-        totalProfit,
-        totalReferralEarnings,
+        totalProfit: (profile?.total_profit || 0) + totalTradingProfit + totalEarned,
+        totalReferralEarnings: profile?.referral_balance || 0,
         totalDeposits,
         totalWithdrawals,
-        activeReferrals,
-        successRate,
-        totalOperations,
+        activeReferrals: referralHistory.filter(r => r.status === 'active').length,
+        successRate: Number(successRate.toFixed(1)),
+        totalOperations: tradingHistory.length + profitHistory.length,
         thisMonthEarnings,
         totalInvested,
-        currentBalance,
+        currentBalance: profile?.balance || 0,
         activeInvestments,
         completedInvestments,
         totalCommissions,
-        averageROI
+        averageROI: Number(averageROI.toFixed(2))
       });
     } catch (error) {
-      console.error('Erro ao calcular estatísticas:', error);
+      console.error('Erro ao carregar estatísticas:', error);
     }
   };
 
@@ -509,6 +549,57 @@ const History = () => {
     });
   };
 
+  // Helper functions for status styling
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'concluída':
+      case 'completed':
+        return 'text-emerald-400';
+      case 'pendente':
+      case 'pending':
+        return 'text-yellow-400';
+      case 'erro':
+      case 'failed':
+        return 'text-red-400';
+      default:
+        return 'text-slate-400';
+    }
+  };
+
+  const getTransactionStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'completed':
+      case 'approved':
+        return 'text-emerald-400';
+      case 'pending':
+        return 'text-yellow-400';
+      case 'cancelled':
+      case 'rejected':
+        return 'text-red-400';
+      default:
+        return 'text-slate-400';
+    }
+  };
+
+  const getTransactionStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'completed':
+        return 'Pago';
+      case 'approved':
+        return 'Aprovado';
+      case 'pending':
+        return 'Pendente';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'rejected':
+        return 'Rejeitado';
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white p-5">
       <div className="max-w-7xl mx-auto">
@@ -537,269 +628,453 @@ const History = () => {
           </div>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_300px] grid-rows-[auto_auto_auto] gap-5">
-          
-          {/* Catalog Distribution */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
-            <h3 className="text-gray-200 font-semibold mb-4">Catalog Distribution</h3>
-            <div className="h-48 mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={catalogData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    {catalogData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-2">
-              <div className="text-sm">Certification Results of</div>
-              <div className="text-sm">68% Enterprise Technology</div>
-              <div className="text-sm">45% School Information</div>
-              <div className="text-sm">7000 Supervisor Engineer</div>
-            </div>
-          </div>
+        {/* Tabs for different views */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid grid-cols-4 gap-1 bg-blue-900/50 border border-white/10 p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="trading" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <Bot className="h-4 w-4 mr-2" />
+              Trading
+            </TabsTrigger>
+            <TabsTrigger 
+              value="referrals" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Indicações
+            </TabsTrigger>
+            <TabsTrigger 
+              value="transactions" 
+              className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Transações
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Data Exchange */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
-            <h3 className="text-gray-200 font-semibold mb-4">Data Exchange</h3>
-            <div className="flex justify-between mb-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">850,00</div>
-                <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
-                <div className="text-green-400 font-semibold">● Input</div>
+          <TabsContent value="overview" className="mt-6">
+            {/* Dashboard Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_300px] grid-rows-[auto_auto_auto] gap-5">
+              
+              {/* Catalog Distribution */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
+                <h3 className="text-gray-200 font-semibold mb-4">Catalog Distribution</h3>
+                <div className="h-48 mb-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={catalogData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {catalogData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm">Certification Results of</div>
+                  <div className="text-sm">68% Enterprise Technology</div>
+                  <div className="text-sm">45% School Information</div>
+                  <div className="text-sm">7000 Supervisor Engineer</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-400">970,30</div>
-                <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
-                <div className="text-red-400 font-semibold">● Output</div>
-              </div>
-            </div>
-            <div className="h-48 mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={exchangeData}>
-                  <defs>
-                    <linearGradient id="inputGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
-                    </linearGradient>
-                    <linearGradient id="outputGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                  <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Area
-                    type="monotone"
-                    dataKey="input"
-                    stroke="#10b981"
-                    fill="url(#inputGradient)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="output"
-                    stroke="#ef4444"
-                    fill="url(#outputGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-between text-center">
-              <div>
-                <div className="font-bold">850,00</div>
-                <div className="text-xs text-gray-400">No.1<br/>February</div>
-              </div>
-              <div>
-                <div className="font-bold">750,00</div>
-                <div className="text-xs text-gray-400">No.2<br/>October</div>
-              </div>
-              <div>
-                <div className="font-bold">650,00</div>
-                <div className="text-xs text-gray-400">No.3<br/>November</div>
-              </div>
-              <div>
-                <div className="font-bold">550,00</div>
-                <div className="text-xs text-gray-400">No.4<br/>August</div>
-              </div>
-              <div>
-                <div className="font-bold">450,00</div>
-                <div className="text-xs text-gray-400">No.5<br/>March</div>
-              </div>
-            </div>
-          </div>
 
-          {/* Sidebar */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-3">
-            <div className="flex bg-white/10 rounded-lg p-1 mb-5">
-              {['Month', 'Quarter', 'Year'].map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setActivePeriod(period)}
-                  className={`flex-1 py-2 px-3 rounded text-sm transition-all ${
-                    activePeriod === period 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
-            
-            <div className="mb-8">
-              <div className="text-gray-400 text-sm">Last</div>
-              <div className="text-base my-1">2019-08-</div>
-              <div className="text-gray-400 text-sm">Department of Build</div>
-              <div className="text-blue-400 text-sm">Supervisor Engineer</div>
-              <div className="text-blue-400 text-sm">Certificate</div>
-              <div className="text-gray-400 text-xs mt-2">Interface of Certificate Apply</div>
-            </div>
-
-            <h3 className="text-gray-200 font-semibold mb-3">Catalog Status</h3>
-            <div className="h-24 mb-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={20}
-                    outerRadius={40}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-around text-xs mb-8">
-              <span className="text-blue-400">Release</span>
-              <span className="text-green-400">Submit</span>
-              <span className="text-yellow-400">Sign In</span>
-              <span className="text-red-400">Verify</span>
-            </div>
-
-            <h3 className="text-gray-200 font-semibold mb-3">Interfaces Rank</h3>
-            <div className="space-y-3">
-              {interfaces.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-white/10">
-                  <span className="text-sm">{item.name}</span>
-                  <div className="flex items-center">
-                    <span className="text-sm mr-2">{item.value}</span>
-                    <div className="w-16 h-1 bg-white/20 rounded">
-                      <div 
-                        className="h-full bg-blue-600 rounded"
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
+              {/* Data Exchange */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
+                <h3 className="text-gray-200 font-semibold mb-4">Data Exchange</h3>
+                <div className="flex justify-between mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">850,00</div>
+                    <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
+                    <div className="text-green-400 font-semibold">● Input</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-400">970,30</div>
+                    <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
+                    <div className="text-red-400 font-semibold">● Output</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="h-48 mb-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={exchangeData}>
+                      <defs>
+                        <linearGradient id="inputGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                          <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
+                        </linearGradient>
+                        <linearGradient id="outputGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
+                          <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                      <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                      <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                      <Area
+                        type="monotone"
+                        dataKey="input"
+                        stroke="#10b981"
+                        fill="url(#inputGradient)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="output"
+                        stroke="#ef4444"
+                        fill="url(#outputGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-between text-center">
+                  <div>
+                    <div className="font-bold">850,00</div>
+                    <div className="text-xs text-gray-400">No.1<br/>February</div>
+                  </div>
+                  <div>
+                    <div className="font-bold">750,00</div>
+                    <div className="text-xs text-gray-400">No.2<br/>October</div>
+                  </div>
+                  <div>
+                    <div className="font-bold">650,00</div>
+                    <div className="text-xs text-gray-400">No.3<br/>November</div>
+                  </div>
+                  <div>
+                    <div className="font-bold">550,00</div>
+                    <div className="text-xs text-gray-400">No.4<br/>August</div>
+                  </div>
+                  <div>
+                    <div className="font-bold">450,00</div>
+                    <div className="text-xs text-gray-400">No.5<br/>March</div>
+                  </div>
+                </div>
+              </div>
 
-          {/* Department Radar */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
-            <h3 className="text-gray-200 font-semibold mb-4">Department</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={departmentData}>
-                  <PolarGrid stroke="rgba(255, 255, 255, 0.1)" />
-                  <PolarAngleAxis 
-                    dataKey="subject" 
-                    tick={{ fill: '#94a3b8', fontSize: 10 }}
-                  />
-                  <PolarRadiusAxis 
-                    tick={false}
-                    tickCount={6}
-                    angle={30}
-                  />
-                  <Radar
-                    name="Department"
-                    dataKey="A"
-                    stroke="#10b981"
-                    fill="rgba(16, 185, 129, 0.2)"
-                    strokeWidth={2}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+              {/* Sidebar */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-3">
+                <div className="flex bg-white/10 rounded-lg p-1 mb-5">
+                  {['Month', 'Quarter', 'Year'].map((period) => (
+                    <button
+                      key={period}
+                      onClick={() => setActivePeriod(period)}
+                      className={`flex-1 py-2 px-3 rounded text-sm transition-all ${
+                        activePeriod === period 
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      {period}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="mb-8">
+                  <div className="text-gray-400 text-sm">Last</div>
+                  <div className="text-base my-1">2019-08-</div>
+                  <div className="text-gray-400 text-sm">Department of Build</div>
+                  <div className="text-blue-400 text-sm">Supervisor Engineer</div>
+                  <div className="text-blue-400 text-sm">Certificate</div>
+                  <div className="text-gray-400 text-xs mt-2">Interface of Certificate Apply</div>
+                </div>
 
-          {/* Data Sampling */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
-            <h3 className="text-gray-200 font-semibold mb-4">Data Sampling</h3>
-            <div className="h-32 mb-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData}>
-                  <Bar 
-                    dataKey="volume" 
-                    fill="#3b82f6"
-                    radius={[2, 2, 0, 0]}
-                  />
-                  <XAxis 
-                    dataKey="day" 
-                    tick={{ fill: '#94a3b8', fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>Monday</span>
-              <span>Tuesday</span>
-              <span>Wednesday</span>
-              <span>Thursday</span>
-              <span>Friday</span>
-              <span>Saturday</span>
-              <span>Sunday</span>
-            </div>
-            <div className="mt-4 text-xs text-gray-400 space-y-1">
-              <div>300</div>
-              <div>200</div>
-              <div>100</div>
-              <div>0</div>
-            </div>
-          </div>
+                <h3 className="text-gray-200 font-semibold mb-3">Catalog Status</h3>
+                <div className="h-24 mb-3">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={20}
+                        outerRadius={40}
+                        dataKey="value"
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-around text-xs mb-8">
+                  <span className="text-blue-400">Release</span>
+                  <span className="text-green-400">Submit</span>
+                  <span className="text-yellow-400">Sign In</span>
+                  <span className="text-red-400">Verify</span>
+                </div>
 
-          {/* Status Indicators */}
-          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl col-span-full">
-            <div className="flex justify-center gap-12">
-              <CircularProgress 
-                percentage={75}
-                color="#3b82f6"
-                title="Succeed"
-                subtitle="Information Exchange Succeed"
-              />
-              <CircularProgress 
-                percentage={63}
-                color="#ef4444"
-                title="Fail"
-                subtitle="Information Exchange Succeed"
-              />
-              <CircularProgress 
-                percentage={45}
-                color="#f59e0b"
-                title="Exchanging"
-                subtitle="Information Exchange Succeed"
-              />
+                <h3 className="text-gray-200 font-semibold mb-3">Interfaces Rank</h3>
+                <div className="space-y-3">
+                  {interfaces.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center py-2 border-b border-white/10">
+                      <span className="text-sm">{item.name}</span>
+                      <div className="flex items-center">
+                        <span className="text-sm mr-2">{item.value}</span>
+                        <div className="w-16 h-1 bg-white/20 rounded">
+                          <div 
+                            className="h-full bg-blue-600 rounded"
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Department Radar */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
+                <h3 className="text-gray-200 font-semibold mb-4">Department</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={departmentData}>
+                      <PolarGrid stroke="rgba(255, 255, 255, 0.1)" />
+                      <PolarAngleAxis 
+                        dataKey="subject" 
+                        tick={{ fill: '#94a3b8', fontSize: 10 }}
+                      />
+                      <PolarRadiusAxis 
+                        tick={false}
+                        tickCount={6}
+                        angle={30}
+                      />
+                      <Radar
+                        name="Department"
+                        dataKey="A"
+                        stroke="#10b981"
+                        fill="rgba(16, 185, 129, 0.2)"
+                        strokeWidth={2}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Data Sampling */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
+                <h3 className="text-gray-200 font-semibold mb-4">Data Sampling</h3>
+                <div className="h-32 mb-3">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={barData}>
+                      <Bar 
+                        dataKey="volume" 
+                        fill="#3b82f6"
+                        radius={[2, 2, 0, 0]}
+                      />
+                      <XAxis 
+                        dataKey="day" 
+                        tick={{ fill: '#94a3b8', fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>Monday</span>
+                  <span>Tuesday</span>
+                  <span>Wednesday</span>
+                  <span>Thursday</span>
+                  <span>Friday</span>
+                  <span>Saturday</span>
+                  <span>Sunday</span>
+                </div>
+                <div className="mt-4 text-xs text-gray-400 space-y-1">
+                  <div>300</div>
+                  <div>200</div>
+                  <div>100</div>
+                  <div>0</div>
+                </div>
+              </div>
+
+              {/* Status Indicators */}
+              <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl col-span-full">
+                <div className="flex justify-center gap-12">
+                  <CircularProgress 
+                    percentage={75}
+                    color="#3b82f6"
+                    title="Succeed"
+                    subtitle="Information Exchange Succeed"
+                  />
+                  <CircularProgress 
+                    percentage={63}
+                    color="#ef4444"
+                    title="Fail"
+                    subtitle="Information Exchange Succeed"
+                  />
+                  <CircularProgress 
+                    percentage={45}
+                    color="#f59e0b"
+                    title="Exchanging"
+                    subtitle="Information Exchange Succeed"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          {/* Trading Tab */}
+          <TabsContent value="trading" className="mt-6">
+            <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10">
+              <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2">
+                <Bot className="h-5 w-5 text-green-400" />
+                Histórico de Trading ({tradingHistory.length})
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-auto">
+                {tradingHistory.slice(0, 10).map((trade) => (
+                  <div key={trade.id} className="bg-black/30 backdrop-blur-xl border border-white/20 rounded-xl p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <ArrowUpDown className="h-4 w-4 text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{trade.pair}</p>
+                          <p className="text-gray-400 text-sm">{trade.type}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white">
+                          R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className={`text-sm ${getStatusColor(trade.status)}`}>
+                          {trade.status}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Compra:</span>
+                        <span className="text-white ml-2">
+                          ${trade.buyPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Venda:</span>
+                        <span className="text-white ml-2">
+                          ${trade.sellPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Exchange 1:</span>
+                        <span className="text-white ml-2">{trade.exchange1}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Exchange 2:</span>
+                        <span className="text-white ml-2">{trade.exchange2}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Referrals Tab */}
+          <TabsContent value="referrals" className="mt-6">
+            <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10">
+              <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2">
+                <Users className="h-5 w-5 text-purple-400" />
+                Histórico de Indicações ({referralHistory.length})
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-auto">
+                {referralHistory.map((referral) => (
+                  <div key={referral.id} className="bg-black/30 backdrop-blur-xl border border-white/20 rounded-xl p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Users className="h-4 w-4 text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{referral.referred_user}</p>
+                          <p className="text-gray-400 text-sm">{referral.referred_email}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white">
+                          R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-purple-300 text-sm">
+                          Nível {referral.level}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-gray-400">
+                      {new Date(referral.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Transactions Tab */}
+          <TabsContent value="transactions" className="mt-6">
+            <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10">
+              <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-orange-400" />
+                Histórico de Transações ({transactionHistory.length})
+              </h3>
+              <div className="space-y-3 max-h-96 overflow-auto">
+                {transactionHistory.map((transaction) => (
+                  <div key={transaction.id} className="bg-black/30 backdrop-blur-xl border border-white/20 rounded-xl p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          transaction.type === 'deposit' 
+                            ? 'bg-green-500/20' 
+                            : 'bg-red-500/20'
+                        }`}>
+                          {transaction.type === 'deposit' ? (
+                            <TrendingUp className="h-4 w-4 text-green-400" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-red-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">
+                            {transaction.type === 'deposit' ? 'Depósito' : 'Saque'}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            {transaction.payment_type}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white">
+                          R$ {transaction.amount_brl.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className={`text-sm ${getTransactionStatusColor(transaction.status)}`}>
+                          {getTransactionStatusText(transaction.status)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-gray-400">
+                      {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
+                      {transaction.trx_id && (
+                        <span className="ml-2">• TRX: {transaction.trx_id}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
