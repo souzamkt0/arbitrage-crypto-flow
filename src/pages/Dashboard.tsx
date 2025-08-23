@@ -1121,16 +1121,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Statistics Cards - Above Charts */}
-        <div className="mt-8 mb-6">
-          <h2 className="text-xl font-semibold mb-6 text-white">📊 Estatísticas Financeiras</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TotalProfitCard />
-            <DepositsCard />
-            <WithdrawalsCard />
-          </div>
-        </div>
-
         {/* Crypto Charts Section */}
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-6 text-white">📊 Market Analysis</h2>
@@ -1194,6 +1184,16 @@ const Dashboard = () => {
                 <CardanoChart />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Statistics Cards - Below Bitcoin Chart */}
+        <div className="mt-8 mb-6">
+          <h2 className="text-xl font-semibold mb-6 text-white">📊 Estatísticas Financeiras</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <TotalProfitCard />
+            <DepositsCard />
+            <WithdrawalsCard />
           </div>
         </div>
 
