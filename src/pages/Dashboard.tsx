@@ -458,14 +458,21 @@ const Dashboard = () => {
     loadPartnerData();
     loadUserInvestments();
     
-    // Atualizar dados reais periodicamente (a cada 30 segundos)
-    const interval = setInterval(() => {
+    // Atualizar saldo mais frequentemente (a cada 15 segundos)
+    const balanceInterval = setInterval(() => {
       loadUserData();
+    }, 15000);
+    
+    // Atualizar outros dados menos frequentemente (a cada 45 segundos)
+    const statsInterval = setInterval(() => {
       loadInvestmentStats();
       loadUserInvestments();
-    }, 30000);
+    }, 45000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(balanceInterval);
+      clearInterval(statsInterval);
+    };
   }, [user]);
 
   // Carregar dados reais do usuário
@@ -474,43 +481,64 @@ const Dashboard = () => {
 
     setIsDataSyncing(true);
     try {
-      // Carregar dados do perfil
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // Carregar dados do perfil com timeout para evitar travamento
+      const { data: profileData, error: profileError } = await Promise.race([
+        supabase
+          .from('profiles')
+          .select('balance, total_profit, referral_balance, referral_code')
+          .eq('user_id', user.id)
+          .single(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+      ]) as any;
 
-      if (profileError) throw profileError;
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
 
       if (profileData) {
-        const newBalance = profileData.balance || 0;
-        const newTotalProfit = profileData.total_profit || 0;
+        const newBalance = Number(profileData.balance) || 0;
+        const newTotalProfit = Number(profileData.total_profit) || 0;
+        const newReferralBalance = Number(profileData.referral_balance) || 0;
         
-        // Verificar se os dados mudaram
-        const dataChanged = newBalance !== balance || newTotalProfit !== totalProfit;
+        // Verificar se os dados mudaram significativamente
+        const balanceChanged = Math.abs(newBalance - balance) > 0.01;
+        const profitChanged = Math.abs(newTotalProfit - totalProfit) > 0.01;
         
+        // Atualizar sempre, mesmo sem mudança
         setBalance(newBalance);
         setTotalProfit(newTotalProfit);
-        setReferralBalance(profileData.referral_balance || 0);
+        setReferralBalance(newReferralBalance);
         setReferralLink(`${window.location.origin}/register?ref=${profileData.referral_code || user.id}`);
         
-        // Mostrar notificação se os dados foram atualizados
-        if (dataChanged && lastSyncTime) {
+        // Mostrar notificação apenas se houve mudança significativa
+        if ((balanceChanged || profitChanged) && lastSyncTime) {
           toast({
-            title: "Dados Sincronizados",
-            description: "Saldos atualizados com dados reais do banco",
+            title: "Saldo Atualizado",
+            description: `Novo saldo: R$ ${newBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             variant: "default"
           });
         }
         
         setLastSyncTime(new Date());
+        
+        console.log('💰 Saldo sincronizado:', {
+          balance: newBalance,
+          totalProfit: newTotalProfit,
+          referralBalance: newReferralBalance,
+          timestamp: new Date().toISOString()
+        });
       }
 
       // Carregar estatísticas de ganhos residuais
-      const { data: residualStats } = await supabase.rpc('get_user_referral_stats', {
-        target_user_id: user.id
-      });
+      let residualStats = null;
+      try {
+        const { data } = await supabase.rpc('get_user_referral_stats', {
+          target_user_id: user.id
+        });
+        residualStats = data;
+      } catch (err) {
+        console.log('Aviso: não foi possível carregar estatísticas residuais:', err);
+      }
 
       if (residualStats && residualStats.length > 0) {
         setResidualBalance(residualStats[0].residual_balance || 0);
@@ -519,9 +547,26 @@ const Dashboard = () => {
 
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
+      
+      // Em caso de erro, tentar um fallback simples
+      try {
+        const { data: simpleBalance } = await supabase
+          .from('profiles')
+          .select('balance, total_profit')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (simpleBalance) {
+          setBalance(Number(simpleBalance.balance) || 0);
+          setTotalProfit(Number(simpleBalance.total_profit) || 0);
+        }
+      } catch (fallbackError) {
+        console.error('Erro no fallback de dados:', fallbackError);
+      }
+      
       toast({
-        title: "Erro de Sincronização",
-        description: "Falha ao carregar dados reais do banco",
+        title: "Problemas de Conexão",
+        description: "Dados podem estar desatualizados. Tentando reconectar...",
         variant: "destructive"
       });
     } finally {
@@ -620,7 +665,7 @@ const Dashboard = () => {
         .from('user_investments')
         .select(`
           *,
-          investment_plans (
+          investment_plans!user_investments_plan_id_fkey (
             name,
             daily_rate,
             duration_days
@@ -707,9 +752,21 @@ const Dashboard = () => {
             <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-300 mb-1">My Portfolio</h2>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h2 className="text-base font-semibold text-gray-300">My Portfolio</h2>
+                    {isDataSyncing && (
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" title="Sincronizando dados..."></div>
+                    )}
+                    {lastSyncTime && (
+                      <span className="text-xs text-gray-500">
+                        Atualizado: {lastSyncTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold">R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="text-2xl font-bold animate-[number-tick_2s_ease-in-out_infinite]">
+                      R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
                     <span className="text-xs text-green-400 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
                       +{dailyProfit.toFixed(2)}%
