@@ -1726,6 +1726,10 @@ export type Database = {
         Args: { p_amount: number; p_plan_id: string; p_user_id: string }
         Returns: string
       }
+      debug_auth_context: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_admin_permissions: {
         Args: { admin_email_param: string }
         Returns: {
