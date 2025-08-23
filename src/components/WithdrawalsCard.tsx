@@ -54,41 +54,27 @@ export const WithdrawalsCard = () => {
   }, [user]);
 
   return (
-    <Card className="bg-gradient-to-br from-orange-900/20 to-red-900/20 border-orange-500/20 hover:border-orange-400/30 transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white">
-            <ArrowUpRight className="h-5 w-5" />
+    <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            ↑
           </div>
-          <CardTitle className="text-sm font-medium text-orange-100">
-            Saques
-          </CardTitle>
+          <h3 className="font-semibold text-sm text-white">Saques</h3>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-orange-400">
+      </div>
+      <div className="p-4">
+        <div className="text-2xl font-bold text-white mb-1">
           {loading ? (
-            <div className="animate-pulse bg-orange-400/20 h-8 w-24 rounded"></div>
+            <div className="animate-pulse bg-gray-600 h-8 w-24 rounded"></div>
           ) : (
             `$${totalWithdrawals.toFixed(2)}`
           )}
         </div>
-        <div className="flex items-center justify-between text-xs text-orange-300/80 mt-1">
-          <div className="flex items-center space-x-1">
-            <CheckCircle className="h-3 w-3" />
-            <span>Concluído: ${completedWithdrawals.toFixed(2)}</span>
-          </div>
+        <div className="flex items-center">
+          <span className="text-xs text-red-400">↓ -5.8%</span>
         </div>
-        {pendingWithdrawals > 0 && (
-          <div className="flex items-center space-x-1 text-xs text-yellow-400 mt-1">
-            <AlertCircle className="h-3 w-3" />
-            <span>Pendente: ${pendingWithdrawals.toFixed(2)}</span>
-          </div>
-        )}
-        <CardDescription className="text-orange-200/60 mt-2">
-          Total de saques solicitados
-        </CardDescription>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

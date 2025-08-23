@@ -1190,7 +1190,7 @@ const Dashboard = () => {
         {/* Statistics Cards - Below Bitcoin Chart */}
         <div className="mt-8 mb-6">
           <h2 className="text-xl font-semibold mb-6 text-white">📊 Estatísticas Financeiras</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <TotalProfitCard />
             <DepositsCard />
             <WithdrawalsCard />

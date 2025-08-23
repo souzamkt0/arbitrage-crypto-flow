@@ -56,49 +56,27 @@ export const DepositsCard = () => {
     (totalDepositsBRL / totalDeposits).toFixed(2) : '5.50';
 
   return (
-    <Card className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 border-blue-500/20 hover:border-blue-400/30 transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-            <ArrowDownLeft className="h-5 w-5" />
+    <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            ↓
           </div>
-          <CardTitle className="text-sm font-medium text-blue-100">
-            Depósitos
-          </CardTitle>
+          <h3 className="font-semibold text-sm text-white">Depósitos</h3>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-blue-400">
+      </div>
+      <div className="p-4">
+        <div className="text-2xl font-bold text-white mb-1">
           {loading ? (
-            <div className="animate-pulse bg-blue-400/20 h-8 w-24 rounded"></div>
+            <div className="animate-pulse bg-gray-600 h-8 w-24 rounded"></div>
           ) : (
             `$${totalDeposits.toFixed(2)}`
           )}
         </div>
-        <div className="flex items-center justify-between text-xs text-blue-300/80 mt-1">
-          <div className="flex items-center space-x-1">
-            <Banknote className="h-3 w-3" />
-            <span>R$ {totalDepositsBRL.toFixed(2)}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <CreditCard className="h-3 w-3" />
-            <span className="text-cyan-400">DigiToPay</span>
-          </div>
+        <div className="flex items-center">
+          <span className="text-xs text-green-400">↗ +20.4%</span>
         </div>
-        <div className="flex items-center justify-between text-xs mt-2">
-          <span className="text-blue-200/60">
-            Taxa: R$ {exchangeRate}/USD
-          </span>
-          {pendingDeposits > 0 && (
-            <span className="text-yellow-400">
-              Pendente: ${pendingDeposits.toFixed(2)}
-            </span>
-          )}
-        </div>
-        <CardDescription className="text-blue-200/60 mt-2">
-          Sincronizado com DigiToPay
-        </CardDescription>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
