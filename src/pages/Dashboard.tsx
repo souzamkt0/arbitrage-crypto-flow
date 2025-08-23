@@ -716,34 +716,19 @@ const Dashboard = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <select className="bg-[#2a2f3e] border border-gray-700 rounded-lg px-3 py-1 text-sm">
-                    <option>2023</option>
-                  </select>
-                  <Button size="sm" variant="ghost" className="text-teal-400">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </div>
               </div>
               
-              {/* Portfolio Chart Area */}
-              <div className="relative h-48 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 rounded-lg mb-4 overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-400 mb-1">Total</div>
-                    <div className="text-lg font-bold text-white">
-                      +R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </div>
+              {/* Bitcoin Chart Area */}
+              <div className="relative h-48 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-lg mb-4 overflow-hidden">
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="text-sm text-gray-400 mb-1">Bitcoin Performance</div>
+                  <div className="text-lg font-bold text-white">
+                    +R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-                <svg className="absolute inset-0 w-full h-full">
-                  <path
-                    d="M 0 120 Q 60 80 120 100 T 240 90 T 360 85 T 480 80"
-                    stroke="rgb(45, 212, 191)"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                </svg>
+                <div className="h-full p-4">
+                  <TradingChart />
+                </div>
               </div>
             </div>
 
@@ -963,12 +948,78 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Crypto Charts Section */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-6 text-white">📊 Market Analysis</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Bitcoin Chart */}
+            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ₿
+                  </div>
+                  <h3 className="font-semibold text-sm">Bitcoin (BTC)</h3>
+                </div>
+              </div>
+              <div className="p-4">
+                <TradingChart />
+              </div>
+            </div>
+
+            {/* Ethereum Chart */}
+            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    Ξ
+                  </div>
+                  <h3 className="font-semibold text-sm">Ethereum (ETH)</h3>
+                </div>
+              </div>
+              <div className="p-4">
+                <EthereumChart />
+              </div>
+            </div>
+
+            {/* Solana Chart */}
+            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ◎
+                  </div>
+                  <h3 className="font-semibold text-sm">Solana (SOL)</h3>
+                </div>
+              </div>
+              <div className="p-4">
+                <SolanaChart />
+              </div>
+            </div>
+
+            {/* Cardano Chart */}
+            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+              <div className="p-4 border-b border-gray-800">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    A
+                  </div>
+                  <h3 className="font-semibold text-sm">Cardano (ADA)</h3>
+                </div>
+              </div>
+              <div className="p-4">
+                <CardanoChart />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Transaction Table */}
         <div className="mt-8">
           <div className="bg-[#1a1f2e] rounded-2xl border border-gray-800 overflow-hidden">
             <div className="p-6 border-b border-gray-800">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Transaction</h3>
+                <h3 className="text-lg font-semibold">Latest Arbitrage Operations</h3>
                 <Button variant="ghost" size="sm" className="text-teal-400" onClick={() => navigate('/history')}>
                   See All
                 </Button>
@@ -979,63 +1030,129 @@ const Dashboard = () => {
               <table className="w-full">
                 <thead className="bg-[#0f1419] border-b border-gray-800">
                   <tr className="text-left text-xs text-gray-400 uppercase tracking-wider">
-                    <th className="px-6 py-3">Token Name</th>
-                    <th className="px-6 py-3">Type</th>
-                    <th className="px-6 py-3">Price</th>
-                    <th className="px-6 py-3">Change</th>
-                    <th className="px-6 py-3">Vol</th>
-                    <th className="px-6 py-3">Mkt Cap</th>
+                    <th className="px-6 py-3">Operation</th>
+                    <th className="px-6 py-3">Exchange</th>
+                    <th className="px-6 py-3">Amount</th>
+                    <th className="px-6 py-3">Profit</th>
+                    <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Time</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
                   <tr className="hover:bg-gray-800/30">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                          ₿
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <ArrowUpDown className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <div className="font-medium">Bitcoin</div>
-                          <div className="text-xs text-gray-500">BTC</div>
+                          <div className="font-medium">BTC Arbitrage</div>
+                          <div className="text-xs text-gray-500">Binance → Coinbase</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="w-12 h-6">
-                        <svg className="w-full h-full">
-                          <path d="M0,15 Q3,5 6,10 T12,8" stroke="rgb(239, 68, 68)" strokeWidth="1" fill="none"/>
-                        </svg>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                        <span className="text-xs text-gray-400">→</span>
+                        <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium">$52,000.05</td>
-                    <td className="px-6 py-4 text-red-400">-25.12%</td>
-                    <td className="px-6 py-4 text-gray-400">245.22M</td>
-                    <td className="px-6 py-4 text-gray-400">$2256.12M</td>
+                    <td className="px-6 py-4 font-medium">$2,500.00</td>
+                    <td className="px-6 py-4 text-green-400">+$7.50 (0.3%)</td>
+                    <td className="px-6 py-4">
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        Completed
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{new Date(Date.now() - 300000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                   
                   <tr className="hover:bg-gray-800/30">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                          Ξ
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <ArrowUpDown className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <div className="font-medium">Ethereum</div>
-                          <div className="text-xs text-gray-500">ETH</div>
+                          <div className="font-medium">ETH Arbitrage</div>
+                          <div className="text-xs text-gray-500">Kraken → Binance</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="w-12 h-6">
-                        <svg className="w-full h-full">
-                          <path d="M0,15 Q3,10 6,5 T12,3" stroke="rgb(34, 197, 94)" strokeWidth="1" fill="none"/>
-                        </svg>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                        <span className="text-xs text-gray-400">→</span>
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium">$1,510.05</td>
-                    <td className="px-6 py-4 text-green-400">+1.25%</td>
-                    <td className="px-6 py-4 text-gray-400">246.22M</td>
-                    <td className="px-6 py-4 text-gray-400">$62,415.60M</td>
+                    <td className="px-6 py-4 font-medium">$1,800.00</td>
+                    <td className="px-6 py-4 text-green-400">+$4.32 (0.24%)</td>
+                    <td className="px-6 py-4">
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        Completed
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{new Date(Date.now() - 600000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                  </tr>
+
+                  <tr className="hover:bg-gray-800/30">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                          <ArrowUpDown className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium">SOL Arbitrage</div>
+                          <div className="text-xs text-gray-500">FTX → Binance</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-4 h-4 bg-teal-500 rounded-full"></div>
+                        <span className="text-xs text-gray-400">→</span>
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-medium">$950.00</td>
+                    <td className="px-6 py-4 text-yellow-400">+$2.85 (0.3%)</td>
+                    <td className="px-6 py-4">
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                        Processing
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{new Date(Date.now() - 120000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                  </tr>
+
+                  <tr className="hover:bg-gray-800/30">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                          <ArrowUpDown className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium">ADA Arbitrage</div>
+                          <div className="text-xs text-gray-500">Coinbase → Kraken</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs text-gray-400">→</span>
+                        <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-medium">$1,200.00</td>
+                    <td className="px-6 py-4 text-green-400">+$3.60 (0.3%)</td>
+                    <td className="px-6 py-4">
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        Completed
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{new Date(Date.now() - 900000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 </tbody>
               </table>
