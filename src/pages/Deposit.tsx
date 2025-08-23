@@ -298,6 +298,67 @@ const Deposit = () => {
                 </Card>
               </div>
 
+              {/* Mobile Live Orders Box - Only visible on mobile */}
+              <div className="md:hidden">
+                <Card className="bg-card border-border">
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      
+                      {/* Live Sell Orders */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingDown className="h-4 w-4 text-red-400" />
+                          <h3 className="text-sm font-semibold text-red-400">Live Sell</h3>
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {sellOrders.slice(0, 5).map((order, index) => (
+                            <div 
+                              key={`mobile-sell-${index}`}
+                              className="grid grid-cols-2 gap-1 text-xs p-2 bg-muted/30 rounded border-l-2 border-red-500/50"
+                            >
+                              <div className="text-red-400 font-medium">
+                                {order.value}
+                              </div>
+                              <div className="text-foreground">
+                                {order.amount}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Live Buy Orders */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="h-4 w-4 text-green-400" />
+                          <h3 className="text-sm font-semibold text-green-400">Live Buy</h3>
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {buyOrders.slice(0, 5).map((order, index) => (
+                            <div 
+                              key={`mobile-buy-${index}`}
+                              className="grid grid-cols-2 gap-1 text-xs p-2 bg-muted/30 rounded border-l-2 border-green-500/50"
+                            >
+                              <div className="text-green-400 font-medium">
+                                {order.value}
+                              </div>
+                              <div className="text-foreground">
+                                {order.amount}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
               {/* Deposit Interface - Fully Responsive */}
               <Card className="bg-card border-border">
                 <CardHeader className="border-b border-border p-4 md:p-6">
