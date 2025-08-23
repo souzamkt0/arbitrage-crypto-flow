@@ -23,6 +23,62 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
+// Componente para mostrar o lucro do dia usando nossa função
+const TodaysProfitCard = () => {
+  const [todaysProfit, setTodaysProfit] = useState(0);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const calculateTodaysProfit = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('calculate_and_store_daily_profit', {
+          target_user_id: user.id
+        });
+        
+        if (error) {
+          console.error('Erro ao calcular ganho diário:', error);
+          setTodaysProfit(0);
+        } else {
+          setTodaysProfit(Number(data) || 0);
+        }
+      } catch (error) {
+        console.error('Erro ao calcular ganho diário:', error);
+        setTodaysProfit(0);
+      }
+    };
+
+    calculateTodaysProfit();
+    // Atualizar a cada 2 minutos
+    const interval = setInterval(calculateTodaysProfit, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value);
+  };
+
+  return (
+    <Card className="bg-muted/50">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-orange-600" />
+          <div>
+            <p className="text-sm text-muted-foreground">Today's Profit</p>
+            <p className="font-bold text-blue-600">
+              {formatCurrency(todaysProfit)}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 interface ActivePlan {
   id: string;
   amount: number;
@@ -327,19 +383,7 @@ export const ActivePlansTable = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Today's Profit</p>
-                  <p className="font-bold text-blue-600">
-                    {formatCurrency(activePlans.reduce((sum, plan) => sum + plan.today_earnings, 0))}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TodaysProfitCard />
         </div>
       </CardContent>
     </Card>
