@@ -461,8 +461,11 @@ const Deposit = () => {
               {/* Buy Orders */}
               <div className="bg-[#151b2b] rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-green-400" />
-                  <h3 className="text-sm font-semibold text-white">Buy Orders</h3>
+                  <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
+                  <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
+                  <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
+                    LIVE
+                  </div>
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
                 </div>
                 
