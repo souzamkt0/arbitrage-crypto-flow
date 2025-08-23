@@ -719,14 +719,14 @@ const Dashboard = () => {
               </div>
               
               {/* Bitcoin Chart Area */}
-              <div className="relative h-36 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-lg mb-3 overflow-hidden">
+              <div className="relative h-36 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-lg mb-3 overflow-hidden animate-[chart-glow_3s_ease-in-out_infinite] animate-[breathe_4s_ease-in-out_infinite]">
                 <div className="absolute top-3 left-3 z-10 animate-fade-in">
-                  <div className="text-xs text-gray-400 mb-1">Bitcoin Performance</div>
-                  <div className="text-sm font-bold text-white">
+                  <div className="text-xs text-gray-400 mb-1 animate-[float_3s_ease-in-out_infinite]">Bitcoin Performance</div>
+                  <div className="text-sm font-bold text-white animate-[number-tick_2s_ease-in-out_infinite]">
                     $52,420.85
                   </div>
-                  <div className="text-xs text-green-400 flex items-center">
-                    <TrendingUp className="w-3 h-3 mr-1" />
+                  <div className="text-xs text-green-400 flex items-center animate-[trading-pulse_2s_ease-in-out_infinite]">
+                    <TrendingUp className="w-3 h-3 mr-1 animate-[float_2s_ease-in-out_infinite]" />
                     +2.34% (24h)
                   </div>
                 </div>
@@ -896,6 +896,24 @@ const Dashboard = () => {
                 
                 {/* Overlay com efeito de brilho azul */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent opacity-0 animate-shine"></div>
+                
+                {/* Wave effect animation */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent animate-[slide-wave_4s_ease-in-out_infinite]" 
+                       style={{ top: '60%', animationDelay: '1s' }}></div>
+                  <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-green-400/40 to-transparent animate-[slide-wave_5s_ease-in-out_infinite]" 
+                       style={{ top: '80%', animationDelay: '2s' }}></div>
+                </div>
+                
+                {/* Floating price particles */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute text-xs text-blue-400/60 animate-[data-flow_8s_linear_infinite]" 
+                       style={{ top: '40%', left: '-20px', animationDelay: '1s' }}>+2.34%</div>
+                  <div className="absolute text-xs text-green-400/60 animate-[data-flow_10s_linear_infinite]" 
+                       style={{ top: '65%', left: '-20px', animationDelay: '3s' }}>▲ $52.4k</div>
+                  <div className="absolute text-xs text-blue-300/60 animate-[data-flow_12s_linear_infinite]" 
+                       style={{ top: '30%', left: '-20px', animationDelay: '5s' }}>Vol: 2.1B</div>
+                </div>
                 
                 {/* Indicadores de mercado */}
                 <div className="absolute bottom-3 left-3 flex space-x-4 text-xs animate-fade-in" style={{ animationDelay: '2s' }}>
