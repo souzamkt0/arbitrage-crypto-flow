@@ -267,6 +267,42 @@ export type Database = {
           },
         ]
       }
+      daily_profits: {
+        Row: {
+          created_at: string
+          daily_target: number
+          date: string
+          id: string
+          last_updated: string
+          profit_percentage: number
+          today_profit: number
+          total_invested: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_target?: number
+          date?: string
+          id?: string
+          last_updated?: string
+          profit_percentage?: number
+          today_profit?: number
+          total_invested?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_target?: number
+          date?: string
+          id?: string
+          last_updated?: string
+          profit_percentage?: number
+          today_profit?: number
+          total_invested?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           amount_brl: number | null
@@ -1522,6 +1558,10 @@ export type Database = {
       apply_role_constraint_migration: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      calculate_and_store_daily_profit: {
+        Args: { target_user_id: string }
+        Returns: number
       }
       calculate_available_withdrawal_balance: {
         Args: { user_id_param: string }
