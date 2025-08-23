@@ -589,6 +589,324 @@ Atenciosamente,
         </div>
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+          {/* Detailed User Performance Dashboard - MOVED TO TOP */}
+          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
+            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold text-white">
+                      Team Performance Dashboard
+                    </CardTitle>
+                    <p className="text-sm text-gray-400">Complete user details and analytics</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    <Wifi className="h-3 w-3 mr-1" />
+                    LIVE
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6">
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search team members..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-slate-800/60 border-purple-500/30 text-white w-80"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={whatsappFilter} onValueChange={(value: any) => setWhatsappFilter(value)}>
+                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                      <SelectItem value="all">All Contact</SelectItem>
+                      <SelectItem value="with">With WhatsApp</SelectItem>
+                      <SelectItem value="without">No WhatsApp</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-purple-500/30 text-purple-400 ml-auto"
+                  onClick={async () => {
+                    setIsRefreshing(true);
+                    // Reload data logic here
+                    setTimeout(() => setIsRefreshing(false), 1000);
+                  }}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+                </Button>
+              </div>
+
+              {/* Performance Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Avg Performance</p>
+                        <p className="text-2xl font-bold text-blue-400">
+                          {filteredUsers.length > 0 
+                            ? Math.round(filteredUsers.reduce((sum, user) => sum + (user.performance || 0), 0) / filteredUsers.length)
+                            : 0}%
+                        </p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-blue-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Active Investments</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {filteredUsers.reduce((sum, user) => sum + (user.activeInvestments || 0), 0)}
+                        </p>
+                      </div>
+                      <Target className="h-8 w-8 text-green-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Total Profits</p>
+                        <p className="text-2xl font-bold text-yellow-400">
+                          {formatCurrency(filteredUsers.reduce((sum, user) => sum + (user.totalProfit || 0), 0))}
+                        </p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-yellow-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">With WhatsApp</p>
+                        <p className="text-2xl font-bold text-purple-400">
+                          {stats.withWhatsapp}/{stats.totalReferrals}
+                        </p>
+                      </div>
+                      <Phone className="h-8 w-8 text-purple-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Users Table */}
+              {filteredUsers.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-600/50 hover:bg-slate-800/30">
+                        <TableHead className="text-purple-400 font-medium">User</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Status</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Location</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Performance</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Investments</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Profit</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Commission</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Join Date</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id} className="border-slate-600/30 hover:bg-slate-800/20 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-white">{user.name}</p>
+                                <p className="text-sm text-gray-400">{user.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {user.status === 'active' ? (
+                                <>
+                                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Active
+                                  </Badge>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                                  <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">
+                                    <UserX className="h-3 w-3 mr-1" />
+                                    Inactive
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-sm text-gray-300">
+                              <MapPin className="h-3 w-3 text-gray-400" />
+                              {user.city && user.state ? (
+                                <span>{user.city}, {user.state}</span>
+                              ) : (
+                                <span className="text-gray-500 italic">Not provided</span>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-white">
+                                    {user.performance?.toFixed(1)}%
+                                  </span>
+                                  {(user.performance || 0) > 0 ? (
+                                    <TrendingUp className="h-3 w-3 text-green-400" />
+                                  ) : (
+                                    <TrendingDown className="h-3 w-3 text-red-400" />
+                                  )}
+                                </div>
+                                <Progress 
+                                  value={Math.min(Math.max(user.performance || 0, 0), 100)} 
+                                  className="h-1"
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-white">
+                                {formatCurrency(user.investmentAmount)}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {user.activeInvestments || 0} active
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="text-sm font-medium text-green-400">
+                              {formatCurrency(user.totalProfit || 0)}
+                            </p>
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="text-sm font-medium text-yellow-400">
+                              {formatCurrency(user.commission)}
+                            </p>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="text-sm text-gray-300">
+                              <p>{formatDate(user.joinDate)}</p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatDate(user.lastActivity)}
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {user.whatsapp ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => openMessageModal(user)}
+                                  className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
+                                  title="Send WhatsApp message"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled
+                                  className="border-gray-500/30 text-gray-500 h-8 w-8 p-0"
+                                  title="No WhatsApp available"
+                                >
+                                  <WifiOff className="h-4 w-4" />
+                                </Button>
+                              )}
+                              
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
+                                title="View details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="p-8 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
+                    <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400 text-xl font-medium mb-2">No team members found</p>
+                    <p className="text-gray-500 mb-4">Start sharing your referral link to build your network</p>
+                    <Button 
+                      onClick={copyToClipboard}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Referral Link
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Referrals */}
@@ -1051,314 +1369,6 @@ Atenciosamente,
               </Card>
             </div>
           </div>
-
-          {/* Detailed User Performance Table */}
-          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                    <BarChart3 className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold text-white">
-                      Team Performance Dashboard
-                    </CardTitle>
-                    <p className="text-sm text-gray-400">Complete user details and analytics</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                    <Wifi className="h-3 w-3 mr-1" />
-                    LIVE
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6">
-              {/* Filters */}
-              <div className="flex flex-wrap items-center gap-4 mb-6">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search team members..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-slate-800/60 border-purple-500/30 text-white w-80"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={whatsappFilter} onValueChange={(value: any) => setWhatsappFilter(value)}>
-                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
-                      <SelectItem value="all">All Contact</SelectItem>
-                      <SelectItem value="with">With WhatsApp</SelectItem>
-                      <SelectItem value="without">No WhatsApp</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400 ml-auto">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Data
-                </Button>
-              </div>
-
-              {/* Performance Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-400">Avg Performance</p>
-                        <p className="text-2xl font-bold text-blue-400">
-                          {filteredUsers.length > 0 
-                            ? Math.round(filteredUsers.reduce((sum, user) => sum + (user.performance || 0), 0) / filteredUsers.length)
-                            : 0}%
-                        </p>
-                      </div>
-                      <TrendingUp className="h-8 w-8 text-blue-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-400">Active Investments</p>
-                        <p className="text-2xl font-bold text-green-400">
-                          {filteredUsers.reduce((sum, user) => sum + (user.activeInvestments || 0), 0)}
-                        </p>
-                      </div>
-                      <Target className="h-8 w-8 text-green-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-400">Total Profits</p>
-                        <p className="text-2xl font-bold text-yellow-400">
-                          {formatCurrency(filteredUsers.reduce((sum, user) => sum + (user.totalProfit || 0), 0))}
-                        </p>
-                      </div>
-                      <DollarSign className="h-8 w-8 text-yellow-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-400">With WhatsApp</p>
-                        <p className="text-2xl font-bold text-purple-400">
-                          {stats.withWhatsapp}/{stats.totalReferrals}
-                        </p>
-                      </div>
-                      <Phone className="h-8 w-8 text-purple-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Detailed Users Table */}
-              {filteredUsers.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-slate-600/50 hover:bg-slate-800/30">
-                        <TableHead className="text-purple-400 font-medium">User</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Status</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Location</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Performance</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Investments</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Profit</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Commission</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Join Date</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.id} className="border-slate-600/30 hover:bg-slate-800/20 transition-colors">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold">
-                                  {user.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium text-white">{user.name}</p>
-                                <p className="text-sm text-gray-400">{user.email}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {user.status === 'active' ? (
-                                <>
-                                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Active
-                                  </Badge>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                                  <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">
-                                    <UserX className="h-3 w-3 mr-1" />
-                                    Inactive
-                                  </Badge>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-gray-300">
-                              <MapPin className="h-3 w-3 text-gray-400" />
-                              {user.city && user.state ? (
-                                <span>{user.city}, {user.state}</span>
-                              ) : (
-                                <span className="text-gray-500 italic">Not provided</span>
-                              )}
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm font-medium text-white">
-                                    {user.performance?.toFixed(1)}%
-                                  </span>
-                                  {(user.performance || 0) > 0 ? (
-                                    <TrendingUp className="h-3 w-3 text-green-400" />
-                                  ) : (
-                                    <TrendingDown className="h-3 w-3 text-red-400" />
-                                  )}
-                                </div>
-                                <Progress 
-                                  value={Math.min(Math.max(user.performance || 0, 0), 100)} 
-                                  className="h-1"
-                                />
-                              </div>
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="text-center">
-                              <p className="text-sm font-medium text-white">
-                                {formatCurrency(user.investmentAmount)}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {user.activeInvestments || 0} active
-                              </p>
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <p className="text-sm font-medium text-green-400">
-                              {formatCurrency(user.totalProfit || 0)}
-                            </p>
-                          </TableCell>
-
-                          <TableCell>
-                            <p className="text-sm font-medium text-yellow-400">
-                              {formatCurrency(user.commission)}
-                            </p>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="text-sm text-gray-300">
-                              <p>{formatDate(user.joinDate)}</p>
-                              <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {formatDate(user.lastActivity)}
-                              </p>
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              {user.whatsapp ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => openMessageModal(user)}
-                                  className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
-                                  title="Send WhatsApp message"
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  disabled
-                                  className="border-gray-500/30 text-gray-500 h-8 w-8 p-0"
-                                  title="No WhatsApp available"
-                                >
-                                  <WifiOff className="h-4 w-4" />
-                                </Button>
-                              )}
-                              
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
-                                title="View details"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="p-8 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
-                    <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 text-xl font-medium mb-2">No team members found</p>
-                    <p className="text-gray-500 mb-4">Start sharing your referral link to build your network</p>
-                    <Button 
-                      onClick={copyToClipboard}
-                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Referral Link
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         {/* WhatsApp Message Modal */}
