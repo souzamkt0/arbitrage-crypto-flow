@@ -319,7 +319,9 @@ export const ActivePlansTable = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{plan.daily_rate}%</div>
+                    <div className="font-medium">
+                      {plan.amount > 0 ? Math.min(2.0, ((plan.total_earned / plan.amount) * 100)).toFixed(2) : '0.00'}%
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
