@@ -997,6 +997,13 @@ const Dashboard = () => {
               </div>
             </div>
 
+            {/* Statistics Cards - After Trading Balance */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <TotalProfitCard />
+              <DepositsCard />
+              <WithdrawalsCard />
+            </div>
+
             {/* Asset Cards Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {/* BTC Card */}
@@ -1101,13 +1108,6 @@ const Dashboard = () => {
                 <div className="text-sm font-medium mb-1">Analysis</div>
                 <div className="text-xs text-gray-500">Markets</div>
               </div>
-            </div>
-
-            {/* Statistics Cards - After Crypto Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <TotalProfitCard />
-              <DepositsCard />
-              <WithdrawalsCard />
             </div>
 
             {/* Active Plans Table */}
