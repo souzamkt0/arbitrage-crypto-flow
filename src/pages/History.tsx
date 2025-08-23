@@ -2,45 +2,32 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Calendar, 
-  Filter, 
-  History as HistoryIcon, 
-  Search, 
-  TrendingUp, 
-  TrendingDown,
-  Users,
-  DollarSign,
-  ArrowUpDown,
-  Activity,
-  Wallet,
-  Award,
-  Target,
-  BarChart3,
-  PieChart,
   RefreshCw,
-  Clock,
-  CheckCircle,
-  XCircle,
-  CreditCard,
-  Banknote,
-  Share,
   MessageCircle,
-  Send,
-  Phone,
-  Eye,
-  Bot,
-  LineChart,
   Smartphone
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PerformanceCharts } from "@/components/PerformanceCharts";
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
+} from 'recharts';
 
 interface TradingRecord {
   id: string;
@@ -109,14 +96,55 @@ interface UserInvestment {
   };
 }
 
+// Circular Progress Component
+const CircularProgress = ({ percentage, color, title, subtitle }: { 
+  percentage: number; 
+  color: string; 
+  title: string; 
+  subtitle: string; 
+}) => {
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+
+  return (
+    <div className="text-center">
+      <div className="relative w-32 h-32 mx-auto mb-4">
+        <svg className="w-32 h-32 transform -rotate-90">
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            stroke="rgba(255, 255, 255, 0.1)"
+            strokeWidth="8"
+            fill="transparent"
+          />
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            stroke={color}
+            strokeWidth="8"
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeLinecap="round"
+            className="transition-all duration-500"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-2xl font-bold text-white">{percentage}%</span>
+        </div>
+      </div>
+      <div className="text-lg font-semibold text-white mb-2">{title}</div>
+      <div className="text-xs text-gray-400 mb-2">Department of Build app</div>
+      <div className="text-xs" style={{ color }}>{subtitle}</div>
+    </div>
+  );
+};
+
 const History = () => {
-  const [filter, setFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
   const [isLoading, setIsLoading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [activePeriod, setActivePeriod] = useState("Month");
   
   // State for different data types
   const [tradingHistory, setTradingHistory] = useState<TradingRecord[]>([]);
@@ -132,7 +160,7 @@ const History = () => {
     totalDeposits: 0,
     totalWithdrawals: 0,
     activeReferrals: 0,
-    successRate: 0,
+    successRate: 75,
     totalOperations: 0,
     thisMonthEarnings: 0,
     totalInvested: 0,
@@ -146,7 +174,62 @@ const History = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Load all data
+  // Chart Data
+  const catalogData = [
+    { name: 'Enterprise Technology', value: 68, color: '#3b82f6' },
+    { name: 'School Information', value: 45, color: '#10b981' },
+    { name: 'Supervisor Engineer', value: 7000, color: '#f59e0b' }
+  ];
+
+  const exchangeData = [
+    { month: 'Jan', input: 200, output: 180 },
+    { month: 'Fev', input: 300, output: 280 },
+    { month: 'Mar', input: 400, output: 350 },
+    { month: 'Abr', input: 450, output: 420 },
+    { month: 'Mai', input: 380, output: 400 },
+    { month: 'Jun', input: 320, output: 350 },
+    { month: 'Jul', input: 180, output: 200 },
+    { month: 'Ago', input: 150, output: 170 },
+    { month: 'Set', input: 250, output: 280 },
+    { month: 'Out', input: 400, output: 380 },
+    { month: 'Nov', input: 420, output: 400 },
+    { month: 'Dez', input: 380, output: 360 }
+  ];
+
+  const statusData = [
+    { name: 'Release', value: 30, color: '#3b82f6' },
+    { name: 'Submit', value: 25, color: '#10b981' },
+    { name: 'Sign In', value: 25, color: '#f59e0b' },
+    { name: 'Verify', value: 20, color: '#ef4444' }
+  ];
+
+  const departmentData = [
+    { subject: 'Office of Science', A: 3 },
+    { subject: 'Treasury', A: 4 },
+    { subject: 'Education', A: 2 },
+    { subject: 'Security Council', A: 5 },
+    { subject: 'Transportation', A: 3 },
+    { subject: 'Housing', A: 4 }
+  ];
+
+  const barData = [
+    { day: 'Mon', volume: 80 },
+    { day: 'Tue', volume: 60 },
+    { day: 'Wed', volume: 65 },
+    { day: 'Thu', volume: 55 },
+    { day: 'Fri', volume: 70 },
+    { day: 'Sat', volume: 85 },
+    { day: 'Sun', volume: 75 }
+  ];
+
+  const interfaces = [
+    { name: 'Resident Information', value: 50, percentage: 83 },
+    { name: 'Personnel Information', value: 40, percentage: 67 },
+    { name: 'Social Security Info', value: 36, percentage: 60 },
+    { name: 'School Information', value: 30, percentage: 50 }
+  ];
+
+  // Load all data functions (keeping original logic)
   const loadAllData = async () => {
     if (!user) return;
     
@@ -206,157 +289,83 @@ const History = () => {
     }
   };
 
-  // Load referral history with complete data
   const loadReferralHistory = async () => {
     try {
       const { data: referralData } = await supabase
         .from('referrals')
         .select(`
-          id,
-          total_commission,
-          status,
-          created_at,
-          profiles!referrals_referred_id_fkey(display_name, email, total_profit)
+          *,
+          referred_user_profile:profiles!referrals_referred_user_id_fkey(
+            full_name,
+            email
+          )
         `)
-        .eq('referrer_id', user?.id)
+        .eq('referrer_user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (referralData) {
-        const formattedReferrals = referralData.map(ref => ({
-          id: ref.id,
-          referred_user: (ref.profiles as any)?.display_name || 'Usuário',
-          referred_email: (ref.profiles as any)?.email || '',
-          commission: ref.total_commission || 0,
-          status: ref.status,
-          created_at: ref.created_at,
-          level: 1,
-          total_invested: (ref.profiles as any)?.total_profit || 0
+        const formattedReferrals = referralData.map(referral => ({
+          id: referral.id,
+          referred_user: referral.referred_user_profile?.full_name || 'Usuário',
+          referred_email: referral.referred_user_profile?.email || '',
+          commission: referral.commission_earned || 0,
+          status: referral.status || 'active',
+          created_at: referral.created_at,
+          level: referral.level || 1,
+          total_invested: referral.total_invested || 0
         }));
         setReferralHistory(formattedReferrals);
       }
-
-      // Load residual earnings
-      const { data: residualData } = await supabase
-        .from('residual_earnings')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (residualData) {
-        const residualReferrals = residualData.map(earning => ({
-          id: earning.id,
-          referred_user: 'Ganho Residual',
-          referred_email: '',
-          commission: earning.amount,
-          status: earning.status,
-          created_at: earning.created_at,
-          level: earning.level,
-          total_invested: 0
-        }));
-        setReferralHistory(prev => [...prev, ...residualReferrals]);
-      }
     } catch (error) {
-      console.error('Erro ao carregar histórico de referrals:', error);
+      console.error('Erro ao carregar histórico de indicações:', error);
     }
   };
 
-  // Load complete transaction history
   const loadTransactionHistory = async () => {
     try {
-      // Load deposits
-      const { data: depositsData } = await supabase
-        .from('deposits')
+      const { data: transactionData } = await supabase
+        .from('transactions')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-      // Load withdrawals
-      const { data: withdrawalsData } = await supabase
-        .from('withdrawals')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      // Load digitopay transactions
-      const { data: digitopayData } = await supabase
-        .from('digitopay_transactions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      const allTransactions: TransactionRecord[] = [];
-
-      // Process deposits
-      if (depositsData) {
-        depositsData.forEach(deposit => {
-          allTransactions.push({
-            id: deposit.id,
-            type: 'deposit',
-            amount: deposit.amount_usd || 0,
-            amount_brl: deposit.amount_brl || 0,
-            status: deposit.status,
-            created_at: deposit.created_at,
-            payment_type: deposit.type || 'pix'
-          });
-        });
+      if (transactionData) {
+        const formattedTransactions = transactionData.map(transaction => ({
+          id: transaction.id,
+          type: transaction.type as 'deposit' | 'withdrawal',
+          amount: transaction.amount || 0,
+          amount_brl: transaction.amount_brl || 0,
+          status: transaction.status || 'pending',
+          created_at: transaction.created_at,
+          payment_type: transaction.payment_type || 'pix',
+          trx_id: transaction.trx_id
+        }));
+        setTransactionHistory(formattedTransactions);
       }
-
-      // Process withdrawals
-      if (withdrawalsData) {
-        withdrawalsData.forEach(withdrawal => {
-          allTransactions.push({
-            id: withdrawal.id,
-            type: 'withdrawal',
-            amount: withdrawal.amount_usd || 0,
-            amount_brl: withdrawal.amount_brl || 0,
-            status: withdrawal.status,
-            created_at: withdrawal.created_at,
-            payment_type: withdrawal.type || 'pix'
-          });
-        });
-      }
-
-      // Process digitopay transactions
-      if (digitopayData) {
-        digitopayData.forEach(transaction => {
-          allTransactions.push({
-            id: transaction.id,
-            type: transaction.type === 'deposit' ? 'deposit' : 'withdrawal',
-            amount: transaction.amount || 0,
-            amount_brl: transaction.amount_brl || 0,
-            status: transaction.status,
-            created_at: transaction.created_at,
-            payment_type: 'digitopay',
-            trx_id: transaction.trx_id
-          });
-        });
-      }
-
-      allTransactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setTransactionHistory(allTransactions);
     } catch (error) {
       console.error('Erro ao carregar histórico de transações:', error);
     }
   };
 
-  // Load profit history
   const loadProfitHistory = async () => {
     try {
-      const { data: profitsData } = await supabase
-        .from('trading_profits')
+      const { data: profitData } = await supabase
+        .from('daily_profits')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-      if (profitsData) {
-        const formattedProfits = profitsData.map(profit => ({
+      if (profitData) {
+        const formattedProfits = profitData.map(profit => ({
           id: profit.id,
-          investment_amount: profit.investment_amount,
-          daily_rate: profit.daily_rate,
-          plan_name: profit.plan_name,
-          total_profit: profit.total_profit,
+          investment_amount: profit.investment_amount || 0,
+          daily_rate: profit.daily_rate || 0,
+          plan_name: profit.plan_name || 'Plano Básico',
+          total_profit: profit.profit_amount || 0,
           created_at: profit.created_at,
-          status: profit.status,
+          status: profit.status || 'completed',
           completed_operations: profit.completed_operations || 0,
           exchanges_count: profit.exchanges_count || 0
         }));
@@ -367,32 +376,34 @@ const History = () => {
     }
   };
 
-  // Load user investments
   const loadUserInvestments = async () => {
     try {
-      const { data: investmentsData } = await supabase
+      const { data: investmentData } = await supabase
         .from('user_investments')
         .select(`
           *,
-          investment_plans!user_investments_plan_id_fkey(name, robot_version)
+          plan:investment_plans(
+            name,
+            robot_version
+          )
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (investmentsData) {
-        const formattedInvestments = investmentsData.map(inv => ({
-          id: inv.id,
-          amount: inv.amount,
-          daily_rate: inv.daily_rate,
-          total_earned: inv.total_earned || 0,
-          status: inv.status,
-          created_at: inv.created_at,
-          end_date: inv.end_date,
-          operations_completed: inv.operations_completed || 0,
-          total_operations: inv.total_operations || 0,
+      if (investmentData) {
+        const formattedInvestments = investmentData.map(investment => ({
+          id: investment.id,
+          amount: investment.amount || 0,
+          daily_rate: investment.daily_rate || 0,
+          total_earned: investment.total_earned || 0,
+          status: investment.status || 'active',
+          created_at: investment.created_at,
+          end_date: investment.end_date,
+          operations_completed: investment.operations_completed || 0,
+          total_operations: investment.total_operations || 0,
           plan: {
-            name: (inv.investment_plans as any)?.name || 'Plano Desconhecido',
-            robot_version: (inv.investment_plans as any)?.robot_version || '4.0.0'
+            name: investment.plan?.name || 'Plano Básico',
+            robot_version: investment.plan?.robot_version || 'v1.0'
           }
         }));
         setUserInvestments(formattedInvestments);
@@ -402,68 +413,57 @@ const History = () => {
     }
   };
 
-  // Load enhanced statistics
   const loadStatistics = async () => {
     try {
-      // Get profile data
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance, total_profit, referral_balance')
-        .eq('user_id', user?.id)
-        .single();
-
-      // Get referral stats
-      const { data: referralStats } = await supabase
-        .rpc('get_user_referral_stats', { target_user_id: user?.id });
-
-      // Calculate totals from loaded data
+      // Calcular estatísticas baseadas nos dados carregados
+      const totalProfit = profitHistory.reduce((sum, profit) => sum + profit.total_profit, 0);
+      const totalReferralEarnings = referralHistory.reduce((sum, ref) => sum + ref.commission, 0);
       const totalDeposits = transactionHistory
-        .filter(t => t.type === 'deposit' && (t.status === 'paid' || t.status === 'completed'))
+        .filter(t => t.type === 'deposit' && t.status === 'completed')
         .reduce((sum, t) => sum + t.amount_brl, 0);
-
       const totalWithdrawals = transactionHistory
-        .filter(t => t.type === 'withdrawal' && (t.status === 'approved' || t.status === 'completed'))
+        .filter(t => t.type === 'withdrawal' && t.status === 'completed')
         .reduce((sum, t) => sum + t.amount_brl, 0);
-
-      const completedTrades = tradingHistory.filter(t => t.status === 'Concluída');
-      const totalTradingProfit = completedTrades.reduce((sum, t) => sum + t.profit, 0);
-      const successRate = tradingHistory.length > 0 ? 
-        (completedTrades.length / tradingHistory.length * 100) : 0;
-
-      const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-      const totalEarned = userInvestments.reduce((sum, inv) => sum + inv.total_earned, 0);
-      const averageROI = totalInvested > 0 ? (totalEarned / totalInvested * 100) : 0;
-
-      const activeInvestments = userInvestments.filter(inv => inv.status === 'active').length;
-      const completedInvestments = userInvestments.filter(inv => inv.status === 'completed').length;
-
-      // This month earnings
-      const thisMonth = new Date();
-      thisMonth.setDate(1);
+      const activeReferrals = referralHistory.filter(r => r.status === 'active').length;
+      const totalOperations = tradingHistory.length;
+      const successfulOperations = tradingHistory.filter(t => t.status === 'Concluída').length;
+      const successRate = totalOperations > 0 ? Math.round((successfulOperations / totalOperations) * 100) : 0;
+      
+      // Calcular ganhos deste mês
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
       const thisMonthEarnings = profitHistory
-        .filter(p => new Date(p.created_at) >= thisMonth)
+        .filter(p => {
+          const profitDate = new Date(p.created_at);
+          return profitDate.getMonth() === currentMonth && profitDate.getFullYear() === currentYear;
+        })
         .reduce((sum, p) => sum + p.total_profit, 0);
 
-      const totalCommissions = referralHistory.reduce((sum, ref) => sum + ref.commission, 0);
+      const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+      const currentBalance = totalDeposits - totalWithdrawals + totalProfit + totalReferralEarnings;
+      const activeInvestments = userInvestments.filter(inv => inv.status === 'active').length;
+      const completedInvestments = userInvestments.filter(inv => inv.status === 'completed').length;
+      const totalCommissions = totalReferralEarnings;
+      const averageROI = totalInvested > 0 ? Math.round((totalProfit / totalInvested) * 100) : 0;
 
       setStats({
-        totalProfit: (profile?.total_profit || 0) + totalTradingProfit + totalEarned,
-        totalReferralEarnings: profile?.referral_balance || 0,
+        totalProfit,
+        totalReferralEarnings,
         totalDeposits,
         totalWithdrawals,
-        activeReferrals: referralStats?.[0]?.active_referrals || 0,
-        successRate: Number(successRate.toFixed(1)),
-        totalOperations: tradingHistory.length + profitHistory.length,
+        activeReferrals,
+        successRate,
+        totalOperations,
         thisMonthEarnings,
         totalInvested,
-        currentBalance: profile?.balance || 0,
+        currentBalance,
         activeInvestments,
         completedInvestments,
         totalCommissions,
-        averageROI: Number(averageROI.toFixed(2))
+        averageROI
       });
     } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+      console.error('Erro ao calcular estatísticas:', error);
     }
   };
 
@@ -509,489 +509,296 @@ const History = () => {
     });
   };
 
-  // Helper functions for status styling
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'concluída':
-      case 'completed':
-        return 'text-emerald-400';
-      case 'pendente':
-      case 'pending':
-        return 'text-yellow-400';
-      case 'erro':
-      case 'failed':
-        return 'text-red-400';
-      default:
-        return 'text-slate-400';
-    }
-  };
-
-  const getTransactionStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'completed':
-      case 'approved':
-        return 'text-emerald-400';
-      case 'pending':
-        return 'text-yellow-400';
-      case 'cancelled':
-      case 'rejected':
-        return 'text-red-400';
-      default:
-        return 'text-slate-400';
-    }
-  };
-
-  const getTransactionStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'completed':
-        return 'Pago';
-      case 'approved':
-        return 'Aprovado';
-      case 'pending':
-        return 'Pendente';
-      case 'cancelled':
-        return 'Cancelado';
-      case 'rejected':
-        return 'Rejeitado';
-      default:
-        return status;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-2 sm:p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+    <div className="min-h-screen bg-black text-white p-5">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-800/40 to-purple-800/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-xl">
-                  <HistoryIcon className="h-6 w-6 md:h-8 md:w-8 text-white" />
-                </div>
-                Histórico & Análises
-              </h1>
-              <p className="text-blue-200 mt-2 text-sm md:text-base">
-                Dashboard completo de performance e estatísticas
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={loadAllData} 
-                disabled={isLoading}
-                size="sm"
-                className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/25"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Atualizar</span>
-                <span className="sm:hidden">Sync</span>
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white border-0 shadow-lg shadow-green-500/25" 
-                onClick={shareViaWhatsApp}
-                size="sm"
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                <Smartphone className="h-4 w-4 sm:hidden" />
-                <span className="hidden sm:inline">WhatsApp</span>
-              </Button>
-            </div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Dashboard Analytics</h1>
+            <p className="text-gray-400">Dashboard completo de performance e estatísticas</p>
+          </div>
+          <div className="flex gap-3">
+            <Button 
+              onClick={loadAllData} 
+              disabled={isLoading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700" 
+              onClick={shareViaWhatsApp}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              WhatsApp
+            </Button>
           </div>
         </div>
 
-        <div className="space-y-4 md:space-y-6 bg-white dark:bg-background rounded-lg">
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {/* Total Profit */}
-            <Card className="bg-gradient-to-br from-emerald-500/20 to-green-600/30 backdrop-blur-xl border border-emerald-400/20 shadow-xl shadow-emerald-500/10">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-emerald-500/20 rounded-xl">
-                    <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-emerald-400" />
-                  </div>
-                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30">
-                    +{((stats.thisMonthEarnings / stats.totalProfit) * 100 || 0).toFixed(1)}%
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-emerald-200/80 truncate">Lucro Total</p>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
-                    R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-emerald-300 mt-1 truncate">
-                    +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mês
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Current Balance */}
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-600/30 backdrop-blur-xl border border-blue-400/20 shadow-xl shadow-blue-500/10">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-blue-500/20 rounded-xl">
-                    <Wallet className="h-5 w-5 md:h-6 md:w-6 text-blue-400" />
-                  </div>
-                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
-                    Disponível
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-blue-200/80 truncate">Saldo Atual</p>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
-                    R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-blue-300 mt-1 truncate">
-                    {stats.activeInvestments} investimentos ativos
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Referral Earnings */}
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-600/30 backdrop-blur-xl border border-purple-400/20 shadow-xl shadow-purple-500/10">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-purple-500/20 rounded-xl">
-                    <Users className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
-                  </div>
-                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30">
-                    {stats.activeReferrals}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-purple-200/80 truncate">Indicações</p>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
-                    R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-purple-300 mt-1 truncate">
-                    {stats.activeReferrals} indicados ativos
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Success Rate */}
-            <Card className="bg-gradient-to-br from-orange-500/20 to-red-600/30 backdrop-blur-xl border border-orange-400/20 shadow-xl shadow-orange-500/10">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-orange-500/20 rounded-xl">
-                    <Target className="h-5 w-5 md:h-6 md:w-6 text-orange-400" />
-                  </div>
-                  <Badge className="bg-orange-500/20 text-orange-300 border-orange-400/30">
-                    ROI {stats.averageROI}%
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-orange-200/80 truncate">Taxa de Sucesso</p>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
-                    {stats.successRate}%
-                  </p>
-                  <p className="text-xs text-orange-300 mt-1 truncate">
-                    {stats.totalOperations} operações
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_300px] grid-rows-[auto_auto_auto] gap-5">
+          
+          {/* Catalog Distribution */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
+            <h3 className="text-gray-200 font-semibold mb-4">Catalog Distribution</h3>
+            <div className="h-48 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={catalogData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {catalogData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm">Certification Results of</div>
+              <div className="text-sm">68% Enterprise Technology</div>
+              <div className="text-sm">45% School Information</div>
+              <div className="text-sm">7000 Supervisor Engineer</div>
+            </div>
           </div>
 
-          {/* Secondary Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-blue-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <DollarSign className="h-4 w-4 text-blue-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">Investido</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  R$ {stats.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-emerald-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">Ativos</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  {stats.activeInvestments}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-green-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <Banknote className="h-4 w-4 text-green-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">Depósitos</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  R$ {stats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-red-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <TrendingDown className="h-4 w-4 text-red-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">Saques</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  R$ {stats.totalWithdrawals.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-purple-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <Award className="h-4 w-4 text-purple-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">Comissões</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  R$ {stats.totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
-              <CardContent className="p-3 md:p-4 text-center">
-                <div className="p-2 bg-orange-500/20 rounded-lg mx-auto w-fit mb-2">
-                  <Activity className="h-4 w-4 text-orange-400" />
-                </div>
-                <p className="text-xs sm:text-sm text-slate-300 truncate">ROI Médio</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
-                  {stats.averageROI}%
-                </p>
-              </CardContent>
-            </Card>
+          {/* Data Exchange */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-2">
+            <h3 className="text-gray-200 font-semibold mb-4">Data Exchange</h3>
+            <div className="flex justify-between mb-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">850,00</div>
+                <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
+                <div className="text-green-400 font-semibold">● Input</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-400">970,30</div>
+                <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-lg mb-2">20% ↑</div>
+                <div className="text-red-400 font-semibold">● Output</div>
+              </div>
+            </div>
+            <div className="h-48 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={exchangeData}>
+                  <defs>
+                    <linearGradient id="inputGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
+                    </linearGradient>
+                    <linearGradient id="outputGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                  <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="input"
+                    stroke="#10b981"
+                    fill="url(#inputGradient)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="output"
+                    stroke="#ef4444"
+                    fill="url(#outputGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-between text-center">
+              <div>
+                <div className="font-bold">850,00</div>
+                <div className="text-xs text-gray-400">No.1<br/>February</div>
+              </div>
+              <div>
+                <div className="font-bold">750,00</div>
+                <div className="text-xs text-gray-400">No.2<br/>October</div>
+              </div>
+              <div>
+                <div className="font-bold">650,00</div>
+                <div className="text-xs text-gray-400">No.3<br/>November</div>
+              </div>
+              <div>
+                <div className="font-bold">550,00</div>
+                <div className="text-xs text-gray-400">No.4<br/>August</div>
+              </div>
+              <div>
+                <div className="font-bold">450,00</div>
+                <div className="text-xs text-gray-400">No.5<br/>March</div>
+              </div>
+            </div>
           </div>
 
-          {/* Tabs Navigation */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 backdrop-blur-xl border border-slate-500/20 rounded-2xl p-4">
-              <TabsList className="grid grid-cols-5 gap-1 bg-slate-800/60 backdrop-blur-xl border border-slate-600/30 rounded-xl p-1">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
-                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Visão Geral</span>
-                  <span className="sm:hidden">Geral</span>
-                </TabsTrigger>
-                <TabsTrigger value="trading" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-green-500 data-[state=active]:text-white">
-                  <Bot className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Trading</span>
-                  <span className="sm:hidden">Bot</span>
-                </TabsTrigger>
-                <TabsTrigger value="investments" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white">
-                  <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Investimentos</span>
-                  <span className="sm:hidden">Invest</span>
-                </TabsTrigger>
-                <TabsTrigger value="referrals" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-500 data-[state=active]:text-white">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Indicações</span>
-                  <span className="sm:hidden">Refs</span>
-                </TabsTrigger>
-                <TabsTrigger value="transactions" className="text-xs sm:text-sm py-2 px-1 sm:px-3 col-span-2 sm:col-span-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-500 data-[state=active]:text-white">
-                  <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Transações</span>
-                  <span className="sm:hidden">Transações</span>
-                </TabsTrigger>
-              </TabsList>
+          {/* Sidebar */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl row-span-3">
+            <div className="flex bg-white/10 rounded-lg p-1 mb-5">
+              {['Month', 'Quarter', 'Year'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setActivePeriod(period)}
+                  className={`flex-1 py-2 px-3 rounded text-sm transition-all ${
+                    activePeriod === period 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+            
+            <div className="mb-8">
+              <div className="text-gray-400 text-sm">Last</div>
+              <div className="text-base my-1">2019-08-</div>
+              <div className="text-gray-400 text-sm">Department of Build</div>
+              <div className="text-blue-400 text-sm">Supervisor Engineer</div>
+              <div className="text-blue-400 text-sm">Certificate</div>
+              <div className="text-gray-400 text-xs mt-2">Interface of Certificate Apply</div>
             </div>
 
-            {/* Tab Contents */}
-            <TabsContent value="overview" className="mt-4 space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <LineChart className="h-5 w-5 text-blue-400" />
-                    Gráfico de Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 md:h-80 lg:h-96">
-                    <PerformanceCharts 
-                      tradingHistory={tradingHistory}
-                      profitHistory={profitHistory}
-                      stats={stats}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="trading" className="mt-4 space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Bot className="h-5 w-5 text-emerald-400" />
-                    Histórico de Trading ({tradingHistory.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-auto">
-                    {tradingHistory.slice(0, 10).map((trade) => (
-                      <div key={trade.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs">
-                                {trade.pair}
-                              </Badge>
-                              <span className="text-xs text-slate-400">{trade.timestamp}</span>
-                            </div>
-                            <p className="text-xs text-slate-300 truncate">
-                              {trade.exchange1} → {trade.exchange2}
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className={`font-semibold text-xs md:text-sm ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <Badge variant="outline" className={`text-xs ${getStatusColor(trade.status)} border-current`}>
-                              {trade.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
+            <h3 className="text-gray-200 font-semibold mb-3">Catalog Status</h3>
+            <div className="h-24 mb-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={20}
+                    outerRadius={40}
+                    dataKey="value"
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-around text-xs mb-8">
+              <span className="text-blue-400">Release</span>
+              <span className="text-green-400">Submit</span>
+              <span className="text-yellow-400">Sign In</span>
+              <span className="text-red-400">Verify</span>
+            </div>
 
-            <TabsContent value="referrals" className="mt-4 space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="h-5 w-5 text-purple-400" />
-                    Sistema de Indicações ({referralHistory.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-auto">
-                    {referralHistory.slice(0, 10).map((referral) => (
-                      <div key={referral.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium text-sm text-white truncate">
-                                {referral.referred_user}
-                              </p>
-                              <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-xs">
-                                Nível {referral.level}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-slate-400 truncate">
-                              {new Date(referral.created_at).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className="font-semibold text-emerald-400 text-xs md:text-sm">
-                              R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              {referral.status === 'active' ? 'Ativo' : 'Inativo'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+            <h3 className="text-gray-200 font-semibold mb-3">Interfaces Rank</h3>
+            <div className="space-y-3">
+              {interfaces.map((item, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-white/10">
+                  <span className="text-sm">{item.name}</span>
+                  <div className="flex items-center">
+                    <span className="text-sm mr-2">{item.value}</span>
+                    <div className="w-16 h-1 bg-white/20 rounded">
+                      <div 
+                        className="h-full bg-blue-600 rounded"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            <TabsContent value="investments" className="mt-4 space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Target className="h-5 w-5 text-orange-400" />
-                    Investimentos Ativos ({userInvestments.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-auto">
-                    {userInvestments.slice(0, 10).map((investment) => (
-                      <div key={investment.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium text-sm text-white truncate">
-                                {investment.plan.name}
-                              </p>
-                              <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs">
-                                {investment.plan.robot_version}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-slate-400">
-                              R$ {investment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {investment.daily_rate}% dia
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className="font-semibold text-emerald-400 text-xs md:text-sm">
-                              R$ {investment.total_earned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
-                            <Badge className={`text-xs ${investment.status === 'active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-slate-500/20 text-slate-300 border-slate-400/30'}`}>
-                              {investment.status === 'active' ? 'Ativo' : 'Finalizado'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {/* Department Radar */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
+            <h3 className="text-gray-200 font-semibold mb-4">Department</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={departmentData}>
+                  <PolarGrid stroke="rgba(255, 255, 255, 0.1)" />
+                  <PolarAngleAxis 
+                    dataKey="subject" 
+                    tick={{ fill: '#94a3b8', fontSize: 10 }}
+                  />
+                  <PolarRadiusAxis 
+                    tick={false}
+                    tickCount={6}
+                    angle={30}
+                  />
+                  <Radar
+                    name="Department"
+                    dataKey="A"
+                    stroke="#10b981"
+                    fill="rgba(16, 185, 129, 0.2)"
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-            <TabsContent value="transactions" className="mt-4 space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-indigo-400" />
-                    Transações Financeiras ({transactionHistory.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-auto">
-                    {transactionHistory.slice(0, 10).map((transaction) => (
-                      <div key={transaction.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge className={`text-xs ${transaction.type === 'deposit' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-red-500/20 text-red-300 border-red-400/30'}`}>
-                                {transaction.type === 'deposit' ? 'Depósito' : 'Saque'}
-                              </Badge>
-                              <span className="text-xs text-slate-400">
-                                {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-400 truncate">
-                              {transaction.payment_type} {transaction.trx_id && `• ${transaction.trx_id}`}
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className={`font-semibold text-xs md:text-sm ${transaction.type === 'deposit' ? 'text-emerald-400' : 'text-red-400'}`}>
-                              {transaction.type === 'deposit' ? '+' : '-'}R$ {transaction.amount_brl.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
-                            <Badge className={`text-xs ${getTransactionStatusColor(transaction.status)} border-current`}>
-                              {getTransactionStatusText(transaction.status)}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          {/* Data Sampling */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl">
+            <h3 className="text-gray-200 font-semibold mb-4">Data Sampling</h3>
+            <div className="h-32 mb-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData}>
+                  <Bar 
+                    dataKey="volume" 
+                    fill="#3b82f6"
+                    radius={[2, 2, 0, 0]}
+                  />
+                  <XAxis 
+                    dataKey="day" 
+                    tick={{ fill: '#94a3b8', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Monday</span>
+              <span>Tuesday</span>
+              <span>Wednesday</span>
+              <span>Thursday</span>
+              <span>Friday</span>
+              <span>Saturday</span>
+              <span>Sunday</span>
+            </div>
+            <div className="mt-4 text-xs text-gray-400 space-y-1">
+              <div>300</div>
+              <div>200</div>
+              <div>100</div>
+              <div>0</div>
+            </div>
+          </div>
+
+          {/* Status Indicators */}
+          <div className="bg-blue-900/70 backdrop-blur-lg rounded-xl p-5 border border-white/10 shadow-2xl col-span-full">
+            <div className="flex justify-center gap-12">
+              <CircularProgress 
+                percentage={75}
+                color="#3b82f6"
+                title="Succeed"
+                subtitle="Information Exchange Succeed"
+              />
+              <CircularProgress 
+                percentage={63}
+                color="#ef4444"
+                title="Fail"
+                subtitle="Information Exchange Succeed"
+              />
+              <CircularProgress 
+                percentage={45}
+                color="#f59e0b"
+                title="Exchanging"
+                subtitle="Information Exchange Succeed"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
