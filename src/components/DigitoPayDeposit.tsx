@@ -508,33 +508,43 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
             )}
 
-            {/* Trading Action Button - Enhanced Design */}
+            {/* Enhanced Trading Action Button */}
             <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
               <Button
                 onClick={handleCreateDeposit}
                 disabled={loading}
-                className="w-full h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-bold text-xl shadow-2xl shadow-purple-500/30 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-purple-500/40"
+                className="relative w-full h-20 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 hover:from-violet-500 hover:via-purple-500 hover:to-indigo-600 text-white font-black text-2xl shadow-2xl shadow-purple-500/40 border-0 overflow-hidden transform transition-all duration-500 hover:scale-[1.03] rounded-xl"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent animate-pulse"></div>
-                <div className="relative flex items-center justify-center gap-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/30 opacity-0 hover:opacity-100 transition-all duration-700 animate-pulse"></div>
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-white/10 to-transparent opacity-50"></div>
+                
+                <div className="relative flex items-center justify-center gap-4 z-10">
                   {loading ? (
                     <>
-                      <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                       <span className="tracking-wider">GERANDO PIX DE TRADING...</span>
-                     </>
-                   ) : (
-                     <>
-                       <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-                         <span className="text-lg">⚡</span>
-                       </div>
-                       <span className="tracking-wider font-extrabold">GERAR PIX INSTANTÂNEO</span>
+                      <div className="relative">
+                        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-8 h-8 border-4 border-transparent border-t-purple-300 rounded-full animate-spin" style={{animationDirection: 'reverse'}}></div>
+                      </div>
+                      <span className="tracking-wider font-black">GERANDO PIX...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 bg-gradient-to-br from-white/30 to-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30 shadow-lg">
+                        <span className="text-2xl animate-pulse">⚡</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="tracking-wider font-black text-2xl">GERAR PIX</span>
+                        <span className="tracking-widest font-bold text-lg opacity-90">INSTANTÂNEO</span>
+                      </div>
                     </>
                   )}
                 </div>
+                
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
               </Button>
               
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-2 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full blur-sm group-hover:blur-none transition-all duration-300"></div>
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-4/5 h-3 bg-gradient-to-r from-transparent via-purple-500/60 to-transparent rounded-full blur-lg group-hover:blur-xl transition-all duration-300"></div>
             </div>
 
             {/* Small Pagar Agora Button */}
