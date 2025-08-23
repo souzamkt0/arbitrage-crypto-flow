@@ -147,7 +147,13 @@ export const ActivePlansTable = () => {
       }) || [];
       
       console.log('📊 Dados simulados com ganhos calculados:', simulatedData);
-      setActivePlans(simulatedData);
+      
+      // Ordenar por data mais recente primeiro e limitar a 10
+      const sortedData = simulatedData.sort((a, b) => 
+        new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      ).slice(0, 10);
+      
+      setActivePlans(sortedData);
       
     } catch (error) {
       console.error('❌ Erro ao carregar planos ativos:', error);
