@@ -640,9 +640,9 @@ Atenciosamente,
                   </div>
                   <div>
                     <CardTitle className="text-lg font-bold text-white">
-                      Referral System
+                      Sistema de Indicações
                     </CardTitle>
-                    <p className="text-sm text-gray-400">Share your referral link and earn commissions</p>
+                    <p className="text-sm text-gray-400">Compartilhe seu link de indicação e ganhe comissões</p>
                   </div>
                 </div>
               </div>
@@ -651,7 +651,7 @@ Atenciosamente,
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Network className="h-5 w-5 text-purple-400" />
-                  Your Referral Link
+                  Seu Link de Indicação
                 </h3>
                 
                 <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
@@ -686,13 +686,13 @@ Atenciosamente,
                       
                       <Button
                         onClick={() => {
-                          const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
+                          const tweetText = `🚀 Descubra a Alphabit: O futuro do trading automatizado!\n\n${referralLink}\n\n#Trading #Crypto #Lucro #Arbitragem`;
                           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
                         }}
                         className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
-                        Share
+                        Compartilhar
                       </Button>
                     </div>
                   </div>
@@ -711,9 +711,9 @@ Atenciosamente,
                   </div>
                   <div>
                     <CardTitle className="text-lg font-bold text-white">
-                      Team Performance Dashboard
+                      Dashboard de Performance da Equipe
                     </CardTitle>
-                    <p className="text-sm text-gray-400">Complete user details and analytics</p>
+                    <p className="text-sm text-gray-400">Detalhes completos dos usuários e análises</p>
                   </div>
                 </div>
                 
@@ -732,7 +732,7 @@ Atenciosamente,
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search team members..."
+                    placeholder="Buscar membros da equipe..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 bg-slate-800/60 border-purple-500/30 text-white w-80"
@@ -746,9 +746,9 @@ Atenciosamente,
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-purple-500/30">
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -757,9 +757,9 @@ Atenciosamente,
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-purple-500/30">
-                      <SelectItem value="all">All Contact</SelectItem>
-                      <SelectItem value="with">With WhatsApp</SelectItem>
-                      <SelectItem value="without">No WhatsApp</SelectItem>
+                      <SelectItem value="all">Todos Contatos</SelectItem>
+                      <SelectItem value="with">Com WhatsApp</SelectItem>
+                      <SelectItem value="without">Sem WhatsApp</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -775,7 +775,7 @@ Atenciosamente,
                   disabled={isRefreshing}
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+                  {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
                 </Button>
               </div>
 
@@ -785,7 +785,7 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Total Referrals</p>
+                        <p className="text-sm text-gray-400">Total de Indicações</p>
                         <p className="text-2xl font-bold text-blue-400">
                           {stats.totalReferrals}
                         </p>
@@ -799,7 +799,7 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Active Users</p>
+                        <p className="text-sm text-gray-400">Usuários Ativos</p>
                         <p className="text-2xl font-bold text-green-400">
                           {stats.activeReferrals}
                         </p>
@@ -813,7 +813,7 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Total Commission</p>
+                        <p className="text-sm text-gray-400">Total de Comissões</p>
                         <p className="text-2xl font-bold text-yellow-400">
                           {formatCurrency(stats.totalCommission)}
                         </p>
@@ -827,7 +827,7 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">With WhatsApp</p>
+                        <p className="text-sm text-gray-400">Com WhatsApp</p>
                         <p className="text-2xl font-bold text-purple-400">
                           {stats.withWhatsapp}/{stats.totalReferrals}
                         </p>
@@ -844,14 +844,14 @@ Atenciosamente,
                   <Table>
                     <TableHeader>
                       <TableRow className="border-slate-600/50 hover:bg-slate-800/30">
-                        <TableHead className="text-purple-400 font-medium">User</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Usuário</TableHead>
                         <TableHead className="text-purple-400 font-medium">Status</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Location</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Investments</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Profit</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Commission</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Join Date</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Actions</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Localização</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Investimentos</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Lucro</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Comissão</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Data de Entrada</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -878,7 +878,7 @@ Atenciosamente,
                                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                   <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                                     <CheckCircle className="h-3 w-3 mr-1" />
-                                    Active
+                                    Ativo
                                   </Badge>
                                 </>
                               ) : (
@@ -886,7 +886,7 @@ Atenciosamente,
                                   <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                                   <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">
                                     <UserX className="h-3 w-3 mr-1" />
-                                    Inactive
+                                    Inativo
                                   </Badge>
                                 </>
                               )}
@@ -899,7 +899,7 @@ Atenciosamente,
                               {user.city && user.state ? (
                                 <span>{user.city}, {user.state}</span>
                               ) : (
-                                <span className="text-gray-500 italic">Not provided</span>
+                                <span className="text-gray-500 italic">Não informado</span>
                               )}
                             </div>
                           </TableCell>
@@ -909,9 +909,9 @@ Atenciosamente,
                               <p className="text-sm font-medium text-white">
                                 {formatCurrency(user.investmentAmount)}
                               </p>
-                              <p className="text-xs text-gray-400">
-                                {user.activeInvestments || 0} active
-                              </p>
+                                <p className="text-xs text-gray-400">
+                                  {user.activeInvestments || 0} ativo(s)
+                                </p>
                             </div>
                           </TableCell>
 
@@ -944,7 +944,7 @@ Atenciosamente,
                                   size="sm"
                                   onClick={() => openMessageModal(user)}
                                   className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
-                                  title="Send WhatsApp message"
+                                  title="Enviar mensagem WhatsApp"
                                 >
                                   <MessageCircle className="h-4 w-4" />
                                 </Button>
@@ -954,7 +954,7 @@ Atenciosamente,
                                   variant="outline"
                                   disabled
                                   className="border-gray-500/30 text-gray-500 h-8 w-8 p-0"
-                                  title="No WhatsApp available"
+                                  title="WhatsApp não disponível"
                                 >
                                   <WifiOff className="h-4 w-4" />
                                 </Button>
@@ -965,7 +965,7 @@ Atenciosamente,
                                 variant="outline"
                                 onClick={() => openUserDetailsModal(user)}
                                 className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
-                                title="View details"
+                                title="Ver detalhes"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -980,14 +980,14 @@ Atenciosamente,
                 <div className="text-center py-12">
                   <div className="p-8 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
                     <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 text-xl font-medium mb-2">No team members found</p>
-                    <p className="text-gray-500 mb-4">Start sharing your referral link to build your network</p>
+                    <p className="text-gray-400 text-xl font-medium mb-2">Nenhum membro da equipe encontrado</p>
+                    <p className="text-gray-500 mb-4">Comece compartilhando seu link de indicação para construir sua rede</p>
                     <Button 
                       onClick={copyToClipboard}
                       className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
                     >
                       <Copy className="h-4 w-4 mr-2" />
-                      Copy Referral Link
+                      Copiar Link de Indicação
                     </Button>
                   </div>
                 </div>
@@ -1081,7 +1081,7 @@ Atenciosamente,
                             <div>
                               <span className="text-gray-400">Status:</span>
                               <Badge className={investment.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
-                                {investment.status}
+                                {investment.status === 'active' ? 'Ativo' : 'Inativo'}
                               </Badge>
                             </div>
                           </div>
@@ -1113,7 +1113,7 @@ Atenciosamente,
                             <div>
                               <span className="text-gray-400">Status:</span>
                               <Badge className={contract.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}>
-                                {contract.status}
+                                {contract.status === 'active' ? 'Ativo' : 'Inativo'}
                               </Badge>
                             </div>
                           </div>
@@ -1171,7 +1171,7 @@ Atenciosamente,
                             <div>
                               <span className="text-gray-400">Tipo:</span>
                               <Badge className={transaction.type === 'deposit' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
-                                {transaction.type}
+                                {transaction.type === 'deposit' ? 'Depósito' : 'Saque'}
                               </Badge>
                             </div>
                             <div>
@@ -1181,7 +1181,7 @@ Atenciosamente,
                             <div>
                               <span className="text-gray-400">Status:</span>
                               <Badge className={transaction.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
-                                {transaction.status}
+                                {transaction.status === 'completed' ? 'Concluído' : transaction.status === 'pending' ? 'Pendente' : transaction.status}
                               </Badge>
                             </div>
                             <div>
