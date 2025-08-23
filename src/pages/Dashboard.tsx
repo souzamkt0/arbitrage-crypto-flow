@@ -54,6 +54,7 @@ import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
 import BalanceBox from "@/components/BalanceBox";
+import { ActivePlansTable } from "@/components/ActivePlansTable";
 
 
 const Dashboard = () => {
@@ -1109,72 +1110,9 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Active Investment Plans */}
-            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold">Active Plans</h3>
-                <Button variant="ghost" size="sm" className="text-teal-400 text-xs" onClick={() => navigate('/investments')}>
-                  View All
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {userInvestments.slice(0, 4).map((investment) => (
-                  <div key={investment.id} className="bg-[#0f1419] rounded-lg p-3 border border-gray-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm">{investment.investment_plans?.name || investment.plan_name || 'Investment Plan'}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {investment.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Invested:</span>
-                        <span className="font-medium">${investment.amount?.toFixed(2) || '0.00'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Total Earned:</span>
-                        <span className="font-medium text-green-400">${investment.total_earned?.toFixed(2) || '0.00'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Today's Profit:</span>
-                        <span className="font-medium text-blue-400">${investment.today_earnings?.toFixed(2) || '0.00'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Daily Rate:</span>
-                        <span className="font-medium">{investment.daily_rate}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Operations:</span>
-                        <span className="font-medium">{investment.operations_completed || 0}/{investment.total_operations || 0}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-2 pt-2 border-t border-gray-700">
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Days Remaining:</span>
-                        <span>{investment.days_remaining || 0} days</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {userInvestments.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
-                  <Bot className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Nenhum plano ativo no momento</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-3 text-xs"
-                    onClick={() => navigate('/investments')}
-                  >
-                    Investir Agora
-                  </Button>
-                </div>
-              )}
+            {/* Active Plans Table */}
+            <div className="mb-6">
+              <ActivePlansTable />
             </div>
           </div>
 

@@ -1611,6 +1611,24 @@ export type Database = {
           is_nullable: string
         }[]
       }
+      get_user_active_investments: {
+        Args: { target_user_id: string }
+        Returns: {
+          amount: number
+          created_at: string
+          daily_rate: number
+          days_remaining: number
+          end_date: string
+          id: string
+          operations_completed: number
+          plan_name: string
+          start_date: string
+          status: string
+          today_earnings: number
+          total_earned: number
+          total_operations: number
+        }[]
+      }
       get_user_digitopay_transactions: {
         Args: { target_user_id: string }
         Returns: {
