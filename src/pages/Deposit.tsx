@@ -480,42 +480,49 @@ const Deposit = () => {
             {/* Trading Panel Header */}
             <div className="border-b border-gray-800 pb-3">
               <div className="flex gap-2 mb-3">
-                <button className="px-2 py-1 bg-[#3b82f6] text-white rounded text-xs">BUY ETH</button>
-                <button className="px-2 py-1 bg-[#1f2937] text-gray-300 rounded text-xs">SELL ETH</button>
+                <button className="px-2 py-1 bg-[#3b82f6] text-white rounded text-xs hover:bg-[#2563eb] transition-all duration-300 hover:scale-105 animate-fade-in">
+                  BUY ETH
+                </button>
+                <button className="px-2 py-1 bg-[#1f2937] text-gray-300 rounded text-xs hover:bg-[#374151] transition-all duration-300 hover:scale-105">
+                  SELL ETH
+                </button>
               </div>
               
               <div className="space-y-2">
-                <div>
+                <div className="animate-fade-in">
                   <div className="text-xs text-gray-400 mb-1">PRICE</div>
-                  <div className="text-base font-bold text-white">0.04524300</div>
+                  <div className="text-base font-bold text-white transition-all duration-500 hover:text-green-400">
+                    0.04524300
+                  </div>
                   <div className="text-xs text-gray-400">≈ 1,779.94 USD</div>
                 </div>
                 
-                <div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
                   <div className="text-xs text-gray-400 mb-1">AMOUNT</div>
                   <input 
                     type="text" 
                     placeholder="0" 
-                    className="w-full bg-[#1f2937] border border-gray-700 rounded px-2 py-1 text-white text-xs"
+                    className="w-full bg-[#1f2937] border border-gray-700 rounded px-2 py-1 text-white text-xs focus:border-blue-500 transition-all duration-300 hover:border-gray-600"
                   />
                   <div className="text-xs text-gray-400 mt-1">ETH</div>
                 </div>
                 
-                <div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
                   <div className="text-xs text-gray-400">TOTAL = 0.00000000</div>
                 </div>
                 
-                <Button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 text-xs">
+                <Button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 text-xs animate-fade-in hover:scale-105 transition-all duration-300" style={{ animationDelay: '0.3s' }}>
                   Place buy order
                 </Button>
               </div>
             </div>
 
             {/* Recent Activity */}
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <div className="flex items-center gap-2 mb-3">
-                <Activity className="h-4 w-4 text-blue-400" />
+                <Activity className="h-4 w-4 text-blue-400 animate-pulse" />
                 <h3 className="text-sm font-semibold text-white">Recent Activity</h3>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse ml-auto"></div>
               </div>
               <div className="space-y-2">
                 {[
@@ -526,14 +533,20 @@ const Deposit = () => {
                   { amount: '1265.00 XRP', time: 'Yesterday, 23:52PM', type: 'buy' },
                   { amount: '1265.00 XRP to 0.0051 BTC', time: 'Yesterday, 23:52PM', type: 'convert' }
                 ].map((activity, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 hover:bg-[#1f2937] rounded transition-colors">
-                    <div className={`w-2 h-2 rounded-full ${
+                  <div 
+                    key={index} 
+                    className="flex items-center gap-2 p-2 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-blue-500/50"
+                    style={{ animationDelay: `${0.5 + index * 0.1}s` }}
+                  >
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${
                       activity.type === 'buy' ? 'bg-green-400' : 
                       activity.type === 'sell' ? 'bg-red-400' : 
                       'bg-blue-400'
                     }`}></div>
                     <div className="flex-1">
-                      <div className="text-xs text-white">{activity.amount}</div>
+                      <div className="text-xs text-white font-medium transition-colors duration-300 hover:text-blue-400">
+                        {activity.amount}
+                      </div>
                       <div className="text-xs text-gray-400">{activity.time}</div>
                     </div>
                   </div>
