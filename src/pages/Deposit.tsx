@@ -169,7 +169,7 @@ const Deposit = () => {
         {/* Main Layout */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Portfolio */}
-          <div className="w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-y-auto flex-shrink-0">
+          <div className="w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
             {/* Deposit Balance Header */}
             <div className="border-b border-gray-800 pb-3">
               <h2 className="text-base font-semibold mb-2 text-cyan-400">Saldo Depósitos</h2>
@@ -509,7 +509,7 @@ const Deposit = () => {
           </div>
 
           {/* Right Sidebar - Trading Panel */}
-          <div className="w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-y-auto flex-shrink-0">
+          <div className="w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
             {/* Buy Orders */}
             <div className="animate-fade-in">
               <div className="flex items-center gap-2 mb-3">
