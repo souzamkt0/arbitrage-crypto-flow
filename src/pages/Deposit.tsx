@@ -488,44 +488,6 @@ const Deposit = () => {
                 </CardContent>
               </Card>
 
-              {/* Mobile Live Orders - Only visible on small screens */}
-              <div className="md:hidden">
-                <Card className="bg-card border-border">
-                  <CardHeader className="p-4">
-                    <div className="flex items-center gap-2">
-                      <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
-                      <CardTitle className="text-base">Live Orders</CardTitle>
-                      <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full">LIVE</div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="text-sm text-red-400 font-medium">Sell Orders</div>
-                        {sellOrders.slice(0, 4).map((order, i) => (
-                          <div key={`mobile-sell-${i}`} className="text-sm">
-                            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                              <span className="text-red-400 font-medium">{order.value}</span>
-                              <span className="text-foreground">{order.amount}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        <div className="text-sm text-green-400 font-medium">Buy Orders</div>
-                        {buyOrders.slice(0, 4).map((order, i) => (
-                          <div key={`mobile-buy-${i}`} className="text-sm">
-                            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                              <span className="text-green-400 font-medium">{order.value}</span>
-                              <span className="text-foreground">{order.amount}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </div>
 
