@@ -719,14 +719,14 @@ const Dashboard = () => {
               </div>
               
               {/* Bitcoin Chart Area */}
-              <div className="relative h-36 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-lg mb-3 overflow-hidden animate-[chart-glow_3s_ease-in-out_infinite] animate-[breathe_4s_ease-in-out_infinite]">
+              <div className="relative h-36 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-lg mb-3 overflow-hidden">
                 <div className="absolute top-3 left-3 z-10 animate-fade-in">
-                  <div className="text-xs text-gray-400 mb-1 animate-[float_3s_ease-in-out_infinite]">Bitcoin Performance</div>
-                  <div className="text-sm font-bold text-white animate-[number-tick_2s_ease-in-out_infinite]">
+                  <div className="text-xs text-gray-400 mb-1">Bitcoin Performance</div>
+                  <div className="text-sm font-bold text-white">
                     $52,420.85
                   </div>
-                  <div className="text-xs text-green-400 flex items-center animate-[trading-pulse_2s_ease-in-out_infinite]">
-                    <TrendingUp className="w-3 h-3 mr-1 animate-[float_2s_ease-in-out_infinite]" />
+                  <div className="text-xs text-green-400 flex items-center">
+                    <TrendingUp className="w-3 h-3 mr-1" />
                     +2.34% (24h)
                   </div>
                 </div>
@@ -896,24 +896,6 @@ const Dashboard = () => {
                 
                 {/* Overlay com efeito de brilho azul */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent opacity-0 animate-shine"></div>
-                
-                {/* Wave effect animation */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent animate-[slide-wave_4s_ease-in-out_infinite]" 
-                       style={{ top: '60%', animationDelay: '1s' }}></div>
-                  <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-green-400/40 to-transparent animate-[slide-wave_5s_ease-in-out_infinite]" 
-                       style={{ top: '80%', animationDelay: '2s' }}></div>
-                </div>
-                
-                {/* Floating price particles */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute text-xs text-blue-400/60 animate-[data-flow_8s_linear_infinite]" 
-                       style={{ top: '40%', left: '-20px', animationDelay: '1s' }}>+2.34%</div>
-                  <div className="absolute text-xs text-green-400/60 animate-[data-flow_10s_linear_infinite]" 
-                       style={{ top: '65%', left: '-20px', animationDelay: '3s' }}>▲ $52.4k</div>
-                  <div className="absolute text-xs text-blue-300/60 animate-[data-flow_12s_linear_infinite]" 
-                       style={{ top: '30%', left: '-20px', animationDelay: '5s' }}>Vol: 2.1B</div>
-                </div>
                 
                 {/* Indicadores de mercado */}
                 <div className="absolute bottom-3 left-3 flex space-x-4 text-xs animate-fade-in" style={{ animationDelay: '2s' }}>
@@ -1150,142 +1132,17 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold mb-6 text-white">📊 Market Analysis</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Bitcoin Chart */}
-            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden animate-[chart-glow_3s_ease-in-out_infinite]">
+            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
               <div className="p-4 border-b border-gray-800">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-[glow_2s_ease-in-out_infinite_alternate]">
-                      ₿
-                    </div>
-                    <h3 className="font-semibold text-sm">Bitcoin (BTC)</h3>
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ₿
                   </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs font-medium">LIVE</span>
-                  </div>
-                </div>
-                
-                {/* Price Info */}
-                <div className="mt-3">
-                  <div className="text-lg font-bold text-white animate-[number-tick_2s_ease-in-out_infinite]">
-                    $52,420.85
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-green-400 animate-[trading-pulse_2s_ease-in-out_infinite]">
-                    <TrendingUp className="h-3 w-3 animate-[float_2s_ease-in-out_infinite]" />
-                    <span>+2.34%</span>
-                  </div>
+                  <h3 className="font-semibold text-sm">Bitcoin (BTC)</h3>
                 </div>
               </div>
-              
               <div className="p-4">
-                {/* Trading Chart Container */}
-                <div className="relative h-32 bg-gradient-to-br from-orange-500/10 to-yellow-600/10 rounded-lg border border-orange-500/20 overflow-hidden animate-[breathe_4s_ease-in-out_infinite]">
-                  {/* SVG Chart */}
-                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 120">
-                    <defs>
-                      <linearGradient id="btcGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0.4"/>
-                        <stop offset="50%" stopColor="rgb(234, 88, 12)" stopOpacity="0.2"/>
-                        <stop offset="100%" stopColor="rgb(194, 65, 12)" stopOpacity="0.1"/>
-                      </linearGradient>
-                      
-                      <linearGradient id="btcFlowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0">
-                          <animate attributeName="stop-opacity" values="0;0.8;0" dur="3s" repeatCount="indefinite"/>
-                        </stop>
-                        <stop offset="50%" stopColor="rgb(251, 146, 60)" stopOpacity="0.8">
-                          <animate attributeName="stop-opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
-                        </stop>
-                        <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0">
-                          <animate attributeName="stop-opacity" values="0;0.8;0" dur="3s" repeatCount="indefinite"/>
-                        </stop>
-                      </linearGradient>
-                      
-                      <filter id="btcGlow">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                        <feMerge> 
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    
-                    {/* Grid Pattern */}
-                    <pattern id="btcGrid" width="15" height="15" patternUnits="userSpaceOnUse">
-                      <path d="M 15 0 L 0 0 0 15" fill="none" stroke="rgb(249, 115, 22)" strokeWidth="0.3" opacity="0.2"/>
-                    </pattern>
-                    <rect width="100%" height="100%" fill="url(#btcGrid)" className="animate-[fade-in_2s_ease-out]" />
-                    
-                    {/* Support/Resistance Lines */}
-                    <line x1="0" y1="40" x2="100%" y2="40" stroke="rgb(34, 197, 94)" strokeWidth="1" opacity="0.5" strokeDasharray="3,3">
-                      <animate attributeName="opacity" values="0.5;0.2;0.5" dur="3s" repeatCount="indefinite"/>
-                    </line>
-                    <line x1="0" y1="80" x2="100%" y2="80" stroke="rgb(239, 68, 68)" strokeWidth="1" opacity="0.5" strokeDasharray="3,3">
-                      <animate attributeName="opacity" values="0.5;0.2;0.5" dur="3s" repeatCount="indefinite"/>
-                    </line>
-                    
-                    {/* Area Fill */}
-                    <polygon
-                      fill="url(#btcGradient)"
-                      points="15,90 45,85 75,80 105,75 135,70 165,65 195,60 225,55 255,50 285,45 300,42 300,120 15,120"
-                      className="animate-[fill-area_3s_ease-out_1.5s_forwards]"
-                      opacity="0"
-                    />
-                    
-                    {/* Main Price Line */}
-                    <polyline
-                      fill="none"
-                      stroke="url(#btcFlowGradient)"
-                      strokeWidth="3"
-                      filter="url(#btcGlow)"
-                      points="15,90 45,85 75,80 105,75 135,70 165,65 195,60 225,55 255,50 285,45 300,42"
-                      className="animate-[draw-line_4s_ease-out_1s_forwards]"
-                      strokeDasharray="800"
-                      strokeDashoffset="800"
-                    />
-                    
-                    {/* Data Points */}
-                    <g className="animate-[scale-in_0.5s_ease-out_2.5s_forwards]" opacity="0">
-                      <circle cx="105" cy="75" r="3" fill="rgb(249, 115, 22)" className="animate-[pulse-glow_2s_ease-in-out_infinite]"/>
-                      <circle cx="165" cy="65" r="3" fill="rgb(249, 115, 22)" className="animate-[pulse-glow_2s_ease-in-out_infinite]" style={{ animationDelay: '0.5s' }}/>
-                      <circle cx="225" cy="55" r="3" fill="rgb(249, 115, 22)" className="animate-[pulse-glow_2s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}/>
-                      <circle cx="285" cy="45" r="4" fill="rgb(251, 146, 60)" className="animate-[pulse-glow_2s_ease-in-out_infinite]"/>
-                    </g>
-                    
-                    {/* Volume Bars */}
-                    <g className="animate-[fade-in_1s_ease-out_3s_forwards]" opacity="0">
-                      <rect x="40" y="105" width="6" height="10" fill="rgb(249, 115, 22)" opacity="0.6" className="animate-[grow-bar_0.5s_ease-out_3.2s_forwards]" transform="scaleY(0)" transformOrigin="bottom"/>
-                      <rect x="70" y="100" width="6" height="15" fill="rgb(249, 115, 22)" opacity="0.6" className="animate-[grow-bar_0.5s_ease-out_3.4s_forwards]" transform="scaleY(0)" transformOrigin="bottom"/>
-                      <rect x="100" y="108" width="6" height="7" fill="rgb(249, 115, 22)" opacity="0.6" className="animate-[grow-bar_0.5s_ease-out_3.6s_forwards]" transform="scaleY(0)" transformOrigin="bottom"/>
-                      <rect x="130" y="102" width="6" height="13" fill="rgb(249, 115, 22)" opacity="0.6" className="animate-[grow-bar_0.5s_ease-out_3.8s_forwards]" transform="scaleY(0)" transformOrigin="bottom"/>
-                    </g>
-                    
-                    {/* Moving Price Indicator */}
-                    <g className="animate-[price-wave_6s_linear_infinite]">
-                      <line x1="0" y1="42" x2="15" y2="42" stroke="rgb(34, 197, 94)" strokeWidth="2" opacity="0.8"/>
-                      <circle cx="15" cy="42" r="2" fill="rgb(34, 197, 94)" opacity="0.8"/>
-                    </g>
-                  </svg>
-                  
-                  {/* Wave Effects */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-orange-400/50 to-transparent animate-[slide-wave_5s_ease-in-out_infinite]" 
-                         style={{ top: '40%', animationDelay: '1s' }}></div>
-                  </div>
-                  
-                  {/* Floating Data */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute text-xs text-orange-400/60 animate-[data-flow_9s_linear_infinite]" 
-                         style={{ top: '30%', left: '-15px', animationDelay: '2s' }}>₿ +2.34%</div>
-                    <div className="absolute text-xs text-green-400/60 animate-[data-flow_11s_linear_infinite]" 
-                         style={{ top: '60%', left: '-15px', animationDelay: '4s' }}>$52.4k</div>
-                  </div>
-                  
-                  {/* Price Tag */}
-                  <div className="absolute bottom-2 right-2 bg-background/90 backdrop-blur-sm border border-orange-500/30 rounded px-2 py-1 animate-[bounce-in_1s_ease-out_4s_both] opacity-0">
-                    <div className="text-xs font-bold text-orange-400">$52,420</div>
-                  </div>
-                </div>
+                <TradingChart />
               </div>
             </div>
 

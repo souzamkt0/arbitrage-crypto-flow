@@ -198,69 +198,6 @@ All colors MUST be HSL.
     0%, 100% {
       box-shadow: 0 0 20px hsl(43 100% 50% / 0.3);
     }
-
-  /* Trading Chart Animations */
-  @keyframes breathe {
-    0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.05); opacity: 1; }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-      filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.5));
-    }
-    50% { 
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
-      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
-    }
-  }
-
-  @keyframes slide-wave {
-    0% { transform: translateX(-100%); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateX(100%); opacity: 0; }
-  }
-
-  @keyframes number-tick {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-2px); color: rgb(34, 197, 94); }
-    100% { transform: translateY(0); }
-  }
-
-  @keyframes chart-glow {
-    0%, 100% { 
-      border-color: rgba(59, 130, 246, 0.3);
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-    }
-    50% { 
-      border-color: rgba(59, 130, 246, 0.6);
-      box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
-    }
-  }
-
-  @keyframes trading-pulse {
-    0% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.02); }
-    100% { opacity: 0.6; transform: scale(1); }
-  }
-
-  @keyframes price-wave {
-    0% { transform: translateX(-10px); }
-    100% { transform: translateX(400px); }
-  }
-
-  @keyframes data-flow {
-    0% { transform: translateX(-20px); opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { transform: translateX(420px); opacity: 0; }
-  }
     50% {
       box-shadow: 0 0 40px hsl(43 100% 50% / 0.6), 0 0 60px hsl(43 100% 50% / 0.3);
     }
