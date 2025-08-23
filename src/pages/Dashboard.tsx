@@ -1113,18 +1113,21 @@ const Dashboard = () => {
           {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-4">
 
-            {/* New Stat Cards */}
-            <div className="grid grid-cols-1 gap-4">
-              <TotalProfitCard />
-              <DepositsCard />
-              <WithdrawalsCard />
-            </div>
-
             {/* Existing Balance Components - Compact */}
             <div className="space-y-4">
               <BalanceBox />
               <ResidualBalanceBox />
             </div>
+          </div>
+        </div>
+
+        {/* Statistics Cards - Above Charts */}
+        <div className="mt-8 mb-6">
+          <h2 className="text-xl font-semibold mb-6 text-white">📊 Estatísticas Financeiras</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <TotalProfitCard />
+            <DepositsCard />
+            <WithdrawalsCard />
           </div>
         </div>
 

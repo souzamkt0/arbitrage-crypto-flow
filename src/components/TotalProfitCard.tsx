@@ -56,10 +56,14 @@ export const TotalProfitCard = () => {
   return (
     <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/20 hover:border-green-400/30 transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-green-100">
-          Lucro Total
-        </CardTitle>
-        <TrendingUp className="h-4 w-4 text-green-400" />
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <CardTitle className="text-sm font-medium text-green-100">
+            Lucro Total
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-green-400">
