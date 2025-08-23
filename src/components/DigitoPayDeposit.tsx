@@ -508,32 +508,33 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
             )}
 
-            {/* Trading Action Button - Touch friendly */}
-            <div className="relative">
+            {/* Trading Action Button - Enhanced Design */}
+            <div className="relative group">
               <Button
                 onClick={handleCreateDeposit}
                 disabled={loading}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 hover:from-blue-700 hover:via-purple-700 hover:to-emerald-700 text-white font-bold text-lg shadow-lg shadow-blue-500/25 border-0 relative overflow-hidden"
+                className="w-full h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-bold text-xl shadow-2xl shadow-purple-500/30 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-purple-500/40"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center justify-center gap-3">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent animate-pulse"></div>
+                <div className="relative flex items-center justify-center gap-4">
                   {loading ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                       <span>Gerando PIX de Trading...</span>
+                      <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                       <span className="tracking-wider">GERANDO PIX DE TRADING...</span>
                      </>
                    ) : (
                      <>
-                       <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                         <span className="text-sm">⚡</span>
+                       <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                         <span className="text-lg">⚡</span>
                        </div>
-                       <span>GERAR PIX INSTANTÂNEO</span>
+                       <span className="tracking-wider font-extrabold">GERAR PIX INSTANTÂNEO</span>
                     </>
                   )}
                 </div>
               </Button>
               
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full opacity-50"></div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-2 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full blur-sm group-hover:blur-none transition-all duration-300"></div>
             </div>
           </>
         ) : (
@@ -730,25 +731,35 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Enhanced Design */}
             <div className="flex gap-4">
-              <Button
-                onClick={checkStatus}
-                disabled={checkingStatus}
-                className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold border-0"
-              >
-                {checkingStatus ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Checking Status...
-                  </>
-                ) : (
-                  <>
-                    <span className="text-lg mr-2">🔍</span>
-                    CHECK STATUS NOW
-                  </>
-                )}
-              </Button>
+              <div className="flex-1 relative group">
+                <Button
+                  onClick={checkStatus}
+                  disabled={checkingStatus}
+                  className="w-full h-14 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold text-lg border-0 shadow-2xl shadow-emerald-500/30 relative overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-emerald-500/40"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent animate-pulse"></div>
+                  <div className="relative flex items-center justify-center gap-3">
+                    {checkingStatus ? (
+                      <>
+                        <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span className="tracking-wider">VERIFICANDO STATUS...</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <span className="text-lg">🔍</span>
+                        </div>
+                        <span className="tracking-wider font-extrabold">VERIFICAR STATUS</span>
+                      </>
+                    )}
+                  </div>
+                </Button>
+                
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-2 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent rounded-full blur-sm group-hover:blur-none transition-all duration-300"></div>
+              </div>
               
               <Button
                 onClick={() => {
@@ -756,10 +767,13 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                   setAmount('');
                   setCpf('');
                 }}
-                className="h-12 px-8 bg-slate-700 hover:bg-slate-600 text-white font-medium border border-slate-600"
+                className="h-14 px-8 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 hover:from-slate-600 hover:via-slate-500 hover:to-slate-600 text-white font-bold border border-slate-500/30 relative overflow-hidden transform transition-all duration-300 hover:scale-[1.02]"
               >
-                <span className="mr-2">↻</span>
-                NEW PIX
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-2">
+                  <span className="text-lg">↻</span>
+                  <span className="tracking-wider">NOVO PIX</span>
+                </div>
               </Button>
             </div>
 
