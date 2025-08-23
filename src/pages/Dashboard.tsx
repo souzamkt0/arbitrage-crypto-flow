@@ -48,6 +48,7 @@ import { TradingStats } from "@/components/TradingStats";
 import { TradingChart } from "@/components/TradingChart";
 import { EthereumChart } from "@/components/EthereumChart";
 import { SolanaChart } from "@/components/SolanaChart";
+import { InvestmentPlanCard } from "@/components/InvestmentPlanCard";
 import { CardanoChart } from "@/components/CardanoChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { TradingBot } from "@/components/TradingBot";
@@ -94,6 +95,8 @@ const Dashboard = () => {
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [isDataSyncing, setIsDataSyncing] = useState(false);
   const [userInvestments, setUserInvestments] = useState<any[]>([]);
+  const [investmentPlans, setInvestmentPlans] = useState<any[]>([]);
+  const [referralStats, setReferralStats] = useState({ active_referrals: 0 });
 
   // ... keep existing code (all utility functions and effects)
 
@@ -457,6 +460,8 @@ const Dashboard = () => {
     loadInvestmentStats();
     loadPartnerData();
     loadUserInvestments();
+    loadInvestmentPlans();
+    loadReferralStats();
     
     // Atualizar saldo mais frequentemente (a cada 15 segundos)
     const balanceInterval = setInterval(() => {
@@ -653,6 +658,40 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Erro ao carregar dados de parceiro:', error);
+    }
+  };
+
+  // Carregar planos de investimento ativos
+  const loadInvestmentPlans = async () => {
+    try {
+      const { data: plans, error } = await supabase
+        .from('investment_plans')
+        .select('*')
+        .eq('status', 'active')
+        .order('minimum_amount', { ascending: true });
+
+      if (error) throw error;
+      setInvestmentPlans(plans || []);
+    } catch (error) {
+      console.error('Erro ao carregar planos de investimento:', error);
+    }
+  };
+
+  // Carregar estatísticas de indicações
+  const loadReferralStats = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.rpc('get_user_referral_stats', {
+        target_user_id: user.id
+      });
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setReferralStats(data[0]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas de indicações:', error);
     }
   };
 
@@ -1070,6 +1109,33 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Available Investment Plans */}
+            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold">Available Plans</h3>
+                <Button variant="ghost" size="sm" className="text-teal-400 text-xs" onClick={() => navigate('/investments')}>
+                  View All
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {investmentPlans.slice(0, 4).map((plan) => (
+                  <InvestmentPlanCard
+                    key={plan.id}
+                    plan={plan}
+                    userReferrals={referralStats.active_referrals}
+                  />
+                ))}
+              </div>
+              
+              {investmentPlans.length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <Bot className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Nenhum plano disponível no momento</p>
+                </div>
+              )}
             </div>
           </div>
 
