@@ -320,7 +320,7 @@ export const ActivePlansTable = () => {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">
-                      {plan.amount > 0 ? Math.min(2.0, ((plan.total_earned / plan.amount) * 100)).toFixed(2) : '0.00'}%
+                      {plan.amount > 0 ? ((plan.total_earned / plan.amount) * 100).toFixed(2) : '0.00'}%
                     </div>
                   </TableCell>
                   <TableCell>
