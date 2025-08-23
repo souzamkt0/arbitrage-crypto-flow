@@ -1518,7 +1518,7 @@ export type Database = {
           processing_date: string | null
           rejection_reason: string | null
           status: string | null
-          type: string
+          type: Database["public"]["Enums"]["withdrawal_type"]
           updated_at: string | null
           user_id: string
           wallet_address: string | null
@@ -1539,7 +1539,7 @@ export type Database = {
           processing_date?: string | null
           rejection_reason?: string | null
           status?: string | null
-          type: string
+          type?: Database["public"]["Enums"]["withdrawal_type"]
           updated_at?: string | null
           user_id: string
           wallet_address?: string | null
@@ -1560,7 +1560,7 @@ export type Database = {
           processing_date?: string | null
           rejection_reason?: string | null
           status?: string | null
-          type?: string
+          type?: Database["public"]["Enums"]["withdrawal_type"]
           updated_at?: string | null
           user_id?: string
           wallet_address?: string | null
@@ -1620,6 +1620,10 @@ export type Database = {
       calculate_referral_commission_10pct: {
         Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
+      }
+      check_daily_withdrawal_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       clean_auth_users: {
         Args: Record<PropertyKey, never>
@@ -1844,6 +1848,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "partner"
+      withdrawal_type: "residual" | "referral" | "profit" | "pix"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1972,6 +1977,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "partner"],
+      withdrawal_type: ["residual", "referral", "profit", "pix"],
     },
   },
 } as const
