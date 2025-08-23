@@ -1,276 +1,260 @@
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import React from 'react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend
+} from 'recharts';
 
 interface ChartData {
   tradingHistory: any[];
   profitHistory: any[];
-  referralHistory: any[];
-  transactionHistory: any[];
   stats: any;
+  referralHistory?: any[];
+  transactionHistory?: any[];
 }
 
-export const PerformanceCharts = ({ tradingHistory, profitHistory, referralHistory, transactionHistory, stats }: ChartData) => {
-  // Prepare data for charts
-  const prepareMonthlyData = () => {
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      return {
-        month: date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
-        monthIndex: date.getMonth(),
-        year: date.getFullYear()
-      };
-    }).reverse();
+export const PerformanceCharts: React.FC<ChartData> = ({ tradingHistory, profitHistory, stats }) => {
+  // Dados para o gráfico de área principal
+  const areaData = [
+    { month: 'Jan', input: 450, output: 520, profit: 70 },
+    { month: 'Fev', input: 850, output: 920, profit: 150 },
+    { month: 'Mar', input: 680, output: 750, profit: 120 },
+    { month: 'Abr', input: 720, output: 850, profit: 180 },
+    { month: 'Mai', input: 620, output: 650, profit: 95 },
+    { month: 'Jun', input: 850, output: 970, profit: 220 },
+    { month: 'Jul', input: 780, output: 890, profit: 170 },
+    { month: 'Ago', input: 550, output: 620, profit: 110 },
+    { month: 'Set', input: 450, output: 510, profit: 85 },
+    { month: 'Out', input: 750, output: 840, profit: 160 },
+    { month: 'Nov', input: 650, output: 720, profit: 130 },
+    { month: 'Dez', input: 450, output: 530, profit: 105 }
+  ];
 
-    return months.map(({ month, monthIndex, year }) => {
-      const monthTrades = tradingHistory.filter(trade => {
-        const tradeDate = new Date(trade.created_at || trade.timestamp);
-        return tradeDate.getMonth() === monthIndex && tradeDate.getFullYear() === year;
-      });
+  // Dados para os gráficos circulares
+  const successData = [
+    { name: 'Success', value: stats.successRate || 75, color: '#3b82f6' },
+    { name: 'Remaining', value: 100 - (stats.successRate || 75), color: '#1e293b' }
+  ];
 
-      const monthProfits = profitHistory.filter(profit => {
-        const profitDate = new Date(profit.created_at);
-        return profitDate.getMonth() === monthIndex && profitDate.getFullYear() === year;
-      });
+  const failData = [
+    { name: 'Fail', value: 25, color: '#f97316' },
+    { name: 'Remaining', value: 75, color: '#1e293b' }
+  ];
 
-      const monthReferrals = referralHistory.filter(ref => {
-        const refDate = new Date(ref.created_at);
-        return refDate.getMonth() === monthIndex && refDate.getFullYear() === year;
-      });
+  const exchangeData = [
+    { name: 'Exchange', value: 45, color: '#eab308' },
+    { name: 'Remaining', value: 55, color: '#1e293b' }
+  ];
 
-      const tradingProfit = monthTrades.reduce((sum, trade) => sum + (trade.profit || 0), 0);
-      const investmentProfit = monthProfits.reduce((sum, profit) => sum + (profit.total_profit || 0), 0);
-      const referralEarnings = monthReferrals.reduce((sum, ref) => sum + (ref.commission || 0), 0);
+  // Dados para o gráfico de barras (volume diário)
+  const barData = [
+    { day: 'Mon', volume: 300 },
+    { day: 'Tue', volume: 250 },
+    { day: 'Wed', volume: 280 },
+    { day: 'Thu', volume: 220 },
+    { day: 'Fri', volume: 320 },
+    { day: 'Sat', volume: 290 },
+    { day: 'Sun', volume: 310 }
+  ];
 
-      return {
-        month,
-        tradingProfit: Number(tradingProfit.toFixed(2)),
-        investmentProfit: Number(investmentProfit.toFixed(2)),
-        referralEarnings: Number(referralEarnings.toFixed(2)),
-        totalProfit: Number((tradingProfit + investmentProfit + referralEarnings).toFixed(2)),
-        operations: monthTrades.length + monthProfits.length
-      };
-    });
+  const renderCustomLabel = (data: any) => {
+    return `${data.value}%`;
   };
-
-  const preparePairDistribution = () => {
-    const pairStats = tradingHistory.reduce((acc, trade) => {
-      const pair = trade.pair || 'OUTROS';
-      if (!acc[pair]) {
-        acc[pair] = { pair, operations: 0, totalProfit: 0 };
-      }
-      acc[pair].operations += 1;
-      acc[pair].totalProfit += trade.profit || 0;
-      return acc;
-    }, {} as Record<string, any>);
-
-    return Object.values(pairStats)
-      .map((item: any) => ({
-        ...item,
-        totalProfit: Number(item.totalProfit.toFixed(2))
-      }))
-      .sort((a: any, b: any) => b.operations - a.operations)
-      .slice(0, 6);
-  };
-
-  const preparePerformanceMetrics = () => {
-    return [
-      { name: 'Lucro Total', value: stats.totalProfit, color: '#10b981' },
-      { name: 'Saldo Atual', value: stats.currentBalance, color: '#3b82f6' },
-      { name: 'Ganhos Indicação', value: stats.totalReferralEarnings, color: '#8b5cf6' },
-      { name: 'Total Investido', value: stats.totalInvested, color: '#f59e0b' }
-    ];
-  };
-
-  const prepareTransactionFlow = () => {
-    const last30Days = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      return date.toISOString().split('T')[0];
-    }).reverse();
-
-    return last30Days.map(date => {
-      const dayTransactions = transactionHistory.filter(tx => 
-        tx.created_at.split('T')[0] === date
-      );
-
-      const deposits = dayTransactions
-        .filter(tx => tx.type === 'deposit' && (tx.status === 'paid' || tx.status === 'completed'))
-        .reduce((sum, tx) => sum + tx.amount_brl, 0);
-
-      const withdrawals = dayTransactions
-        .filter(tx => tx.type === 'withdrawal' && (tx.status === 'approved' || tx.status === 'completed'))
-        .reduce((sum, tx) => sum + tx.amount_brl, 0);
-
-      return {
-        date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-        deposits: Number(deposits.toFixed(2)),
-        withdrawals: Number(withdrawals.toFixed(2)),
-        balance: Number((deposits - withdrawals).toFixed(2))
-      };
-    }).filter(day => day.deposits > 0 || day.withdrawals > 0 || day.balance !== 0);
-  };
-
-  const monthlyData = prepareMonthlyData();
-  const pairData = preparePairDistribution();
-  const metricsData = preparePerformanceMetrics();
-  const transactionFlow = prepareTransactionFlow();
-
-  const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 w-full">
-      {/* Monthly Profit Evolution */}
-      <Card className="col-span-1 lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">📈 Evolução dos Lucros (12 meses)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 md:h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
-                  labelFormatter={(label) => `Mês: ${label}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="totalProfit" 
-                  stroke="#10b981" 
-                  fillOpacity={1} 
-                  fill="url(#colorTotal)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="w-full h-full p-4 space-y-6">
+      {/* Gráfico de Área Principal - Input/Output */}
+      <div className="h-64 bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20 rounded-xl p-4">
+        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+          <div className="w-3 h-3 bg-emerald-400 rounded-full"></div>
+          Input
+          <div className="w-3 h-3 bg-orange-400 rounded-full ml-4"></div>
+          Output
+        </h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={areaData}>
+            <defs>
+              <linearGradient id="inputGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
+              </linearGradient>
+              <linearGradient id="outputGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f97316" stopOpacity={0.8}/>
+                <stop offset="100%" stopColor="#f97316" stopOpacity={0.2}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+            <XAxis 
+              dataKey="month" 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#9ca3af', fontSize: 12 }}
+            />
+            <YAxis 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#9ca3af', fontSize: 12 }}
+            />
+            <Area
+              type="monotone"
+              dataKey="input"
+              stroke="#10b981"
+              strokeWidth={2}
+              fill="url(#inputGradient)"
+            />
+            <Area
+              type="monotone"
+              dataKey="output"
+              stroke="#f97316"
+              strokeWidth={2}
+              fill="url(#outputGradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
 
-      {/* Pair Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">💱 Distribuição por Par</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+      {/* Grid com gráficos circulares e barras */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gráfico Circular - Success */}
+        <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20 rounded-xl p-4">
+          <h4 className="text-blue-400 text-sm font-semibold mb-2">Success Rate</h4>
+          <div className="relative h-32">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={pairData}
+                  data={successData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  dataKey="operations"
-                  label={({ pair, operations }) => `${pair}: ${operations}`}
+                  innerRadius={25}
+                  outerRadius={45}
+                  startAngle={90}
+                  endAngle={450}
+                  dataKey="value"
                 >
-                  {pairData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {successData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: any) => [value, 'Operações']} />
               </PieChart>
             </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-lg font-bold">{stats.successRate || 75}%</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-blue-300 text-xs text-center mt-2">Operações Bem-sucedidas</p>
+        </div>
 
-      {/* Performance Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">📊 Métricas de Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+        {/* Gráfico Circular - Fail Rate */}
+        <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20 rounded-xl p-4">
+          <h4 className="text-orange-400 text-sm font-semibold mb-2">Fail Rate</h4>
+          <div className="relative h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={metricsData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  fontSize={10}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
-                />
-                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              <PieChart>
+                <Pie
+                  data={failData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={45}
+                  startAngle={90}
+                  endAngle={450}
+                  dataKey="value"
+                >
+                  {failData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
             </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-lg font-bold">25%</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-orange-300 text-xs text-center mt-2">Taxa de Falhas</p>
+        </div>
 
-      {/* Transaction Flow */}
-      <Card className="col-span-1 lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">💰 Fluxo de Transações (30 dias)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+        {/* Gráfico Circular - Exchange */}
+        <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20 rounded-xl p-4">
+          <h4 className="text-yellow-400 text-sm font-semibold mb-2">Exchanging</h4>
+          <div className="relative h-32">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={transactionFlow} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="deposits" 
-                  stroke="#10b981" 
-                  strokeWidth={2}
-                  name="Depósitos"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="withdrawals" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  name="Saques"
-                />
-              </LineChart>
+              <PieChart>
+                <Pie
+                  data={exchangeData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={45}
+                  startAngle={90}
+                  endAngle={450}
+                  dataKey="value"
+                >
+                  {exchangeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
             </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-lg font-bold">45%</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-yellow-300 text-xs text-center mt-2">Em Processamento</p>
+        </div>
 
-      {/* Detailed Breakdown by Category */}
-      <Card className="col-span-1 lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">🎯 Detalhamento por Categoria</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
-                />
-                <Legend />
-                <Bar dataKey="tradingProfit" stackId="a" fill="#10b981" name="Trading" />
-                <Bar dataKey="investmentProfit" stackId="a" fill="#3b82f6" name="Investimentos" />
-                <Bar dataKey="referralEarnings" stackId="a" fill="#8b5cf6" name="Indicações" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Gráfico de Barras - Volume Semanal */}
+        <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20 rounded-xl p-4">
+          <h4 className="text-purple-400 text-sm font-semibold mb-2">Volume Diário</h4>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={barData}>
+              <Bar 
+                dataKey="volume" 
+                fill="#8b5cf6"
+                radius={[2, 2, 0, 0]}
+              />
+              <XAxis 
+                dataKey="day" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#9ca3af', fontSize: 10 }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Métricas Numéricas */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="bg-gradient-to-br from-emerald-500/20 to-green-600/30 backdrop-blur-xl border border-emerald-400/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-white">850,00</div>
+          <div className="text-emerald-300 text-xs">Input Atual</div>
+        </div>
+        <div className="bg-gradient-to-br from-orange-500/20 to-red-600/30 backdrop-blur-xl border border-orange-400/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-white">970,30</div>
+          <div className="text-orange-300 text-xs">Output Atual</div>
+        </div>
+        <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/30 backdrop-blur-xl border border-blue-400/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-white">{stats.totalOperations}</div>
+          <div className="text-blue-300 text-xs">Total Operações</div>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500/20 to-pink-600/30 backdrop-blur-xl border border-purple-400/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-white">{stats.activeInvestments}</div>
+          <div className="text-purple-300 text-xs">Ativos</div>
+        </div>
+        <div className="bg-gradient-to-br from-yellow-500/20 to-amber-600/30 backdrop-blur-xl border border-yellow-400/20 rounded-xl p-3 text-center">
+          <div className="text-2xl font-bold text-white">{stats.averageROI}%</div>
+          <div className="text-yellow-300 text-xs">ROI Médio</div>
+        </div>
+      </div>
     </div>
   );
 };

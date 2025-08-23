@@ -815,8 +815,12 @@ const History = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-48 md:h-64 lg:h-80 flex items-center justify-center">
-                    <p className="text-slate-400">Gráficos de performance em desenvolvimento</p>
+                  <div className="h-64 md:h-80 lg:h-96">
+                    <PerformanceCharts 
+                      tradingHistory={tradingHistory}
+                      profitHistory={profitHistory}
+                      stats={stats}
+                    />
                   </div>
                 </CardContent>
               </Card>
