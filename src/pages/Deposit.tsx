@@ -150,6 +150,16 @@ const Deposit = () => {
               <div className="text-xs text-gray-400">
                 {totalDeposits} depósitos • {pendingDeposits} pendentes
               </div>
+              {depositBalance > 0 && (
+                <div className="mt-2 p-2 bg-green-500/10 rounded border border-green-500/20">
+                  <div className="text-xs text-green-400 font-medium">
+                    ✅ Saldo disponível no sistema
+                  </div>
+                  <div className="text-xs text-gray-300">
+                    Pronto para trading e operações
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Deposit Stats */}
@@ -377,6 +387,19 @@ const Deposit = () => {
                   <h3 className="text-sm font-semibold text-white">Sell Orders</h3>
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
                 </div>
+                
+                {/* Saldo Depósito na seção Sell Orders */}
+                {depositBalance > 0 && (
+                  <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-500/20">
+                    <div className="text-xs text-green-400 font-medium">
+                      💰 Saldo Disponível: ${depositBalance.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-300">
+                      ✅ Seu saldo está no sistema e pronto para trading
+                    </div>
+                  </div>
+                )}
+                
                 <div className="space-y-1">
                   <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1">
                     <div>VALUE</div>
@@ -402,6 +425,19 @@ const Deposit = () => {
                   <h3 className="text-sm font-semibold text-white">Buy Orders</h3>
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
                 </div>
+                
+                {/* Saldo Depósito na seção Buy Orders */}
+                {depositBalance > 0 && (
+                  <div className="mb-3 p-2 bg-green-500/10 rounded border border-green-500/20">
+                    <div className="text-xs text-green-400 font-medium">
+                      💰 Saldo Disponível: ${depositBalance.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-300">
+                      ✅ Seu saldo está no sistema e pronto para trading
+                    </div>
+                  </div>
+                )}
+                
                 <div className="space-y-1">
                   <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 border-b border-gray-700 pb-1">
                     <div>VALUE</div>

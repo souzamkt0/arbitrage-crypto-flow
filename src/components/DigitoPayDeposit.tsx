@@ -94,7 +94,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           
           toast({
             title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
-            description: `Seu depósito de R$ ${transaction.amount_brl} foi confirmado e o saldo foi adicionado à sua conta!`,
+            description: `Seu depósito de R$ ${transaction.amount_brl} foi confirmado e o saldo foi adicionado à sua conta! ✅ Saldo está disponível no sistema para trading.`,
             duration: 15000,
           });
 
