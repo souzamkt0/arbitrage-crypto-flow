@@ -29,6 +29,13 @@ const generateOrderBook = (count: number, type: 'buy' | 'sell') => {
   const basePrice = 42500;
   const spreadPercent = 0.002; // 0.2% spread
   
+  // Popular exchanges/brokers
+  const exchanges = [
+    'Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'Huobi', 'KuCoin', 
+    'OKX', 'Bybit', 'Gate.io', 'Crypto.com', 'Gemini', 'FTX',
+    'Bitstamp', 'Bittrex', 'Poloniex', 'HitBTC', 'MEXC', 'Bitget'
+  ];
+  
   for (let i = 0; i < count; i++) {
     const priceOffset = type === 'sell' 
       ? spreadPercent + (i * 0.0003) // Sell orders above market price
@@ -38,12 +45,14 @@ const generateOrderBook = (count: number, type: 'buy' | 'sell') => {
     const amount = (Math.random() * 5 + 0.1).toFixed(3);
     const total = (price * parseFloat(amount)).toFixed(0);
     const bid = (price * 0.999).toFixed(0);
+    const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
     
     orders.push({
       value: `$${price.toFixed(0)}`,
       amount: amount,
       bid: `$${bid}`,
       total: `$${total}`,
+      exchange: exchange,
       timestamp: Date.now() + i * 10
     });
   }
@@ -211,20 +220,24 @@ const Deposit = () => {
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
               </div>
               
-              <div className="space-y-1">
-                <div className="grid grid-cols-4 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
-                  <div>PREÇO</div>
-                  <div>QTD</div>
-                  <div>BID</div>
-                  <div>TOTAL</div>
-                </div>
+               <div className="space-y-1">
+                 <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
+                   <div>CORRETORA</div>
+                   <div>PREÇO</div>
+                   <div>QTD</div>
+                   <div>BID</div>
+                   <div>TOTAL</div>
+                 </div>
                 
                 {sellOrders.map((order, index) => (
                   <div 
                     key={`left-sell-${order.timestamp}-${index}`}
-                    className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
+                    className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
+                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate">
+                      {order.exchange}
+                    </div>
                     <div className="text-red-400 font-medium transition-colors duration-300 hover:text-red-300">
                       {order.value}
                     </div>
@@ -509,7 +522,8 @@ const Deposit = () => {
               </div>
               
               <div className="space-y-1">
-                <div className="grid grid-cols-4 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
+                <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
+                  <div>CORRETORA</div>
                   <div>PREÇO</div>
                   <div>QTD</div>
                   <div>BID</div>
@@ -519,9 +533,12 @@ const Deposit = () => {
                 {sideBuyOrders.map((order, index) => (
                   <div 
                     key={`side-${order.timestamp}-${index}`}
-                    className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
+                    className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
+                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate">
+                      {order.exchange}
+                    </div>
                     <div className="text-green-400 font-medium transition-colors duration-300 hover:text-green-300">
                       {order.value}
                     </div>
