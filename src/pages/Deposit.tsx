@@ -247,7 +247,7 @@ const Deposit = () => {
               <div className="text-xs font-semibold mb-1 text-gray-400">Market Status</div>
               <div className="text-red-400 text-xs font-bold">USD/BTC -6.01%</div>
               <div className="h-16 bg-[#1f2937] rounded mt-1 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-transparent animate-pulse"></div>
+                
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-red-500/10 to-transparent"></div>
               </div>
             </div>
