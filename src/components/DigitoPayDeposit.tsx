@@ -536,6 +536,23 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
               
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-2 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full blur-sm group-hover:blur-none transition-all duration-300"></div>
             </div>
+
+            {/* Small Pagar Agora Button */}
+            <div className="flex justify-center mt-4">
+              <Button
+                type="button"
+                className="h-10 px-6 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-105 animate-pulse"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent animate-pulse"></div>
+                <div className="relative flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 bg-white/30 rounded-full flex items-center justify-center">
+                    <span className="text-xs">💳</span>
+                  </div>
+                  <span className="tracking-wide font-extrabold">PAGAR AGORA</span>
+                </div>
+              </Button>
+            </div>
           </>
         ) : (
           <div className="space-y-8">
