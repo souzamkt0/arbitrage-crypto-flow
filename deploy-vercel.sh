@@ -32,9 +32,9 @@ git push origin main || git push origin master
 if [ $? -eq 0 ]; then
     echo "✅ Repositório atualizado com sucesso!"
     
-    # Deploy direto no Vercel para garantir atualização imediata
+# Deploy direto no Vercel para garantir atualização imediata
     echo "🚀 Fazendo deploy direto no Vercel..."
-    vercel --prod --yes
+    vercel --prod --yes --force
     
     if [ $? -eq 0 ]; then
         echo "✅ Deploy no Vercel concluído com sucesso!"
