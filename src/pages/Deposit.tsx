@@ -149,31 +149,31 @@ const Deposit = () => {
 
   return (
     <ErrorBoundary>
-      <div className="h-screen bg-[#0a0e1a] text-white flex flex-col overflow-hidden">
-        {/* Header Navigation */}
-        <header className="bg-[#151b2b] border-b border-gray-800 px-6 py-3 flex-shrink-0">
+      <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col">
+        {/* Header Navigation - Responsive */}
+        <header className="bg-[#151b2b] border-b border-gray-800 px-3 sm:px-6 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
             </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white p-2">
                 <Bell className="h-4 w-4" />
               </Button>
-              <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2">
+              <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3 sm:px-4 py-2 text-sm">
                 Wallet
               </Button>
             </div>
           </div>
         </header>
 
-        {/* Main Layout */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Sidebar - Portfolio */}
-          <div className="w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
-            {/* Deposit Balance Header */}
+        {/* Main Layout - Responsive */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          {/* Left Sidebar - Hidden on mobile, visible on lg+ */}
+          <div className="hidden lg:flex lg:w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
+            {/* Deposit Balance Header - Responsive */}
             <div className="border-b border-gray-800 pb-3">
-              <h2 className="text-base font-semibold mb-2 text-cyan-400">Saldo Depósitos</h2>
-              <div className="text-xl font-bold text-green-400">
+              <h2 className="text-sm sm:text-base font-semibold mb-2 text-cyan-400">Saldo Depósitos</h2>
+              <div className="text-lg sm:text-xl font-bold text-green-400">
                 ${depositBalance.toFixed(2)}
               </div>
               <div className="text-xs text-gray-400">
@@ -191,7 +191,7 @@ const Deposit = () => {
               )}
             </div>
 
-            {/* Deposit Stats */}
+            {/* Deposit Stats - Responsive */}
             <div className="space-y-2">
               
               {pendingDeposits > 0 && (
@@ -199,22 +199,22 @@ const Deposit = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-gray-400">Pendentes</div>
-                      <div className="text-lg font-bold text-yellow-400">{pendingDeposits}</div>
+                      <div className="text-sm sm:text-lg font-bold text-yellow-400">{pendingDeposits}</div>
                     </div>
-                    <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                      <Activity className="h-4 w-4 text-yellow-400 animate-pulse" />
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                      <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 animate-pulse" />
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Live Sell Orders - Left Side */}
+            {/* Live Sell Orders - Responsive */}
             <div className="animate-fade-in">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
-                <h3 className="text-sm font-semibold text-white">Live Sell Orders</h3>
-                <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">
+              <div className="flex items-center gap-1 sm:gap-2 mb-3">
+                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 animate-pulse" />
+                <h3 className="text-xs sm:text-sm font-semibold text-white">Live Sell Orders</h3>
+                <div className="text-xs text-red-400 bg-red-500/10 px-1 sm:px-2 py-1 rounded">
                   LIVE
                 </div>
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
@@ -222,7 +222,8 @@ const Deposit = () => {
               
                <div className="space-y-1">
                  <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
-                   <div>CORRETORA</div>
+                   <div className="hidden sm:block">CORRETORA</div>
+                   <div className="sm:hidden">COR</div>
                    <div>PREÇO</div>
                    <div>QTD</div>
                    <div>BID</div>
@@ -235,19 +236,20 @@ const Deposit = () => {
                     className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate">
-                      {order.exchange}
+                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate text-xs">
+                      <span className="hidden sm:inline">{order.exchange}</span>
+                      <span className="sm:hidden">{order.exchange.slice(0, 3)}</span>
                     </div>
-                    <div className="text-red-400 font-medium transition-colors duration-300 hover:text-red-300">
+                    <div className="text-red-400 font-medium transition-colors duration-300 hover:text-red-300 text-xs">
                       {order.value}
                     </div>
-                    <div className="text-white transition-colors duration-300 hover:text-red-400">
+                    <div className="text-white transition-colors duration-300 hover:text-red-400 text-xs">
                       {order.amount}
                     </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-white">
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-white text-xs">
                       {order.bid}
                     </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-red-400">
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-red-400 text-xs">
                       {order.total}
                     </div>
                   </div>
@@ -257,18 +259,18 @@ const Deposit = () => {
 
           </div>
 
-          {/* Center - Main Chart Area */}
-          <div className="flex-1 bg-[#0a0e1a] p-4 space-y-4 overflow-y-auto">
-            {/* Deposit Interface - Moved to top */}
+          {/* Center - Main Content Area - Responsive */}
+          <div className="flex-1 bg-[#0a0e1a] p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto">
+            {/* Deposit Interface - Mobile First */}
             <Card className="bg-[#151b2b] border border-gray-800">
-              <CardHeader className="border-b border-gray-800 py-3">
+              <CardHeader className="border-b border-gray-800 py-2 sm:py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
-                      <Wallet className="h-4 w-4 text-white" />
+                    <div className="p-1 sm:p-1.5 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
+                      <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-base font-bold text-white">Deposit Terminal</CardTitle>
+                      <CardTitle className="text-sm sm:text-base font-bold text-white">Deposit Terminal</CardTitle>
                       <p className="text-xs text-gray-400">Sistema ativo</p>
                     </div>
                   </div>
@@ -280,26 +282,26 @@ const Deposit = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-[#1f2937] border border-gray-700 p-1">
+                  <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4 bg-[#1f2937] border border-gray-700 p-1">
                     <TabsTrigger 
                       value="digitopay" 
-                      className="flex items-center justify-center space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-2"
+                      className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-2"
                     >
                       <Smartphone className="h-3 w-3" />
-                      <span className="font-medium text-xs">PIX Instant</span>
+                      <span className="font-medium text-xs sm:text-sm">PIX Instant</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="usdt" 
-                      className="flex items-center justify-center space-x-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white py-2"
+                      className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white py-2"
                     >
                       <CreditCard className="h-3 w-3" />
-                      <span className="font-medium text-xs">USDT Crypto</span>
+                      <span className="font-medium text-xs sm:text-sm">USDT Crypto</span>
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="digitopay" className="space-y-4">
+                  <TabsContent value="digitopay" className="space-y-3 sm:space-y-4">
                     {user ? (
                       <DigitoPayDeposit onSuccess={() => {
                         toast({
@@ -320,9 +322,9 @@ const Deposit = () => {
                     )}
                   </TabsContent>
 
-                  <TabsContent value="usdt" className="space-y-4">
-                    <form onSubmit={handleBnbSubmit} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                  <TabsContent value="usdt" className="space-y-3 sm:space-y-4">
+                    <form onSubmit={handleBnbSubmit} className="space-y-3 sm:space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="usdt-amount" className="text-purple-400 font-medium text-xs">Amount (USDT)</Label>
                           <div className="relative">
@@ -331,7 +333,7 @@ const Deposit = () => {
                               id="usdt-amount"
                               type="number"
                               placeholder="100.00"
-                              className="pl-9 bg-[#1f2937] border-gray-700 text-white h-9 focus:border-purple-500 text-xs"
+                              className="pl-9 bg-[#1f2937] border-gray-700 text-white h-10 sm:h-9 focus:border-purple-500 text-xs"
                               min="10"
                               step="0.01"
                               value={bnbForm.amount}
@@ -347,7 +349,7 @@ const Deposit = () => {
                             id="sender-name"
                             type="text"
                             placeholder="Full name"
-                            className="bg-[#1f2937] border-gray-700 text-white h-9 focus:border-purple-500 text-xs"
+                            className="bg-[#1f2937] border-gray-700 text-white h-10 sm:h-9 focus:border-purple-500 text-xs"
                             value={bnbForm.senderName}
                             onChange={(e) => setBnbForm({...bnbForm, senderName: e.target.value})}
                             required
@@ -357,7 +359,7 @@ const Deposit = () => {
 
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-9 text-xs"
+                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-10 sm:h-9 text-xs sm:text-sm"
                         disabled={isLoading}
                       >
                         {isLoading ? (
@@ -373,7 +375,7 @@ const Deposit = () => {
                         )}
                       </Button>
 
-                      {/* Small Pay Now Button */}
+                      {/* Small Pay Now Button - Mobile optimized */}
                       <Button 
                         type="button"
                         className="mt-3 h-10 px-6 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-105"
@@ -393,15 +395,47 @@ const Deposit = () => {
             </Card>
 
 
-
-            {/* Main Chart */}
-            <div className="bg-[#151b2b] rounded-lg p-3 flex-1 min-h-0">
+            {/* Main Chart - Responsive */}
+            <div className="bg-[#151b2b] rounded-lg p-2 sm:p-3 flex-1 min-h-0">
               <TradingChart />
+            </div>
+
+            {/* Mobile Live Orders - Only visible on small screens */}
+            <div className="lg:hidden bg-[#151b2b] rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
+                <h3 className="text-sm font-semibold text-white">Live Orders</h3>
+                <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">LIVE</div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs text-red-400 font-medium">Sell Orders</div>
+                  {sellOrders.slice(0, 3).map((order, i) => (
+                    <div key={`mobile-sell-${i}`} className="text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-red-400">{order.value}</span>
+                        <span className="text-white">{order.amount}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-green-400 font-medium">Buy Orders</div>
+                  {buyOrders.slice(0, 3).map((order, i) => (
+                    <div key={`mobile-buy-${i}`} className="text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-green-400">{order.value}</span>
+                        <span className="text-white">{order.amount}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Sidebar - Trading Panel */}
-          <div className="w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
+          {/* Right Sidebar - Hidden on mobile/tablet, visible on xl+ */}
+          <div className="hidden xl:flex xl:w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
             {/* Buy Orders */}
             <div className="animate-fade-in">
               <div className="flex items-center gap-2 mb-3">
