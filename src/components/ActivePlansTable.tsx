@@ -403,70 +403,76 @@ export const ActivePlansTable = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Active Plans
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-2">Carregando planos ativos...</p>
+      <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+        <div className="p-4 border-b border-gray-800">
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              α
+            </div>
+            <h3 className="font-semibold text-sm text-white">Trading Alpha</h3>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-4">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="text-gray-400 mt-2">Carregando planos ativos...</p>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (activePlans.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Active Plans
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+        <div className="p-4 border-b border-gray-800">
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              α
+            </div>
+            <h3 className="font-semibold text-sm text-white">Trading Alpha</h3>
+          </div>
+        </div>
+        <div className="p-4">
           <div className="text-center py-8">
-            <Bot className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-muted-foreground mb-3">Nenhum plano ativo no momento</p>
+            <Bot className="h-12 w-12 mx-auto mb-3 opacity-50 text-gray-400" />
+            <p className="text-gray-400 mb-3">Nenhum plano ativo no momento</p>
             <Button 
               variant="outline" 
               onClick={() => navigate('/investments')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <Play className="h-4 w-4" />
               Começar a Investir
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
+      <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Active Plans ({activePlans.length})
-          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              α
+            </div>
+            <h3 className="font-semibold text-sm text-white">Trading Alpha ({activePlans.length})</h3>
+          </div>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => navigate('/investments')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             Ver Todos
             <ExternalLink className="h-4 w-4" />
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-4">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -576,7 +582,7 @@ export const ActivePlansTable = () => {
           
           <TodaysProfitCard />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
