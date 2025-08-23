@@ -700,11 +700,13 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
+      console.log('🔄 Carregando investimentos do usuário:', user.id);
+      
       const { data: investments, error } = await supabase
         .from('user_investments')
         .select(`
           *,
-          investment_plans!user_investments_plan_id_fkey (
+          investment_plans (
             name,
             daily_rate,
             duration_days
@@ -716,13 +718,30 @@ const Dashboard = () => {
         .limit(5);
 
       if (error) {
-        console.error('Erro ao carregar investimentos:', error);
+        console.error('❌ Erro ao carregar investimentos:', error);
+        // Tentar query mais simples sem JOIN
+        const { data: simpleInvestments, error: simpleError } = await supabase
+          .from('user_investments')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (simpleError) {
+          console.error('❌ Erro na query simples:', simpleError);
+          return;
+        }
+
+        console.log('✅ Investimentos carregados (query simples):', simpleInvestments);
+        setUserInvestments(simpleInvestments || []);
         return;
       }
 
+      console.log('✅ Investimentos carregados:', investments);
       setUserInvestments(investments || []);
     } catch (error) {
-      console.error('Erro ao carregar investimentos do usuário:', error);
+      console.error('❌ Erro ao carregar investimentos do usuário:', error);
     }
   };
 
@@ -1124,7 +1143,7 @@ const Dashboard = () => {
                 {userInvestments.slice(0, 4).map((investment) => (
                   <div key={investment.id} className="bg-[#0f1419] rounded-lg p-3 border border-gray-700">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm">{investment.investment_plans?.name || 'Investment Plan'}</h4>
+                      <h4 className="font-medium text-sm">{investment.investment_plans?.name || investment.plan_name || 'Investment Plan'}</h4>
                       <Badge variant="secondary" className="text-xs">
                         {investment.status}
                       </Badge>
