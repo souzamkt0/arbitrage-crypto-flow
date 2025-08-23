@@ -1256,6 +1256,57 @@ export type Database = {
           },
         ]
       }
+      user_contracts: {
+        Row: {
+          amount: number
+          auto_renewal: boolean | null
+          contract_type: string
+          created_at: string | null
+          daily_rate: number
+          end_date: string
+          id: string
+          last_earning_date: string | null
+          plan_name: string
+          start_date: string
+          status: string
+          total_earned: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          auto_renewal?: boolean | null
+          contract_type?: string
+          created_at?: string | null
+          daily_rate?: number
+          end_date: string
+          id?: string
+          last_earning_date?: string | null
+          plan_name: string
+          start_date?: string
+          status?: string
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          auto_renewal?: boolean | null
+          contract_type?: string
+          created_at?: string | null
+          daily_rate?: number
+          end_date?: string
+          id?: string
+          last_earning_date?: string | null
+          plan_name?: string
+          start_date?: string
+          status?: string
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_data: {
         Row: {
           address: string | null

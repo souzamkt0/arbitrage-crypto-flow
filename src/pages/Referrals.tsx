@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,8 +21,7 @@ import {
   Users, 
   DollarSign, 
   Search, 
-  Copy, 
-  Link,
+  Copy,
   Phone,
   TrendingUp,
   UserCheck,
@@ -32,56 +30,27 @@ import {
   Eye,
   MessageCircle,
   Settings,
-  User,
-  Key,
-  LogOut,
-  Menu,
   ArrowLeft,
   Activity,
   Bell,
-  Zap,
-  Shield,
-  Crown,
-  Target,
-  Rocket,
-  Star,
-  Gift,
-  LineChart,
-  PieChart,
-  BarChart3,
-  Layers,
   Network,
-  Share2,
-  Globe,
-  Smartphone,
-  Mail,
-  Calendar,
-  Award,
+  BarChart3,
+  Target,
   CheckCircle,
   AlertTriangle,
   TrendingDown,
-  Hash,
-  Download,
-  Upload,
-  RefreshCw,
-  Plus,
-  Minus,
-  Info,
-  MapPin,
   Clock,
+  RefreshCw,
+  MapPin,
   Wifi,
   WifiOff,
-  Percent,
-  TrendingUpIcon
+  Shield,
+  Calendar,
+  FileCheck
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ResidualEarnings from "@/components/ResidualEarnings";
-import { TradingChart } from "@/components/TradingChart";
-import { MarketOverview } from "@/components/MarketOverview";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 
 interface ReferredUser {
   id: string;
@@ -99,6 +68,19 @@ interface ReferredUser {
   totalProfit?: number;
   performance?: number;
   activeInvestments?: number;
+}
+
+interface UserContract {
+  id: string;
+  contract_type: string;
+  plan_name: string;
+  start_date: string;
+  end_date: string;
+  amount: number;
+  daily_rate: number;
+  status: string;
+  auto_renewal: boolean;
+  total_earned: number;
 }
 
 const Referrals = () => {
@@ -122,11 +104,11 @@ const Referrals = () => {
     withoutWhatsapp: 0
   });
   const [profile, setProfile] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("overview");
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
   const [selectedMessageType, setSelectedMessageType] = useState<string>("welcome");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [userContract, setUserContract] = useState<UserContract | null>(null);
 
   // Pre-made message templates with more variety
   const messageTemplates = {
@@ -340,6 +322,16 @@ Atenciosamente,
           const userName = userProfile.display_name || userProfile.username || 'Usuário';
           setReferralLink(`${window.location.origin}/register?ref=${userProfile.username}&name=${encodeURIComponent(userName)}`);
         }
+
+        // Buscar contrato ativo do usuário
+        const { data: activeContract } = await supabase
+          .from('user_contracts')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        setUserContract(activeContract);
 
         // Buscar usuários indicados com informações detalhadas
         console.log('🔍 Debug Referrals - Buscando usuários indicados por:', user.id);
@@ -562,12 +554,22 @@ Atenciosamente,
                 </div>
               </div>
 
-              {/* Center Section - Status */}
+              {/* Center Section - Contract Status */}
               <div className="hidden md:flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-400 text-sm font-medium">SYSTEM ONLINE</span>
-                </div>
+                {userContract ? (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
+                    <FileCheck className="h-4 w-4 text-green-400" />
+                    <span className="text-green-400 text-sm font-medium">CONTRATO ATIVO</span>
+                    <Badge className="bg-green-500/30 text-green-300 text-xs">
+                      {userContract.plan_name}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-gray-500/20 rounded-full">
+                    <AlertTriangle className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-400 text-sm font-medium">SEM CONTRATO</span>
+                  </div>
+                )}
                 
                 <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/20 rounded-full">
                   <Activity className="h-4 w-4 text-purple-400" />
@@ -589,7 +591,136 @@ Atenciosamente,
         </div>
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-          {/* Detailed User Performance Dashboard - MOVED TO TOP */}
+          {/* Contract Status & Referral Link Card */}
+          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
+            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                    <Shield className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold text-white">
+                      Contract Status & Referral System
+                    </CardTitle>
+                    <p className="text-sm text-gray-400">Your investment status and referral information</p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Contract Status */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <FileCheck className="h-5 w-5 text-blue-400" />
+                    Contract Status
+                  </h3>
+                  
+                  {userContract ? (
+                    <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                          ✅ ACTIVE CONTRACT
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Plan:</span>
+                          <span className="text-white font-medium">{userContract.plan_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Amount:</span>
+                          <span className="text-green-400">{formatCurrency(userContract.amount)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Daily Rate:</span>
+                          <span className="text-blue-400">{(userContract.daily_rate * 100).toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">End Date:</span>
+                          <span className="text-white">{formatDate(userContract.end_date)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Total Earned:</span>
+                          <span className="text-yellow-400">{formatCurrency(userContract.total_earned)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl p-4">
+                      <div className="text-center">
+                        <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-400 text-lg font-medium mb-2">No Active Contract</p>
+                        <p className="text-gray-500 text-sm mb-4">Start investing to activate your contract and earn daily profits</p>
+                        <Button 
+                          onClick={() => navigate('/investments')}
+                          className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                        >
+                          Start Investing
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Referral Link */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Network className="h-5 w-5 text-purple-400" />
+                    Your Referral Link
+                  </h3>
+                  
+                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Input
+                          value={referralLink}
+                          readOnly
+                          className="pr-12 bg-slate-800/60 border-purple-500/30 text-white font-mono text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={copyToClipboard}
+                          className="absolute right-1 top-1 h-8 bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            const message = `🚀 Join Alphabit and start earning with automated trading!\n\n${referralLink}\n\n✅ Professional arbitrage system\n✅ Guaranteed daily profits\n✅ 24/7 support\n\nStart today!`;
+                            const encodedMessage = encodeURIComponent(message);
+                            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
+                        >
+                          <Phone className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                        
+                        <Button
+                          onClick={() => {
+                            const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
+                            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
+                          }}
+                          className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Share
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Team Performance Dashboard */}
           <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
             <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
               <div className="flex items-center justify-between">
@@ -658,8 +789,7 @@ Atenciosamente,
                   className="border-purple-500/30 text-purple-400 ml-auto"
                   onClick={async () => {
                     setIsRefreshing(true);
-                    // Reload data logic here
-                    setTimeout(() => setIsRefreshing(false), 1000);
+                    window.location.reload();
                   }}
                   disabled={isRefreshing}
                 >
@@ -674,14 +804,12 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Avg Performance</p>
+                        <p className="text-sm text-gray-400">Total Referrals</p>
                         <p className="text-2xl font-bold text-blue-400">
-                          {filteredUsers.length > 0 
-                            ? Math.round(filteredUsers.reduce((sum, user) => sum + (user.performance || 0), 0) / filteredUsers.length)
-                            : 0}%
+                          {stats.totalReferrals}
                         </p>
                       </div>
-                      <TrendingUp className="h-8 w-8 text-blue-400" />
+                      <Users className="h-8 w-8 text-blue-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -690,12 +818,12 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Active Investments</p>
+                        <p className="text-sm text-gray-400">Active Users</p>
                         <p className="text-2xl font-bold text-green-400">
-                          {filteredUsers.reduce((sum, user) => sum + (user.activeInvestments || 0), 0)}
+                          {stats.activeReferrals}
                         </p>
                       </div>
-                      <Target className="h-8 w-8 text-green-400" />
+                      <UserCheck className="h-8 w-8 text-green-400" />
                     </div>
                   </CardContent>
                 </Card>
@@ -704,9 +832,9 @@ Atenciosamente,
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Total Profits</p>
+                        <p className="text-sm text-gray-400">Total Commission</p>
                         <p className="text-2xl font-bold text-yellow-400">
-                          {formatCurrency(filteredUsers.reduce((sum, user) => sum + (user.totalProfit || 0), 0))}
+                          {formatCurrency(stats.totalCommission)}
                         </p>
                       </div>
                       <DollarSign className="h-8 w-8 text-yellow-400" />
@@ -738,7 +866,6 @@ Atenciosamente,
                         <TableHead className="text-purple-400 font-medium">User</TableHead>
                         <TableHead className="text-purple-400 font-medium">Status</TableHead>
                         <TableHead className="text-purple-400 font-medium">Location</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Performance</TableHead>
                         <TableHead className="text-purple-400 font-medium">Investments</TableHead>
                         <TableHead className="text-purple-400 font-medium">Profit</TableHead>
                         <TableHead className="text-purple-400 font-medium">Commission</TableHead>
@@ -793,27 +920,6 @@ Atenciosamente,
                               ) : (
                                 <span className="text-gray-500 italic">Not provided</span>
                               )}
-                            </div>
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm font-medium text-white">
-                                    {user.performance?.toFixed(1)}%
-                                  </span>
-                                  {(user.performance || 0) > 0 ? (
-                                    <TrendingUp className="h-3 w-3 text-green-400" />
-                                  ) : (
-                                    <TrendingDown className="h-3 w-3 text-red-400" />
-                                  )}
-                                </div>
-                                <Progress 
-                                  value={Math.min(Math.max(user.performance || 0, 0), 100)} 
-                                  className="h-1"
-                                />
-                              </div>
                             </div>
                           </TableCell>
 
@@ -906,469 +1012,6 @@ Atenciosamente,
               )}
             </CardContent>
           </Card>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Referrals */}
-            <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover-scale">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-2">Total Referrals</p>
-                    <p className="text-3xl font-bold text-purple-400">{stats.totalReferrals}</p>
-                    <p className="text-xs text-gray-500 mt-1">Network size</p>
-                  </div>
-                  <div className="p-3 bg-purple-500/20 rounded-xl">
-                    <Users className="h-8 w-8 text-purple-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Active Users */}
-            <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 hover-scale">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-2">Active Users</p>
-                    <p className="text-3xl font-bold text-green-400">{stats.activeReferrals}</p>
-                    <p className="text-xs text-gray-500 mt-1">Trading now</p>
-                  </div>
-                  <div className="p-3 bg-green-500/20 rounded-xl">
-                    <UserCheck className="h-8 w-8 text-green-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Total Commission */}
-            <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 hover-scale">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-2">Total Earned</p>
-                    <p className="text-3xl font-bold text-yellow-400">{formatCurrency(stats.totalCommission)}</p>
-                    <p className="text-xs text-gray-500 mt-1">All time</p>
-                  </div>
-                  <div className="p-3 bg-yellow-500/20 rounded-xl">
-                    <DollarSign className="h-8 w-8 text-yellow-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Conversion Rate */}
-            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover-scale">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-2">Conversion</p>
-                    <p className="text-3xl font-bold text-blue-400">
-                      {stats.totalReferrals > 0 ? Math.round((stats.activeReferrals / stats.totalReferrals) * 100) : 0}%
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Success rate</p>
-                  </div>
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <TrendingUp className="h-8 w-8 text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Sidebar - Market Data */}
-            <div className="lg:col-span-1 space-y-6">
-              <MarketOverview />
-              
-              {/* Referral Progress */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-                <CardHeader className="border-b border-purple-500/20">
-                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                    <Target className="h-5 w-5 text-purple-400" />
-                    Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Bronze → Silver</span>
-                      <span className="text-white font-medium">{stats.totalReferrals}/10</span>
-                    </div>
-                    <Progress value={(stats.totalReferrals / 10) * 100} className="h-2" />
-                    <p className="text-xs text-gray-500">7 more referrals to Silver tier</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-yellow-400" />
-                      <span className="text-sm text-yellow-400">Bronze Level</span>
-                    </div>
-                    <p className="text-xs text-gray-400">10% commission rate</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Referral Link Section - Moved above chart */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20 overflow-hidden">
-                <CardHeader className="border-b border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
-                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                    <Link className="h-5 w-5 text-purple-400" />
-                    YOUR REFERRAL LINK
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-4 bg-slate-700/50 rounded-lg border border-purple-500/20">
-                      <Input
-                        value={referralLink}
-                        readOnly
-                        className="flex-1 bg-transparent border-none text-white font-mono text-sm focus:ring-0 focus:border-none"
-                      />
-                      <Button
-                        onClick={copyToClipboard}
-                        className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 transition-all duration-300 hover:scale-105"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        COPY
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        onClick={() => {
-                          const message = `🚀 Join Alphabit and start earning with automated trading!\n\n${referralLink}\n\n✅ Professional arbitrage system\n✅ Guaranteed daily profits\n✅ 24/7 support\n\nStart today!`;
-                          const encodedMessage = encodeURIComponent(message);
-                          window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-                        }}
-                        className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
-                      >
-                        <Phone className="h-4 w-4 mr-2" />
-                        WhatsApp
-                      </Button>
-                      
-                      <Button
-                        onClick={() => {
-                          const tweetText = `🚀 Discover Alphabit: The future of automated trading!\n\n${referralLink}\n\n#Trading #Crypto #Profit #Arbitrage`;
-                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
-                        }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
-                      >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Trading Chart */}
-              <TradingChart />
-
-              {/* Referral Interface */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-                <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                        <Share2 className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg font-bold text-white">
-                          Referral Terminal
-                        </CardTitle>
-                        <p className="text-sm text-gray-400">Share your link and earn commissions</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <div className="px-3 py-1 bg-purple-500/20 rounded-full text-purple-400 text-xs font-medium">
-                        ACTIVE
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-800/50 border border-slate-600/30 p-1">
-                      <TabsTrigger 
-                        value="overview" 
-                        className="flex items-center space-x-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                        <span className="font-medium">Overview</span>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="link" 
-                        className="flex items-center space-x-2 data-[state=active]:bg-pink-500 data-[state=active]:text-white"
-                      >
-                        <Link className="h-4 w-4" />
-                        <span className="font-medium">Share Link</span>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="users" 
-                        className="flex items-center space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-                      >
-                        <Users className="h-4 w-4" />
-                        <span className="font-medium">My Team</span>
-                      </TabsTrigger>
-                    </TabsList>
-
-                    {/* Overview Tab */}
-                    <TabsContent value="overview" className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl">
-                          <div className="flex items-center gap-3 mb-3">
-                            <Rocket className="h-5 w-5 text-purple-400" />
-                            <h4 className="font-semibold text-white">Performance</h4>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Click Rate</span>
-                              <span className="text-white">95.2%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Sign-up Rate</span>
-                              <span className="text-white">
-                                {stats.totalReferrals > 0 ? Math.round((stats.activeReferrals / stats.totalReferrals) * 100) : 0}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Avg. Investment</span>
-                              <span className="text-white">$250</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl">
-                          <div className="flex items-center gap-3 mb-3">
-                            <Award className="h-5 w-5 text-green-400" />
-                            <h4 className="font-semibold text-white">Rewards</h4>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">This Month</span>
-                              <span className="text-green-400">{formatCurrency(stats.totalCommission * 0.3)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">This Week</span>
-                              <span className="text-green-400">{formatCurrency(stats.totalCommission * 0.1)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Today</span>
-                              <span className="text-green-400">{formatCurrency(stats.totalCommission * 0.02)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-4">
-                        <div className="flex items-start space-x-3">
-                          <Info className="h-5 w-5 text-blue-400 mt-1" />
-                          <div>
-                            <h4 className="font-semibold text-blue-400 mb-2">How it works:</h4>
-                            <ul className="text-gray-300 space-y-1 text-sm">
-                              <li>• Share your referral link with friends</li>
-                              <li>• Earn 10% commission on their investments</li>
-                              <li>• Get instant notifications for new sign-ups</li>
-                              <li>• Track your team's performance in real-time</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    {/* Share Link Tab */}
-                    <TabsContent value="link" className="space-y-6">
-                      <div className="text-center mb-4">
-                        <div className="inline-flex items-center space-x-3 bg-purple-500/20 border border-purple-500/30 px-4 py-2 rounded-full">
-                          <Globe className="h-4 w-4 text-purple-400" />
-                          <span className="text-purple-400 font-medium">Your Referral Link</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <Input
-                            value={referralLink}
-                            readOnly
-                            className="pr-12 bg-slate-800/60 border-purple-500/30 text-white h-12 font-mono text-sm"
-                          />
-                          <Button
-                            onClick={copyToClipboard}
-                            className="absolute right-2 top-2 bg-purple-500 hover:bg-purple-600 text-white px-3 h-8"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <Button 
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-12"
-                          >
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Share Link
-                          </Button>
-                          
-                          <Button 
-                            variant="outline"
-                            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-12"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            QR Code
-                          </Button>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-xl p-4">
-                          <div className="flex items-start space-x-3">
-                            <Gift className="h-5 w-5 text-yellow-400 mt-1" />
-                            <div>
-                              <h4 className="font-semibold text-yellow-400 mb-2">Share & Earn:</h4>
-                              <ul className="text-gray-300 space-y-1 text-sm">
-                                <li>• 10% commission on all referral investments</li>
-                                <li>• Lifetime earnings from your network</li>
-                                <li>• Bonus rewards for active referrals</li>
-                                <li>• Exclusive access to VIP features</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    {/* Users Tab */}
-                    <TabsContent value="users" className="space-y-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                            <Input
-                              placeholder="Search users..."
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="pl-10 bg-slate-800/60 border-purple-500/30 text-white"
-                            />
-                          </div>
-                          
-                          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                            <SelectTrigger className="w-32 bg-slate-800/60 border-purple-500/30 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-purple-500/30">
-                              <SelectItem value="all">All</SelectItem>
-                              <SelectItem value="active">Active</SelectItem>
-                              <SelectItem value="inactive">Inactive</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400">
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Refresh
-                        </Button>
-                      </div>
-
-                      {filteredUsers.length > 0 ? (
-                        <div className="space-y-3">
-                          {filteredUsers.map((user) => (
-                            <Card key={user.id} className="bg-slate-800/50 border-slate-600/30 hover:border-purple-500/30 transition-colors">
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-                                      <span className="text-white font-bold text-sm">
-                                        {user.name.charAt(0).toUpperCase()}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium text-white">{user.name}</p>
-                                      <div className="flex items-center gap-2 text-sm text-gray-400">
-                                        <span>{user.email}</span>
-                                        {user.status === 'active' ? (
-                                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Active</Badge>
-                                        ) : (
-                                          <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Inactive</Badge>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-right">
-                                      <p className="text-sm font-medium text-white">{formatCurrency(user.commission)}</p>
-                                      <p className="text-xs text-gray-400">Commission</p>
-                                    </div>
-                                    
-                                    {user.whatsapp && (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => openMessageModal(user)}
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                      >
-                                        <MessageCircle className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <div className="p-6 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
-                            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-400 text-lg font-medium">No team members yet</p>
-                            <p className="text-gray-500 mt-2">Start sharing your referral link to build your team</p>
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Sidebar - Residual Earnings */}
-            <div className="lg:col-span-1 space-y-6">
-              <ResidualEarnings />
-              
-              {/* Top Performers */}
-              <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-yellow-500/20">
-                <CardHeader className="border-b border-yellow-500/20">
-                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                    <Star className="h-5 w-5 text-yellow-400" />
-                    Top Performers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  {[1, 2, 3].map((rank) => (
-                    <div key={rank} className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        rank === 1 ? 'bg-yellow-500/20 text-yellow-400' :
-                        rank === 2 ? 'bg-gray-400/20 text-gray-400' :
-                        'bg-orange-500/20 text-orange-400'
-                      }`}>
-                        <span className="font-bold text-sm">#{rank}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white font-medium">Trading Master {rank}</p>
-                        <p className="text-xs text-gray-400">{50 - rank * 10} referrals</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-green-400">{formatCurrency(5000 - rank * 1000)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
 
         {/* WhatsApp Message Modal */}
@@ -1380,7 +1023,7 @@ Atenciosamente,
                 Enviar Mensagem para {selectedUser?.name}
               </DialogTitle>
               <p className="text-gray-400">
-                {selectedUser?.whatsapp} • souzamkt0@gmail.com
+                {selectedUser?.whatsapp} • {selectedUser?.email}
               </p>
             </DialogHeader>
             
@@ -1429,27 +1072,21 @@ Atenciosamente,
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex items-center gap-4">
                 <Button
-                  onClick={() => setShowMessageModal(false)}
-                  variant="outline"
-                  className="flex-1 border-slate-600/50 text-gray-300 hover:bg-slate-700/50"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (selectedMessageType === 'custom') {
-                      const customMessage = document.querySelector('textarea')?.value || '';
-                      sendWhatsAppMessage('custom', customMessage);
-                    } else {
-                      sendWhatsAppMessage(selectedMessageType);
-                    }
-                  }}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                  onClick={() => sendWhatsAppMessage(selectedMessageType)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  Enviar no WhatsApp
+                  Enviar WhatsApp
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMessageModal(false)}
+                  className="border-slate-600 text-gray-300 hover:bg-slate-700"
+                >
+                  Cancelar
                 </Button>
               </div>
             </div>
