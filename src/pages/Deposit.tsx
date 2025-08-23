@@ -40,8 +40,26 @@ const Deposit = () => {
   
   const [activeTab, setActiveTab] = useState("digitopay");
   const [isLoading, setIsLoading] = useState(false);
-  const [sellOrders, setSellOrders] = useState(() => Array(8).fill(null).map(() => generateMarketData()));
-  const [buyOrders, setBuyOrders] = useState(() => Array(8).fill(null).map(() => generateMarketData()));
+  const [sellOrders, setSellOrders] = useState([
+    { value: "$42,850", amount: "0.142", bid: "$42,800", total: "$6,085" },
+    { value: "$42,790", amount: "0.235", bid: "$42,740", total: "$10,056" },
+    { value: "$42,720", amount: "0.189", bid: "$42,680", total: "$8,074" },
+    { value: "$42,680", amount: "0.312", bid: "$42,630", total: "$13,316" },
+    { value: "$42,615", amount: "0.087", bid: "$42,580", total: "$3,708" },
+    { value: "$42,550", amount: "0.456", bid: "$42,500", total: "$19,403" },
+    { value: "$42,490", amount: "0.198", bid: "$42,450", total: "$8,413" },
+    { value: "$42,425", amount: "0.273", bid: "$42,380", total: "$11,582" }
+  ]);
+  const [buyOrders, setBuyOrders] = useState([
+    { value: "$42,390", amount: "0.325", bid: "$42,350", total: "$13,777" },
+    { value: "$42,320", amount: "0.289", bid: "$42,280", total: "$12,230" },
+    { value: "$42,250", amount: "0.412", bid: "$42,200", total: "$17,407" },
+    { value: "$42,180", amount: "0.156", bid: "$42,140", total: "$6,580" },
+    { value: "$42,115", amount: "0.487", bid: "$42,070", total: "$20,510" },
+    { value: "$42,050", amount: "0.203", bid: "$42,010", total: "$8,536" },
+    { value: "$41,980", amount: "0.351", bid: "$41,940", total: "$14,735" },
+    { value: "$41,915", amount: "0.278", bid: "$41,870", total: "$11,652" }
+  ]);
   const [depositBalance, setDepositBalance] = useState(0);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [pendingDeposits, setPendingDeposits] = useState(0);
@@ -78,15 +96,7 @@ const Deposit = () => {
     loadDepositData();
   }, [user]);
 
-  // Update orders every 2 seconds to simulate real-time data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSellOrders(prev => prev.map(() => generateMarketData()));
-      setBuyOrders(prev => prev.map(() => generateMarketData()));
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Orders remain static showing actual trading data
 
   // BNB Form State
   const [bnbForm, setBnbForm] = useState({
