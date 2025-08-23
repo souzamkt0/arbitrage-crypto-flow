@@ -655,29 +655,6 @@ Atenciosamente,
                 </div>
               </div>
 
-              {/* Center Section - Contract Status */}
-              <div className="hidden md:flex items-center gap-4">
-                {userContract ? (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
-                    <FileCheck className="h-4 w-4 text-green-400" />
-                    <span className="text-green-400 text-sm font-medium">CONTRATO ATIVO</span>
-                    <Badge className="bg-green-500/30 text-green-300 text-xs">
-                      {userContract.plan_name}
-                    </Badge>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-gray-500/20 rounded-full">
-                    <AlertTriangle className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-400 text-sm font-medium">SEM CONTRATO</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/20 rounded-full">
-                  <Activity className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400 text-sm font-medium">REAL-TIME</span>
-                </div>
-              </div>
-
               {/* Right Section */}
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
