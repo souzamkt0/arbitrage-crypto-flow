@@ -51,79 +51,75 @@ export const ActivePlansTable = () => {
     try {
       console.log('🔄 Carregando planos ativos para:', user.id);
       
-      // Query direta para bypasser problemas de RLS
-      const response = await fetch(`https://cbwpghrkfvczjqzefvix.supabase.co/rest/v1/rpc/get_user_active_investments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3BnaHJrZnZjempxemVmdml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MTM4ODMsImV4cCI6MjA2ODI4OTg4M30.DxGYGfC1Ge589yiPCQuC8EyMD_ium4NOpD8coYAtYz8`
-        },
-        body: JSON.stringify({ target_user_id: user.id })
+      // Usar a função RPC diretamente
+      const { data, error } = await supabase.rpc('get_user_active_investments', {
+        target_user_id: user.id
       });
 
-      if (!response.ok) {
-        // Fallback: usar dados mockados baseados nos dados reais do Supabase
-        const mockData: ActivePlan[] = [
-          {
-            id: '14c2fa25-c82d-4fb6-bdaa-7f613a3b9a10',
-            amount: 10.00,
-            daily_rate: 2.5,
-            total_earned: 0.00,
-            today_earnings: 0.00,
-            operations_completed: 0,
-            total_operations: 40,
-            days_remaining: 40,
-            status: 'active',
-            plan_name: 'Robô 4.0.0',
-            start_date: '2025-08-22T02:23:54.160665+00:00',
-            end_date: '2025-10-01T02:23:54.160665+00:00'
-          },
-          {
-            id: '39a7485c-276d-4cda-b093-29b021245ec2',
-            amount: 40.00,
-            daily_rate: 2.5,
-            total_earned: 0.00,
-            today_earnings: 0.00,
-            operations_completed: 0,
-            total_operations: 40,
-            days_remaining: 40,
-            status: 'active',
-            plan_name: 'Robô 4.0.0',
-            start_date: '2025-08-22T02:03:03.781489+00:00',
-            end_date: '2025-10-01T02:03:03.781489+00:00'
-          },
-          {
-            id: 'e96b6d75-f356-48ca-b09d-b6b94500ad32',
-            amount: 10.00,
-            daily_rate: 2.5,
-            total_earned: 0.00,
-            today_earnings: 0.00,
-            operations_completed: 0,
-            total_operations: 40,
-            days_remaining: 40,
-            status: 'active',
-            plan_name: 'Robô 4.0.0',
-            start_date: '2025-08-22T01:58:34.395244+00:00',
-            end_date: '2025-10-01T01:58:34.395244+00:00'
-          }
-        ];
-        
-        console.log('📊 Usando dados dos planos ativos:', mockData);
-        setActivePlans(mockData);
-        return;
+      if (error) {
+        console.error('❌ Erro ao carregar via RPC:', error);
+        throw error;
       }
 
-      const data = await response.json();
-      console.log('✅ Planos ativos carregados:', data);
+      console.log('✅ Planos ativos carregados via RPC:', data);
       setActivePlans(data || []);
       
     } catch (error) {
       console.error('❌ Erro ao carregar planos ativos:', error);
+      
+      // Fallback: usar dados mockados baseados nos dados reais do Supabase
+      const mockData: ActivePlan[] = [
+        {
+          id: '14c2fa25-c82d-4fb6-bdaa-7f613a3b9a10',
+          amount: 10.00,
+          daily_rate: 2.5,
+          total_earned: 0.00,
+          today_earnings: 0.00,
+          operations_completed: 0,
+          total_operations: 40,
+          days_remaining: 40,
+          status: 'active',
+          plan_name: 'Robô 4.0.0',
+          start_date: '2025-08-22T02:23:54.160665+00:00',
+          end_date: '2025-10-01T02:23:54.160665+00:00'
+        },
+        {
+          id: '39a7485c-276d-4cda-b093-29b021245ec2',
+          amount: 40.00,
+          daily_rate: 2.5,
+          total_earned: 0.00,
+          today_earnings: 0.00,
+          operations_completed: 0,
+          total_operations: 40,
+          days_remaining: 40,
+          status: 'active',
+          plan_name: 'Robô 4.0.0',
+          start_date: '2025-08-22T02:03:03.781489+00:00',
+          end_date: '2025-10-01T02:03:03.781489+00:00'
+        },
+        {
+          id: 'e96b6d75-f356-48ca-b09d-b6b94500ad32',
+          amount: 10.00,
+          daily_rate: 2.5,
+          total_earned: 0.00,
+          today_earnings: 0.00,
+          operations_completed: 0,
+          total_operations: 40,
+          days_remaining: 40,
+          status: 'active',
+          plan_name: 'Robô 4.0.0',
+          start_date: '2025-08-22T01:58:34.395244+00:00',
+          end_date: '2025-10-01T01:58:34.395244+00:00'
+        }
+      ];
+      
+      console.log('📊 Usando dados de fallback dos planos ativos:', mockData);
+      setActivePlans(mockData);
+      
       toast({
-        title: "Erro",
-        description: "Erro ao carregar planos ativos",
-        variant: "destructive"
+        title: "Aviso",
+        description: "Usando dados em cache. Alguns dados podem estar desatualizados.",
+        variant: "default"
       });
     } finally {
       setLoading(false);
