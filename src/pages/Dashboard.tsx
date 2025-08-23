@@ -720,36 +720,110 @@ const Dashboard = () => {
               
               {/* Bitcoin Chart Area */}
               <div className="relative h-36 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-lg mb-3 overflow-hidden">
-                <div className="absolute top-3 left-3 z-10">
+                <div className="absolute top-3 left-3 z-10 animate-fade-in">
                   <div className="text-xs text-gray-400 mb-1">Bitcoin Performance</div>
                   <div className="text-sm font-bold text-white">
                     +R$ {totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-                {/* Gráfico SVG simples */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 150">
+                {/* Gráfico SVG animado estilo Binance */}
+                <svg className="absolute inset-0 w-full h-full animate-fade-in" viewBox="0 0 400 150">
                   <defs>
                     <linearGradient id="bitcoinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0.3"/>
+                      <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0.4"/>
                       <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0.1"/>
                     </linearGradient>
+                    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0">
+                        <animate attributeName="stop-opacity" values="0;0.8;0" dur="2s" repeatCount="indefinite"/>
+                      </stop>
+                      <stop offset="50%" stopColor="rgb(255, 165, 0)" stopOpacity="0.6">
+                        <animate attributeName="stop-opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+                      </stop>
+                      <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0">
+                        <animate attributeName="stop-opacity" values="0;0.8;0" dur="2s" repeatCount="indefinite"/>
+                      </stop>
+                    </linearGradient>
                   </defs>
+                  
+                  {/* Área preenchida com animação */}
+                  <path
+                    d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60 L 380 150 L 20 150 Z"
+                    fill="url(#bitcoinGradient)"
+                    style={{
+                      animation: 'scale-in 1.5s ease-out'
+                    }}
+                  />
+                  
+                  {/* Linha principal com animação progressiva */}
+                  <path
+                    d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60"
+                    stroke="url(#glowGradient)"
+                    strokeWidth="3"
+                    fill="none"
+                    className="animate-[drawLine_2s_ease-out_forwards]"
+                    style={{
+                      strokeDasharray: '1000',
+                      strokeDashoffset: '1000'
+                    }}
+                  />
+                  
+                  {/* Linha de base em laranja sólido */}
                   <path
                     d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60"
                     stroke="rgb(249, 115, 22)"
                     strokeWidth="2"
                     fill="none"
+                    className="animate-[drawLine_2s_ease-out_0.2s_forwards]"
+                    style={{
+                      strokeDasharray: '1000',
+                      strokeDashoffset: '1000'
+                    }}
                   />
+                  
+                  {/* Pontos de dados com animação escalonada */}
+                  <circle cx="120" cy="85" r="4" fill="rgb(249, 115, 22)" 
+                    className="animate-pulse"
+                    style={{ animationDelay: '1s', animationDuration: '2s' }} />
+                  <circle cx="120" cy="85" r="2" fill="rgb(255, 255, 255)" 
+                    className="animate-[scale-in_0.5s_ease-out_1s_forwards]" />
+                  
+                  <circle cx="200" cy="75" r="4" fill="rgb(249, 115, 22)" 
+                    className="animate-pulse"
+                    style={{ animationDelay: '1.3s', animationDuration: '2s' }} />
+                  <circle cx="200" cy="75" r="2" fill="rgb(255, 255, 255)"
+                    className="animate-[scale-in_0.5s_ease-out_1.3s_forwards]" />
+                  
+                  <circle cx="280" cy="65" r="4" fill="rgb(249, 115, 22)" 
+                    className="animate-pulse"
+                    style={{ animationDelay: '1.6s', animationDuration: '2s' }} />
+                  <circle cx="280" cy="65" r="2" fill="rgb(255, 255, 255)"
+                    className="animate-[scale-in_0.5s_ease-out_1.6s_forwards]" />
+                  
+                  <circle cx="380" cy="60" r="4" fill="rgb(249, 115, 22)" 
+                    className="animate-pulse"
+                    style={{ animationDelay: '1.9s', animationDuration: '2s' }} />
+                  <circle cx="380" cy="60" r="2" fill="rgb(255, 255, 255)"
+                    className="animate-[scale-in_0.5s_ease-out_1.9s_forwards]" />
+                  
+                  {/* Linha de trend com brilho */}
                   <path
-                    d="M 20 100 Q 80 70 120 85 T 200 75 T 280 65 T 380 60 L 380 150 L 20 150 Z"
-                    fill="url(#bitcoinGradient)"
+                    d="M 20 100 L 380 60"
+                    stroke="rgb(34, 197, 94)"
+                    strokeWidth="1"
+                    strokeDasharray="4,4"
+                    fill="none"
+                    opacity="0.6"
+                    className="animate-[drawLine_1.5s_ease-out_2.5s_forwards]"
+                    style={{
+                      strokeDasharray: '500',
+                      strokeDashoffset: '500'
+                    }}
                   />
-                  {/* Pontos de dados */}
-                  <circle cx="120" cy="85" r="3" fill="rgb(249, 115, 22)" />
-                  <circle cx="200" cy="75" r="3" fill="rgb(249, 115, 22)" />
-                  <circle cx="280" cy="65" r="3" fill="rgb(249, 115, 22)" />
-                  <circle cx="380" cy="60" r="3" fill="rgb(249, 115, 22)" />
                 </svg>
+                
+                {/* Overlay com efeito de brilho */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent opacity-0 animate-shine"></div>
               </div>
             </div>
 
