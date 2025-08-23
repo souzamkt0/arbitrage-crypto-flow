@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -495,681 +495,499 @@ const History = () => {
 • Indicados Ativos: ${stats.activeReferrals}
 • Total em Comissões: R$ ${stats.totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
 
-💳 *MOVIMENTAÇÃO*
-• Depósitos: R$ ${stats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Saques: R$ ${stats.totalWithdrawals.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+🔥 *Robô de alta performance gerando resultados consistentes!*
 
-📅 Relatório gerado em: ${new Date().toLocaleString('pt-BR')}
-    `.trim();
+#RobôArbitragem #TradingBot #InvestimentoInteligente
+`.trim();
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    
+
     toast({
-      title: "✅ Compartilhando",
-      description: "Relatório enviado para WhatsApp",
+      title: "🚀 Compartilhado!",
+      description: "Relatório preparado para WhatsApp",
     });
   };
 
+  // Helper functions for status styling
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed':
-      case 'paid':
-      case 'approved':
-      case 'active':
       case 'concluída':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'completed':
+        return 'text-emerald-400';
+      case 'pendente':
       case 'pending':
-      case 'processing':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+        return 'text-yellow-400';
+      case 'erro':
       case 'failed':
-      case 'rejected':
-      case 'cancelled':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+        return 'text-red-400';
       default:
-        return 'bg-muted text-muted-foreground border-muted';
+        return 'text-slate-400';
     }
   };
 
-  const filteredTradingHistory = tradingHistory.filter(trade => {
-    const matchesFilter = filter === "all" || trade.status.toLowerCase().includes(filter);
-    const matchesSearch = trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trade.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDate = !dateFrom || !dateTo || 
-      (new Date(trade.created_at || trade.timestamp) >= new Date(dateFrom) && 
-       new Date(trade.created_at || trade.timestamp) <= new Date(dateTo));
-    return matchesFilter && matchesSearch && matchesDate;
-  });
+  const getTransactionStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'completed':
+      case 'approved':
+        return 'text-emerald-400';
+      case 'pending':
+        return 'text-yellow-400';
+      case 'cancelled':
+      case 'rejected':
+        return 'text-red-400';
+      default:
+        return 'text-slate-400';
+    }
+  };
+
+  const getTransactionStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'completed':
+        return 'Pago';
+      case 'approved':
+        return 'Aprovado';
+      case 'pending':
+        return 'Pendente';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'rejected':
+        return 'Rejeitado';
+      default:
+        return status;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile-First Container */}
-      <div className="w-full px-2 sm:px-4 md:px-6 py-3 md:py-6">
-        <div className="max-w-7xl mx-auto space-y-3 md:space-y-6">
-          {/* Responsive Header */}
-          <div className="flex flex-col space-y-3 sm:space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground flex items-center">
-                  <HistoryIcon className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 mr-2 md:mr-3 text-primary" />
-                  Histórico Completo
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Relatório consolidado de ganhos, operações e atividades
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-2 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-800/40 to-purple-800/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-xl">
+                  <HistoryIcon className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                </div>
+                Histórico & Análises
+              </h1>
+              <p className="text-blue-200 mt-2 text-sm md:text-base">
+                Dashboard completo de performance e estatísticas
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={loadAllData} 
+                disabled={isLoading}
+                size="sm"
+                className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/25"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Atualizar</span>
+                <span className="sm:hidden">Sync</span>
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white border-0 shadow-lg shadow-green-500/25" 
+                onClick={shareViaWhatsApp}
+                size="sm"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                <Smartphone className="h-4 w-4 sm:hidden" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 md:space-y-6 bg-white dark:bg-background rounded-lg">
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {/* Total Profit */}
+            <Card className="bg-gradient-to-br from-emerald-500/20 to-green-600/30 backdrop-blur-xl border border-emerald-400/20 shadow-xl shadow-emerald-500/10">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-emerald-500/20 rounded-xl">
+                    <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-emerald-400" />
+                  </div>
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30">
+                    +{((stats.thisMonthEarnings / stats.totalProfit) * 100 || 0).toFixed(1)}%
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-emerald-200/80 truncate">Lucro Total</p>
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
+                    R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-emerald-300 mt-1 truncate">
+                    +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mês
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Current Balance */}
+            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-600/30 backdrop-blur-xl border border-blue-400/20 shadow-xl shadow-blue-500/10">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-blue-500/20 rounded-xl">
+                    <Wallet className="h-5 w-5 md:h-6 md:w-6 text-blue-400" />
+                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                    Disponível
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-blue-200/80 truncate">Saldo Atual</p>
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
+                    R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-blue-300 mt-1 truncate">
+                    {stats.activeInvestments} investimentos ativos
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Referral Earnings */}
+            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-600/30 backdrop-blur-xl border border-purple-400/20 shadow-xl shadow-purple-500/10">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-purple-500/20 rounded-xl">
+                    <Users className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
+                  </div>
+                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30">
+                    {stats.activeReferrals}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-purple-200/80 truncate">Indicações</p>
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
+                    R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-purple-300 mt-1 truncate">
+                    {stats.activeReferrals} indicados ativos
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Success Rate */}
+            <Card className="bg-gradient-to-br from-orange-500/20 to-red-600/30 backdrop-blur-xl border border-orange-400/20 shadow-xl shadow-orange-500/10">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-orange-500/20 rounded-xl">
+                    <Target className="h-5 w-5 md:h-6 md:w-6 text-orange-400" />
+                  </div>
+                  <Badge className="bg-orange-500/20 text-orange-300 border-orange-400/30">
+                    ROI {stats.averageROI}%
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-orange-200/80 truncate">Taxa de Sucesso</p>
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate">
+                    {stats.successRate}%
+                  </p>
+                  <p className="text-xs text-orange-300 mt-1 truncate">
+                    {stats.totalOperations} operações
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Secondary Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-blue-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <DollarSign className="h-4 w-4 text-blue-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">Investido</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  R$ {stats.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-              </div>
-              
-              {/* Action Buttons - Mobile Optimized */}
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button 
-                  variant="outline" 
-                  onClick={loadAllData}
-                  disabled={isLoading}
-                  size="sm"
-                  className="flex-1 sm:flex-none"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Atualizar</span>
-                  <span className="sm:hidden">Sync</span>
-                </Button>
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none" 
-                  onClick={shareViaWhatsApp}
-                  size="sm"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  <Smartphone className="h-4 w-4 sm:hidden" />
-                  <span className="hidden sm:inline">WhatsApp</span>
-                </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-emerald-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">Ativos</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  {stats.activeInvestments}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-green-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <Banknote className="h-4 w-4 text-green-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">Depósitos</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  R$ {stats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-red-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <TrendingDown className="h-4 w-4 text-red-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">Saques</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  R$ {stats.totalWithdrawals.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-purple-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <Award className="h-4 w-4 text-purple-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">Comissões</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  R$ {stats.totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-xl border border-slate-500/20">
+              <CardContent className="p-3 md:p-4 text-center">
+                <div className="p-2 bg-orange-500/20 rounded-lg mx-auto w-fit mb-2">
+                  <Activity className="h-4 w-4 text-orange-400" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 truncate">ROI Médio</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
+                  {stats.averageROI}%
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-4 md:space-y-6 bg-white dark:bg-background rounded-lg">
-
-            {/* Responsive Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 p-3 md:p-0">
-              {/* Total Profit */}
-              <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Lucro Total</p>
-                      <p className="text-sm sm:text-lg md:text-xl font-bold text-emerald-400 truncate">
-                        R$ {stats.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-emerald-300 mt-1 truncate">
-                        +R$ {stats.thisMonthEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mês
-                      </p>
-                    </div>
-                    <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400 flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Current Balance */}
-              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Saldo Atual</p>
-                      <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-400 truncate">
-                        R$ {stats.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-blue-300 mt-1 truncate">
-                        {stats.activeInvestments} ativos
-                      </p>
-                    </div>
-                    <Wallet className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Referral Earnings */}
-              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Indicações</p>
-                      <p className="text-sm sm:text-lg md:text-xl font-bold text-purple-400 truncate">
-                        R$ {stats.totalReferralEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-purple-300 mt-1 truncate">
-                        {stats.activeReferrals} ativos
-                      </p>
-                    </div>
-                    <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400 flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Success Rate */}
-              <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Taxa Sucesso</p>
-                      <p className="text-sm sm:text-lg md:text-xl font-bold text-amber-400 truncate">
-                        {stats.successRate}%
-                      </p>
-                      <p className="text-xs text-amber-300 mt-1 truncate">
-                        {stats.totalOperations} ops
-                      </p>
-                    </div>
-                    <Target className="h-6 w-6 sm:h-8 sm:w-8 text-amber-400 flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Secondary Stats - Mobile Optimized */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-3 md:px-0">
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-green-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Investido</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-blue-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">ROI Médio</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold text-emerald-400 truncate">
-                    {stats.averageROI}%
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-purple-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Depósitos</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalDeposits.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <Banknote className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-orange-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Saques</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalWithdrawals.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <Bot className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-cyan-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Inv. Ativos</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    {stats.activeInvestments}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-2 sm:p-3 md:p-4 text-center">
-                  <Award className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 mx-auto text-yellow-400 mb-1 md:mb-2" />
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Comissões</p>
-                  <p className="text-sm sm:text-base md:text-lg font-semibold truncate">
-                    R$ {stats.totalCommissions.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Performance Charts for PDF */}
-            <div className="w-full px-3 md:px-0">
-              <PerformanceCharts
-                tradingHistory={tradingHistory}
-                profitHistory={profitHistory}
-                referralHistory={referralHistory}
-                transactionHistory={transactionHistory}
-                stats={stats}
-              />
-            </div>
-          </div>
-
-          {/* Responsive Tabs Navigation */}
-          <div className="px-3 md:px-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto p-1">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
-                  <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Resumo</span>
-                  <span className="sm:hidden">Home</span>
+          {/* Tabs Navigation */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 backdrop-blur-xl border border-slate-500/20 rounded-2xl p-4">
+              <TabsList className="grid grid-cols-5 gap-1 bg-slate-800/60 backdrop-blur-xl border border-slate-600/30 rounded-xl p-1">
+                <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Visão Geral</span>
+                  <span className="sm:hidden">Geral</span>
                 </TabsTrigger>
-                <TabsTrigger value="trading" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
-                  <LineChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Trading</span>
-                  <span className="sm:hidden">Trade</span>
-                </TabsTrigger>
-                <TabsTrigger value="investments" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
+                <TabsTrigger value="trading" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-green-500 data-[state=active]:text-white">
                   <Bot className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Trading</span>
+                  <span className="sm:hidden">Bot</span>
+                </TabsTrigger>
+                <TabsTrigger value="investments" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Investimentos</span>
                   <span className="sm:hidden">Invest</span>
                 </TabsTrigger>
-                <TabsTrigger value="referrals" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
+                <TabsTrigger value="referrals" className="text-xs sm:text-sm py-2 px-1 sm:px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-500 data-[state=active]:text-white">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Indicações</span>
                   <span className="sm:hidden">Refs</span>
                 </TabsTrigger>
-                <TabsTrigger value="transactions" className="text-xs sm:text-sm py-2 px-1 sm:px-3 col-span-2 sm:col-span-1">
+                <TabsTrigger value="transactions" className="text-xs sm:text-sm py-2 px-1 sm:px-3 col-span-2 sm:col-span-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-500 data-[state=active]:text-white">
                   <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Transações</span>
                   <span className="sm:hidden">Transações</span>
                 </TabsTrigger>
               </TabsList>
+            </div>
 
-              {/* Overview Tab - Mobile Optimized */}
-              <TabsContent value="overview" className="space-y-3 md:space-y-6 px-3 md:px-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
-                  {/* Recent Trading Operations */}
-                  <Card>
-                    <CardHeader className="pb-2 md:pb-6">
-                      <CardTitle className="flex items-center text-sm md:text-base">
-                        <LineChart className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                        Operações Recentes
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 md:space-y-3">
-                        {tradingHistory.slice(0, 5).map((trade) => (
-                          <div key={trade.id} className="flex items-center justify-between p-2 md:p-3 bg-muted/50 rounded-lg">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm md:text-base truncate">{trade.pair}</p>
-                              <p className="text-xs md:text-sm text-muted-foreground">
-                                {new Date(trade.timestamp).toLocaleDateString('pt-BR')}
-                              </p>
+            {/* Tab Contents */}
+            <TabsContent value="overview" className="mt-4 space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <LineChart className="h-5 w-5 text-blue-400" />
+                    Gráfico de Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-48 md:h-64 lg:h-80 flex items-center justify-center">
+                    <p className="text-slate-400">Gráficos de performance em desenvolvimento</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="trading" className="mt-4 space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-emerald-400" />
+                    Histórico de Trading ({tradingHistory.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-auto">
+                    {tradingHistory.slice(0, 10).map((trade) => (
+                      <div key={trade.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs">
+                                {trade.pair}
+                              </Badge>
+                              <span className="text-xs text-slate-400">{trade.timestamp}</span>
                             </div>
-                            <div className="text-right ml-2">
-                              <p className={`font-semibold text-xs md:text-sm ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <p className="text-xs text-slate-300 truncate">
+                              {trade.exchange1} → {trade.exchange2}
+                            </p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className={`font-semibold text-xs md:text-sm ${trade.profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                              {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                            <Badge variant="outline" className={`text-xs ${getStatusColor(trade.status)} border-current`}>
+                              {trade.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="referrals" className="mt-4 space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-400" />
+                    Sistema de Indicações ({referralHistory.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-auto">
+                    {referralHistory.slice(0, 10).map((referral) => (
+                      <div key={referral.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm text-white truncate">
+                                {referral.referred_user}
                               </p>
-                              <Badge variant="outline" className={`text-xs ${getStatusColor(trade.status)}`}>
-                                {trade.status}
+                              <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-xs">
+                                Nível {referral.level}
                               </Badge>
                             </div>
+                            <p className="text-xs text-slate-400 truncate">
+                              {new Date(referral.created_at).toLocaleDateString('pt-BR')}
+                            </p>
                           </div>
-                        ))}
-                        {tradingHistory.length === 0 && (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <LineChart className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">Nenhuma operação de trading encontrada</p>
+                          <div className="text-right ml-2">
+                            <p className="font-semibold text-emerald-400 text-xs md:text-sm">
+                              R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {referral.status === 'active' ? 'Ativo' : 'Inativo'}
+                            </p>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Recent Referrals */}
-                  <Card>
-                    <CardHeader className="pb-2 md:pb-6">
-                      <CardTitle className="flex items-center text-sm md:text-base">
-                        <Users className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                        Indicações Recentes
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 md:space-y-3">
-                        {referralHistory.slice(0, 5).map((referral) => (
-                          <div key={referral.id} className="flex items-center justify-between p-2 md:p-3 bg-muted/50 rounded-lg">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm md:text-base truncate">{referral.referred_user}</p>
-                              <p className="text-xs md:text-sm text-muted-foreground truncate">
-                                {referral.referred_email || 'Email não informado'}
-                              </p>
-                            </div>
-                            <div className="text-right ml-2">
-                              <p className="font-semibold text-emerald-400 text-xs md:text-sm">
-                                R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Nível {referral.level}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                        {referralHistory.length === 0 && (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">Nenhuma indicação encontrada</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              {/* Trading Tab - Mobile Optimized */}
-              <TabsContent value="trading" className="space-y-3 md:space-y-4 px-3 md:px-0">
-                {/* Mobile-First Filters */}
-                <Card className="p-3 md:p-4">
-                  <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Search className="h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Buscar por par ou ID..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="flex-1 text-sm"
-                        />
-                      </div>
-                      
-                      <Select value={filter} onValueChange={setFilter}>
-                        <SelectTrigger className="w-full sm:w-48">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos</SelectItem>
-                          <SelectItem value="concluída">Concluídas</SelectItem>
-                          <SelectItem value="pendente">Pendentes</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <div className="flex gap-2 flex-1">
-                        <Input
-                          type="date"
-                          value={dateFrom}
-                          onChange={(e) => setDateFrom(e.target.value)}
-                          className="flex-1 text-sm"
-                          placeholder="Data início"
-                        />
-                        <Input
-                          type="date"
-                          value={dateTo}
-                          onChange={(e) => setDateTo(e.target.value)}
-                          className="flex-1 text-sm"
-                          placeholder="Data fim"
-                        />
-                      </div>
-                      {(searchTerm || filter !== "all" || dateFrom || dateTo) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => {
-                            setSearchTerm("");
-                            setFilter("all");
-                            setDateFrom("");
-                            setDateTo("");
-                          }}
-                          className="w-full sm:w-auto"
-                        >
-                          Limpar
-                        </Button>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                {/* Trading History Table */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Histórico de Trading ({filteredTradingHistory.length} operações)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Data/Hora</TableHead>
-                            <TableHead>Par</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Preço Compra</TableHead>
-                            <TableHead>Preço Venda</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Lucro</TableHead>
-                            <TableHead>%</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Exchanges</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredTradingHistory.map((trade) => (
-                            <TableRow key={trade.id}>
-                              <TableCell className="font-mono text-xs">
-                                {trade.timestamp}
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                {trade.pair}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{trade.type}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                R$ {trade.buyPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell>
-                                R$ {trade.sellPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell>
-                                R$ {trade.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className={trade.profit > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
-                                {trade.profit > 0 ? '+' : ''}R$ {trade.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className={trade.profitPercent > 0 ? 'text-emerald-400' : 'text-red-400'}>
-                                {trade.profitPercent > 0 ? '+' : ''}{trade.profitPercent.toFixed(2)}%
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={getStatusColor(trade.status)}>
-                                  {trade.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-xs">
-                                {trade.exchange1} → {trade.exchange2}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+            <TabsContent value="investments" className="mt-4 space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Target className="h-5 w-5 text-orange-400" />
+                    Investimentos Ativos ({userInvestments.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-auto">
+                    {userInvestments.slice(0, 10).map((investment) => (
+                      <div key={investment.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm text-white truncate">
+                                {investment.plan.name}
+                              </p>
+                              <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs">
+                                {investment.plan.robot_version}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-slate-400">
+                              R$ {investment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {investment.daily_rate}% dia
+                            </p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className="font-semibold text-emerald-400 text-xs md:text-sm">
+                              R$ {investment.total_earned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                            <Badge className={`text-xs ${investment.status === 'active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-slate-500/20 text-slate-300 border-slate-400/30'}`}>
+                              {investment.status === 'active' ? 'Ativo' : 'Finalizado'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              {/* Investments Tab */}
-              <TabsContent value="investments" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Seus Investimentos ({userInvestments.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Plano</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Taxa Diária</TableHead>
-                            <TableHead>Ganho Total</TableHead>
-                            <TableHead>Operações</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>ROI</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {userInvestments.map((investment) => (
-                            <TableRow key={investment.id}>
-                              <TableCell>
-                                {new Date(investment.created_at).toLocaleDateString('pt-BR')}
-                              </TableCell>
-                              <TableCell>
-                                <div>
-                                  <p className="font-semibold">{investment.plan.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Robô v{investment.plan.robot_version}
-                                  </p>
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                R$ {investment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-emerald-400">
-                                {(investment.daily_rate * 100).toFixed(2)}%
-                              </TableCell>
-                              <TableCell className="text-emerald-400 font-semibold">
-                                R$ {investment.total_earned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-center">
-                                  <p className="font-semibold">{investment.operations_completed}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    de {investment.total_operations}
-                                  </p>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={getStatusColor(investment.status)}>
-                                  {investment.status === 'active' ? 'Ativo' : 'Concluído'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-emerald-400 font-semibold">
-                                {investment.amount > 0 ? 
-                                  ((investment.total_earned / investment.amount) * 100).toFixed(2) : 0}%
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Referrals Tab */}
-              <TabsContent value="referrals" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Histórico de Indicações ({referralHistory.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Usuário Indicado</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Investimento Total</TableHead>
-                            <TableHead>Comissão Ganha</TableHead>
-                            <TableHead>Nível</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {referralHistory.map((referral) => (
-                            <TableRow key={referral.id}>
-                              <TableCell>
-                                {new Date(referral.created_at).toLocaleDateString('pt-BR')}
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                {referral.referred_user}
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {referral.referred_email}
-                              </TableCell>
-                              <TableCell>
-                                R$ {(referral.total_invested || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-emerald-400 font-semibold">
-                                R$ {referral.commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">
-                                  Nível {referral.level}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={getStatusColor(referral.status)}>
-                                  {referral.status === 'active' ? 'Ativo' : referral.status}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Transactions Tab */}
-              <TabsContent value="transactions" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Histórico de Transações ({transactionHistory.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Valor USD</TableHead>
-                            <TableHead>Valor BRL</TableHead>
-                            <TableHead>Método</TableHead>
-                            <TableHead>TRX ID</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {transactionHistory.map((transaction) => (
-                            <TableRow key={transaction.id}>
-                              <TableCell>
-                                {new Date(transaction.created_at).toLocaleString('pt-BR')}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={
-                                  transaction.type === 'deposit' ? 
-                                  'bg-emerald-500/20 text-emerald-300' : 
-                                  'bg-orange-500/20 text-orange-300'
-                                }>
-                                  {transaction.type === 'deposit' ? 'Depósito' : 'Saque'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                $ {transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                R$ {transaction.amount_brl.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">
-                                  {transaction.payment_type.toUpperCase()}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-mono text-xs">
-                                {transaction.trx_id || 'N/A'}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={getStatusColor(transaction.status)}>
-                                  {transaction.status}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+            <TabsContent value="transactions" className="mt-4 space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/40 to-slate-700/60 backdrop-blur-xl border border-slate-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-indigo-400" />
+                    Transações Financeiras ({transactionHistory.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-auto">
+                    {transactionHistory.slice(0, 10).map((transaction) => (
+                      <div key={transaction.id} className="bg-slate-700/40 backdrop-blur-xl border border-slate-600/30 rounded-xl p-3 md:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className={`text-xs ${transaction.type === 'deposit' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-red-500/20 text-red-300 border-red-400/30'}`}>
+                                {transaction.type === 'deposit' ? 'Depósito' : 'Saque'}
+                              </Badge>
+                              <span className="text-xs text-slate-400">
+                                {new Date(transaction.created_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400 truncate">
+                              {transaction.payment_type} {transaction.trx_id && `• ${transaction.trx_id}`}
+                            </p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className={`font-semibold text-xs md:text-sm ${transaction.type === 'deposit' ? 'text-emerald-400' : 'text-red-400'}`}>
+                              {transaction.type === 'deposit' ? '+' : '-'}R$ {transaction.amount_brl.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                            <Badge className={`text-xs ${getTransactionStatusColor(transaction.status)} border-current`}>
+                              {getTransactionStatusText(transaction.status)}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
