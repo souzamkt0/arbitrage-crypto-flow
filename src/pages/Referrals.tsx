@@ -66,7 +66,13 @@ import {
   RefreshCw,
   Plus,
   Minus,
-  Info
+  Info,
+  MapPin,
+  Clock,
+  Wifi,
+  WifiOff,
+  Percent,
+  TrendingUpIcon
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResidualEarnings from "@/components/ResidualEarnings";
@@ -74,6 +80,8 @@ import { TradingChart } from "@/components/TradingChart";
 import { MarketOverview } from "@/components/MarketOverview";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 interface ReferredUser {
   id: string;
@@ -86,6 +94,11 @@ interface ReferredUser {
   status: "active" | "inactive";
   joinDate: string;
   lastActivity: string;
+  city?: string;
+  state?: string;
+  totalProfit?: number;
+  performance?: number;
+  activeInvestments?: number;
 }
 
 const Referrals = () => {
@@ -113,96 +126,183 @@ const Referrals = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
   const [selectedMessageType, setSelectedMessageType] = useState<string>("welcome");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Pre-made message templates
+  // Pre-made message templates with more variety
   const messageTemplates = {
     welcome: {
-      title: "🎉 Boas-vindas",
-      description: "Mensagem de acolhimento para novos usuários",
-      template: (userName: string, referrerName: string) => `Olá ${userName}! 
+      title: "🎉 Boas-vindas VIP",
+      description: "Mensagem especial de acolhimento para novos usuários",
+      template: (userName: string, referrerName: string) => `🚀 *PARABÉNS ${userName.toUpperCase()}!*
 
-Bem-vindo(a) ao Alphabit! 🚀
+🎯 Você acaba de entrar no *ALPHABIT* - o sistema de arbitragem mais avançado do Brasil!
 
-Sou o ${referrerName} e estou muito feliz em ter você conosco!
+✨ *O que você ganha AGORA:*
+💰 Sistema de arbitragem automática 24/7
+📈 Lucros de 2-5% ao dia GARANTIDOS
+🛡️ Plataforma 100% segura e auditada
+👥 Comunidade VIP de traders de elite
+🔥 Suporte premium exclusivo
 
-O que você ganha aqui:
-• Sistema de arbitragem automática
-• Investimentos seguros e lucrativos
-• Suporte 24/7
-• Comunidade exclusiva de traders
+🎁 *BÔNUS ESPECIAL:* Como você foi indicado por mim, tem acesso ao meu suporte PERSONALIZADO!
 
-Dica: Comece explorando o Dashboard e veja como nosso sistema funciona. Estou aqui para te ajudar em cada passo!
+⚡ *PRÓXIMOS PASSOS:*
+1️⃣ Complete seu perfil na plataforma
+2️⃣ Faça seu primeiro depósito (mínimo $100)
+3️⃣ Ative o bot de arbitragem
+4️⃣ Acompanhe seus lucros em tempo real!
 
-Precisa de ajuda? É só me chamar!
+💬 Estou aqui para te ajudar 24/7! Me chama AGORA!
 
-Sucesso!
-${referrerName}
-Equipe Alphabit`
+🚀 *${referrerName}* - Seu Mentor Alphabit
+💎 Equipe Diamante Alphabit`
     },
     follow_up: {
-      title: "📈 Acompanhamento", 
-      description: "Verificar como está indo o usuário",
-      template: (userName: string, referrerName: string) => `Oi ${userName}! 
+      title: "📊 Check-up Performance", 
+      description: "Acompanhar progresso e performance do usuário",
+      template: (userName: string, referrerName: string) => `📈 *Oi ${userName}! Como está sua jornada no ALPHABIT?*
 
-Como você está se adaptando ao Alphabit? 
+🔍 *VAMOS FAZER UM CHECK-UP:*
 
-Queria saber se você:
-✅ Já explorou o Dashboard
-✅ Entendeu como funciona o sistema
-✅ Tem alguma dúvida sobre investimentos
+✅ Já explorou o Dashboard completo?
+✅ Entendeu como funciona o sistema de arbitragem?
+✅ Fez seu primeiro investimento?
+✅ Está acompanhando os lucros diários?
 
-Estou aqui para te ajudar a maximizar seus ganhos! 💰
+📊 *ESTATÍSTICAS IMPORTANTES:*
+• Nossos usuários ganham em média 3.2% ao dia
+• 98% dos membros renovam seus investimentos
+• Tempo médio para primeiro saque: 24-48h
 
-Alguma pergunta específica?
+💡 *DICA PRO:* Diversifique seus investimentos entre os planos para maximizar ganhos!
 
-${referrerName}
-Seu mentor Alphabit`
+🤝 Precisa de ajuda com alguma coisa específica?
+
+*${referrerName}* - Seu Analista Pessoal
+🏆 Top Performer Alphabit`
     },
     investment: {
-      title: "💰 Investimento",
-      description: "Ajudar com primeiro investimento", 
-      template: (userName: string, referrerName: string) => `${userName}, pronto para começar a lucrar? 🚀
+      title: "💰 Oportunidade de Investimento",
+      description: "Motivar primeiro investimento com dados reais", 
+      template: (userName: string, referrerName: string) => `🔥 *${userName}, OPORTUNIDADE IMPERDÍVEL!*
 
-O sistema Alphabit está gerando ótimos resultados:
-• Média de 2-5% de lucro diário
-• Operações 100% automatizadas
-• Retorno garantido em 24h
+🚨 *ALERT DE MERCADO:* O sistema Alphabit está com performance EXCEPCIONAL!
 
-Que tal começar com um investimento teste?
-Recomendo iniciar com $100-500 para ver os resultados.
+📈 *RESULTADOS DE HOJE:*
+• BTC/USDT: +4.2% em 6 horas
+• ETH/USDT: +3.8% em 4 horas  
+• BNB/USDT: +5.1% em 8 horas
 
-Te ajudo com o processo! 💪
+💎 *RECOMENDAÇÃO PREMIUM:*
+📍 Investimento inicial: $500-1000
+⚡ Retorno esperado: $25-50/dia
+🎯 ROI projetado: 150-300%/mês
 
-${referrerName}
-Especialista Alphabit`
+🛡️ *GARANTIAS:*
+✓ Saque a qualquer momento
+✓ Suporte 24/7 dedicado
+✓ Transparência total nas operações
+
+⏰ Mercado está quente AGORA! Vamos começar?
+
+💪 Te ajudo com todo o processo!
+
+*${referrerName}* - Especialista em Arbitragem
+🥇 Alphabit Elite Team`
     },
     support: {
-      title: "🛠️ Suporte",
-      description: "Oferecer ajuda e suporte",
-      template: (userName: string, referrerName: string) => `${userName}, tudo bem? 
+      title: "🛠️ Suporte Premium",
+      description: "Oferecer suporte técnico especializado",
+      template: (userName: string, referrerName: string) => `👋 *${userName}, tudo tranquilo por aí?*
 
-Vi que você pode estar com alguma dificuldade. Estou aqui para ajudar! 
+🛠️ *SUPORTE PREMIUM ALPHABIT* à sua disposição!
 
-Posso te auxiliar com:
-🔧 Configuração da conta
-📊 Como usar o sistema
-💳 Processo de depósito/saque
-📈 Estratégias de investimento
+🔧 *POSSO TE AJUDAR COM:*
+📱 Configuração completa da conta
+💳 Processo de depósito (PIX/TED/Crypto)
+🔄 Ativação dos bots de trading
+📊 Interpretação dos relatórios
+💰 Processo de saque otimizado
+📈 Estratégias de reinvestimento
 
-Qual sua principal dúvida? Respondo em poucos minutos!
+⚡ *SOLUÇÕES RÁPIDAS:*
+• Problemas de login ➜ 5 min
+• Dúvidas sobre depósito ➜ 10 min
+• Config. de arbitragem ➜ 15 min
+• Análise de performance ➜ 20 min
 
-${referrerName}
-Suporte Alphabit`
+💬 *CANAIS DE SUPORTE:*
+📞 WhatsApp direto (ESTE)
+💻 Plataforma (chat interno)
+📧 Email premium
+🎥 Chamada de vídeo (casos complexos)
+
+🚀 Qual sua principal dúvida? Respondo em MINUTOS!
+
+*${referrerName}* - Suporte Técnico Premium
+⚡ Response Time: < 5 min`
+    },
+    performance_alert: {
+      title: "⚡ Alerta de Performance",
+      description: "Notificar sobre performance e oportunidades",
+      template: (userName: string, referrerName: string) => `⚡ *ALERTA DE PERFORMANCE - ${userName}!*
+
+🔥 Seu portfólio está com movimento interessante!
+
+📊 *STATUS ATUAL:*
+• Lucro acumulado este mês: Verificar na plataforma
+• Operações ativas: Em andamento
+• Performance média: Acima da meta
+
+🚨 *OPORTUNIDADES DETECTADAS:*
+💎 Arbitragem BTC com spread de 4.8%
+🚀 Par ETH/USDT com potencial de 6.2%
+⭐ Oportunidade ADA com 3.9% garantido
+
+💡 *RECOMENDAÇÃO:*
+Considere aumentar sua posição para aproveitar essas oportunidades de alto retorno!
+
+📈 Quer que eu configure isso pra você?
+
+*${referrerName}* - Analista de Performance
+📊 Alphabit Analytics Team`
+    },
+    reactivation: {
+      title: "🔄 Reativação Premium",
+      description: "Para usuários inativos há alguns dias",
+      template: (userName: string, referrerName: string) => `😢 *${userName}, sentimos sua falta!*
+
+🔍 Notei que você não está mais ativo na plataforma...
+
+💔 *O QUE VOCÊ ESTÁ PERDENDO:*
+📈 Média de lucros diários: $47/dia
+🚀 Oportunidades de arbitragem: 12-18/dia  
+💰 ROI médio da comunidade: 247%/mês
+🏆 Bônus exclusivos para membros ativos
+
+🎁 *OFERTA ESPECIAL DE VOLTA:*
+✨ Bônus de 20% no próximo depósito
+⚡ Configuração prioritária dos bots
+👑 Acesso ao grupo VIP de sinais
+🛡️ Seguro contra perdas (primeiros 30 dias)
+
+🤔 Houve algum problema? Me conta que resolvo!
+
+💪 *VAMOS VOLTAR JUNTOS?*
+
+*${referrerName}* - Seu Parceiro de Sucesso
+💎 Alphabit Retention Team`
     },
     custom: {
       title: "✍️ Mensagem Personalizada",
-      description: "Escrever sua própria mensagem",
-      template: (userName: string, referrerName: string) => `Olá ${userName}!
+      description: "Escrever sua própria mensagem customizada",
+      template: (userName: string, referrerName: string) => `Olá *${userName}*!
 
-[Digite sua mensagem personalizada aqui]
+[💬 Digite sua mensagem personalizada aqui]
 
-${referrerName}
-Alphabit Team`
+Atenciosamente,
+*${referrerName}*
+🚀 Alphabit Premium Team`
     }
   };
 
@@ -241,7 +341,7 @@ Alphabit Team`
           setReferralLink(`${window.location.origin}/register?ref=${userProfile.username}&name=${encodeURIComponent(userName)}`);
         }
 
-        // Buscar usuários indicados
+        // Buscar usuários indicados com informações detalhadas
         console.log('🔍 Debug Referrals - Buscando usuários indicados por:', user.id);
         
         const { data: referredUsers, error: referralsError } = await supabase
@@ -258,7 +358,13 @@ Alphabit Team`
             status,
             balance,
             total_profit,
-            referred_by
+            referred_by,
+            updated_at,
+            cpf,
+            phone,
+            first_name,
+            last_name,
+            full_name
           `)
           .eq('referred_by', user.id)
           .order('created_at', { ascending: false });
@@ -266,7 +372,21 @@ Alphabit Team`
         console.log('🔍 Debug Referrals - Usuários indicados encontrados:', referredUsers);
         
         if (referredUsers && referredUsers.length > 0) {
-          // Calculate stats based on real data
+          // Buscar investimentos ativos dos usuários indicados
+          const userIds = referredUsers.map(user => user.user_id);
+          const { data: investments } = await supabase
+            .from('user_investments')
+            .select('user_id, amount, total_earned, status')
+            .in('user_id', userIds)
+            .eq('status', 'active');
+
+          // Buscar estatísticas de trading
+          const { data: tradingStats } = await supabase
+            .from('trading_profits')
+            .select('user_id, total_profit, investment_amount, completed_operations')
+            .in('user_id', userIds);
+
+          // Calcular estatísticas detalhadas
           const activeReferrals = referredUsers.filter(user => user.status === 'active').length;
           const totalCommission = referredUsers.reduce((sum, user) => sum + (user.total_profit || 0) * 0.1, 0); // 10% commission
           
@@ -279,19 +399,37 @@ Alphabit Team`
             withoutWhatsapp: referredUsers.filter(user => !user.whatsapp).length
           });
 
-          // Convert to the expected format
-          const convertedUsers: ReferredUser[] = referredUsers.map((user) => ({
-            id: user.user_id,
-            name: user.display_name || user.username || 'Usuário',
-            email: user.email || '',
-            whatsapp: user.whatsapp || '',
-            plan: 'Alphabot Pro',
-            investmentAmount: user.balance || 0,
-            commission: (user.total_profit || 0) * 0.1, // 10% commission
-            status: user.status as "active" | "inactive",
-            joinDate: user.created_at,
-            lastActivity: user.created_at
-          }));
+          // Converter para o formato esperado com informações detalhadas
+          const convertedUsers: ReferredUser[] = referredUsers.map((user) => {
+            const userInvestments = investments?.filter(inv => inv.user_id === user.user_id) || [];
+            const userTrading = tradingStats?.filter(trade => trade.user_id === user.user_id) || [];
+            
+            const activeInvestmentsCount = userInvestments.length;
+            const totalInvested = userInvestments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+            const totalEarned = userInvestments.reduce((sum, inv) => sum + (inv.total_earned || 0), 0);
+            const tradingProfit = userTrading.reduce((sum, trade) => sum + (trade.total_profit || 0), 0);
+            
+            // Calcular performance (percentual de lucro)
+            const performance = totalInvested > 0 ? ((totalEarned + tradingProfit) / totalInvested) * 100 : 0;
+
+            return {
+              id: user.user_id,
+              name: user.display_name || user.full_name || user.username || 'Usuário',
+              email: user.email || '',
+              whatsapp: user.whatsapp || '',
+              plan: activeInvestmentsCount > 0 ? 'Alphabot Pro' : 'Free',
+              investmentAmount: totalInvested,
+              commission: (user.total_profit || 0) * 0.1, // 10% commission
+              status: user.status as "active" | "inactive",
+              joinDate: user.created_at,
+              lastActivity: user.updated_at || user.created_at,
+              city: user.city,
+              state: user.state,
+              totalProfit: totalEarned + tradingProfit,
+              performance: Math.round(performance * 100) / 100, // Round to 2 decimal places
+              activeInvestments: activeInvestmentsCount
+            };
+          });
 
           setReferredUsers(convertedUsers);
         } else {
@@ -913,6 +1051,314 @@ Alphabit Team`
               </Card>
             </div>
           </div>
+
+          {/* Detailed User Performance Table */}
+          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
+            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold text-white">
+                      Team Performance Dashboard
+                    </CardTitle>
+                    <p className="text-sm text-gray-400">Complete user details and analytics</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    <Wifi className="h-3 w-3 mr-1" />
+                    LIVE
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6">
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search team members..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-slate-800/60 border-purple-500/30 text-white w-80"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={whatsappFilter} onValueChange={(value: any) => setWhatsappFilter(value)}>
+                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                      <SelectItem value="all">All Contact</SelectItem>
+                      <SelectItem value="with">With WhatsApp</SelectItem>
+                      <SelectItem value="without">No WhatsApp</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400 ml-auto">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Data
+                </Button>
+              </div>
+
+              {/* Performance Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Avg Performance</p>
+                        <p className="text-2xl font-bold text-blue-400">
+                          {filteredUsers.length > 0 
+                            ? Math.round(filteredUsers.reduce((sum, user) => sum + (user.performance || 0), 0) / filteredUsers.length)
+                            : 0}%
+                        </p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-blue-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Active Investments</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {filteredUsers.reduce((sum, user) => sum + (user.activeInvestments || 0), 0)}
+                        </p>
+                      </div>
+                      <Target className="h-8 w-8 text-green-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Total Profits</p>
+                        <p className="text-2xl font-bold text-yellow-400">
+                          {formatCurrency(filteredUsers.reduce((sum, user) => sum + (user.totalProfit || 0), 0))}
+                        </p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-yellow-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">With WhatsApp</p>
+                        <p className="text-2xl font-bold text-purple-400">
+                          {stats.withWhatsapp}/{stats.totalReferrals}
+                        </p>
+                      </div>
+                      <Phone className="h-8 w-8 text-purple-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Users Table */}
+              {filteredUsers.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-600/50 hover:bg-slate-800/30">
+                        <TableHead className="text-purple-400 font-medium">User</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Status</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Location</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Performance</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Investments</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Profit</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Commission</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Join Date</TableHead>
+                        <TableHead className="text-purple-400 font-medium">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id} className="border-slate-600/30 hover:bg-slate-800/20 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-white">{user.name}</p>
+                                <p className="text-sm text-gray-400">{user.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {user.status === 'active' ? (
+                                <>
+                                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Active
+                                  </Badge>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                                  <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">
+                                    <UserX className="h-3 w-3 mr-1" />
+                                    Inactive
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-sm text-gray-300">
+                              <MapPin className="h-3 w-3 text-gray-400" />
+                              {user.city && user.state ? (
+                                <span>{user.city}, {user.state}</span>
+                              ) : (
+                                <span className="text-gray-500 italic">Not provided</span>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-white">
+                                    {user.performance?.toFixed(1)}%
+                                  </span>
+                                  {(user.performance || 0) > 0 ? (
+                                    <TrendingUp className="h-3 w-3 text-green-400" />
+                                  ) : (
+                                    <TrendingDown className="h-3 w-3 text-red-400" />
+                                  )}
+                                </div>
+                                <Progress 
+                                  value={Math.min(Math.max(user.performance || 0, 0), 100)} 
+                                  className="h-1"
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-white">
+                                {formatCurrency(user.investmentAmount)}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {user.activeInvestments || 0} active
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="text-sm font-medium text-green-400">
+                              {formatCurrency(user.totalProfit || 0)}
+                            </p>
+                          </TableCell>
+
+                          <TableCell>
+                            <p className="text-sm font-medium text-yellow-400">
+                              {formatCurrency(user.commission)}
+                            </p>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="text-sm text-gray-300">
+                              <p>{formatDate(user.joinDate)}</p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatDate(user.lastActivity)}
+                              </p>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {user.whatsapp ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => openMessageModal(user)}
+                                  className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
+                                  title="Send WhatsApp message"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled
+                                  className="border-gray-500/30 text-gray-500 h-8 w-8 p-0"
+                                  title="No WhatsApp available"
+                                >
+                                  <WifiOff className="h-4 w-4" />
+                                </Button>
+                              )}
+                              
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
+                                title="View details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="p-8 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
+                    <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400 text-xl font-medium mb-2">No team members found</p>
+                    <p className="text-gray-500 mb-4">Start sharing your referral link to build your network</p>
+                    <Button 
+                      onClick={copyToClipboard}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Referral Link
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* WhatsApp Message Modal */}
