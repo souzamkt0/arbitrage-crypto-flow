@@ -233,15 +233,15 @@ const Deposit = () => {
               )}
             </div>
 
-            {/* Live Buy Orders - Left Side */}
+            {/* Live Sell Orders - Left Side */}
             <div className="animate-fade-in">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
-                <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
-                <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
+                <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
+                <h3 className="text-sm font-semibold text-white">Live Sell Orders</h3>
+                <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">
                   LIVE
                 </div>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
               </div>
               
               <div className="space-y-1">
@@ -252,22 +252,22 @@ const Deposit = () => {
                   <div>TOTAL</div>
                 </div>
                 
-                {buyOrders.map((order, index) => (
+                {sellOrders.map((order, index) => (
                   <div 
-                    key={`left-${order.timestamp}-${index}`}
-                    className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
+                    key={`left-sell-${order.timestamp}-${index}`}
+                    className="grid grid-cols-4 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <div className="text-green-400 font-medium transition-colors duration-300 hover:text-green-300">
+                    <div className="text-red-400 font-medium transition-colors duration-300 hover:text-red-300">
                       {order.value}
                     </div>
-                    <div className="text-white transition-colors duration-300 hover:text-green-400">
+                    <div className="text-white transition-colors duration-300 hover:text-red-400">
                       {order.amount}
                     </div>
                     <div className="text-gray-300 transition-colors duration-300 hover:text-white">
                       {order.bid}
                     </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-green-400">
+                    <div className="text-gray-300 transition-colors duration-300 hover:text-red-400">
                       {order.total}
                     </div>
                   </div>
