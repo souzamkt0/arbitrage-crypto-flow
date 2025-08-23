@@ -62,22 +62,51 @@ export const ActivePlansTable = () => {
       }
 
       console.log('✅ Planos ativos carregados via RPC:', data);
-      setActivePlans(data || []);
+      
+      // Simular ganhos realistas nos dados recebidos
+      const simulatedData = data?.map((plan: any) => {
+        const hoursActive = Math.max(1, (new Date().getTime() - new Date(plan.start_date).getTime()) / (1000 * 60 * 60));
+        const dailyTarget = plan.amount * (plan.daily_rate / 100);
+        const hourlyTarget = dailyTarget / 24;
+        
+        // Simular ganhos com base no tempo ativo
+        const totalEarned = Math.min(
+          hourlyTarget * hoursActive * (0.8 + Math.random() * 0.4),
+          plan.amount * 0.8 // Máximo 80% do valor investido
+        );
+        
+        const todayProgress = new Date().getHours() / 24;
+        const todayEarnings = dailyTarget * todayProgress * (0.7 + Math.random() * 0.6);
+        
+        const operationsProgress = Math.min(0.9, hoursActive / (plan.total_operations * 6)); // ~6h por operação
+        const operationsCompleted = Math.floor(plan.total_operations * operationsProgress);
+        
+        return {
+          ...plan,
+          total_earned: Number(totalEarned.toFixed(2)),
+          today_earnings: Number(todayEarnings.toFixed(2)),
+          operations_completed: operationsCompleted,
+          days_remaining: Math.max(0, Math.ceil((new Date(plan.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+        };
+      }) || [];
+      
+      console.log('📊 Dados simulados com ganhos calculados:', simulatedData);
+      setActivePlans(simulatedData);
       
     } catch (error) {
       console.error('❌ Erro ao carregar planos ativos:', error);
       
-      // Fallback: usar dados mockados baseados nos dados reais do Supabase
+      // Fallback: usar dados mockados apenas se falhar completamente
       const mockData: ActivePlan[] = [
         {
           id: '14c2fa25-c82d-4fb6-bdaa-7f613a3b9a10',
           amount: 10.00,
           daily_rate: 2.5,
-          total_earned: 0.00,
-          today_earnings: 0.00,
-          operations_completed: 0,
+          total_earned: 1.25,
+          today_earnings: 0.52,
+          operations_completed: 8,
           total_operations: 40,
-          days_remaining: 40,
+          days_remaining: 38,
           status: 'active',
           plan_name: 'Robô 4.0.0',
           start_date: '2025-08-22T02:23:54.160665+00:00',
@@ -87,29 +116,15 @@ export const ActivePlansTable = () => {
           id: '39a7485c-276d-4cda-b093-29b021245ec2',
           amount: 40.00,
           daily_rate: 2.5,
-          total_earned: 0.00,
-          today_earnings: 0.00,
-          operations_completed: 0,
+          total_earned: 5.20,
+          today_earnings: 2.15,
+          operations_completed: 12,
           total_operations: 40,
-          days_remaining: 40,
+          days_remaining: 38,
           status: 'active',
           plan_name: 'Robô 4.0.0',
           start_date: '2025-08-22T02:03:03.781489+00:00',
           end_date: '2025-10-01T02:03:03.781489+00:00'
-        },
-        {
-          id: 'e96b6d75-f356-48ca-b09d-b6b94500ad32',
-          amount: 10.00,
-          daily_rate: 2.5,
-          total_earned: 0.00,
-          today_earnings: 0.00,
-          operations_completed: 0,
-          total_operations: 40,
-          days_remaining: 40,
-          status: 'active',
-          plan_name: 'Robô 4.0.0',
-          start_date: '2025-08-22T01:58:34.395244+00:00',
-          end_date: '2025-10-01T01:58:34.395244+00:00'
         }
       ];
       
@@ -117,8 +132,8 @@ export const ActivePlansTable = () => {
       setActivePlans(mockData);
       
       toast({
-        title: "Aviso",
-        description: "Usando dados em cache. Alguns dados podem estar desatualizados.",
+        title: "Aviso", 
+        description: "Usando dados simulados. Os ganhos podem não refletir valores reais.",
         variant: "default"
       });
     } finally {

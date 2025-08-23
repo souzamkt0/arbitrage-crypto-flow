@@ -1727,6 +1727,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      simulate_investment_profits: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       sync_all_withdrawal_balances: {
         Args: Record<PropertyKey, never>
         Returns: Json
