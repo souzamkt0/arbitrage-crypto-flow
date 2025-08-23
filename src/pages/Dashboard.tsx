@@ -1118,65 +1118,6 @@ const Dashboard = () => {
 
           {/* Right Column - Sidebar */}
           <div className="xl:col-span-1 space-y-4">
-            {/* Board - Compact */}
-            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold">Board</h3>
-                <Button variant="ghost" size="sm" className="text-gray-400">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      F
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium">FFB</div>
-                      <div className="text-xs text-gray-500">Facebook</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
-                    <div className="text-xs text-red-400">-21.2%</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      V
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium">VSA</div>
-                      <div className="text-xs text-gray-500">Visa</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
-                    <div className="text-xs text-green-400">+21.2%</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      M
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium">MST</div>
-                      <div className="text-xs text-gray-500">Master</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-medium text-green-400">$ 42.21</div>
-                    <div className="text-xs text-red-400">-21.2%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Existing Balance Components - Compact */}
             <div className="space-y-4">
