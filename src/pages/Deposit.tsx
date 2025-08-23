@@ -149,336 +149,375 @@ const Deposit = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col">
-        {/* Header Navigation - Responsive */}
-        <header className="bg-[#151b2b] border-b border-gray-800 px-3 sm:px-6 py-3 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        {/* Header Navigation - Fully Responsive */}
+        <header className="bg-card border-b border-border px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center gap-2">
+              {/* Logo placeholder for mobile */}
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white p-2">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground p-2 hover:bg-accent/50">
                 <Bell className="h-4 w-4" />
               </Button>
-              <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3 sm:px-4 py-2 text-sm">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 text-sm font-medium">
                 Wallet
               </Button>
             </div>
           </div>
         </header>
 
-        {/* Main Layout - Responsive */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Left Sidebar - Hidden on mobile, visible on lg+ */}
-          <div className="hidden lg:flex lg:w-72 bg-[#151b2b] border-r border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
-            {/* Deposit Balance Header - Responsive */}
-            <div className="border-b border-gray-800 pb-3">
-              <h2 className="text-sm sm:text-base font-semibold mb-2 text-cyan-400">Saldo Depósitos</h2>
-              <div className="text-lg sm:text-xl font-bold text-green-400">
-                ${depositBalance.toFixed(2)}
-              </div>
-              <div className="text-xs text-gray-400">
-                {totalDeposits} depósitos • {pendingDeposits} pendentes
-              </div>
-              {depositBalance > 0 && (
-                <div className="mt-2 p-2 bg-green-500/10 rounded border border-green-500/20">
-                  <div className="text-xs text-green-400 font-medium">
-                    ✅ Saldo disponível no sistema
-                  </div>
-                  <div className="text-xs text-gray-300">
-                    Pronto para trading e operações
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Deposit Stats - Responsive */}
-            <div className="space-y-2">
+        {/* Main Layout - Mobile-First Responsive */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          
+          {/* Left Sidebar - Progressive disclosure */}
+          <div className="hidden md:block md:w-64 lg:w-72 bg-card border-r border-border flex-shrink-0">
+            <div className="h-full overflow-y-auto p-3 space-y-4">
               
+              {/* Mobile Balance Header - Visible on mobile */}
+              <div className="md:hidden bg-muted/50 rounded-lg p-4 mb-4">
+                <h2 className="text-sm font-semibold mb-1 text-primary">Saldo Depósitos</h2>
+                <div className="text-lg font-bold text-green-400">
+                  ${depositBalance.toFixed(2)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {totalDeposits} depósitos • {pendingDeposits} pendentes
+                </div>
+              </div>
+
+              {/* Desktop Balance Header */}
+              <div className="hidden md:block border-b border-border pb-4">
+                <h2 className="text-sm font-semibold mb-2 text-primary">Saldo Depósitos</h2>
+                <div className="text-xl font-bold text-green-400">
+                  ${depositBalance.toFixed(2)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {totalDeposits} depósitos • {pendingDeposits} pendentes
+                </div>
+                {depositBalance > 0 && (
+                  <div className="mt-3 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <div className="text-xs text-green-400 font-medium mb-1">
+                      ✅ Saldo disponível no sistema
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Pronto para trading e operações
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pending Deposits */}
               {pendingDeposits > 0 && (
-                <div className="bg-[#1f2937] rounded-lg p-3">
+                <div className="bg-muted/50 rounded-lg p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-gray-400">Pendentes</div>
-                      <div className="text-sm sm:text-lg font-bold text-yellow-400">{pendingDeposits}</div>
+                      <div className="text-xs text-muted-foreground">Pendentes</div>
+                      <div className="text-lg font-bold text-yellow-400">{pendingDeposits}</div>
                     </div>
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                      <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 animate-pulse" />
+                    <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                      <Activity className="h-4 w-4 text-yellow-400 animate-pulse" />
                     </div>
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Live Sell Orders - Responsive */}
-            <div className="animate-fade-in">
-              <div className="flex items-center gap-1 sm:gap-2 mb-3">
-                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 animate-pulse" />
-                <h3 className="text-xs sm:text-sm font-semibold text-white">Live Sell Orders</h3>
-                <div className="text-xs text-red-400 bg-red-500/10 px-1 sm:px-2 py-1 rounded">
-                  LIVE
-                </div>
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
-              </div>
-              
-               <div className="space-y-1">
-                 <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
-                   <div className="hidden sm:block">CORRETORA</div>
-                   <div className="sm:hidden">COR</div>
-                   <div>PREÇO</div>
-                   <div>QTD</div>
-                   <div>BID</div>
-                   <div>TOTAL</div>
-                 </div>
-                
-                {sellOrders.map((order, index) => (
-                  <div 
-                    key={`left-sell-${order.timestamp}-${index}`}
-                    className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate text-xs">
-                      <span className="hidden sm:inline">{order.exchange}</span>
-                      <span className="sm:hidden">{order.exchange.slice(0, 3)}</span>
-                    </div>
-                    <div className="text-red-400 font-medium transition-colors duration-300 hover:text-red-300 text-xs">
-                      {order.value}
-                    </div>
-                    <div className="text-white transition-colors duration-300 hover:text-red-400 text-xs">
-                      {order.amount}
-                    </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-white text-xs">
-                      {order.bid}
-                    </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-red-400 text-xs">
-                      {order.total}
-                    </div>
+              {/* Live Sell Orders */}
+              <div className="animate-fade-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
+                  <h3 className="text-sm font-semibold">Live Sell Orders</h3>
+                  <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full">
+                    LIVE
                   </div>
-                ))}
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="grid grid-cols-5 gap-1 text-xs text-muted-foreground border-b border-border pb-1 mb-2">
+                    <div className="hidden lg:block">EXCHANGE</div>
+                    <div className="lg:hidden">EX</div>
+                    <div>PREÇO</div>
+                    <div>QTD</div>
+                    <div>BID</div>
+                    <div>TOTAL</div>
+                  </div>
+                 
+                  {sellOrders.map((order, index) => (
+                    <div 
+                      key={`left-sell-${order.timestamp}-${index}`}
+                      className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-accent/50 rounded transition-all duration-200 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-red-500/50"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="text-yellow-400 font-medium transition-colors duration-200 hover:text-yellow-300 truncate">
+                        <span className="hidden lg:inline">{order.exchange}</span>
+                        <span className="lg:hidden">{order.exchange.slice(0, 3)}</span>
+                      </div>
+                      <div className="text-red-400 font-medium transition-colors duration-200 hover:text-red-300">
+                        {order.value}
+                      </div>
+                      <div className="text-foreground transition-colors duration-200 hover:text-red-400">
+                        {order.amount}
+                      </div>
+                      <div className="text-muted-foreground transition-colors duration-200 hover:text-foreground">
+                        {order.bid}
+                      </div>
+                      <div className="text-muted-foreground transition-colors duration-200 hover:text-red-400">
+                        {order.total}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
+            </div>
           </div>
 
-          {/* Center - Main Content Area - Responsive */}
-          <div className="flex-1 bg-[#0a0e1a] p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto">
-            {/* Deposit Interface - Mobile First */}
-            <Card className="bg-[#151b2b] border border-gray-800">
-              <CardHeader className="border-b border-gray-800 py-2 sm:py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 sm:p-1.5 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
-                      <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-sm sm:text-base font-bold text-white">Deposit Terminal</CardTitle>
-                      <p className="text-xs text-gray-400">Sistema ativo</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs font-medium">ONLINE</span>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-3 sm:p-4">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4 bg-[#1f2937] border border-gray-700 p-1">
-                    <TabsTrigger 
-                      value="digitopay" 
-                      className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-2"
-                    >
-                      <Smartphone className="h-3 w-3" />
-                      <span className="font-medium text-xs sm:text-sm">PIX Instant</span>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="usdt" 
-                      className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white py-2"
-                    >
-                      <CreditCard className="h-3 w-3" />
-                      <span className="font-medium text-xs sm:text-sm">USDT Crypto</span>
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="digitopay" className="space-y-3 sm:space-y-4">
-                    {user ? (
-                      <DigitoPayDeposit onSuccess={() => {
-                        toast({
-                          title: "🎉 PARABÉNS!",
-                          description: "Depósito processado com sucesso",
-                        });
-                        // Recarregar dados de depósito após sucesso
-                        loadDepositData();
-                      }} />
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="p-4 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl inline-block mx-auto">
-                          <AlertTriangle className="h-8 w-8 text-red-400 mx-auto mb-2" />
-                          <p className="text-red-400 text-sm font-medium">Authentication Required</p>
-                          <p className="text-gray-400 mt-1 text-xs">Please login to access deposits</p>
+          {/* Center - Main Content Area - Fully Responsive */}
+          <div className="flex-1 bg-background overflow-y-auto">
+            <div className="h-full p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6 max-w-4xl mx-auto">
+              
+              {/* Mobile Balance Card - Only visible on mobile */}
+              <div className="md:hidden">
+                <Card className="bg-card border-border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-semibold text-primary">Saldo Total</h2>
+                        <div className="text-2xl font-bold text-green-400">
+                          ${depositBalance.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {totalDeposits} depósitos completos
                         </div>
                       </div>
-                    )}
-                  </TabsContent>
+                      <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                        <Wallet className="h-6 w-6 text-green-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-                  <TabsContent value="usdt" className="space-y-3 sm:space-y-4">
-                    <form onSubmit={handleBnbSubmit} className="space-y-3 sm:space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="usdt-amount" className="text-purple-400 font-medium text-xs">Amount (USDT)</Label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-3 h-3 w-3 text-purple-400" />
+              {/* Deposit Interface - Fully Responsive */}
+              <Card className="bg-card border-border">
+                <CardHeader className="border-b border-border p-4 md:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
+                        <Wallet className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base md:text-lg font-bold">Deposit Terminal</CardTitle>
+                        <p className="text-sm text-muted-foreground">Sistema ativo</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 self-start sm:self-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-sm font-medium">ONLINE</span>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-4 md:p-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6 bg-muted border border-border p-1">
+                      <TabsTrigger 
+                        value="digitopay" 
+                        className="flex items-center justify-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-3 text-sm font-medium"
+                      >
+                        <Smartphone className="h-4 w-4" />
+                        <span className="hidden sm:inline">PIX Instant</span>
+                        <span className="sm:hidden">PIX</span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="usdt" 
+                        className="flex items-center justify-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white py-2 px-3 text-sm font-medium"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        <span className="hidden sm:inline">USDT Crypto</span>
+                        <span className="sm:hidden">USDT</span>
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="digitopay" className="space-y-4 md:space-y-6">
+                      {user ? (
+                        <DigitoPayDeposit onSuccess={() => {
+                          toast({
+                            title: "🎉 PARABÉNS!",
+                            description: "Depósito processado com sucesso",
+                          });
+                          loadDepositData();
+                        }} />
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl inline-block mx-auto">
+                            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-3" />
+                            <p className="text-red-400 font-medium mb-1">Authentication Required</p>
+                            <p className="text-muted-foreground text-sm">Please login to access deposits</p>
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="usdt" className="space-y-4 md:space-y-6">
+                      <form onSubmit={handleBnbSubmit} className="space-y-4 md:space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="usdt-amount" className="text-purple-400 font-medium">Amount (USDT)</Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-purple-400" />
+                              <Input
+                                id="usdt-amount"
+                                type="number"
+                                placeholder="100.00"
+                                className="pl-10 bg-muted border-border text-foreground h-12 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                min="10"
+                                step="0.01"
+                                value={bnbForm.amount}
+                                onChange={(e) => setBnbForm({...bnbForm, amount: e.target.value})}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="sender-name" className="text-purple-400 font-medium">Sender Name</Label>
                             <Input
-                              id="usdt-amount"
-                              type="number"
-                              placeholder="100.00"
-                              className="pl-9 bg-[#1f2937] border-gray-700 text-white h-10 sm:h-9 focus:border-purple-500 text-xs"
-                              min="10"
-                              step="0.01"
-                              value={bnbForm.amount}
-                              onChange={(e) => setBnbForm({...bnbForm, amount: e.target.value})}
+                              id="sender-name"
+                              type="text"
+                              placeholder="Full name"
+                              className="bg-muted border-border text-foreground h-12 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                              value={bnbForm.senderName}
+                              onChange={(e) => setBnbForm({...bnbForm, senderName: e.target.value})}
                               required
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="sender-name" className="text-purple-400 font-medium text-xs">Sender Name</Label>
-                          <Input
-                            id="sender-name"
-                            type="text"
-                            placeholder="Full name"
-                            className="bg-[#1f2937] border-gray-700 text-white h-10 sm:h-9 focus:border-purple-500 text-xs"
-                            value={bnbForm.senderName}
-                            onChange={(e) => setBnbForm({...bnbForm, senderName: e.target.value})}
-                            required
-                          />
-                        </div>
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-12 text-sm md:text-base"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>Processing...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Zap className="h-4 w-4 mr-2" />
+                              CONFIRM CRYPTO DEPOSIT
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Trading Chart - Fully Responsive */}
+              <Card className="bg-card border-border">
+                <CardContent className="p-3 md:p-4">
+                  <div className="h-[400px] md:h-[500px] lg:h-[600px]">
+                    <TradingChart />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Mobile Live Orders - Only visible on small screens */}
+              <div className="md:hidden">
+                <Card className="bg-card border-border">
+                  <CardHeader className="p-4">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
+                      <CardTitle className="text-base">Live Orders</CardTitle>
+                      <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full">LIVE</div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="text-sm text-red-400 font-medium">Sell Orders</div>
+                        {sellOrders.slice(0, 4).map((order, i) => (
+                          <div key={`mobile-sell-${i}`} className="text-sm">
+                            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                              <span className="text-red-400 font-medium">{order.value}</span>
+                              <span className="text-foreground">{order.amount}</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold h-10 sm:h-9 text-xs sm:text-sm"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center justify-center space-x-2">
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                            <span>Processing...</span>
+                      <div className="space-y-2">
+                        <div className="text-sm text-green-400 font-medium">Buy Orders</div>
+                        {buyOrders.slice(0, 4).map((order, i) => (
+                          <div key={`mobile-buy-${i}`} className="text-sm">
+                            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                              <span className="text-green-400 font-medium">{order.value}</span>
+                              <span className="text-foreground">{order.amount}</span>
+                            </div>
                           </div>
-                        ) : (
-                          <>
-                            <Zap className="h-3 w-3 mr-2" />
-                            CONFIRM CRYPTO DEPOSIT
-                          </>
-                        )}
-                      </Button>
-
-                      {/* Small Pay Now Button - Mobile optimized */}
-                      <Button 
-                        type="button"
-                        className="mt-3 h-10 px-6 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 border-0 relative overflow-hidden transform transition-all duration-300 hover:scale-105"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex items-center justify-center gap-2">
-                          <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
-                            <span className="text-xs">💳</span>
-                          </div>
-                          <span className="tracking-wide">PAGAR AGORA</span>
-                        </div>
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-
-
-            {/* Main Chart - Responsive */}
-            <div className="bg-[#151b2b] rounded-lg p-2 sm:p-3 flex-1 min-h-0">
-              <TradingChart />
-            </div>
-
-            {/* Mobile Live Orders - Only visible on small screens */}
-            <div className="lg:hidden bg-[#151b2b] rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingDown className="h-4 w-4 text-red-400 animate-pulse" />
-                <h3 className="text-sm font-semibold text-white">Live Orders</h3>
-                <div className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">LIVE</div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs text-red-400 font-medium">Sell Orders</div>
-                  {sellOrders.slice(0, 3).map((order, i) => (
-                    <div key={`mobile-sell-${i}`} className="text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-red-400">{order.value}</span>
-                        <span className="text-white">{order.amount}</span>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs text-green-400 font-medium">Buy Orders</div>
-                  {buyOrders.slice(0, 3).map((order, i) => (
-                    <div key={`mobile-buy-${i}`} className="text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-green-400">{order.value}</span>
-                        <span className="text-white">{order.amount}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
 
-          {/* Right Sidebar - Hidden on mobile/tablet, visible on xl+ */}
-          <div className="hidden xl:flex xl:w-72 bg-[#151b2b] border-l border-gray-800 p-3 space-y-3 overflow-hidden flex-shrink-0">
-            {/* Buy Orders */}
-            <div className="animate-fade-in">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
-                <h3 className="text-sm font-semibold text-white">Live Buy Orders</h3>
-                <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
-                  LIVE
-                </div>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
-              </div>
+          {/* Right Sidebar - Hidden on mobile/tablet, visible on lg+ */}
+          <div className="hidden lg:block lg:w-64 xl:w-72 bg-card border-l border-border flex-shrink-0">
+            <div className="h-full overflow-y-auto p-3 space-y-4">
               
-              <div className="space-y-1">
-                <div className="grid grid-cols-5 gap-1 text-xs text-gray-400 border-b border-gray-700 pb-1 mb-2">
-                  <div>CORRETORA</div>
-                  <div>PREÇO</div>
-                  <div>QTD</div>
-                  <div>BID</div>
-                  <div>TOTAL</div>
+              {/* Buy Orders */}
+              <div className="animate-fade-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-4 w-4 text-green-400 animate-pulse" />
+                  <h3 className="text-sm font-semibold">Live Buy Orders</h3>
+                  <div className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
                 </div>
                 
-                {sideBuyOrders.map((order, index) => (
-                  <div 
-                    key={`side-${order.timestamp}-${index}`}
-                    className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-[#1f2937] rounded transition-all duration-300 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className="text-yellow-400 font-medium transition-colors duration-300 hover:text-yellow-300 truncate">
-                      {order.exchange}
-                    </div>
-                    <div className="text-green-400 font-medium transition-colors duration-300 hover:text-green-300">
-                      {order.value}
-                    </div>
-                    <div className="text-white transition-colors duration-300 hover:text-green-400">
-                      {order.amount}
-                    </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-white">
-                      {order.bid}
-                    </div>
-                    <div className="text-gray-300 transition-colors duration-300 hover:text-green-400">
-                      {order.total}
-                    </div>
+                <div className="space-y-1">
+                  <div className="grid grid-cols-5 gap-1 text-xs text-muted-foreground border-b border-border pb-1 mb-2">
+                    <div className="hidden xl:block">EXCHANGE</div>
+                    <div className="xl:hidden">EX</div>
+                    <div>PREÇO</div>
+                    <div>QTD</div>
+                    <div>BID</div>
+                    <div>TOTAL</div>
                   </div>
-                ))}
+                  
+                  {sideBuyOrders.map((order, index) => (
+                    <div 
+                      key={`side-${order.timestamp}-${index}`}
+                      className="grid grid-cols-5 gap-1 text-xs py-1 px-1 hover:bg-accent/50 rounded transition-all duration-200 hover:scale-[1.02] animate-fade-in border-l-2 border-transparent hover:border-green-500/50"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="text-yellow-400 font-medium transition-colors duration-200 hover:text-yellow-300 truncate">
+                        <span className="hidden xl:inline">{order.exchange}</span>
+                        <span className="xl:hidden">{order.exchange.slice(0, 3)}</span>
+                      </div>
+                      <div className="text-green-400 font-medium transition-colors duration-200 hover:text-green-300">
+                        {order.value}
+                      </div>
+                      <div className="text-foreground transition-colors duration-200 hover:text-green-400">
+                        {order.amount}
+                      </div>
+                      <div className="text-muted-foreground transition-colors duration-200 hover:text-foreground">
+                        {order.bid}
+                      </div>
+                      <div className="text-muted-foreground transition-colors duration-200 hover:text-green-400">
+                        {order.total}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
