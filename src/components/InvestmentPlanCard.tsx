@@ -86,6 +86,28 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
 
   return (
     <Card className="bg-[#1a1f2e] border-gray-700 hover:border-teal-500/50 transition-all duration-300">
+      {/* Header com lucro diário potencial */}
+      {canInvest && (
+        <div className="bg-gradient-to-r from-teal-600 to-teal-500 p-4 rounded-t-lg">
+          <div className="flex justify-between items-center text-white">
+            <div>
+              <div className="flex items-center gap-1 text-sm opacity-90">
+                <DollarSign className="w-4 h-4" />
+                Lucro Diário Potencial
+              </div>
+              <div className="text-lg font-bold">Até {(plan.daily_rate * 100).toFixed(2)}% ao dia</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm opacity-90">Simulação com ${simulatorValue.toFixed(0)}</div>
+              <div className="text-lg font-bold">Até ${(simulatorValue * plan.daily_rate).toFixed(2)}/dia</div>
+            </div>
+          </div>
+          <div className="mt-2 text-sm text-white/80">
+            🎯 Participe e veja seus lucros crescerem diariamente com arbitragem automática!
+          </div>
+        </div>
+      )}
+
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
@@ -93,7 +115,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
             {plan.name}
           </CardTitle>
           <Badge variant={canInvest ? "default" : "secondary"} className="bg-teal-500/20 text-teal-400">
-            até {(plan.daily_rate * 100).toFixed(1)}% / dia*
+            {(plan.daily_rate * 100).toFixed(2)}% / dia
           </Badge>
         </div>
         <p className="text-gray-400 text-sm">{plan.description}</p>
@@ -103,7 +125,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-gray-400 text-sm">
-              <TrendingUp className="w-4 h-4" />
+              <DollarSign className="w-4 h-4" />
               Valor Mínimo
             </div>
             <div className="text-white font-semibold">${plan.minimum_amount}</div>
@@ -133,105 +155,63 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
           </div>
         )}
 
-        {/* Gráfico de Trading para planos disponíveis */}
-        {canInvest && (
-          <div className="space-y-4 border-t border-gray-700 pt-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
-                <TrendingUp className="w-4 h-4 text-teal-400" />
-                Trading ao Vivo (BTC/USDT)
-              </h4>
-              <div className="h-32 bg-gray-800/50 rounded-lg p-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={tradingData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis 
-                      dataKey="time" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '6px',
-                        fontSize: '12px'
-                      }}
-                      formatter={(value: any, name: string) => [
-                        name === 'price' ? `$${value}` : `${value.toFixed(2)}%`,
-                        name === 'price' ? 'Preço' : 'Lucro'
-                      ]}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="price" 
-                      stroke="#14b8a6" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>Últimas 24h</span>
-                <span className="text-teal-400">+1.8% média</span>
-              </div>
-            </div>
-
-            {/* Simulador para planos disponíveis */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
-                <Calculator className="w-4 h-4 text-teal-400" />
-                Simulador de Ganhos ({plan.name === 'Robô 4.0.0' ? '30' : plan.duration_days} dias)
-              </h4>
-              
-              <div className="space-y-2">
-                <Label htmlFor="simulator-input" className="text-xs text-gray-400">
-                  Valor do Investimento
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="simulator-input"
-                    type="number"
-                    value={simulatorValue}
-                    onChange={(e) => setSimulatorValue(Number(e.target.value) || plan.minimum_amount)}
-                    min={plan.minimum_amount}
-                    max={plan.max_investment_amount || 10000}
-                    className="pl-10 bg-gray-800/50 border-gray-600 text-white text-sm h-8"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-gray-800/30 rounded-lg p-2">
-                  <div className="text-gray-400">Lucro Total</div>
-                  <div className="text-teal-400 font-semibold">
-                    ${simulation.totalProfit.toFixed(2)}
-                  </div>
-                  <div className="text-gray-500">
-                    +{simulation.profitPercentage.toFixed(1)}%
-                  </div>
-                </div>
-                <div className="bg-gray-800/30 rounded-lg p-2">
-                  <div className="text-gray-400">Total Final</div>
-                  <div className="text-white font-semibold">
-                    ${simulation.finalAmount.toFixed(2)}
-                  </div>
-                  <div className="text-gray-500">
-                    em {plan.name === 'Robô 4.0.0' ? '30' : plan.duration_days} dias
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-xs text-amber-400 bg-amber-500/10 rounded p-2">
-                ⚠️ Simulação baseada em ganhos variáveis até {(plan.daily_rate * 100).toFixed(1)}% ao dia. Resultados não garantidos.
-              </div>
+        {/* Gráfico de Trading - aparece sempre */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
+            <TrendingUp className="w-4 h-4 text-teal-400" />
+            Trading ao Vivo (BTC/USDT)
+          </h4>
+          <div className="h-40 bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={tradingData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="time" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                  interval={3}
+                />
+                <YAxis 
+                  hide={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                  domain={['dataMin - 500', 'dataMax + 500']}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1f2937', 
+                    border: '1px solid #14b8a6',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any, name: string) => [
+                    name === 'price' ? `$${value.toLocaleString()}` : `${value.toFixed(2)}%`,
+                    name === 'price' ? 'Preço BTC' : 'Lucro'
+                  ]}
+                  labelFormatter={(label) => `Hora: ${label}`}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#14b8a6" 
+                  strokeWidth={2.5}
+                  dot={{ fill: '#14b8a6', strokeWidth: 2, r: 3 }}
+                  activeDot={{ r: 5, stroke: '#14b8a6', strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-400">Últimas 24h</span>
+            <div className="flex gap-4">
+              <span className="text-teal-400">📈 +1.8% média</span>
+              <span className="text-green-400">🟢 Ativo</span>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-300">Recursos:</h4>
