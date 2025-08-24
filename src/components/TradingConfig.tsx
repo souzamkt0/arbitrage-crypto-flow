@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Save, X, Plus, Settings, BarChart3 } from "lucide-react";
+import { Edit, Save, X, Plus, Settings, BarChart3, Volume2 } from "lucide-react";
 
 interface InvestmentPlan {
   id: string;
@@ -417,58 +418,84 @@ export function TradingConfig() {
         </CardContent>
       </Card>
 
-      {/* Configuração Rápida */}
+      {/* Controle de Volume - Configuração de Taxas */}
       <Card>
         <CardHeader>
-          <CardTitle>Configuração Rápida de Taxas</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Volume2 className="h-5 w-5" />
+            Controle de Taxas Diárias
+          </CardTitle>
           <CardDescription>
-            Ajuste rapidamente as taxas diárias de todos os planos
+            Ajuste as taxas de retorno diário usando controles deslizantes como um volume
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plans.map((plan) => (
-              <Card key={plan.id} className="p-4">
-                <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const currentRate = plan.daily_rate * 100;
+              const maxRate = plan.max_daily_return;
+              
+              return (
+                <Card key={plan.id} className="p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{plan.name}</h4>
                     <Badge className={getStrategyColor(plan.trading_strategy)}>
                       {plan.trading_strategy}
                     </Badge>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">
-                      Taxa Diária (máx: {plan.max_daily_return}%)
-                    </Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={(plan.daily_rate * 100).toFixed(2)}
-                        onChange={(e) => {
-                          const newRate = parseFloat(e.target.value);
-                          if (newRate <= plan.max_daily_return) {
-                            updatePlanStrategy(
-                              plan.id, 
-                              plan.trading_strategy, 
-                              plan.max_daily_return,
-                              newRate
-                            );
-                          }
-                        }}
-                        className="flex-1"
-                        step="0.01"
-                        min="0.01"
-                        max={plan.max_daily_return}
-                      />
-                      <span className="text-sm">%</span>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Taxa Diária</span>
+                      <span className="font-semibold text-blue-600">
+                        {currentRate.toFixed(2)}%
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Exemplo: R$100 → R${(100 * (1 + plan.daily_rate)).toFixed(2)} por dia
+                    
+                    <div className="space-y-2">
+                      <Slider
+                        value={[currentRate]}
+                        onValueChange={(values) => {
+                          const newRate = values[0];
+                          updatePlanStrategy(
+                            plan.id,
+                            plan.trading_strategy,
+                            plan.max_daily_return,
+                            newRate
+                          );
+                        }}
+                        max={maxRate}
+                        min={0.01}
+                        step={0.01}
+                        className="w-full"
+                      />
+                      
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0.01%</span>
+                        <span>máx: {maxRate}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className="text-sm font-medium mb-1">Simulação de Retorno</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>R$ 100 → R$ {(100 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
+                        <div>R$ 500 → R$ {(500 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
+                        <div>R$ 1.000 → R$ {(1000 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-xs">
+                      <Volume2 className="h-3 w-3" />
+                      <span className="text-muted-foreground">
+                        {currentRate < maxRate * 0.3 ? 'Volume Baixo' : 
+                         currentRate < maxRate * 0.7 ? 'Volume Médio' : 'Volume Alto'}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
