@@ -947,7 +947,7 @@ const TradingInvestments = () => {
 
                         {/* Advanced Arbitrage Trading Simulator - Only for available plans */}
                         {canInvest && (
-                          <div className="mb-4 bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 rounded-xl p-5 border border-cyan-500/30 shadow-lg shadow-cyan-500/10 animate-fade-in">
+                          <div className="mb-4 bg-gradient-to-br from-slate-900/20 via-blue-900/10 to-slate-900/20 rounded-xl p-5 border border-cyan-500/20 shadow-lg shadow-cyan-500/5 animate-fade-in backdrop-blur-sm">
                             {/* Header with live indicator */}
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center space-x-3">
@@ -992,25 +992,35 @@ const TradingInvestments = () => {
                                   ${(67000 + (Math.random() - 0.5) * 1000).toFixed(2)}
                                 </div>
                               </div>
-                              <div className="h-24 bg-gradient-to-r from-slate-800/50 to-blue-900/30 rounded border border-cyan-500/10 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent animate-slide-in-right"></div>
-                                {/* Simulated chart lines */}
+                              <div className="h-24 bg-gradient-to-r from-slate-800/20 to-blue-900/15 rounded border border-cyan-500/10 relative overflow-hidden">
+                                {/* Wave animation overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent animate-slide-in-right"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/5 to-transparent animate-slide-in-right" style={{ animationDelay: '0.5s' }}></div>
+                                
+                                {/* Animated wave bars */}
                                 <div className="absolute inset-2 flex items-end justify-between">
-                                  {Array.from({ length: 20 }, (_, i) => (
+                                  {Array.from({ length: 24 }, (_, i) => (
                                     <div
                                       key={i}
-                                      className="w-1 bg-gradient-to-t from-cyan-500/60 to-green-400/60 rounded-sm animate-fade-in"
+                                      className="w-1 bg-gradient-to-t from-cyan-400/40 via-green-400/60 to-cyan-400/40 rounded-sm"
                                       style={{
-                                        height: `${Math.random() * 60 + 20}%`,
-                                        animationDelay: `${i * 0.1}s`
+                                        height: `${30 + 40 * Math.sin((Date.now() / 500 + i * 0.3) % (2 * Math.PI))}%`,
+                                        animation: `fade-in 0.5s ease-out ${i * 0.05}s infinite alternate`,
+                                        transform: `scaleY(${1 + 0.3 * Math.sin((Date.now() / 300 + i * 0.5) % (2 * Math.PI))})`
                                       }}
                                     ></div>
                                   ))}
                                 </div>
-                                {/* Trading line overlay */}
+                                
+                                {/* Animated trading line with wave effect */}
                                 <div className="absolute inset-0 flex items-center">
-                                  <div className="w-full h-0.5 bg-gradient-to-r from-green-400 via-cyan-400 to-green-400 opacity-60 animate-pulse"></div>
+                                  <div className="w-full h-px bg-gradient-to-r from-green-400 via-cyan-400 to-green-400 opacity-80 animate-pulse shadow-lg shadow-cyan-400/50"></div>
                                 </div>
+                                
+                                {/* Floating particles effect */}
+                                <div className="absolute top-2 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-ping opacity-60"></div>
+                                <div className="absolute top-4 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40" style={{ animationDelay: '0.5s' }}></div>
+                                <div className="absolute bottom-3 left-8 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1s' }}></div>
                               </div>
                             </div>
 
