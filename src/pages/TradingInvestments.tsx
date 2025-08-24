@@ -50,15 +50,15 @@ import {
   EyeOff
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
   ResponsiveContainer,
   Area,
   AreaChart,
   Tooltip,
-  CartesianGrid
+  CartesianGrid,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
