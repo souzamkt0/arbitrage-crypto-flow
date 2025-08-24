@@ -806,6 +806,35 @@ const Admin = () => {
     return () => clearInterval(interval);
   }, [user]);
 
+  // Função para recarregar todos os dados
+  const refreshAllData = async () => {
+    try {
+      console.log('🔄 Atualizando todos os dados da página admin...');
+      toast({
+        title: "Atualizando dados",
+        description: "Carregando informações mais recentes...",
+      });
+
+      await Promise.all([
+        loadAdminData(),
+        loadPartners(),
+        loadActiveInvestments()
+      ]);
+
+      toast({
+        title: "Dados atualizados",
+        description: "Todas as informações foram atualizadas com sucesso!",
+      });
+    } catch (error) {
+      console.error('❌ Erro ao atualizar dados:', error);
+      toast({
+        title: "Erro na atualização",
+        description: "Erro ao carregar alguns dados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -3852,6 +3881,15 @@ const Admin = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshAllData}
+                className="bg-primary/10 border-primary/30 hover:bg-primary/20"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Atualizar Dados
+              </Button>
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
                 <Crown className="h-3 w-3 mr-1" />
                 Admin
