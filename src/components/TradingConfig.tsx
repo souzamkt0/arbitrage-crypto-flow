@@ -80,6 +80,8 @@ export function TradingConfig() {
 
       if (plansError) throw plansError;
 
+      console.log('📊 Planos carregados do banco:', plansData);
+
       // Carregar configurações de trading
       const { data: configsData, error: configsError } = await supabase
         .from('trading_configurations')
@@ -87,6 +89,8 @@ export function TradingConfig() {
         .eq('active', true);
 
       if (configsError) throw configsError;
+
+      console.log('⚙️ Configurações carregadas:', configsData);
 
       setPlans(plansData || []);
       setConfigs(configsData || []);
@@ -103,11 +107,18 @@ export function TradingConfig() {
   };
 
   const savePlansConfiguration = async () => {
+    console.log('🔄 Iniciando salvamento dos planos...', plans);
     setLoading(true);
     try {
       // Salvar cada plano
-      const updatePromises = plans.map(plan => 
-        supabase
+      const updatePromises = plans.map(plan => {
+        console.log(`📝 Salvando plano ${plan.name}:`, {
+          id: plan.id,
+          daily_rate: plan.daily_rate,
+          max_daily_return: plan.max_daily_return
+        });
+        
+        return supabase
           .from('investment_plans')
           .update({
             name: plan.name,
@@ -116,16 +127,19 @@ export function TradingConfig() {
             trading_strategy: plan.trading_strategy,
             minimum_indicators: plan.minimum_indicators
           })
-          .eq('id', plan.id)
-      );
+          .eq('id', plan.id);
+      });
 
       // Aguardar todas as atualizações
       const results = await Promise.all(updatePromises);
+      
+      console.log('📊 Resultados das atualizações:', results);
       
       // Verificar se alguma teve erro
       const errors = results.filter(result => result.error);
       
       if (errors.length > 0) {
+        console.error('❌ Erros encontrados:', errors);
         throw new Error(`Erro ao salvar ${errors.length} plano(s)`);
       }
 
@@ -135,14 +149,21 @@ export function TradingConfig() {
         adminSettings[`${plan.trading_strategy}DailyRate`] = plan.daily_rate * 100;
       });
       localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
+      
+      console.log('✅ Todas as atualizações foram bem-sucedidas');
+      console.log('💾 Settings salvos no localStorage:', adminSettings);
 
       setHasChanges(false);
       toast({
         title: "Sucesso",
         description: "Configurações dos planos salvos com sucesso!",
       });
+      
+      // Recarregar dados para confirmar
+      await loadPlansAndConfigs();
+      
     } catch (error) {
-      console.error('Erro ao salvar planos:', error);
+      console.error('❌ Erro ao salvar planos:', error);
       toast({
         title: "Erro",
         description: "Erro ao salvar as configurações dos planos.",
