@@ -918,6 +918,10 @@ const TradingInvestments = () => {
                       </div>
                       {isLocked && (
                         <div className="absolute top-2 right-4 z-10">
+                          {/* Texto de indicações acima da barra */}
+                          <div className="text-xs text-white text-center mb-1">
+                            {plan.id === '2' ? '10 indicações' : plan.id === '3' ? '40 indicações' : '0 indicações'}
+                          </div>
                           {/* Barra de progresso vermelha acima do cadeado */}
                           <div className="mb-2">
                             <div className="w-12 bg-slate-600 rounded-full h-1">
