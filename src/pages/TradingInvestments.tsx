@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, DollarSign, Clock, Target, Calendar, Bot, Timer, Play, ArrowUpDown, Activity, Zap, Sparkles, BarChart3, CreditCard, Wallet, ChevronRight, Shield, CheckCircle, PlayCircle, Users, Crown, Star, Trophy, TrendingDown, ArrowLeft, PlusCircle, Flame, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { TrendingUp, DollarSign, Clock, Target, Calendar, Bot, Timer, Play, ArrowUpDown, Activity, Zap, Sparkles, BarChart3, CreditCard, Wallet, ChevronRight, Shield, CheckCircle, PlayCircle, Users, Crown, Star, Trophy, TrendingDown, ArrowLeft, PlusCircle, Flame, Lock, Eye, EyeOff, AlertTriangle, Calculator } from "lucide-react";
 import { ResponsiveContainer, Area, AreaChart, Tooltip, CartesianGrid, LineChart, Line, XAxis, YAxis } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
@@ -991,6 +991,126 @@ const TradingInvestments = () => {
                               </div>)}
                           </div>
                         </div>
+
+                        {/* Simulador de Ganhos para Plano Livre */}
+                        {plan.name.includes('4.0.0') && (
+                          <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-lg p-4 border border-cyan-500/20 mb-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Calculator className="h-4 w-4 text-cyan-400" />
+                              <h4 className="font-semibold text-cyan-300">Simulador de Ganhos - Plano Livre</h4>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                  <Label htmlFor={`simulator-${plan.id}`} className="text-xs text-cyan-200">
+                                    Valor (máx. $100)
+                                  </Label>
+                                  <Input
+                                    id={`simulator-${plan.id}`}
+                                    type="number"
+                                    max="100"
+                                    min="10"
+                                    placeholder="10"
+                                    className="bg-slate-700/50 border-cyan-500/30 text-white text-sm mt-1"
+                                    onChange={(e) => {
+                                      const value = Math.min(100, Math.max(10, parseFloat(e.target.value) || 10));
+                                      e.target.value = value.toString();
+                                      
+                                      // Calcular projeções variáveis
+                                      const minDaily = value * 0.005; // 0.5%
+                                      const maxDaily = value * 0.02; // 2%
+                                      const avgDaily = value * 0.0125; // 1.25% média
+                                      
+                                      // Atualizar display das projeções
+                                      const projectionDiv = (e.target as HTMLInputElement).closest('.space-y-3')?.querySelector('.projection-results');
+                                      if (projectionDiv) {
+                                        projectionDiv.innerHTML = `
+                                          <div class="grid grid-cols-3 gap-2 text-xs">
+                                            <div class="text-center p-2 bg-red-900/20 rounded border border-red-500/20">
+                                              <div class="text-red-300">Mínimo</div>
+                                              <div class="text-red-400 font-bold">$${minDaily.toFixed(2)}/dia</div>
+                                              <div class="text-red-200 text-[10px]">0.5%</div>
+                                            </div>
+                                            <div class="text-center p-2 bg-green-900/20 rounded border border-green-500/20">
+                                              <div class="text-green-300">Média</div>
+                                              <div class="text-green-400 font-bold">$${avgDaily.toFixed(2)}/dia</div>
+                                              <div class="text-green-200 text-[10px]">1.25%</div>
+                                            </div>
+                                            <div class="text-center p-2 bg-blue-900/20 rounded border border-blue-500/20">
+                                              <div class="text-blue-300">Máximo</div>
+                                              <div class="text-blue-400 font-bold">$${maxDaily.toFixed(2)}/dia</div>
+                                              <div class="text-blue-200 text-[10px]">2%</div>
+                                            </div>
+                                          </div>
+                                          <div class="mt-3 p-2 bg-yellow-900/20 rounded border border-yellow-500/20">
+                                            <div class="text-yellow-300 text-[10px] font-medium mb-1">Projeção 30 dias:</div>
+                                            <div class="flex justify-between text-[10px]">
+                                              <span class="text-red-300">Min: $${(minDaily * 30).toFixed(0)}</span>
+                                              <span class="text-green-300">Méd: $${(avgDaily * 30).toFixed(0)}</span>
+                                              <span class="text-blue-300">Máx: $${(maxDaily * 30).toFixed(0)}</span>
+                                            </div>
+                                          </div>
+                                        `;
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="mt-5 bg-cyan-500/20 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/30"
+                                  onClick={(e) => {
+                                    const input = (e.target as HTMLElement).closest('.flex')?.querySelector('input') as HTMLInputElement;
+                                    input.value = '50';
+                                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                                  }}
+                                >
+                                  $50
+                                </Button>
+                              </div>
+                              
+                              <div className="projection-results">
+                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                  <div className="text-center p-2 bg-red-900/20 rounded border border-red-500/20">
+                                    <div className="text-red-300">Mínimo</div>
+                                    <div className="text-red-400 font-bold">$0.05/dia</div>
+                                    <div className="text-red-200 text-[10px]">0.5%</div>
+                                  </div>
+                                  <div className="text-center p-2 bg-green-900/20 rounded border border-green-500/20">
+                                    <div className="text-green-300">Média</div>
+                                    <div className="text-green-400 font-bold">$0.13/dia</div>
+                                    <div className="text-green-200 text-[10px]">1.25%</div>
+                                  </div>
+                                  <div className="text-center p-2 bg-blue-900/20 rounded border border-blue-500/20">
+                                    <div className="text-blue-300">Máximo</div>
+                                    <div className="text-blue-400 font-bold">$0.20/dia</div>
+                                    <div className="text-blue-200 text-[10px]">2%</div>
+                                  </div>
+                                </div>
+                                <div className="mt-3 p-2 bg-yellow-900/20 rounded border border-yellow-500/20">
+                                  <div className="text-yellow-300 text-[10px] font-medium mb-1">Projeção 30 dias:</div>
+                                  <div className="flex justify-between text-[10px]">
+                                    <span className="text-red-300">Min: $2</span>
+                                    <span className="text-green-300">Méd: $4</span>
+                                    <span className="text-blue-300">Máx: $6</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-amber-900/20 rounded p-2 border border-amber-500/20">
+                                <div className="flex items-start gap-2">
+                                  <AlertTriangle className="h-3 w-3 text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <div className="text-[10px] text-amber-300">
+                                    <strong>Importante:</strong> Ganhos baseados em arbitragem real. 
+                                    Valores variam conforme oportunidades de mercado. 
+                                    Não há garantia de ganhos fixos.
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Advanced Arbitrage Trading Simulator - Only for available plans */}
                         {canInvest && <div className="mb-4 bg-gradient-to-br from-slate-900/20 via-blue-900/10 to-slate-900/20 rounded-xl p-5 border border-cyan-500/20 shadow-lg shadow-cyan-500/5 animate-fade-in backdrop-blur-sm">
