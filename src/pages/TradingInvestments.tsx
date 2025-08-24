@@ -1823,7 +1823,7 @@ const TradingInvestments = () => {
                     +${currentArbitrage.currentProfit.toFixed(4)}
                   </div>
                   <div className="text-sm text-emerald-300">
-                    +0.33%
+                    +{(((currentArbitrage.currentProfit / (currentArbitrage.investment?.amount || 1)) * 100) || 0.33).toFixed(2)}%
                   </div>
                 </div>
 
