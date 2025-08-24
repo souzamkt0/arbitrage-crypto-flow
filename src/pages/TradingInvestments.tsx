@@ -1224,17 +1224,24 @@ const TradingInvestments = () => {
 
                         <Button 
                           onClick={() => {
-                            setSelectedPlan(plan);
-                            setShowInvestDialog(true);
+                            if (canInvest) {
+                              setSelectedPlan(plan);
+                              setShowInvestDialog(true);
+                            }
                           }}
                           disabled={isLocked}
-                          className={`w-full ${
+                          className={`w-full flex items-center justify-center gap-2 ${
                             isLocked 
-                              ? 'bg-slate-600 text-slate-400 cursor-not-allowed' 
+                              ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500 cursor-not-allowed' 
                               : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold hover-scale'
                           }`}
                         >
-                          {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações`}
+                          {isLocked && <Lock className="w-4 h-4" />}
+                          {canInvest ? 'Investir Agora' : 
+                            plan.id === '2' ? 'Precisa de 10 indicações ativas' : 
+                            plan.id === '3' ? 'Precisa de 40 indicações ativas' : 
+                            `Precisa de ${plan.minimum_indicators} indicações`
+                          }
                         </Button>
 
                         {plan.max_investment_amount && (
