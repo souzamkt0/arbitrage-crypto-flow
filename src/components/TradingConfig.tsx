@@ -69,7 +69,10 @@ export function TradingConfig() {
   const loadPlansAndConfigs = async () => {
     setLoading(true);
     try {
-      // Carregar planos de investimento
+      // Limpar cache do localStorage se existir
+      localStorage.removeItem("alphabit_admin_settings");
+      
+      // Carregar planos de investimento com cache bypass
       const { data: plansData, error: plansError } = await supabase
         .from('investment_plans')
         .select('*')
