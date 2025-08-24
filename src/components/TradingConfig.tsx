@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Save, X, Plus, Settings, BarChart3, Volume2 } from "lucide-react";
+import { Edit, Save, X, Plus, Settings, BarChart3, Volume2, Calculator, TrendingUp } from "lucide-react";
 
 interface InvestmentPlan {
   id: string;
@@ -119,15 +119,26 @@ export function TradingConfig() {
 
   const updatePlanStrategy = async (planId: string, strategy: string, maxReturn: number, currentRate?: number) => {
     try {
+      // Definir limites baseados na estratégia
+      const strategyLimits = {
+        'conservador': 2.0,
+        'moderado': 3.0,
+        'livre': 4.0
+      };
+
+      const actualMaxReturn = strategyLimits[strategy] || 2.0;
+
       const updateData: any = {
         trading_strategy: strategy,
-        max_daily_return: maxReturn,
+        max_daily_return: actualMaxReturn,
         risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3
       };
 
       // Se foi fornecida uma taxa atual, atualizar também
       if (currentRate !== undefined) {
-        updateData.daily_rate = currentRate / 100; // Converter para decimal
+        // Garantir que não ultrapasse o limite da estratégia
+        const limitedRate = Math.min(currentRate, actualMaxReturn);
+        updateData.daily_rate = limitedRate / 100; // Converter para decimal
       }
 
       const { error } = await supabase
@@ -142,9 +153,9 @@ export function TradingConfig() {
         plan.id === planId ? { 
           ...plan, 
           trading_strategy: strategy,
-          max_daily_return: maxReturn,
+          max_daily_return: actualMaxReturn,
           risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3,
-          ...(currentRate !== undefined && { daily_rate: currentRate / 100 })
+          ...(currentRate !== undefined && { daily_rate: Math.min(currentRate, actualMaxReturn) / 100 })
         } : plan
       ));
 
@@ -380,6 +391,165 @@ export function TradingConfig() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Simulador de Arbitragem */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Simulador de Arbitragem
+          </CardTitle>
+          <CardDescription>
+            Calcule os ganhos potenciais com arbitragem baseado nos planos configurados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Inputs do Simulador */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Parâmetros da Simulação</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Valor do Investimento</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="100">R$ 100</SelectItem>
+                      <SelectItem value="500">R$ 500</SelectItem>
+                      <SelectItem value="1000">R$ 1.000</SelectItem>
+                      <SelectItem value="5000">R$ 5.000</SelectItem>
+                      <SelectItem value="10000">R$ 10.000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Período (dias)</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7 dias</SelectItem>
+                      <SelectItem value="15">15 dias</SelectItem>
+                      <SelectItem value="30">30 dias</SelectItem>
+                      <SelectItem value="60">60 dias</SelectItem>
+                      <SelectItem value="90">90 dias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Resultados da Simulação */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Projeção de Ganhos por Estratégia</h4>
+              <div className="space-y-3">
+                {plans.map((plan) => {
+                  const investmentValue = 1000; // Valor padrão para exemplo
+                  const period = 30; // Período padrão para exemplo
+                  const dailyProfit = investmentValue * plan.daily_rate;
+                  const totalProfit = dailyProfit * period;
+                  const finalValue = investmentValue + totalProfit;
+                  const profitPercent = (totalProfit / investmentValue) * 100;
+
+                  return (
+                    <div key={plan.id} className="p-3 border rounded-lg space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{plan.name}</span>
+                        <Badge className={getStrategyColor(plan.trading_strategy)}>
+                          {plan.trading_strategy}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Taxa configurada:</span>
+                          <div className="font-semibold text-blue-600">
+                            {(plan.daily_rate * 100).toFixed(2)}% ao dia
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Ganho diário:</span>
+                          <div className="font-semibold text-green-600">
+                            R$ {dailyProfit.toFixed(2)}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total em 30 dias:</span>
+                          <div className="font-semibold text-green-600">
+                            R$ {totalProfit.toFixed(2)}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Valor final:</span>
+                          <div className="font-semibold">
+                            R$ {finalValue.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t">
+                        <span className="text-xs text-muted-foreground">
+                          Rendimento total: 
+                        </span>
+                        <span className="text-xs font-semibold text-primary ml-1">
+                          +{profitPercent.toFixed(1)}% em 30 dias
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Comparativo Visual */}
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-medium mb-4">Comparativo de Performance</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="p-4 bg-green-50 border-green-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">2%</div>
+                  <div className="text-sm text-green-700">Conservador</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    R$ 1.000 → R$ 1.600 (30 dias)
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4 bg-yellow-50 border-yellow-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">3%</div>
+                  <div className="text-sm text-yellow-700">Moderado</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    R$ 1.000 → R$ 1.900 (30 dias)
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4 bg-red-50 border-red-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">4%</div>
+                  <div className="text-sm text-red-700">Livre</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    R$ 1.000 → R$ 2.200 (30 dias)
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-start gap-2">
+              <TrendingUp className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <div className="text-xs text-muted-foreground">
+                <strong>Aviso:</strong> Os valores apresentados são simulações baseadas nas taxas configuradas. 
+                Resultados reais podem variar devido às condições de mercado, volatilidade e outras variáveis. 
+                Past performance não garante resultados futuros.
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
