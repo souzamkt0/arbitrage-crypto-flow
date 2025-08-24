@@ -4150,6 +4150,244 @@ const Admin = () => {
           <TabsContent value="trading">
             <p className="text-muted-foreground">Conteúdo de trading será implementado...</p>
           </TabsContent>
+
+          {/* Partners Tab */}
+          <TabsContent value="partners" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Gestão de Sócios</h2>
+              <p className="text-muted-foreground">Gerencie sócios e suas comissões</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Partners Management */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-primary" />
+                    Sócios Ativos
+                  </CardTitle>
+                  <CardDescription>
+                    {partners.length} sócios cadastrados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={addPartnerByEmail}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Adicionar por Email
+                      </Button>
+                      <Button
+                        onClick={updatePartnerCommission}
+                        variant="outline"
+                      >
+                        <Percent className="h-4 w-4 mr-2" />
+                        Atualizar Comissão
+                      </Button>
+                      <Button
+                        onClick={loadPartners}
+                        variant="outline"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Recarregar
+                      </Button>
+                    </div>
+
+                    {/* Partners Table */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Comissão (%)</TableHead>
+                            <TableHead>Total Ganhos</TableHead>
+                            <TableHead>Total Depósitos</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Data Cadastro</TableHead>
+                            <TableHead className="text-center">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {partners.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                Nenhum sócio encontrado
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            partners.map((partner) => (
+                              <TableRow key={partner.id || partner.user_id} className="hover:bg-muted/30">
+                                <TableCell className="font-medium">
+                                  <div>
+                                    <p className="font-medium">{partner.display_name || 'N/A'}</p>
+                                    {partner.user_id && (
+                                      <p className="text-xs text-muted-foreground">ID: {partner.user_id}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm">{partner.email}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => navigator.clipboard.writeText(partner.email)}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                                    {partner.commission_percentage || 1.0}%
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-emerald-400 font-medium">
+                                    ${(partner.total_earnings || 0).toFixed(2)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-blue-400 font-medium">
+                                    ${(partner.total_deposits || 0).toFixed(2)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={partner.status === 'active' ? 'default' : 'secondary'}
+                                    className={partner.status === 'active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : ''}
+                                  >
+                                    {partner.status || 'active'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-muted-foreground">
+                                    {partner.created_at ? new Date(partner.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-amber-500/20"
+                                      onClick={() => {
+                                        const newCommission = prompt(
+                                          `Digite a nova comissão para ${partner.display_name || partner.email}:`,
+                                          String(partner.commission_percentage || 1.0)
+                                        );
+                                        if (newCommission && !isNaN(parseFloat(newCommission))) {
+                                          supabase.rpc('update_partner_commission', {
+                                            partner_email: partner.email,
+                                            new_commission_percentage: parseFloat(newCommission)
+                                          }).then(({ data, error }) => {
+                                            if (error) {
+                                              toast({
+                                                title: "Erro",
+                                                description: error.message,
+                                                variant: "destructive"
+                                              });
+                                            } else {
+                                              toast({
+                                                title: "Sucesso",
+                                                description: `Comissão atualizada para ${newCommission}%`
+                                              });
+                                              loadPartners();
+                                            }
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <Percent className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-red-500/20"
+                                      onClick={() => {
+                                        if (confirm(`Tem certeza que deseja remover ${partner.display_name || partner.email} como sócio?`)) {
+                                          supabase.rpc('remove_partner_safe', {
+                                            partner_email: partner.email
+                                          }).then(({ data, error }) => {
+                                            if (error) {
+                                              toast({
+                                                title: "Erro",
+                                                description: error.message,
+                                                variant: "destructive"
+                                              });
+                                            } else {
+                                              toast({
+                                                title: "Sucesso",
+                                                description: "Sócio removido com sucesso"
+                                              });
+                                              loadPartners();
+                                            }
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                      <div className="p-4 rounded-lg bg-muted/30 border border-border/30">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Total Sócios</span>
+                        </div>
+                        <p className="text-xl font-bold text-primary">{partners.length}</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted/30 border border-border/30">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-emerald-400" />
+                          <span className="text-sm font-medium">Total Ganhos</span>
+                        </div>
+                        <p className="text-xl font-bold text-emerald-400">
+                          ${partners.reduce((sum, p) => sum + (p.total_earnings || 0), 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted/30 border border-border/30">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-blue-400" />
+                          <span className="text-sm font-medium">Total Depósitos</span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-400">
+                          ${partners.reduce((sum, p) => sum + (p.total_deposits || 0), 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-muted/30 border border-border/30">
+                        <div className="flex items-center gap-2">
+                          <Percent className="h-4 w-4 text-amber-400" />
+                          <span className="text-sm font-medium">Comissão Média</span>
+                        </div>
+                        <p className="text-xl font-bold text-amber-400">
+                          {partners.length > 0 
+                            ? (partners.reduce((sum, p) => sum + (p.commission_percentage || 1.0), 0) / partners.length).toFixed(1)
+                            : '0.0'
+                          }%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
           
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
