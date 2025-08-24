@@ -775,7 +775,7 @@ const TradingInvestments = () => {
                   <div>
                     <p className="text-slate-400 text-sm">ROI Médio</p>
                     <p className="text-2xl font-bold text-cyan-400">
-                      0.33%
+                      {((plans.find(p => p.id === userInvestments.find(inv => inv.status === 'active')?.investment_plan_id)?.daily_rate || 0.0033) * 100).toFixed(2)}%
                     </p>
                   </div>
                   <Target className="h-8 w-8 text-cyan-400" />
@@ -1358,7 +1358,7 @@ const TradingInvestments = () => {
                               {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                              0.33% / dia
+                              {((plans.find(p => p.id === investment.investment_plan_id)?.daily_rate || 0.0033) * 100).toFixed(2)}% / dia
                             </Badge>
                           </div>
                         </div>
@@ -1823,7 +1823,7 @@ const TradingInvestments = () => {
                     +${currentArbitrage.currentProfit.toFixed(4)}
                   </div>
                   <div className="text-sm text-emerald-300">
-                    +{(((currentArbitrage.currentProfit / (currentArbitrage.investment?.amount || 1)) * 100) || 0.33).toFixed(2)}%
+                    +{((currentArbitrage.investment?.daily_rate * 100) || 0.33).toFixed(2)}%
                   </div>
                 </div>
 
