@@ -127,7 +127,7 @@ const TradingInvestments = () => {
       case '2':
         return 'Precisa de 10 pessoas ativas no Robô 4.0 para acessar. ';
       case '3':
-        return 'Precisa de 40 pessoas ativas no Robô 4.05 para acessar. ';
+        return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
       default:
         return '';
     }
@@ -138,7 +138,7 @@ const TradingInvestments = () => {
     switch (planId) {
       case '1': // Robô 4.0 - sempre pode acessar
         return true;
-      case '2': // Robô 4.05 - precisa de 10 pessoas ativas no plano 1
+      case '2': // Robô 4.0.5 - precisa de 10 pessoas ativas no plano 1
         return await checkActiveReferralsInPlan(userId, '1', 10);
       case '3': // Robô 4.1.0 - precisa de 40 pessoas ativas no plano 2
         return await checkActiveReferralsInPlan(userId, '2', 40);
@@ -396,7 +396,7 @@ const TradingInvestments = () => {
 
       toast({
         title: "✅ Investimento Criado!",
-        description: `Seu plano ${selectedPlan.id === '1' ? 'Robo 4.0' : selectedPlan.id === '2' ? 'Robo 4.05' : selectedPlan.id === '3' ? 'Robo 4.1.0' : selectedPlan.name} está ativo!`,
+        description: `Seu plano ${selectedPlan.id === '1' ? 'Robo 4.0' : selectedPlan.id === '2' ? 'Robô 4.0.5' : selectedPlan.id === '3' ? 'Robô 4.1.0' : selectedPlan.name} está ativo!`,
       });
 
       setShowInvestDialog(false);
@@ -856,7 +856,7 @@ const TradingInvestments = () => {
                 if (plan.id === '1') {
                   canInvest = true; // Robô 4.0 sempre pode acessar
                 } else if (plan.id === '2') {
-                  canInvest = userReferrals >= 10; // Robô 4.05 precisa de 10 indicações ativas
+                  canInvest = userReferrals >= 10; // Robô 4.0.5 precisa de 10 indicações ativas
                 } else if (plan.id === '3') {
                   canInvest = userReferrals >= 40; // Robô 4.1.0 precisa de 40 indicações ativas
                 } else {
@@ -945,7 +945,7 @@ const TradingInvestments = () => {
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-xl font-bold flex items-center gap-2 text-white">
                             <Bot className="h-5 w-5 text-emerald-400" />
-                            {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robo 4.05' : plan.id === '3' ? 'Robo 4.1.0' : plan.name}
+                            {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robô 4.0.5' : plan.id === '3' ? 'Robô 4.1.0' : plan.name}
                           </CardTitle>
                           <Badge 
                             variant="default"
@@ -963,7 +963,7 @@ const TradingInvestments = () => {
                           )}
                           {plan.id === '3' && (
                             <p className="text-xs text-orange-300">
-                              📋 Requisito: 40 pessoas ativas no Robô 4.05
+                              📋 Requisito: 40 pessoas ativas no Robô 4.0.5
                             </p>
                           )}
                           <p className="text-xs text-slate-400 mt-1">
@@ -1429,7 +1429,7 @@ const TradingInvestments = () => {
         <DialogContent className="bg-slate-800 border-slate-600 text-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-              Investir em {selectedPlan?.id === '1' ? 'Robo 4.0' : selectedPlan?.id === '2' ? 'Robo 4.05' : selectedPlan?.id === '3' ? 'Robo 4.1.0' : selectedPlan?.name}
+              Investir em {selectedPlan?.id === '1' ? 'Robo 4.0' : selectedPlan?.id === '2' ? 'Robô 4.0.5' : selectedPlan?.id === '3' ? 'Robô 4.1.0' : selectedPlan?.name}
             </DialogTitle>
           </DialogHeader>
           
