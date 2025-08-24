@@ -133,9 +133,9 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
           </div>
         )}
 
-        {plan.name === 'Robô 4.0.0' && (
+        {/* Gráfico de Trading para planos disponíveis */}
+        {canInvest && (
           <div className="space-y-4 border-t border-gray-700 pt-4">
-            {/* Gráfico de Trading */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
                 <TrendingUp className="w-4 h-4 text-teal-400" />
@@ -174,13 +174,17 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Últimas 24h</span>
+                <span className="text-teal-400">+1.8% média</span>
+              </div>
             </div>
 
-            {/* Simulador */}
+            {/* Simulador para planos disponíveis */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
                 <Calculator className="w-4 h-4 text-teal-400" />
-                Simulador de Ganhos (30 dias)
+                Simulador de Ganhos ({plan.name === 'Robô 4.0.0' ? '30' : plan.duration_days} dias)
               </h4>
               
               <div className="space-y-2">
@@ -217,13 +221,13 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                     ${simulation.finalAmount.toFixed(2)}
                   </div>
                   <div className="text-gray-500">
-                    em 30 dias
+                    em {plan.name === 'Robô 4.0.0' ? '30' : plan.duration_days} dias
                   </div>
                 </div>
               </div>
 
               <div className="text-xs text-amber-400 bg-amber-500/10 rounded p-2">
-                ⚠️ Simulação baseada em ganhos variáveis até 2% ao dia. Resultados não garantidos.
+                ⚠️ Simulação baseada em ganhos variáveis até {(plan.daily_rate * 100).toFixed(1)}% ao dia. Resultados não garantidos.
               </div>
             </div>
           </div>
