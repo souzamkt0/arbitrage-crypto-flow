@@ -79,7 +79,7 @@ const TradingInvestments = () => {
         case '1':
           return '';
         case '2':
-          return 'Precisa de 10 pessoas ativas no Robô 4.0 para acessar. ';
+          return 'Paga até 3% porém tem que ter 10 pessoas ativas no primeiro nível com planos ativos. Não pode ativar se não tiver apto com os 10 indicados ativos. ';
         case '3':
           return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
         default:
@@ -838,9 +838,9 @@ const TradingInvestments = () => {
                           {plan.id === '1' && <p className="text-xs text-white flex items-center gap-1">
                               📊 Sistema de Arbitragem Variável
                             </p>}
-                          {plan.id === '2' && <p className="text-xs text-white flex items-center gap-1">
-                              📋 Requisito: 10 pessoas ativas no Robô 4.0
-                            </p>}
+          {plan.id === '2' && <p className="text-xs text-white flex items-center gap-1">
+              📋 Paga até 3% - 10 pessoas ativas no primeiro nível
+            </p>}
                           {plan.id === '3' && <p className="text-xs text-white flex items-center gap-1">
                               📋 Requisito: 40 pessoas ativas no Robô 4.0.5
                             </p>}
