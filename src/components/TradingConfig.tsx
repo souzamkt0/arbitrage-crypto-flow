@@ -313,12 +313,11 @@ export function TradingConfig() {
                            setPlans(prev => prev.map(p => 
                              p.id === plan.id ? { 
                                ...p, 
-                               daily_rate: newRate / 100,
-                               max_daily_return: Math.max(newRate, p.max_daily_return) // Garante que o max não seja menor que o atual
+                               daily_rate: newRate / 100
                              } : p
                            ));
                          }}
-                         max={Math.max(maxRate, currentRate + 1)} // Permite ir além do max atual se necessário
+                         max={2} // Máximo fixo de 2%
                          min={0.01}
                          step={0.01}
                          className="w-full h-2 touch-pan-x" // Melhor para touch
@@ -326,9 +325,9 @@ export function TradingConfig() {
                       
                        <div className="flex justify-between text-xs text-muted-foreground">
                          <span>0.01%</span>
-                         <span>atual máx: {Math.max(maxRate, currentRate).toFixed(2)}%</span>
+                         <span>máx: 2%</span>
                        </div>
-                    </div>
+                     </div>
                     
                     <div className="p-3 bg-muted/30 rounded-lg">
                       <div className="text-xs sm:text-sm font-medium mb-1">Simulação de Retorno</div>
