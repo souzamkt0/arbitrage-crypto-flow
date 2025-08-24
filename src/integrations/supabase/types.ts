@@ -1910,7 +1910,7 @@ export type Database = {
         Returns: Json
       }
       admin_cancel_user_investment: {
-        Args: { p_investment_id: string; p_reason?: string }
+        Args: { admin_reason?: string; investment_id_param: string }
         Returns: Json
       }
       admin_get_all_investments: {

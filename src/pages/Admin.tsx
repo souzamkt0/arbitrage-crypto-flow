@@ -3658,10 +3658,10 @@ const Admin = () => {
         return;
       }
       
-      // Usar a função admin para cancelar investimento com motivo
+      // Usar a função admin para cancelar investimento
       const { data: result, error } = await supabase.rpc('admin_cancel_user_investment', {
-        p_investment_id: investmentId,
-        p_reason: `Exclusão manual pelo admin - Investimento: ${investmentName} do usuário ${userEmail}`
+        investment_id_param: investmentId,
+        admin_reason: 'Cancelado pelo administrador via interface admin'
       });
 
       if (error) {
@@ -3674,28 +3674,33 @@ const Admin = () => {
         return;
       }
 
-      if (result?.success) {
-        console.log('✅ Investimento cancelado com sucesso!', result);
-        
-        toast({
-          title: "Investimento Cancelado",
-          description: `Investimento "${investmentName}" de ${userEmail} foi cancelado com sucesso.`,
-        });
-
-        loadActiveInvestments();
-      } else {
+      if (!result?.success) {
+        console.error('❌ Falha na operação:', result?.error);
         toast({
           title: "Erro",
-          description: result?.error || "Erro desconhecido ao cancelar investimento",
+          description: `Falha ao cancelar: ${result?.error || 'Erro desconhecido'}`,
           variant: "destructive"
         });
+        return;
       }
+
+      console.log('✅ Investimento cancelado com sucesso:', result);
+      toast({
+        title: "Sucesso",
+        description: `Investimento cancelado: ${userEmail} - ${investmentName}`,
+        variant: "default"
+      });
+
+      // Recarregar a lista de investimentos
+      await loadActiveInvestments();
+      setIsIndividualDeleteModalOpen(false);
+      setSelectedInvestmentForDeletion(null);
       
     } catch (error) {
-      console.error('❌ Erro ao excluir investimento individual:', error);
+      console.error('❌ Erro interno:', error);
       toast({
         title: "Erro",
-        description: "Erro interno ao excluir investimento.",
+        description: "Erro interno do sistema",
         variant: "destructive"
       });
     }
