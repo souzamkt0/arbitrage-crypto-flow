@@ -1838,6 +1838,73 @@ const Investments = () => {
                       </ResponsiveContainer>
                   </div>
                   )}
+
+                  {/* Live Trading Operations - Buy and Sell Columns */}
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    {/* BUY Orders Column */}
+                    <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="h-4 w-4 text-emerald-400" />
+                        <span className="text-sm font-bold text-emerald-400">BUY ORDERS</span>
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse ml-auto"></div>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {executingOrders.filter((_, i) => i % 2 === 0).slice(0, 15).map((order, index) => (
+                          <div 
+                            key={`buy-${order.id}-${index}`}
+                            className="bg-slate-800/50 rounded p-2 border-l-2 border-emerald-500/50 animate-pulse"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <div className="text-xs text-emerald-400 font-medium">{order.exchange}</div>
+                              <div className="text-xs text-white font-bold">{order.pair}</div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <div className="text-xs text-slate-300">${order.preco}</div>
+                              <div className="text-xs text-emerald-400 font-semibold">{order.qtd}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-3 pt-2 border-t border-emerald-500/20 text-xs text-emerald-400">
+                        🚀 {Math.floor(executingOrders.length / 2)} ordens buy ativas
+                      </div>
+                    </div>
+
+                    {/* SELL Orders Column */}
+                    <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingDown className="h-4 w-4 text-red-400" />
+                        <span className="text-sm font-bold text-red-400">SELL ORDERS</span>
+                        <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse ml-auto"></div>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {sellOrders.slice(0, 15).map((order, index) => (
+                          <div 
+                            key={`sell-${order.id}-${index}`}
+                            className="bg-slate-800/50 rounded p-2 border-l-2 border-red-500/50 animate-pulse"
+                            style={{ animationDelay: `${index * 120}ms` }}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <div className="text-xs text-red-400 font-medium">{order.exchange}</div>
+                              <div className="text-xs text-white font-bold">BTC/USDT</div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <div className="text-xs text-slate-300">${order.preco}</div>
+                              <div className="text-xs text-red-400 font-semibold">{order.qtd}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-3 pt-2 border-t border-red-500/20 text-xs text-red-400">
+                        🔥 {sellOrders.length} ordens sell ativas
+                      </div>
+                    </div>
+                  </div>
               </div>
               
                 {/* Trading Info Panel */}
