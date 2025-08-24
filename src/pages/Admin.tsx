@@ -3876,7 +3876,7 @@ const Admin = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 lg:w-auto lg:grid-cols-10 bg-muted/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-11 lg:w-auto lg:grid-cols-11 bg-muted/50 backdrop-blur-sm">
             <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" />
               Visão Geral
@@ -3908,6 +3908,10 @@ const Admin = () => {
             <TabsTrigger value="trading" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Activity className="h-4 w-4" />
               Trading
+            </TabsTrigger>
+            <TabsTrigger value="conf-trading" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Monitor className="h-4 w-4" />
+              Conf Trading
             </TabsTrigger>
             <TabsTrigger value="alphabot" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Bot className="h-4 w-4" />
@@ -4118,6 +4122,230 @@ const Admin = () => {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Conf Trading Tab */}
+          <TabsContent value="conf-trading" className="space-y-6">
+            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-6 w-6 text-blue-500" />
+                  Configurações de Trading
+                </CardTitle>
+                <CardDescription>
+                  Configure parâmetros avançados do sistema de trading e monitore operações
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Trading Parameters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Configurações Globais</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Taxa de Lucro Mínima (%)</Label>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="2.5" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Volume Mínimo de Operação (USD)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="100" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Timeout de Operação (min)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="5" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Risk Management</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Stop Loss (%)</Label>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="1.0" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Take Profit (%)</Label>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="3.0" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Max Simultâneas</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="10" 
+                          className="bg-background/50"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Exchanges Ativas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="binance" defaultChecked />
+                        <Label htmlFor="binance">Binance</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="okx" defaultChecked />
+                        <Label htmlFor="okx">OKX</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="bybit" />
+                        <Label htmlFor="bybit">Bybit</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="kucoin" />
+                        <Label htmlFor="kucoin">KuCoin</Label>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Trading Strategies */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Estratégias de Trading
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Arbitragem Cross-Exchange</h4>
+                            <p className="text-sm text-muted-foreground">Diferenças de preço entre exchanges</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Arbitragem Triangular</h4>
+                            <p className="text-sm text-muted-foreground">Diferenças entre pares de moedas</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Grid Trading</h4>
+                            <p className="text-sm text-muted-foreground">Trading em grade de preços</p>
+                          </div>
+                          <Switch />
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <h4 className="font-medium">Funding Rate Arbitrage</h4>
+                            <p className="text-sm text-muted-foreground">Aproveitar taxas de financiamento</p>
+                          </div>
+                          <Switch />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Live Operations Monitor */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Monitor de Operações em Tempo Real
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="text-2xl font-bold text-green-500">143</div>
+                        <div className="text-sm text-muted-foreground">Operações Ativas</div>
+                      </div>
+                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <div className="text-2xl font-bold text-blue-500">+2.34%</div>
+                        <div className="text-sm text-muted-foreground">Lucro Médio</div>
+                      </div>
+                      <div className="text-center p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                        <div className="text-2xl font-bold text-orange-500">$12,543</div>
+                        <div className="text-sm text-muted-foreground">Volume 24h</div>
+                      </div>
+                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        <div className="text-2xl font-bold text-purple-500">98.7%</div>
+                        <div className="text-sm text-muted-foreground">Taxa de Sucesso</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-medium">Últimas Operações</h4>
+                      <div className="space-y-2">
+                        {[
+                          { pair: "BTC/USDT", type: "Cross-Exchange", profit: "+1.85%", volume: "$532", status: "completed" },
+                          { pair: "ETH/USDT", type: "Triangular", profit: "+2.14%", volume: "$789", status: "running" },
+                          { pair: "ADA/USDT", type: "Cross-Exchange", profit: "+0.92%", volume: "$234", status: "completed" },
+                          { pair: "SOL/USDT", type: "Grid Trading", profit: "+3.27%", volume: "$1,234", status: "running" },
+                        ].map((operation, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Badge variant={operation.status === 'completed' ? 'default' : 'secondary'}>
+                                {operation.status === 'completed' ? <CheckCircle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+                                {operation.status === 'completed' ? 'Finalizada' : 'Executando'}
+                              </Badge>
+                              <span className="font-medium">{operation.pair}</span>
+                              <span className="text-sm text-muted-foreground">{operation.type}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-green-500 font-medium">{operation.profit}</span>
+                              <span className="text-sm text-muted-foreground">{operation.volume}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button className="flex-1">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Atualizar Dados
+                      </Button>
+                      <Button variant="outline" className="flex-1">
+                        <Download className="h-4 w-4 mr-2" />
+                        Exportar Relatório
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </TabsContent>
