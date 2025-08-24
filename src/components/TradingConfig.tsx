@@ -356,14 +356,15 @@ export function TradingConfig() {
         <Card className="p-3 sm:p-4">
           <CardHeader className="p-0 pb-3">
             <CardTitle className="text-green-600 text-base sm:text-lg">Robô 4.0.0</CardTitle>
-            <CardDescription className="text-sm">Até 2% de retorno diário*</CardDescription>
+            <CardDescription className="text-sm">Paga até 2% (variável, não garantido fixo)</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <ul className="text-xs sm:text-sm space-y-1">
-              <li>• Risco baixo</li>
-              <li>• 6-8 operações por dia</li>
-              <li>• Foco em estabilidade</li>
+              <li>• Sistema de arbitragem</li>
+              <li>• Ganhos não garantidos fixos</li>
+              <li>• Pode ganhar menos de 2%</li>
               <li>• Sem requisitos de indicação</li>
+              <li>• Simulação com gráficos</li>
             </ul>
           </CardContent>
         </Card>
@@ -371,14 +372,15 @@ export function TradingConfig() {
         <Card className="p-3 sm:p-4">
           <CardHeader className="p-0 pb-3">
             <CardTitle className="text-yellow-600 text-base sm:text-lg">Robô 4.0.5</CardTitle>
-            <CardDescription className="text-sm">Até 3% de retorno diário*</CardDescription>
+            <CardDescription className="text-sm">Paga até 3% (requer 10 indicados ativos)</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <ul className="text-xs sm:text-sm space-y-1">
-              <li>• Risco médio</li>
-              <li>• 8-10 operações por dia</li>
-              <li>• Requer 10 indicados ativos</li>
-              <li>• Equilibrio risco/retorno</li>
+              <li>• Sistema automatizado</li>
+              <li>• Requer 10 pessoas ativas no 4.0.0</li>
+              <li>• Indicados devem ter planos ativos</li>
+              <li>• Não ativa sem os requisitos</li>
+              <li>• Ganhos até 3%</li>
             </ul>
           </CardContent>
         </Card>
@@ -386,14 +388,15 @@ export function TradingConfig() {
         <Card className="p-3 sm:p-4 md:col-span-2 lg:col-span-1">
           <CardHeader className="p-0 pb-3">
             <CardTitle className="text-red-600 text-base sm:text-lg">Robô 4.1.0</CardTitle>
-            <CardDescription className="text-sm">Até 4% de retorno diário*</CardDescription>
+            <CardDescription className="text-sm">Paga até 4% (requer 40 indicados ativos)</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <ul className="text-xs sm:text-sm space-y-1">
-              <li>• Risco alto</li>
-              <li>• 10-12 operações por dia</li>
-              <li>• Requer 40 indicados ativos</li>
+              <li>• Sistema automatizado</li>
+              <li>• Requer 40 pessoas ativas no 4.0.5</li>
+              <li>• Indicados devem estar no plano 4.0.5</li>
               <li>• Máximo potencial de lucro</li>
+              <li>• Ganhos até 4%</li>
             </ul>
           </CardContent>
         </Card>
