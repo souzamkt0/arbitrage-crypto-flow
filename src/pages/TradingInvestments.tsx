@@ -118,6 +118,56 @@ const TradingInvestments = () => {
   const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
   const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
   const [showArbitrageModal, setShowArbitrageModal] = useState(false);
+
+  // Função para verificar requisitos de cada plano
+  const getRequirementMessage = (planId: string) => {
+    switch (planId) {
+      case '1':
+        return '';
+      case '2':
+        return 'Precisa de 10 pessoas ativas no Robô 4.0 para acessar. ';
+      case '3':
+        return 'Precisa de 40 pessoas ativas no Robô 4.05 para acessar. ';
+      default:
+        return '';
+    }
+  };
+
+  // Função para verificar se pode acessar o plano
+  const checkPlanRequirements = async (planId: string, userId: string) => {
+    switch (planId) {
+      case '1': // Robô 4.0 - sempre pode acessar
+        return true;
+      case '2': // Robô 4.05 - precisa de 10 pessoas ativas no plano 1
+        return await checkActiveReferralsInPlan(userId, '1', 10);
+      case '3': // Robô 4.1.0 - precisa de 40 pessoas ativas no plano 2
+        return await checkActiveReferralsInPlan(userId, '2', 40);
+      default:
+        return true;
+    }
+  };
+
+  // Função para verificar indicações ativas em um plano específico
+  const checkActiveReferralsInPlan = async (userId: string, planId: string, requiredCount: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select(`
+          referred_id,
+          user_investments!inner(*)
+        `)
+        .eq('referrer_id', userId)
+        .eq('status', 'active')
+        .eq('user_investments.investment_plan_id', planId)
+        .eq('user_investments.status', 'active');
+
+      if (error) throw error;
+      return (data?.length || 0) >= requiredCount;
+    } catch (error) {
+      console.error('Erro ao verificar indicações ativas:', error);
+      return false;
+    }
+  };
   const [currentArbitrage, setCurrentArbitrage] = useState<{
     investment: UserInvestment | null;
     progress: number;
@@ -801,7 +851,17 @@ const TradingInvestments = () => {
             {/* Plans Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {plans.map((plan) => {
-                const canInvest = userReferrals >= plan.minimum_indicators;
+                // Verificar requisitos específicos para cada plano baseado nos dados já carregados
+                let canInvest = false;
+                if (plan.id === '1') {
+                  canInvest = true; // Robô 4.0 sempre pode acessar
+                } else if (plan.id === '2') {
+                  canInvest = userReferrals >= 10; // Robô 4.05 precisa de 10 indicações ativas
+                } else if (plan.id === '3') {
+                  canInvest = userReferrals >= 40; // Robô 4.1.0 precisa de 40 indicações ativas
+                } else {
+                  canInvest = userReferrals >= plan.minimum_indicators;
+                }
                 const isLocked = !canInvest;
                 
                 return (
@@ -822,7 +882,7 @@ const TradingInvestments = () => {
                               💰 Lucro Diário Potencial
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              0.02% ao dia
+                              {plan.id === '1' ? 'Até 2% ao dia' : plan.id === '2' ? 'Até 3% ao dia' : plan.id === '3' ? 'Até 4% ao dia' : 'Até 2% ao dia'}
                             </p>
                           </div>
                           <div className="text-right">
@@ -830,17 +890,22 @@ const TradingInvestments = () => {
                               Simulação com $1,000
                             </p>
                             <p className="text-emerald-400 text-xl font-bold">
-                              $0.20/dia
+                              {plan.id === '1' ? 'Até $20/dia' : plan.id === '2' ? 'Até $30/dia' : plan.id === '3' ? 'Até $40/dia' : 'Até $20/dia'}
                             </p>
                           </div>
                         </div>
                         <div className="mt-3 text-center">
                           <p className="text-emerald-200 text-sm">
                             {isLocked 
-                              ? `🔒 Veja abaixo a simulação em tempo real de como você poderia lucrar 0.02% hoje!`
-                              : '🎯 Participe e veja seus lucros crescerem diariamente com arbitragem automática!'
+                              ? `🔒 ${getRequirementMessage(plan.id)} Veja abaixo a simulação em tempo real de como você poderia lucrar ${plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'} hoje!`
+                              : '🎯 Sistema de arbitragem automática com rentabilidade variável - ganhos não garantidos!'
                             }
                           </p>
+                          {canInvest && (
+                            <p className="text-yellow-300 text-xs mt-2">
+                              ⚠️ Ganhos não garantidos - Sistema de arbitragem com rentabilidade variável
+                            </p>
+                          )}
                         </div>
                       </div>
                       {isLocked && (
@@ -865,8 +930,24 @@ const TradingInvestments = () => {
                                 : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
                             } font-bold`}
                           >
-                            {plan.id === '1' ? 'até 3%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : '0.02% / dia'}
+                            {plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'}
                           </Badge>
+                        </div>
+                        {/* Informações específicas de cada plano */}
+                        <div className="mt-2">
+                          {plan.id === '2' && (
+                            <p className="text-xs text-orange-300">
+                              📋 Requisito: 10 pessoas ativas no Robô 4.0
+                            </p>
+                          )}
+                          {plan.id === '3' && (
+                            <p className="text-xs text-orange-300">
+                              📋 Requisito: 40 pessoas ativas no Robô 4.05
+                            </p>
+                          )}
+                          <p className="text-xs text-slate-400 mt-1">
+                            Sistema Automatizado - Arbitragem Variável
+                          </p>
                         </div>
                         <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
                           {plan.description}
@@ -1328,7 +1409,7 @@ const TradingInvestments = () => {
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
               <h4 className="font-bold text-emerald-400">Detalhes do Plano:</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>Taxa Diária: <span className="text-emerald-400 font-bold">{selectedPlan?.id === '1' ? 'até 3%' : selectedPlan?.id === '2' ? 'até 3%' : selectedPlan?.id === '3' ? 'até 4%' : '0.02%'}</span></div>
+                <div>Taxa Diária: <span className="text-emerald-400 font-bold">{selectedPlan?.id === '1' ? 'até 2%' : selectedPlan?.id === '2' ? 'até 3%' : selectedPlan?.id === '3' ? 'até 4%' : 'até 2%'}</span></div>
                 <div>Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span></div>
                 <div>Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span></div>
                 <div>Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span></div>
@@ -1356,13 +1437,13 @@ const TradingInvestments = () => {
                 <h4 className="font-bold text-emerald-400">Projeção de Ganhos:</h4>
                 <div className="text-sm space-y-1">
                   <div>Ganho Diário: <span className="text-emerald-400 font-bold">
-                    ${((parseFloat(selectedAmount) * 0.02) / 100).toFixed(2)}
+                    Até ${((parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2)) / 100).toFixed(2)}
                   </span></div>
                   <div>Ganho Total: <span className="text-emerald-400 font-bold">
-                    ${((parseFloat(selectedAmount) * 0.02 * selectedPlan.duration_days) / 100).toFixed(2)}
+                    Até ${((parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days) / 100).toFixed(2)}
                   </span></div>
                   <div>ROI: <span className="text-emerald-400 font-bold">
-                    {((0.02 * selectedPlan.duration_days)).toFixed(1)}%
+                    Até {((selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days).toFixed(1)}%
                   </span></div>
                 </div>
               </div>
