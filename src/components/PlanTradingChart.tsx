@@ -13,7 +13,7 @@ import {
 } from 'chart.js';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Activity, ArrowUpDown, Zap, Target, Wifi } from 'lucide-react';
+import { TrendingUp, Activity, ArrowUpDown, Zap, Target, Wifi, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 ChartJS.register(
@@ -46,9 +46,45 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [priceHistory, setPriceHistory] = useState<number[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
+  const [currentTrade, setCurrentTrade] = useState<any>(null);
+  const [tradingOperations, setTradingOperations] = useState<any[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Buscar taxa dinâmica do mercado
+  // Gerar operação de trading em tempo real
+  const generateTradingOperation = () => {
+    const exchanges = ['Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'OKX'];
+    const pairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'];
+    
+    const buyExchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+    const sellExchange = exchanges.filter(ex => ex !== buyExchange)[Math.floor(Math.random() * 4)];
+    const pair = pairs[Math.floor(Math.random() * pairs.length)];
+    
+    const basePrice = pair.includes('BTC') ? 42000 + Math.random() * 8000 : 
+                     pair.includes('ETH') ? 2500 + Math.random() * 500 :
+                     200 + Math.random() * 100;
+    
+    const buyPrice = basePrice * (0.998 + Math.random() * 0.004);
+    const sellPrice = basePrice * (1.001 + Math.random() * 0.003);
+    const volume = 50 + Math.random() * 200;
+    const profit = (sellPrice - buyPrice) * volume;
+    const profitPercent = ((sellPrice - buyPrice) / buyPrice) * 100;
+    
+    return {
+      id: Date.now() + Math.random(),
+      pair,
+      buyExchange,
+      sellExchange,
+      buyPrice,
+      sellPrice,
+      volume,
+      profit,
+      profitPercent,
+      timestamp: new Date(),
+      status: 'executing'
+    };
+  };
+
+  // Buscar taxa dinâmica do mercado e simular trading
   const fetchMarketRate = async () => {
     try {
       setConnectionStatus('connecting');
@@ -68,8 +104,15 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
       if (rateData) {
         setMarketRate(rateData);
         
-        // Gerar dados de preços simulados baseados na taxa atual
-        const currentPrice = 40000 + Math.random() * 10000;
+        // Gerar nova operação de trading
+        const newTrade = generateTradingOperation();
+        setCurrentTrade(newTrade);
+        
+        // Adicionar à lista de operações
+        setTradingOperations(prev => [...prev.slice(-4), newTrade]);
+        
+        // Gerar dados de preços baseados nas operações
+        const currentPrice = newTrade.sellPrice;
         const newPrices = [...priceHistory.slice(-19), currentPrice];
         const newLabels = [...labels.slice(-19), new Date().toLocaleTimeString('pt-BR', { 
           hour: '2-digit', 
@@ -80,6 +123,12 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
         setLabels(newLabels);
         
         setConnectionStatus('connected');
+        
+        // Simular conclusão da operação após 3-8 segundos
+        setTimeout(() => {
+          setCurrentTrade((prev: any) => prev ? { ...prev, status: 'completed' } : null);
+        }, 3000 + Math.random() * 5000);
+        
       } else {
         // Se não existe taxa para hoje, atualizar
         await supabase.rpc('update_current_market_rate', { p_plan_id: planId });
@@ -115,10 +164,11 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
       setLabels(initialLabels);
     }
     
-    // Atualizar dados a cada 10 segundos
+    // Atualizar dados a cada 5-12 segundos (simular trading real)
+    const updateInterval = 5000 + Math.random() * 7000;
     intervalRef.current = setInterval(() => {
       fetchMarketRate();
-    }, 10000);
+    }, updateInterval);
 
     return () => {
       if (intervalRef.current) {
@@ -324,6 +374,69 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
           <Line data={chartData} options={chartOptions} />
         </div>
 
+        {/* Operação Atual de Trading */}
+        {currentTrade && (
+          <div className="p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg border border-blue-500/30">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-blue-400" />
+                <span className="text-blue-300 font-medium">Operação Ativa</span>
+                <Badge className={`${
+                  currentTrade.status === 'executing' 
+                    ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' 
+                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                }`}>
+                  {currentTrade.status === 'executing' ? 'EXECUTANDO' : 'CONCLUÍDA'}
+                </Badge>
+              </div>
+              <div className="text-emerald-400 font-bold">
+                +{currentTrade.profitPercent.toFixed(3)}%
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-slate-400">Par: <span className="text-white">{currentTrade.pair}</span></p>
+                <p className="text-slate-400">Compra: <span className="text-blue-300">{currentTrade.buyExchange}</span></p>
+                <p className="text-slate-400">Preço: <span className="text-white">${currentTrade.buyPrice.toFixed(2)}</span></p>
+              </div>
+              <div>
+                <p className="text-slate-400">Volume: <span className="text-white">{currentTrade.volume.toFixed(1)}</span></p>
+                <p className="text-slate-400">Venda: <span className="text-orange-300">{currentTrade.sellExchange}</span></p>
+                <p className="text-slate-400">Preço: <span className="text-white">${currentTrade.sellPrice.toFixed(2)}</span></p>
+              </div>
+            </div>
+            
+            <div className="mt-3 text-center">
+              <p className="text-emerald-300 font-medium">
+                Lucro: ${currentTrade.profit.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Últimas Operações */}
+        {tradingOperations.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-white font-medium text-sm">Últimas Operações</h4>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {tradingOperations.slice(-3).reverse().map((operation, index) => (
+                <div key={operation.id} className="flex items-center justify-between p-2 bg-slate-700/30 rounded text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{operation.pair}</span>
+                    <span className="text-blue-300">{operation.buyExchange}</span>
+                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                    <span className="text-orange-300">{operation.sellExchange}</span>
+                  </div>
+                  <div className="text-emerald-400 font-medium">
+                    +{operation.profitPercent.toFixed(2)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Status do mercado */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div className="text-center p-3 bg-slate-700/20 rounded-lg">
@@ -331,7 +444,7 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
             <p className="text-white font-bold">{marketRate ? marketRate.min_rate.toFixed(2) : '0.50'}%</p>
           </div>
           <div className="text-center p-3 bg-emerald-900/20 rounded-lg border border-emerald-500/20">
-            <p className="text-emerald-200 text-xs">Taxa Atual</p>
+            <p className="text-emerald-200 text-xs">Hoje o mercado pagaria</p>
             <p className="text-emerald-400 font-bold">{todayProfit.percentage.toFixed(2)}%</p>
           </div>
           <div className="text-center p-3 bg-slate-700/20 rounded-lg">
