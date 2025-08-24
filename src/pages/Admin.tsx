@@ -3645,7 +3645,7 @@ const Admin = () => {
 
   const deleteIndividualInvestment = async (investmentId: string, userEmail: string, investmentName: string) => {
     try {
-      console.log('🗑️ Excluindo investimento individual usando admin_cancel_user_investment:', { investmentId, userEmail, investmentName });
+      console.log('🗑️ Excluindo investimento individual usando admin_cancel_user_investment_dev:', { investmentId, userEmail, investmentName });
       console.log('🗑️ Dados completos do investimento:', selectedInvestmentForDeletion);
       
       // Verificar se temos um ID válido
@@ -3659,8 +3659,8 @@ const Admin = () => {
         return;
       }
       
-      // Usar a função admin para cancelar investimento
-      const { data: result, error } = await supabase.rpc('admin_cancel_user_investment', {
+      // Usar a função admin temporária para cancelar investimento (modo desenvolvimento)
+      const { data: result, error } = await supabase.rpc('admin_cancel_user_investment_dev', {
         investment_id_param: investmentId,
         admin_reason: 'Cancelado pelo administrador via interface admin'
       });

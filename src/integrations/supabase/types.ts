@@ -1913,6 +1913,10 @@ export type Database = {
         Args: { admin_reason?: string; investment_id_param: string }
         Returns: Json
       }
+      admin_cancel_user_investment_dev: {
+        Args: { admin_reason?: string; investment_id_param: string }
+        Returns: Json
+      }
       admin_get_all_investments: {
         Args: Record<PropertyKey, never>
         Returns: {
