@@ -1304,52 +1304,167 @@ const TradingInvestments = () => {
                     </ResponsiveContainer>
                    </div>
                    
-                   {/* Buy Order e Sell Order */}
-                   <div className="grid grid-cols-2 gap-4 mt-4">
-                     <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
-                       <h5 className="text-green-400 font-bold text-sm mb-2">Buy Order</h5>
-                       <div className="space-y-1">
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Exchange:</span>
-                           <span className="text-white">{currentArbitrage.exchanges[0]}</span>
-                         </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Preço:</span>
-                           <span className="text-green-400">${currentArbitrage.buyPrice.toFixed(6)}</span>
-                         </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Quantidade:</span>
-                           <span className="text-white">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
-                         </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Status:</span>
-                           <span className={`${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-green-400' : 'text-yellow-400'}`}>
-                             {['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'Executada' : 'Pendente'}
+                   {/* Multiple Orders Execution */}
+                   <div className="mt-4">
+                     <h5 className="text-white font-bold text-sm mb-3">Ordens em Execução</h5>
+                     <div className="space-y-2 max-h-48 overflow-y-auto">
+                       {/* Buy Order 1 */}
+                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
+                           <span className={`text-xs px-2 py-1 rounded ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                             {['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'EXECUTADA' : 'PENDENTE'}
                            </span>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">{currentArbitrage.pair}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">{currentArbitrage.exchanges[0]}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-green-400 ml-1">${currentArbitrage.buyPrice.toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
+                           </div>
                          </div>
                        </div>
-                     </div>
-                     
-                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
-                       <h5 className="text-red-400 font-bold text-sm mb-2">Sell Order</h5>
-                       <div className="space-y-1">
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Exchange:</span>
-                           <span className="text-white">{currentArbitrage.exchanges[1]}</span>
+
+                       {/* Buy Order 2 */}
+                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
+                           <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400">EXECUTANDO</span>
                          </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Preço:</span>
-                           <span className="text-red-400">${currentArbitrage.sellPrice.toFixed(6)}</span>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">BTC/USDT</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">Kraken</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 1.25).toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{(Math.random() * 0.5 + 0.1).toFixed(4)}</span>
+                           </div>
                          </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Quantidade:</span>
-                           <span className="text-white">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
-                         </div>
-                         <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Status:</span>
-                           <span className={`${currentArbitrage.stage === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
-                             {currentArbitrage.stage === 'completed' ? 'Executada' : 'Pendente'}
+                       </div>
+
+                       {/* Sell Order 1 */}
+                       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-red-400 font-bold text-xs">SELL #{Math.floor(Math.random() * 10000)}</span>
+                           <span className={`text-xs px-2 py-1 rounded ${currentArbitrage.stage === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                             {currentArbitrage.stage === 'completed' ? 'EXECUTADA' : 'AGUARDANDO'}
                            </span>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">{currentArbitrage.pair}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">{currentArbitrage.exchanges[1]}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-red-400 ml-1">${currentArbitrage.sellPrice.toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Buy Order 3 */}
+                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
+                           <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400">PENDENTE</span>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">ADA/USDT</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">Binance</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 0.15).toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{(Math.random() * 1000 + 500).toFixed(0)}</span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Sell Order 2 */}
+                       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-red-400 font-bold text-xs">SELL #{Math.floor(Math.random() * 10000)}</span>
+                           <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400">EXECUTANDO</span>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">DOT/USDT</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">Coinbase</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-red-400 ml-1">${(currentArbitrage.sellPrice * 0.85).toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{(Math.random() * 100 + 50).toFixed(2)}</span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Buy Order 4 */}
+                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                         <div className="flex justify-between items-center mb-2">
+                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
+                           <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">EXECUTADA</span>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2 text-xs">
+                           <div>
+                             <span className="text-slate-400">Par:</span>
+                             <span className="text-white ml-1">MATIC/USDT</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Exchange:</span>
+                             <span className="text-white ml-1">Bybit</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Preço:</span>
+                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 0.45).toFixed(6)}</span>
+                           </div>
+                           <div>
+                             <span className="text-slate-400">Qtd:</span>
+                             <span className="text-white ml-1">{(Math.random() * 2000 + 1000).toFixed(0)}</span>
+                           </div>
                          </div>
                        </div>
                      </div>
