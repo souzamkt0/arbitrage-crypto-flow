@@ -922,8 +922,8 @@ const TradingInvestments = () => {
                             </div>
                             <div className="space-y-1">
                               <div className="flex justify-between text-xs">
-                                <span className="text-slate-300">Progresso</span>
-                                <span className="text-cyan-400">
+                                <span className="text-white">Progresso</span>
+                                <span className="text-white">
                                   {userReferrals}/{plan.id === '2' ? '10' : plan.id === '3' ? '40' : '0'} pessoas ativas
                                 </span>
                               </div>
