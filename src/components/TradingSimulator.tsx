@@ -104,27 +104,50 @@ const TradingSimulator = ({
       name: "Gate.io", 
       logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzOTZGRkYiLz4KPHBhdGggZD0iTTE2IDEwQzEyLjY5IDEwIDEwIDEyLjY5IDEwIDE2QzEwIDE5LjMxIDEyLjY5IDIyIDE2IDIyQzE5LjMxIDIyIDIyIDE5LjMxIDIyIDE2QzIyIDEyLjY5IDE5LjMxIDEwIDE2IDEwWk0xNiAyMEMxMy43OSAyMCAxMiAxOC4yMSAxMiAxNkMxMiAxMy43OSAxMy43OSAxMiAxNiAxMkMxOC4yMSAxMiAyMCAxMy43OSAyMCAxNkMyMCAxOC4yMSAxOC4yMSAyMCAxNiAyMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
       color: "#396FFF"
+    },
+    { 
+      name: "Bitfinex", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxOThBM0YiLz4KPHBhdGggZD0iTTEwIDEwSDEzVjE1SDEwVjEwWk0xNiAxMEgxOVYxNUgxNlYxMFpNMTAgMTdIMTNWMjJIMTBWMTdaTTE2IDE3SDE5VjIySDE2VjE3WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#198A3F"
+    },
+    { 
+      name: "FTX", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM1RkNCRkUiLz4KPHBhdGggZD0iTTEwIDEwSDIyVjEzSDE3VjE5SDIyVjIySDEwVjE5SDE1VjEzSDEwVjEwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#5FCBFE"
+    },
+    { 
+      name: "Gemini", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNGRjZCMzUiLz4KPHBhdGggZD0iTTEwIDEwSDE1VjE2SDEwVjEwWk0xNyAxMEgyMlYxNkgxN1YxMFpNMTAgMThIMTVWMjJIMTBWMThaTTE3IDE4SDIyVjIySDE3VjE4WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#FF6B35"
+    },
+    { 
+      name: "Crypto.com", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNGRjAwMDAiLz4KPHBhdGggZD0iTTE2IDEwQzEyLjY5IDEwIDEwIDEyLjY5IDEwIDE2QzEwIDE5LjMxIDEyLjY5IDIyIDE2IDIyQzE5LjMxIDIyIDIyIDE5LjMxIDIyIDE2QzIyIDEyLjY5IDE5LjMxIDEwIDE2IDEwWk0xNiAyMEMxMy43OSAyMCAxMiAxOC4yMSAxMiAxNkMxMiAxMy43OSAxMy43OSAxMiAxNiAxMkMxOC4yMSAxMiAyMCAxMy43OSAyMCAxNkMyMCAxOC4yMSAxOC4yMSAyMCAxNiAyMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
+      color: "#FF0000"
+    },
+    { 
+      name: "Bitstamp", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxRTg4RTUiLz4KPHBhdGggZD0iTTEwIDEwSDE5VjEzSDEzVjE2SDE5VjE5SDEzVjIySDE5VjI1SDEwVjEwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#1E88E5"
+    },
+    { 
+      name: "Mexc", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM5QzI3QjAiLz4KPHBhdGggZD0iTTEwIDEwSDEzVjE2SDE2VjEwSDE5VjE2SDE2VjIySDE5VjE2VjIySDE2SDE2VjE2SDE0VjIySDE0VjE2SDE2VjEwSDEzVjE2SDEwVjEwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#9C27B0"
+    },
+    { 
+      name: "Bitget", 
+      logo: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM3OTU1NDgiLz4KPHBhdGggZD0iTTEwIDEwSDE5VjEzSDEzVjE2SDE2VjE5SDEzVjIySDE5VjE5SDE2VjIySDE5VjEwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==",
+      color: "#795548"
     }
   ];
 
   const cryptoPairs = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "ADA/USDT", "SOL/USDT", "XRP/USDT"];
 
   const generateExchangeData = (): Exchange[] => {
-    // Determinar número de exchanges baseado no plano atual
-    let currentPlanOperations = 2; // Padrão para 4.0.0
-    
-    if (planName?.includes('4.0.5') || dailyRate === 3) {
-      currentPlanOperations = 3;
-    } else if (planName?.includes('4.1.0') || dailyRate === 4) {
-      currentPlanOperations = 4;
-    }
-
-    // Se tem outros planos ativos, pode usar mais exchanges (máximo 8)
-    const maxExchanges = Math.min(currentPlanOperations + Math.floor(totalActiveOperations / 2), 8);
-    const numExchanges = Math.max(currentPlanOperations, maxExchanges);
-    
-    // Usar apenas o número necessário de exchanges
-    const selectedExchanges = exchangeList.slice(0, numExchanges);
+    // Para administradores, usar todas as 15 exchanges disponíveis
+    const numExchanges = 15;
+    const selectedExchanges = exchangeList;
     
     return selectedExchanges.map((exchange, index) => {
       const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];

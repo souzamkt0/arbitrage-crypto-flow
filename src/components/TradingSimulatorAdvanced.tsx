@@ -132,6 +132,48 @@ const TradingSimulatorAdvanced = ({
       logo: "🔷",
       color: "#396FFF",
       latency: "25ms"
+    },
+    { 
+      name: "Bitfinex", 
+      logo: "🟩",
+      color: "#198A3F",
+      latency: "19ms"
+    },
+    { 
+      name: "FTX", 
+      logo: "🔘",
+      color: "#5FCBFE",
+      latency: "17ms"
+    },
+    { 
+      name: "Gemini", 
+      logo: "🔶",
+      color: "#FF6B35",
+      latency: "21ms"
+    },
+    { 
+      name: "Crypto.com", 
+      logo: "🔴",
+      color: "#FF0000",
+      latency: "23ms"
+    },
+    { 
+      name: "Bitstamp", 
+      logo: "🟦",
+      color: "#1E88E5",
+      latency: "24ms"
+    },
+    { 
+      name: "Mexc", 
+      logo: "🟪",
+      color: "#9C27B0",
+      latency: "20ms"
+    },
+    { 
+      name: "Bitget", 
+      logo: "🟫",
+      color: "#795548",
+      latency: "18ms"
     }
   ];
 
@@ -166,17 +208,9 @@ const TradingSimulatorAdvanced = ({
   };
 
   const generateExchangeData = (): Exchange[] => {
-    let currentPlanOperations = 2;
-    
-    if (planName?.includes('4.0.5') || dailyRate === 3) {
-      currentPlanOperations = 3;
-    } else if (planName?.includes('4.1.0') || dailyRate === 4) {
-      currentPlanOperations = 4;
-    }
-
-    const maxExchanges = Math.min(currentPlanOperations + Math.floor(totalActiveOperations / 2), 8);
-    const numExchanges = Math.max(currentPlanOperations, maxExchanges);
-    const selectedExchanges = exchangeList.slice(0, numExchanges);
+    // Para administradores, usar todas as 15 exchanges disponíveis
+    const numExchanges = 15;
+    const selectedExchanges = exchangeList;
     
     return selectedExchanges.map((exchange, index) => {
       const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
