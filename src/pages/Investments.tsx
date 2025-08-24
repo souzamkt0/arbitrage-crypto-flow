@@ -161,43 +161,43 @@ const Investments = () => {
   const [userReferrals, setUserReferrals] = useState<number>(0);
   
   // Live sell orders data
-  const [sellOrders, setSellOrders] = useState(() => generateMegaSellOrders(8000));
+  const [sellOrders, setSellOrders] = useState<any[]>([]);
 
-// Generate thousands of live sell orders
-const generateMegaSellOrders = (count: number) => {
-  const orders = [];
-  const basePrice = 42585; // Base price from image
-  
-  // Major exchanges from the image
-  const exchanges = [
-    'Huobi', 'Binance', 'Bitget', 'KuCoin', 'Coinbase', 'FTX', 'Bitstamp', 
-    'Kraken', 'OKX', 'MEXC', 'Gate.io', 'Crypto.com', 'HitBTC', 'Poloniex',
-    'Gemini', 'Bitfinex', 'CoinEx', 'BitMart', 'ProBit', 'LBank', 'DigiFinex',
-    'ZB.com', 'Hotbit', 'WazirX', 'CoinDCX', 'Bitrue', 'BitFlyer', 'BitMax',
-    'AscendEX', 'Phemex', 'WOO X', 'BingX', 'Bitvenus', 'CoinW', 'XT.com'
-  ];
-  
-  for (let i = 0; i < count; i++) {
-    const priceVariation = (Math.random() - 0.5) * 200; // ±$100 variation
-    const price = basePrice + priceVariation + (i * 0.5);
-    const qtd = (Math.random() * 5 + 0.1).toFixed(3);
-    const bid = price * 0.9995; // Slightly lower bid
-    const total = (price * parseFloat(qtd));
-    const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+  // Generate thousands of live sell orders
+  const generateMegaSellOrders = (count: number) => {
+    const orders = [];
+    const basePrice = 42585; // Base price from image
     
-    orders.push({
-      id: Math.floor(Math.random() * 1000000) + 100000,
-      exchange: exchange,
-      preco: price.toFixed(0),
-      qtd: qtd,
-      bid: bid.toFixed(0),
-      total: total.toFixed(0),
-      timestamp: Date.now() + i
-    });
-  }
-  
-  return orders.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco)); // Sort by price
-};
+    // Major exchanges from the image
+    const exchanges = [
+      'Huobi', 'Binance', 'Bitget', 'KuCoin', 'Coinbase', 'FTX', 'Bitstamp', 
+      'Kraken', 'OKX', 'MEXC', 'Gate.io', 'Crypto.com', 'HitBTC', 'Poloniex',
+      'Gemini', 'Bitfinex', 'CoinEx', 'BitMart', 'ProBit', 'LBank', 'DigiFinex',
+      'ZB.com', 'Hotbit', 'WazirX', 'CoinDCX', 'Bitrue', 'BitFlyer', 'BitMax',
+      'AscendEX', 'Phemex', 'WOO X', 'BingX', 'Bitvenus', 'CoinW', 'XT.com'
+    ];
+    
+    for (let i = 0; i < count; i++) {
+      const priceVariation = (Math.random() - 0.5) * 200; // ±$100 variation
+      const price = basePrice + priceVariation + (i * 0.5);
+      const qtd = (Math.random() * 5 + 0.1).toFixed(3);
+      const bid = price * 0.9995; // Slightly lower bid
+      const total = (price * parseFloat(qtd));
+      const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+      
+      orders.push({
+        id: Math.floor(Math.random() * 1000000) + 100000,
+        exchange: exchange,
+        preco: price.toFixed(0),
+        qtd: qtd,
+        bid: bid.toFixed(0),
+        total: total.toFixed(0),
+        timestamp: Date.now() + i
+      });
+    }
+    
+    return orders.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco)); // Sort by price
+  };
 
   useEffect(() => {
     if (user) {
@@ -207,6 +207,11 @@ const generateMegaSellOrders = (count: number) => {
       fetchUserReferrals();
     }
   }, [user]);
+
+  // Initialize sell orders on component mount
+  useEffect(() => {
+    setSellOrders(generateMegaSellOrders(8000));
+  }, []);
 
   // Update sell orders every 200ms for real-time effect
   useEffect(() => {
