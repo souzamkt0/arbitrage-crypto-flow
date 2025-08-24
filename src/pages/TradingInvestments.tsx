@@ -115,6 +115,28 @@ const TradingInvestments = () => {
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
   const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
+  const [showArbitrageModal, setShowArbitrageModal] = useState(false);
+  const [currentArbitrage, setCurrentArbitrage] = useState<{
+    investment: UserInvestment | null;
+    progress: number;
+    currentProfit: number;
+    finalProfit: number;
+    stage: 'analyzing' | 'buying' | 'selling' | 'completed';
+    pair: string;
+    exchanges: string[];
+    buyPrice: number;
+    sellPrice: number;
+  }>({
+    investment: null,
+    progress: 0,
+    currentProfit: 0,
+    finalProfit: 0,
+    stage: 'analyzing',
+    pair: '',
+    exchanges: [],
+    buyPrice: 0,
+    sellPrice: 0
+  });
 
   useEffect(() => {
     console.log('🔍 TradingInvestments useEffect: user =', user);
@@ -330,24 +352,87 @@ const TradingInvestments = () => {
       return;
     }
 
+    // Calcular lucro da operação baseado na daily_rate com variação
+    const baseProfit = (investment.amount * investment.daily_rate) / 100 / 2;
+    const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
+    const finalProfit = baseProfit * variation;
+
+    // Configurar dados da arbitragem
+    const pairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'];
+    const exchanges = ['Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'KuCoin'];
+    const selectedPair = pairs[Math.floor(Math.random() * pairs.length)];
+    const selectedExchanges = exchanges.sort(() => 0.5 - Math.random()).slice(0, 2);
+    
+    let buyPrice = 0;
+    if (selectedPair.includes('BTC')) buyPrice = 40000 + Math.random() * 20000;
+    else if (selectedPair.includes('ETH')) buyPrice = 2000 + Math.random() * 1000;
+    else if (selectedPair.includes('BNB')) buyPrice = 200 + Math.random() * 100;
+    else buyPrice = 0.5 + Math.random() * 2;
+
+    const sellPrice = buyPrice * (1 + (finalProfit / investment.amount));
+
+    setCurrentArbitrage({
+      investment,
+      progress: 0,
+      currentProfit: 0,
+      finalProfit,
+      stage: 'analyzing',
+      pair: selectedPair,
+      exchanges: selectedExchanges,
+      buyPrice,
+      sellPrice
+    });
+
+    setShowArbitrageModal(true);
     setProcessingOperations(prev => new Set(prev).add(investment.id));
 
+    // Simulação será executada no modal
+  };
+
+  const runArbitrageSimulation = async () => {
+    const investment = currentArbitrage.investment;
+    if (!investment) return;
+
     try {
-      // Iniciar simulação em tempo real
-      toast({
-        title: "🚀 Arbitragem Iniciada!",
-        description: "Executando operação em tempo real...",
-      });
+      // Etapa 1: Analisando mercado (2-3 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'analyzing' }));
+      for (let i = 0; i <= 25; i += 5) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setCurrentArbitrage(prev => ({ ...prev, progress: i }));
+      }
 
-      // Simular tempo de execução (3-8 segundos)
-      const executionTime = 3000 + Math.random() * 5000;
-      
-      await new Promise(resolve => setTimeout(resolve, executionTime));
+      // Etapa 2: Comprando (2-3 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'buying' }));
+      for (let i = 25; i <= 60; i += 5) {
+        await new Promise(resolve => setTimeout(resolve, 80));
+        setCurrentArbitrage(prev => ({ 
+          ...prev, 
+          progress: i,
+          currentProfit: (prev.finalProfit * (i - 25)) / 35
+        }));
+      }
 
-      // Calcular lucro da operação baseado na daily_rate com variação
-      const baseProfit = (investment.amount * investment.daily_rate) / 100 / 2;
-      const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
-      const operationProfit = baseProfit * variation;
+      // Etapa 3: Vendendo (2-3 segundos)  
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'selling' }));
+      for (let i = 60; i <= 100; i += 5) {
+        await new Promise(resolve => setTimeout(resolve, 70));
+        setCurrentArbitrage(prev => ({ 
+          ...prev, 
+          progress: i,
+          currentProfit: (prev.finalProfit * (i - 25)) / 75
+        }));
+      }
+
+      // Finalizar
+      setCurrentArbitrage(prev => ({ 
+        ...prev, 
+        stage: 'completed',
+        progress: 100,
+        currentProfit: prev.finalProfit
+      }));
+
+      // Aguardar 2 segundos e atualizar banco de dados
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Atualizar saldo do usuário na tabela profiles
       const { data: profileData, error: profileError } = await supabase
@@ -358,14 +443,14 @@ const TradingInvestments = () => {
 
       if (profileError) throw profileError;
 
-      const newBalance = (profileData.balance || 0) + operationProfit;
+      const newBalance = (profileData.balance || 0) + currentArbitrage.finalProfit;
 
       // Atualizar saldo principal
       const { error: balanceUpdateError } = await supabase
         .from('profiles')
         .update({ 
           balance: newBalance,
-          total_profit: (profileData.total_profit || 0) + operationProfit 
+          total_profit: (profileData.total_profit || 0) + currentArbitrage.finalProfit 
         })
         .eq('user_id', user?.id);
 
@@ -376,8 +461,8 @@ const TradingInvestments = () => {
         .from('user_investments')
         .update({
           operations_completed: investment.operations_completed + 1,
-          total_earned: investment.total_earned + operationProfit,
-          today_earnings: investment.today_earnings + operationProfit,
+          total_earned: investment.total_earned + currentArbitrage.finalProfit,
+          today_earnings: investment.today_earnings + currentArbitrage.finalProfit,
           current_day_progress: ((investment.operations_completed + 1) / 2) * 100,
           updated_at: new Date().toISOString()
         })
@@ -394,23 +479,23 @@ const TradingInvestments = () => {
           investment_amount: investment.amount,
           daily_rate: investment.daily_rate,
           plan_name: plans.find(p => p.id === investment.investment_plan_id)?.name || 'Unknown',
-          total_profit: operationProfit,
-          exchanges_count: Math.floor(Math.random() * 3) + 2, // 2-4 exchanges
+          total_profit: currentArbitrage.finalProfit,
+          exchanges_count: 2,
           completed_operations: 1,
-          execution_time_seconds: Math.floor(executionTime / 1000),
-          profit_per_exchange: operationProfit / (Math.floor(Math.random() * 3) + 2),
+          execution_time_seconds: 8,
+          profit_per_exchange: currentArbitrage.finalProfit / 2,
           metadata: {
             operation_number: investment.operations_completed + 1,
             operation_type: 'arbitrage_operation',
-            pair: ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'][Math.floor(Math.random() * 5)],
-            exchanges: ['Binance', 'Coinbase', 'Kraken', 'Bitfinex'],
-            profit_percentage: (operationProfit / investment.amount * 100).toFixed(4)
+            pair: currentArbitrage.pair,
+            exchanges: currentArbitrage.exchanges,
+            profit_percentage: (currentArbitrage.finalProfit / investment.amount * 100).toFixed(4)
           }
         });
 
       toast({
         title: "✅ Arbitragem Concluída!",
-        description: `Lucro de $${operationProfit.toFixed(2)} adicionado ao seu saldo!`,
+        description: `Lucro de $${currentArbitrage.finalProfit.toFixed(2)} adicionado ao seu saldo!`,
       });
 
       fetchUserInvestments();
@@ -977,6 +1062,96 @@ const TradingInvestments = () => {
               >
                 {isLoading ? 'Criando...' : 'Confirmar Investimento'}
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Simulação de Arbitragem */}
+      <Dialog open={showArbitrageModal} onOpenChange={setShowArbitrageModal}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+              🚀 Executando Arbitragem
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Informações da Operação */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg">
+              <div className="space-y-2">
+                <p className="text-slate-400 text-sm">Par de Trading</p>
+                <p className="text-xl font-bold text-emerald-400">{currentArbitrage.pair}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-slate-400 text-sm">Exchanges</p>
+                <p className="text-white font-semibold">
+                  {currentArbitrage.exchanges.join(' ↔ ')}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-slate-400 text-sm">Preço Compra</p>
+                <p className="text-white font-semibold">
+                  ${currentArbitrage.buyPrice.toFixed(8)}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-slate-400 text-sm">Preço Venda</p>
+                <p className="text-emerald-400 font-semibold">
+                  ${currentArbitrage.sellPrice.toFixed(8)}
+                </p>
+              </div>
+            </div>
+
+            {/* Progresso da Operação */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="text-lg font-bold text-white">
+                  {currentArbitrage.stage === 'analyzing' && '🔍 Analisando Oportunidades...'}
+                  {currentArbitrage.stage === 'buying' && '💰 Comprando em ' + currentArbitrage.exchanges[0]}
+                  {currentArbitrage.stage === 'selling' && '📈 Vendendo em ' + currentArbitrage.exchanges[1]}
+                  {currentArbitrage.stage === 'completed' && '✅ Arbitragem Concluída!'}
+                </h4>
+                <span className="text-slate-300 font-bold">{currentArbitrage.progress}%</span>
+              </div>
+              
+              <Progress 
+                value={currentArbitrage.progress} 
+                className="h-3 bg-slate-700"
+              />
+            </div>
+
+            {/* Lucro em Tempo Real */}
+            <div className="text-center p-6 bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-lg">
+              <p className="text-slate-300 mb-2">Lucro Atual</p>
+              <p className="text-4xl font-bold text-emerald-400">
+                +${currentArbitrage.currentProfit.toFixed(2)}
+              </p>
+              {currentArbitrage.stage === 'completed' && (
+                <p className="text-slate-300 text-sm mt-2">
+                  ROI: {((currentArbitrage.finalProfit / (currentArbitrage.investment?.amount || 1)) * 100).toFixed(2)}%
+                </p>
+              )}
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex gap-3">
+              {currentArbitrage.stage !== 'completed' ? (
+                <Button 
+                  onClick={runArbitrageSimulation}
+                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
+                  disabled={currentArbitrage.progress > 0}
+                >
+                  {currentArbitrage.progress === 0 ? 'Iniciar Operação' : 'Operação em Andamento...'}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => setShowArbitrageModal(false)}
+                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
+                >
+                  Finalizar
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
