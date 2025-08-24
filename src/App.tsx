@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import Simulation from "./pages/Simulation";
 
 import Admin from "./pages/Admin";
+import DeleteInvestment from "./pages/DeleteInvestment";
 import { AdminDeposits } from "./pages/AdminDeposits";
 // import Bonus from "./pages/Bonus"; // Página removida
 import Investments from "./pages/Investments";
@@ -284,6 +285,16 @@ const App = () => (
               <AdminRoute>
                 <Layout>
                   <AdminDeposits />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/delete-investment"
+            element={
+              <AdminRoute>
+                <Layout>
+                  <DeleteInvestment />
                 </Layout>
               </AdminRoute>
             }

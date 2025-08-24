@@ -4269,6 +4269,14 @@ const Admin = () => {
                         <Plus className="h-4 w-4 mr-2" />
                         Novo Robô
                       </Button>
+                      <Button 
+                        onClick={() => navigate('/admin/delete-investment')}
+                        size="sm"
+                        variant="destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Deletar Investimentos
+                      </Button>
                     </div>
                     <Badge variant="secondary">
                       {investmentPlans.length} robô(s) encontrado(s)
