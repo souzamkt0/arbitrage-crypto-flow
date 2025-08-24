@@ -33,6 +33,7 @@ interface InvestmentPlan {
   risk_level: number;
   daily_rate: number;
   status: string;
+  minimum_indicators: number;
 }
 
 interface TradingConfig {
@@ -604,15 +605,23 @@ export function TradingConfig() {
             </div>
           </div>
 
-          {/* Resultados da Simulação */}
+          {/* Resultados da Simulação de Arbitragem */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">Resultados da Simulação</h4>
+              <h4 className="font-medium">Simulação de Arbitragem - Ganhos Variáveis</h4>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Mostrando valores em:</span>
                 <Badge variant="outline">
                   {showUSD ? 'USD' : 'BRL'} {showUSD ? '($)' : '(R$)'}
                 </Badge>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="text-sm text-yellow-800">
+                <strong>⚠️ AVISO IMPORTANTE:</strong> Os valores são simulações baseadas em arbitragem. 
+                Ganhos reais são variáveis e não garantidos. O sistema realiza operações automáticas 
+                entre exchanges buscando diferenças de preços.
               </div>
             </div>
             
@@ -626,22 +635,35 @@ export function TradingConfig() {
                 const profitPercent = (totalProfit / baseValue) * 100;
                 const monthlyProfit = dailyProfit * 30;
 
+                // Verificar elegibilidade baseada nos requisitos
+                const isEligible = plan.trading_strategy === 'conservador' || 
+                                 (plan.trading_strategy === 'moderado' && plan.minimum_indicators <= 10) ||
+                                 (plan.trading_strategy === 'livre' && plan.minimum_indicators <= 40);
+
                 return (
-                  <Card key={plan.id} className="p-4 space-y-3">
+                  <Card key={plan.id} className={`p-4 space-y-3 ${!isEligible ? 'opacity-50 bg-muted/20' : ''}`}>
                     <div className="flex items-center justify-between">
                       <h5 className="font-medium">{plan.name}</h5>
-                      <Badge className={getStrategyColor(plan.trading_strategy)}>
-                        {plan.trading_strategy}
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge className={getStrategyColor(plan.trading_strategy)}>
+                          {plan.trading_strategy}
+                        </Badge>
+                        {!isEligible && (
+                          <Badge variant="destructive" className="text-xs">
+                            Bloqueado
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Taxa atual:</span>
-                        <span className="font-semibold text-blue-600">
-                          {(plan.daily_rate * 100).toFixed(2)}%/dia
-                        </span>
-                      </div>
+                    {isEligible ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Taxa atual:</span>
+                          <span className="font-semibold text-blue-600">
+                            até {(plan.daily_rate * 100).toFixed(1)}%/dia*
+                          </span>
+                        </div>
                       
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Investimento:</span>
@@ -649,40 +671,49 @@ export function TradingConfig() {
                           {currency} {baseValue.toFixed(2)}
                         </span>
                       </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Ganho/dia:</span>
-                        <span className="font-semibold text-green-600">
-                          +{currency} {dailyProfit.toFixed(2)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Em {simulatorPeriod} dias:</span>
-                        <span className="font-semibold text-green-600">
-                          +{currency} {totalProfit.toFixed(2)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-muted-foreground">Total final:</span>
-                        <span className="font-bold text-primary">
-                          {currency} {finalValue.toFixed(2)}
-                        </span>
-                      </div>
-                      
-                      <div className="text-center p-2 bg-muted/30 rounded-lg">
-                        <div className="text-xs text-muted-foreground">Rendimento</div>
-                        <div className="font-bold text-primary">
-                          +{profitPercent.toFixed(1)}%
+                        
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Ganho/dia:</span>
+                          <span className="font-semibold text-green-600">
+                            +{currency} {dailyProfit.toFixed(2)}*
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Em {simulatorPeriod} dias:</span>
+                          <span className="font-semibold text-green-600">
+                            +{currency} {totalProfit.toFixed(2)}*
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between border-t pt-2">
+                          <span className="text-muted-foreground">Total final:</span>
+                          <span className="font-bold text-primary">
+                            {currency} {finalValue.toFixed(2)}
+                          </span>
+                        </div>
+                        
+                        <div className="text-center p-2 bg-muted/30 rounded-lg">
+                          <div className="text-xs text-muted-foreground">Rendimento</div>
+                          <div className="font-bold text-primary">
+                            +{profitPercent.toFixed(1)}%*
+                          </div>
+                        </div>
+                        
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>• Mensal: +{currency} {monthlyProfit.toFixed(2)}*</div>
+                          <div>• Anual: +{currency} {(dailyProfit * 365).toFixed(2)}*</div>
+                          <div className="text-yellow-600">* Valores não garantidos</div>
                         </div>
                       </div>
-                      
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        <div>• Mensal: +{currency} {monthlyProfit.toFixed(2)}</div>
-                        <div>• Anual: +{currency} {(dailyProfit * 365).toFixed(2)}</div>
+                    ) : (
+                      <div className="text-center p-4 text-muted-foreground">
+                        <div className="text-sm font-medium">Plano Bloqueado</div>
+                        <div className="text-xs mt-1">
+                          Precisa de {plan.minimum_indicators} indicados ativos no plano anterior
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </Card>
                 );
               })}

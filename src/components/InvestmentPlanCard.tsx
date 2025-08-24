@@ -40,7 +40,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
             {plan.name}
           </CardTitle>
           <Badge variant={canInvest ? "default" : "secondary"} className="bg-teal-500/20 text-teal-400">
-            {plan.daily_rate}% / dia
+            até {(plan.daily_rate * 100).toFixed(1)}% / dia*
           </Badge>
         </div>
         <p className="text-gray-400 text-sm">{plan.description}</p>
@@ -97,7 +97,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
           disabled={!canInvest}
           className="w-full bg-teal-500 hover:bg-teal-600 text-white disabled:bg-gray-600 disabled:text-gray-400"
         >
-          {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações`}
+          {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações ativas`}
         </Button>
 
         {plan.max_investment_amount && (
@@ -105,6 +105,10 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
             Máximo: ${plan.max_investment_amount}
           </div>
         )}
+        
+        <div className="text-xs text-gray-500 text-center">
+          * Ganhos variáveis através de arbitragem, não garantidos
+        </div>
       </CardContent>
     </Card>
   );

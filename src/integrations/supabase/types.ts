@@ -2060,6 +2060,10 @@ export type Database = {
         Args: { investment_amount: number; referred_user_id: string }
         Returns: undefined
       }
+      can_activate_plan: {
+        Args: { plan_strategy: string; user_id_param: string }
+        Returns: boolean
+      }
       check_daily_withdrawal_limit: {
         Args: { user_id_param: string }
         Returns: boolean
@@ -2083,6 +2087,10 @@ export type Database = {
       confirm_user_email: {
         Args: { user_id: string }
         Returns: Json
+      }
+      count_active_referrals_in_plan: {
+        Args: { referrer_user_id: string; target_plan_strategy: string }
+        Returns: number
       }
       create_investment_operation: {
         Args: { p_investment_id: string }
