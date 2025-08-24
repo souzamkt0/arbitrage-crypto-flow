@@ -1302,9 +1302,60 @@ const TradingInvestments = () => {
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+                   </div>
+                   
+                   {/* Buy Order e Sell Order */}
+                   <div className="grid grid-cols-2 gap-4 mt-4">
+                     <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                       <h5 className="text-green-400 font-bold text-sm mb-2">Buy Order</h5>
+                       <div className="space-y-1">
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Exchange:</span>
+                           <span className="text-white">{currentArbitrage.exchanges[0]}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Preço:</span>
+                           <span className="text-green-400">${currentArbitrage.buyPrice.toFixed(6)}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Quantidade:</span>
+                           <span className="text-white">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Status:</span>
+                           <span className={`${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-green-400' : 'text-yellow-400'}`}>
+                             {['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'Executada' : 'Pendente'}
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+                     
+                     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                       <h5 className="text-red-400 font-bold text-sm mb-2">Sell Order</h5>
+                       <div className="space-y-1">
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Exchange:</span>
+                           <span className="text-white">{currentArbitrage.exchanges[1]}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Preço:</span>
+                           <span className="text-red-400">${currentArbitrage.sellPrice.toFixed(6)}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Quantidade:</span>
+                           <span className="text-white">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Status:</span>
+                           <span className={`${currentArbitrage.stage === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
+                             {currentArbitrage.stage === 'completed' ? 'Executada' : 'Pendente'}
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
 
               {/* Right Panel - 40% */}
               <div className="w-[40%] space-y-4">
