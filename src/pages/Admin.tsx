@@ -4224,8 +4224,315 @@ const Admin = () => {
             <TradingConfig />
           </TabsContent>
           
-          <TabsContent value="trading">
-            <p className="text-muted-foreground">Conteúdo de trading será implementado...</p>
+          <TabsContent value="trading" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Gerenciar Investimentos</h2>
+              <p className="text-muted-foreground">Visualize e delete investimentos ativos do sistema</p>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                      <Target className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Investimentos</p>
+                      <p className="text-2xl font-bold">{activeInvestments.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-500/10 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Valor Total</p>
+                      <p className="text-2xl font-bold">
+                        ${activeInvestments.reduce((sum, inv) => sum + (inv.amount || 0), 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500/10 rounded-lg">
+                      <TrendingUp className="h-6 w-6 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Lucro Total</p>
+                      <p className="text-2xl font-bold">
+                        ${activeInvestments.reduce((sum, inv) => sum + (inv.total_earned || 0), 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/10 rounded-lg">
+                      <User className="h-6 w-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Usuários Únicos</p>
+                      <p className="text-2xl font-bold">
+                        {new Set(activeInvestments.map(inv => inv.user_email)).size}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search and Actions */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Buscar e Gerenciar Investimentos
+                </CardTitle>
+                <CardDescription>
+                  Busque por email, nome do usuário ou nome do plano
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Label htmlFor="confTradingSearch">Buscar</Label>
+                      <Input
+                        id="confTradingSearch"
+                        type="text"
+                        placeholder="Digite email, nome ou plano..."
+                        value={confTradingSearchTerm}
+                        onChange={(e) => setConfTradingSearchTerm(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button
+                        onClick={loadActiveInvestments}
+                        disabled={isLoadingInvestments}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingInvestments ? 'animate-spin' : ''}`} />
+                        Recarregar
+                      </Button>
+                      <Badge variant="secondary">
+                        {activeInvestments.filter(inv => 
+                          !confTradingSearchTerm || 
+                          inv.user_email?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                          inv.user_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                          inv.plan_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase())
+                        ).length} de {activeInvestments.length} encontrados
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Bulk Actions */}
+                  {selectedInvestments.length > 0 && (
+                    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm font-medium">
+                        {selectedInvestments.length} investimento(s) selecionado(s)
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setIsMultiDeleteModalOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Deletar Selecionados
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedInvestments([])}
+                      >
+                        Limpar Seleção
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Investments Table */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Investimentos Ativos
+                </CardTitle>
+                <CardDescription>
+                  Lista de todos os investimentos que podem ser gerenciados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={
+                              activeInvestments.length > 0 && 
+                              selectedInvestments.length === activeInvestments.filter(inv => 
+                                !confTradingSearchTerm || 
+                                inv.user_email?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                                inv.user_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                                inv.plan_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase())
+                              ).length
+                            }
+                            onCheckedChange={(checked) => {
+                              const filteredInvestments = activeInvestments.filter(inv => 
+                                !confTradingSearchTerm || 
+                                inv.user_email?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                                inv.user_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                                inv.plan_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase())
+                              );
+                              
+                              if (checked) {
+                                setSelectedInvestments(filteredInvestments.map(inv => inv.investment_id));
+                              } else {
+                                setSelectedInvestments([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Plano</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Taxa Diária</TableHead>
+                        <TableHead>Lucro Atual</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Dias Restantes</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {activeInvestments
+                        .filter(inv => 
+                          !confTradingSearchTerm || 
+                          inv.user_email?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                          inv.user_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                          inv.plan_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase())
+                        )
+                        .map((investment) => (
+                          <TableRow key={investment.investment_id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedInvestments.includes(investment.investment_id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedInvestments(prev => [...prev, investment.investment_id]);
+                                  } else {
+                                    setSelectedInvestments(prev => prev.filter(id => id !== investment.investment_id));
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{investment.user_name}</p>
+                                <p className="text-sm text-muted-foreground">{investment.user_email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{investment.plan_name}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-medium">${investment.amount?.toFixed(2)}</span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">
+                                {((investment.daily_rate || 0) * 100).toFixed(2)}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-green-600 font-medium">
+                                ${(investment.total_earned || 0).toFixed(2)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={investment.status === 'active' ? 'default' : 'destructive'}
+                              >
+                                {investment.status === 'active' ? (
+                                  <>
+                                    <CheckCircle className="h-3 w-3 mr-1" /> 
+                                    Ativo
+                                  </>
+                                ) : (
+                                  <>
+                                    <XIcon className="h-3 w-3 mr-1" /> 
+                                    {investment.status}
+                                  </>
+                                )}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span>{investment.days_remaining || 0} dias</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedInvestmentForDeletion(investment);
+                                  setIsIndividualDeleteModalOpen(true);
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Deletar
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {activeInvestments.filter(inv => 
+                    !confTradingSearchTerm || 
+                    inv.user_email?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                    inv.user_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase()) ||
+                    inv.plan_name?.toLowerCase().includes(confTradingSearchTerm.toLowerCase())
+                  ).length === 0 && !isLoadingInvestments && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>
+                        {confTradingSearchTerm 
+                          ? "Nenhum investimento encontrado com os critérios de busca"
+                          : "Nenhum investimento ativo encontrado"
+                        }
+                      </p>
+                    </div>
+                  )}
+
+                  {isLoadingInvestments && (
+                    <div className="p-8 text-center">
+                      <RefreshCw className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
+                      <p className="text-muted-foreground">Carregando investimentos...</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Robots Tab */}
@@ -4268,14 +4575,6 @@ const Admin = () => {
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Novo Robô
-                      </Button>
-                      <Button 
-                        onClick={() => navigate('/admin/delete-investment')}
-                        size="sm"
-                        variant="destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Deletar Investimentos
                       </Button>
                     </div>
                     <Badge variant="secondary">
