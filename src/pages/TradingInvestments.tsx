@@ -520,24 +520,27 @@ const TradingInvestments = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-emerald-300 text-sm font-medium">
-                              💰 Lucro Diário Estimado
+                              💰 Lucro Diário Potencial
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              {plan.daily_rate}% ao dia
+                              Até {plan.daily_rate}% ao dia
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-slate-300 text-xs">
-                              Com investimento de $1,000
+                              Simulação com $1,000
                             </p>
                             <p className="text-emerald-400 text-xl font-bold">
-                              ${(1000 * plan.daily_rate / 100).toFixed(2)}/dia
+                              Até ${(1000 * plan.daily_rate / 100).toFixed(2)}/dia
                             </p>
                           </div>
                         </div>
                         <div className="mt-3 text-center">
                           <p className="text-emerald-200 text-sm">
-                            🎯 Participe do plano e veja seus lucros crescerem diariamente com arbitragem automática!
+                            {isLocked 
+                              ? `🔒 Veja abaixo a simulação em tempo real de como você poderia lucrar até ${plan.daily_rate}% hoje!`
+                              : '🎯 Participe e veja seus lucros crescerem diariamente com arbitragem automática!'
+                            }
                           </p>
                         </div>
                       </div>
@@ -673,6 +676,8 @@ const TradingInvestments = () => {
                       planId={plan.id}
                       planName={plan.name}
                       dailyRate={plan.daily_rate}
+                      isLocked={isLocked}
+                      userInvestmentAmount={1000}
                     />
                   </div>
                 );
@@ -782,32 +787,46 @@ const TradingInvestments = () => {
                           </div>
                         </div>
                         
-                        <Button 
-                          onClick={() => executeOperation(investment)}
-                          disabled={!canExecuteOperation || isProcessing}
-                          className={`w-full ${
-                            canExecuteOperation 
-                              ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900' 
-                              : 'bg-slate-600 text-slate-400'
-                          } font-bold`}
-                        >
-                          {isProcessing ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Processando...
-                            </>
-                          ) : canExecuteOperation ? (
-                            <>
-                              <Play className="h-4 w-4 mr-2" />
-                              Executar Operação
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="h-4 w-4 mr-2" />
-                              Aguardar Reset (24h)
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => executeOperation(investment)}
+                            disabled={!canExecuteOperation || isProcessing}
+                            className={`flex-1 ${
+                              canExecuteOperation 
+                                ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900' 
+                                : 'bg-slate-600 text-slate-400'
+                            } font-bold`}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Processando...
+                              </>
+                            ) : canExecuteOperation ? (
+                              <>
+                                <Play className="h-4 w-4 mr-2" />
+                                Iniciar Operação
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="h-4 w-4 mr-2" />
+                                Aguardar Reset (24h)
+                              </>
+                            )}
+                          </Button>
+                          
+                          {/* Trading Chart for active investment */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-3 border-slate-600 text-slate-300 hover:bg-slate-700/50"
+                            onClick={() => {
+                              // Toggle para mostrar gráfico inline
+                            }}
+                          >
+                            <Activity className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );

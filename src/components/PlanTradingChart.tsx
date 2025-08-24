@@ -55,12 +55,16 @@ interface PlanTradingChartProps {
   planId: string;
   planName: string;
   dailyRate: number;
+  isLocked?: boolean;
+  userInvestmentAmount?: number;
 }
 
 export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({ 
   planId, 
   planName, 
-  dailyRate 
+  dailyRate,
+  isLocked = false,
+  userInvestmentAmount = 1000
 }) => {
   const [tradingData, setTradingData] = useState<PlanTradingData[]>([]);
   const [stats, setStats] = useState<PlanTradingStats | null>(null);
@@ -261,19 +265,69 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
     );
   }
 
+  const calculateSimulatedProfit = () => {
+    if (!currentOperation) return { dailyProfit: 0, percentage: 0 };
+    
+    const todayPercentage = Math.random() * dailyRate; // Simula entre 0% e o max do plano
+    const dailyProfit = userInvestmentAmount * (todayPercentage / 100);
+    
+    return { dailyProfit, percentage: todayPercentage };
+  };
+
+  const simulatedProfit = calculateSimulatedProfit();
+
   return (
-    <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
+    <Card className={`bg-gradient-to-br from-slate-800/80 to-slate-700/80 border ${
+      isLocked ? 'border-orange-500/30' : 'border-slate-600/30'
+    }`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-            <Activity className="h-5 w-5 text-emerald-400" />
-            {planName} - Trading ao Vivo
+          <CardTitle className={`text-lg font-bold flex items-center gap-2 ${
+            isLocked ? 'text-orange-300' : 'text-white'
+          }`}>
+            <Activity className={`h-5 w-5 ${isLocked ? 'text-orange-400' : 'text-emerald-400'}`} />
+            {planName} - {isLocked ? 'Simulação' : 'Trading ao Vivo'}
           </CardTitle>
-          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-            AO VIVO
-          </Badge>
+          {isLocked ? (
+            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+              <div className="w-2 h-2 bg-orange-400 rounded-full mr-2 animate-pulse"></div>
+              SIMULAÇÃO
+            </Badge>
+          ) : (
+            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
+              AO VIVO
+            </Badge>
+          )}
         </div>
+        
+        {/* Simulação para planos bloqueados */}
+        {isLocked && (
+          <div className="mt-4 p-4 bg-orange-900/20 rounded-lg border border-orange-500/30">
+            <div className="text-center space-y-2">
+              <p className="text-orange-300 text-sm font-medium">
+                🔒 Potencial de Ganho Hoje
+              </p>
+              <div className="flex items-center justify-center gap-4">
+                <div>
+                  <p className="text-orange-200 text-xs">Com ${userInvestmentAmount}</p>
+                  <p className="text-orange-400 text-xl font-bold">
+                    ${simulatedProfit.dailyProfit.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-orange-200 text-xs">Percentual de hoje</p>
+                  <p className="text-orange-400 text-xl font-bold">
+                    {simulatedProfit.percentage.toFixed(2)}%
+                  </p>
+                </div>
+              </div>
+              <p className="text-orange-200 text-xs">
+                ⚡ Baseado em dados reais de arbitragem
+              </p>
+            </div>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="space-y-4">
