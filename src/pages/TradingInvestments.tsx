@@ -379,9 +379,9 @@ const TradingInvestments = () => {
         return;
       }
 
-      // Calcular lucro da operação baseado na daily_rate (taxa diária completa)
-      const baseProfit = investment.amount * investment.daily_rate; // 0.33% do valor investido
-      const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
+      // Lucro fixo de 0.33 USDT (sem variação)
+      const baseProfit = 0.33; // Valor fixo em USDT
+      const variation = 1; // Sem variação
       const finalProfit = baseProfit * variation;
 
       // Configurar dados da arbitragem
@@ -500,7 +500,7 @@ const TradingInvestments = () => {
             return {
               ...prev,
               progress: i,
-              currentProfit: prev.finalProfit * (i - 40) / 60,
+              currentProfit: 0.33 * (i - 40) / 60, // Sempre progride para 0.33 USDT
               chartData: [...prev.chartData.slice(-19), {
                 time: new Date().toLocaleTimeString(),
                 price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
@@ -525,7 +525,7 @@ const TradingInvestments = () => {
             return {
               ...prev,
               progress: i,
-              currentProfit: prev.finalProfit * (i - 40) / 50,
+              currentProfit: 0.33 * (i - 40) / 50, // Sempre progride para 0.33 USDT
               chartData: [...prev.chartData.slice(-19), {
                 time: new Date().toLocaleTimeString(),
                 price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0008),
@@ -550,7 +550,7 @@ const TradingInvestments = () => {
             return {
               ...prev,
               progress: i,
-              currentProfit: prev.finalProfit * (i - 40) / 55,
+              currentProfit: 0.33 * (i - 40) / 55, // Sempre progride para 0.33 USDT
               chartData: [...prev.chartData.slice(-19), {
                 time: new Date().toLocaleTimeString(),
                 price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0005),
@@ -572,7 +572,7 @@ const TradingInvestments = () => {
           setCurrentArbitrage(prev => ({
             ...prev,
             progress: i,
-            currentProfit: prev.finalProfit,
+             currentProfit: 0.33, // Valor final fixo de 0.33 USDT
             chartData: [...prev.chartData.slice(-19), {
               time: new Date().toLocaleTimeString(),
               price: prev.sellPrice + Math.sin(waveOffset) * (prev.sellPrice * 0.001) + (Math.random() - 0.5) * (prev.sellPrice * 0.0003),
@@ -587,7 +587,7 @@ const TradingInvestments = () => {
           ...prev,
           stage: 'completed',
           progress: 100,
-          currentProfit: prev.finalProfit,
+          currentProfit: 0.33, // Valor final fixo de 0.33 USDT
           operationStartTime: prev.operationStartTime || Date.now()
         }));
 
