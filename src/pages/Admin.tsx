@@ -73,6 +73,7 @@ import {
   Globe,
   Ban
 } from "lucide-react";
+import { TradingConfig } from "@/components/TradingConfig";
 
 interface User {
   id: string;
@@ -5458,7 +5459,7 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="trading">
-            <p className="text-muted-foreground">Conteúdo de trading será implementado...</p>
+            <TradingConfig />
           </TabsContent>
           
           {/* Settings Tab */}

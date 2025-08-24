@@ -554,12 +554,15 @@ export type Database = {
           duration_days: number
           features: Json | null
           id: string
+          max_daily_return: number | null
           max_investment_amount: number | null
           minimum_amount: number
           minimum_indicators: number
           name: string
+          risk_level: number | null
           robot_version: string
           status: string | null
+          trading_strategy: string | null
           updated_at: string | null
         }
         Insert: {
@@ -569,12 +572,15 @@ export type Database = {
           duration_days: number
           features?: Json | null
           id?: string
+          max_daily_return?: number | null
           max_investment_amount?: number | null
           minimum_amount: number
           minimum_indicators: number
           name: string
+          risk_level?: number | null
           robot_version: string
           status?: string | null
+          trading_strategy?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -584,12 +590,15 @@ export type Database = {
           duration_days?: number
           features?: Json | null
           id?: string
+          max_daily_return?: number | null
           max_investment_amount?: number | null
           minimum_amount?: number
           minimum_indicators?: number
           name?: string
+          risk_level?: number | null
           robot_version?: string
           status?: string | null
+          trading_strategy?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1376,6 +1385,56 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trading_configurations: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          max_daily_return: number
+          min_daily_return: number
+          operations_per_day: number
+          plan_id: string
+          risk_factor: number
+          strategy_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_daily_return: number
+          min_daily_return?: number
+          operations_per_day?: number
+          plan_id: string
+          risk_factor?: number
+          strategy_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          max_daily_return?: number
+          min_daily_return?: number
+          operations_per_day?: number
+          plan_id?: string
+          risk_factor?: number
+          strategy_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trading_configurations_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
             referencedColumns: ["id"]
           },
         ]
