@@ -60,7 +60,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
-import { PlanTradingChart } from "@/components/PlanTradingChart";
+// import { PlanTradingChart } from "@/components/PlanTradingChart"; // Temporariamente removido para debug
 
 interface InvestmentPlan {
   id: string;
@@ -95,6 +95,10 @@ interface UserInvestment {
 }
 
 const TradingInvestments = () => {
+  console.log('🔍 TradingInvestments: Componente iniciando...');
+  
+  // Error boundary básico
+  try {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -113,7 +117,9 @@ const TradingInvestments = () => {
   const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    console.log('🔍 TradingInvestments useEffect: user =', user);
     if (user) {
+      console.log('🔍 TradingInvestments: Carregando dados...');
       fetchPlans();
       fetchUserInvestments();
       fetchUserReferrals();
@@ -446,6 +452,8 @@ const TradingInvestments = () => {
   const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.total_earned, 0);
 
+  console.log('🔍 TradingInvestments: Renderizando...', { user, isLoading, plans: plans.length, userInvestments: userInvestments.length });
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -731,7 +739,8 @@ const TradingInvestments = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Trading Chart for this plan */}
+                    {/* Trading Chart for this plan - Temporariamente removido */}
+                    {/*
                     <PlanTradingChart 
                       planId={plan.id}
                       planName={plan.name}
@@ -739,6 +748,7 @@ const TradingInvestments = () => {
                       isLocked={isLocked}
                       userInvestmentAmount={1000}
                     />
+                    */}
                   </div>
                 );
               })}
@@ -973,6 +983,23 @@ const TradingInvestments = () => {
       </Dialog>
     </div>
   );
+  } catch (error) {
+    console.error('🚨 Erro em TradingInvestments:', error);
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Erro na Página de Investimentos</h1>
+          <p className="text-slate-300 mb-4">Ocorreu um erro ao carregar a página.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Recarregar Página
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default TradingInvestments;
