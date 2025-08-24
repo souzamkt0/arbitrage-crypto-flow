@@ -116,15 +116,22 @@ export function TradingConfig() {
     }
   };
 
-  const updatePlanStrategy = async (planId: string, strategy: string, maxReturn: number) => {
+  const updatePlanStrategy = async (planId: string, strategy: string, maxReturn: number, currentRate?: number) => {
     try {
+      const updateData: any = {
+        trading_strategy: strategy,
+        max_daily_return: maxReturn,
+        risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3
+      };
+
+      // Se foi fornecida uma taxa atual, atualizar também
+      if (currentRate !== undefined) {
+        updateData.daily_rate = currentRate / 100; // Converter para decimal
+      }
+
       const { error } = await supabase
         .from('investment_plans')
-        .update({
-          trading_strategy: strategy,
-          max_daily_return: maxReturn,
-          risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3
-        })
+        .update(updateData)
         .eq('id', planId);
 
       if (error) throw error;
@@ -135,19 +142,20 @@ export function TradingConfig() {
           ...plan, 
           trading_strategy: strategy,
           max_daily_return: maxReturn,
-          risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3
+          risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3,
+          ...(currentRate !== undefined && { daily_rate: currentRate / 100 })
         } : plan
       ));
 
       toast({
         title: "Sucesso",
-        description: "Estratégia do plano atualizada com sucesso.",
+        description: "Configuração do plano atualizada com sucesso.",
       });
     } catch (error) {
       console.error('Erro ao atualizar plano:', error);
       toast({
         title: "Erro",
-        description: "Erro ao atualizar estratégia do plano.",
+        description: "Erro ao atualizar configuração do plano.",
         variant: "destructive",
       });
     }
@@ -246,7 +254,7 @@ export function TradingConfig() {
         <CardHeader>
           <CardTitle>Configurações por Plano</CardTitle>
           <CardDescription>
-            Configure a estratégia de trading, retorno máximo diário e nível de risco para cada plano
+            Configure a estratégia de trading e a porcentagem diária exata que cada plano vai render
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -255,8 +263,8 @@ export function TradingConfig() {
               <TableRow>
                 <TableHead>Plano</TableHead>
                 <TableHead>Estratégia</TableHead>
-                <TableHead>Retorno Máximo</TableHead>
-                <TableHead>Retorno Atual</TableHead>
+                <TableHead>Limite Máximo</TableHead>
+                <TableHead>Taxa Configurada</TableHead>
                 <TableHead>Nível de Risco</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -264,6 +272,7 @@ export function TradingConfig() {
             <TableBody>
               {plans.map((plan) => {
                 const isEditing = editingConfig === plan.id;
+                const currentRatePercent = (plan.daily_rate * 100).toFixed(2);
                 
                 return (
                   <TableRow key={plan.id}>
@@ -316,11 +325,43 @@ export function TradingConfig() {
                           <span className="text-sm">%</span>
                         </div>
                       ) : (
-                        <span>{plan.max_daily_return}%</span>
+                        <span className="text-muted-foreground">até {plan.max_daily_return}%</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="text-blue-600">{plan.daily_rate}%</span>
+                      {isEditing ? (
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="number"
+                            value={currentRatePercent}
+                            onChange={(e) => {
+                              const newRate = parseFloat(e.target.value);
+                              setPlans(plans.map(p => 
+                                p.id === plan.id 
+                                  ? { ...p, daily_rate: newRate / 100 }
+                                  : p
+                              ));
+                            }}
+                            className="w-20"
+                            step="0.01"
+                            min="0.01"
+                            max={plan.max_daily_return}
+                          />
+                          <span className="text-sm">%</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-blue-600 font-semibold">{currentRatePercent}%</span>
+                          <div className="w-16 bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-blue-500 h-2 rounded-full" 
+                              style={{ 
+                                width: `${(plan.daily_rate * 100 / plan.max_daily_return * 100)}%` 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       {getRiskBadge(plan.risk_level)}
@@ -335,7 +376,8 @@ export function TradingConfig() {
                                 updatePlanStrategy(
                                   plan.id, 
                                   plan.trading_strategy, 
-                                  plan.max_daily_return
+                                  plan.max_daily_return,
+                                  parseFloat(currentRatePercent)
                                 );
                                 setEditingConfig(null);
                               }}
@@ -372,6 +414,62 @@ export function TradingConfig() {
               })}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Configuração Rápida */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Configuração Rápida de Taxas</CardTitle>
+          <CardDescription>
+            Ajuste rapidamente as taxas diárias de todos os planos
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {plans.map((plan) => (
+              <Card key={plan.id} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">{plan.name}</h4>
+                    <Badge className={getStrategyColor(plan.trading_strategy)}>
+                      {plan.trading_strategy}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">
+                      Taxa Diária (máx: {plan.max_daily_return}%)
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={(plan.daily_rate * 100).toFixed(2)}
+                        onChange={(e) => {
+                          const newRate = parseFloat(e.target.value);
+                          if (newRate <= plan.max_daily_return) {
+                            updatePlanStrategy(
+                              plan.id, 
+                              plan.trading_strategy, 
+                              plan.max_daily_return,
+                              newRate
+                            );
+                          }
+                        }}
+                        className="flex-1"
+                        step="0.01"
+                        min="0.01"
+                        max={plan.max_daily_return}
+                      />
+                      <span className="text-sm">%</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Exemplo: R$100 → R${(100 * (1 + plan.daily_rate)).toFixed(2)} por dia
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
