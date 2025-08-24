@@ -785,7 +785,7 @@ const TradingInvestments = () => {
                   <div>
                     <p className="text-slate-400 text-sm">ROI Médio</p>
                     <p className="text-2xl font-bold text-cyan-400">
-                      {totalInvested > 0 ? ((totalEarnings / totalInvested) * 100).toFixed(1) : '0'}%
+                      0.02%
                     </p>
                   </div>
                   <Target className="h-8 w-8 text-cyan-400" />
@@ -822,7 +822,7 @@ const TradingInvestments = () => {
                               💰 Lucro Diário Potencial
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              Até {plan.daily_rate}% ao dia
+                              0.02% ao dia
                             </p>
                           </div>
                           <div className="text-right">
@@ -830,14 +830,14 @@ const TradingInvestments = () => {
                               Simulação com $1,000
                             </p>
                             <p className="text-emerald-400 text-xl font-bold">
-                              Até ${(1000 * plan.daily_rate / 100).toFixed(2)}/dia
+                              $0.20/dia
                             </p>
                           </div>
                         </div>
                         <div className="mt-3 text-center">
                           <p className="text-emerald-200 text-sm">
                             {isLocked 
-                              ? `🔒 Veja abaixo a simulação em tempo real de como você poderia lucrar até ${plan.daily_rate}% hoje!`
+                              ? `🔒 Veja abaixo a simulação em tempo real de como você poderia lucrar 0.02% hoje!`
                               : '🎯 Participe e veja seus lucros crescerem diariamente com arbitragem automática!'
                             }
                           </p>
@@ -865,7 +865,7 @@ const TradingInvestments = () => {
                                 : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
                             } font-bold`}
                           >
-                            {plan.daily_rate}% / dia
+                            0.02% / dia
                           </Badge>
                         </div>
                         <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
@@ -972,9 +972,6 @@ const TradingInvestments = () => {
                               </div>
                               <div className="text-right">
                                 <div className="text-xs text-cyan-300">Spread médio</div>
-                                <div className="text-lg font-bold text-green-400 animate-pulse">
-                                  +{(Math.random() * 2 + 1.5).toFixed(2)}%
-                                </div>
                               </div>
                             </div>
 
@@ -1071,9 +1068,6 @@ const TradingInvestments = () => {
                                       ACTIVE
                                     </span>
                                   </div>
-                                  <div className="text-xs font-bold text-green-400 animate-pulse">
-                                    +{(Math.random() * 1.8 + 1.2).toFixed(2)}%
-                                  </div>
                                 </div>
                               </div>
 
@@ -1087,9 +1081,6 @@ const TradingInvestments = () => {
                                       PENDING
                                     </span>
                                   </div>
-                                  <div className="text-xs font-bold text-yellow-400 animate-pulse">
-                                    +{(Math.random() * 1.5 + 0.8).toFixed(2)}%
-                                  </div>
                                 </div>
                               </div>
 
@@ -1102,9 +1093,6 @@ const TradingInvestments = () => {
                                     <span className="text-xs bg-blue-500/20 text-blue-400 px-1 py-0.5 rounded text-[10px]">
                                       SCANNING
                                     </span>
-                                  </div>
-                                  <div className="text-xs font-bold text-blue-400 animate-pulse">
-                                    +{(Math.random() * 2.5 + 1.5).toFixed(2)}%
                                   </div>
                                 </div>
                               </div>
@@ -1223,7 +1211,7 @@ const TradingInvestments = () => {
                               {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                              {investment.daily_rate}% / dia
+                              0.02% / dia
                             </Badge>
                           </div>
                         </div>
@@ -1340,7 +1328,7 @@ const TradingInvestments = () => {
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
               <h4 className="font-bold text-emerald-400">Detalhes do Plano:</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>Taxa Diária: <span className="text-emerald-400 font-bold">{selectedPlan?.daily_rate}%</span></div>
+                <div>Taxa Diária: <span className="text-emerald-400 font-bold">0.02%</span></div>
                 <div>Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span></div>
                 <div>Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span></div>
                 <div>Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span></div>
@@ -1368,13 +1356,13 @@ const TradingInvestments = () => {
                 <h4 className="font-bold text-emerald-400">Projeção de Ganhos:</h4>
                 <div className="text-sm space-y-1">
                   <div>Ganho Diário: <span className="text-emerald-400 font-bold">
-                    ${((parseFloat(selectedAmount) * selectedPlan.daily_rate) / 100).toFixed(2)}
+                    ${((parseFloat(selectedAmount) * 0.02) / 100).toFixed(2)}
                   </span></div>
                   <div>Ganho Total: <span className="text-emerald-400 font-bold">
-                    ${((parseFloat(selectedAmount) * selectedPlan.daily_rate * selectedPlan.duration_days) / 100).toFixed(2)}
+                    ${((parseFloat(selectedAmount) * 0.02 * selectedPlan.duration_days) / 100).toFixed(2)}
                   </span></div>
                   <div>ROI: <span className="text-emerald-400 font-bold">
-                    {((selectedPlan.daily_rate * selectedPlan.duration_days)).toFixed(1)}%
+                    {((0.02 * selectedPlan.duration_days)).toFixed(1)}%
                   </span></div>
                 </div>
               </div>
@@ -1725,7 +1713,7 @@ const TradingInvestments = () => {
                     +${currentArbitrage.currentProfit.toFixed(4)}
                   </div>
                   <div className="text-sm text-emerald-300">
-                    +{((currentArbitrage.currentProfit / (currentArbitrage.investment?.amount || 1)) * 100).toFixed(3)}%
+                    +0.02%
                   </div>
                 </div>
 
