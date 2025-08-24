@@ -875,11 +875,16 @@ const TradingInvestments = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-emerald-300 text-sm font-medium">
-                              💰 Lucro Diário Potencial
+                              💰 Lucro Diário Potencial (Variável)
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              {plan.id === '1' ? 'Até 2% ao dia' : plan.id === '2' ? 'Até 3% ao dia' : plan.id === '3' ? 'Até 4% ao dia' : 'Até 2% ao dia'}
+                              {plan.id === '1' ? 'Até 2% ao dia*' : plan.id === '2' ? 'Até 3% ao dia*' : plan.id === '3' ? 'Até 4% ao dia*' : 'Até 2% ao dia*'}
                             </p>
+                            {plan.id === '1' && (
+                              <p className="text-yellow-300 text-xs mt-1">
+                                *Arbitragem variável - pode ser menor
+                              </p>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="text-slate-300 text-xs">
@@ -891,15 +896,22 @@ const TradingInvestments = () => {
                           </div>
                         </div>
                         <div className="mt-3 text-center">
-                          <p className="text-emerald-200 text-sm">
+                          <p className="text-white text-sm">
                             {isLocked 
                               ? `🔒 ${getRequirementMessage(plan.id)} Veja abaixo a simulação em tempo real de como você poderia lucrar ${plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'} hoje!`
-                              : '🎯 Sistema de arbitragem automática com rentabilidade variável - ganhos não garantidos!'
+                              : plan.id === '1' 
+                                ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)'
+                                : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'
                             }
                           </p>
-                          {canInvest && (
+                          {canInvest && plan.id === '1' && (
                             <p className="text-yellow-300 text-xs mt-2">
-                              ⚠️ Ganhos não garantidos - Sistema de arbitragem com rentabilidade variável
+                              ⚠️ Arbitragem variável: pode ganhar menos de 2% - ganhos não fixos
+                            </p>
+                          )}
+                          {canInvest && plan.id !== '1' && (
+                            <p className="text-yellow-300 text-xs mt-2">
+                              ⚠️ Ganhos não garantidos - Sistema automatizado variável
                             </p>
                           )}
                         </div>
@@ -956,21 +968,26 @@ const TradingInvestments = () => {
                         </div>
                         {/* Informações específicas de cada plano */}
                         <div className="mt-2">
+                          {plan.id === '1' && (
+                            <p className="text-xs text-white flex items-center gap-1">
+                              📊 Sistema de Arbitragem Variável
+                            </p>
+                          )}
                           {plan.id === '2' && (
-                            <p className="text-xs text-orange-300">
+                            <p className="text-xs text-white flex items-center gap-1">
                               📋 Requisito: 10 pessoas ativas no Robô 4.0
                             </p>
                           )}
                           {plan.id === '3' && (
-                            <p className="text-xs text-orange-300">
+                            <p className="text-xs text-white flex items-center gap-1">
                               📋 Requisito: 40 pessoas ativas no Robô 4.0.5
                             </p>
                           )}
-                          <p className="text-xs text-slate-400 mt-1">
-                            Sistema Automatizado - Arbitragem Variável
+                          <p className="text-xs text-white mt-1 flex items-center gap-1">
+                            🤖 Sistema Automatizado - {plan.id === '1' ? 'Arbitragem' : 'Rentabilidade'} Variável
                           </p>
                         </div>
-                        <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
+                        <p className="text-sm text-white">
                           {plan.description}
                         </p>
                       </CardHeader>
@@ -978,25 +995,25 @@ const TradingInvestments = () => {
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <div className={`flex items-center gap-1 text-sm ${
-                              isLocked ? 'text-slate-500' : 'text-slate-400'
-                            }`}>
+                            <div className="flex items-center gap-1 text-sm text-white">
+                              <DollarSign className="w-4 h-4" />
+                              Valor Mínimo
                               <DollarSign className="w-4 h-4" />
                               Valor Mínimo
                             </div>
-                            <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                            <div className="font-semibold text-white">
                               ${plan.minimum_amount}
                             </div>
                           </div>
                           
                           <div className="space-y-1">
-                            <div className={`flex items-center gap-1 text-sm ${
-                              isLocked ? 'text-slate-500' : 'text-slate-400'
-                            }`}>
+                            <div className="flex items-center gap-1 text-sm text-white">
+                              <Clock className="w-4 h-4" />
+                              Duração
                               <Clock className="w-4 h-4" />
                               Duração
                             </div>
-                            <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                            <div className="font-semibold text-white">
                               {plan.duration_days} dias
                             </div>
                           </div>
@@ -1004,14 +1021,14 @@ const TradingInvestments = () => {
 
                         {plan.minimum_indicators > 0 && (
                           <div className="space-y-1">
-                            <div className={`flex items-center gap-1 text-sm ${
-                              isLocked ? 'text-slate-500' : 'text-slate-400'
-                            }`}>
+                            <div className="flex items-center gap-1 text-sm text-white">
+                              <Users className="w-4 h-4" />
+                              Indicações Necessárias
                               <Users className="w-4 h-4" />
                               Indicações Necessárias
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                              <div className="font-semibold text-white">
                                 {plan.minimum_indicators}
                               </div>
                               <Badge 
@@ -1025,22 +1042,16 @@ const TradingInvestments = () => {
                         )}
 
                         <div className="space-y-2">
-                          <h4 className={`text-sm font-medium ${
-                            isLocked ? 'text-slate-500' : 'text-slate-300'
-                          }`}>
+                          <h4 className="text-sm font-medium text-white">
                             Recursos:
                           </h4>
                           <div className="space-y-1">
                             {plan.features?.slice(0, 3).map((feature, index) => (
                               <div 
                                 key={index} 
-                                className={`text-xs flex items-center gap-1 ${
-                                  isLocked ? 'text-slate-600' : 'text-slate-400'
-                                }`}
+                                className="text-xs flex items-center gap-1 text-white"
                               >
-                                <div className={`w-1 h-1 rounded-full ${
-                                  isLocked ? 'bg-slate-500' : 'bg-emerald-400'
-                                }`}></div>
+                                <div className="w-1 h-1 rounded-full bg-emerald-400"></div>
                                 {feature}
                               </div>
                             ))}
@@ -1245,9 +1256,7 @@ const TradingInvestments = () => {
                         </Button>
 
                         {plan.max_investment_amount && (
-                          <div className={`text-xs text-center ${
-                            isLocked ? 'text-slate-600' : 'text-slate-500'
-                          }`}>
+                          <div className="text-xs text-center text-white">
                             Máximo: ${plan.max_investment_amount}
                           </div>
                         )}
