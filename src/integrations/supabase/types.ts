@@ -1913,6 +1913,21 @@ export type Database = {
         Args: { p_investment_id: string; p_reason?: string }
         Returns: Json
       }
+      admin_get_all_investments: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number
+          created_at: string
+          daily_rate: number
+          days_remaining: number
+          investment_id: string
+          plan_name: string
+          status: string
+          total_earned: number
+          user_email: string
+          user_name: string
+        }[]
+      }
       admin_toggle_user_status: {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
