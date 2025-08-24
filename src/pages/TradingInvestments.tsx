@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,58 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Clock, 
-  Target,
-  Calendar,
-  Bot,
-  Timer,
-  Play,
-  ArrowUpDown,
-  Activity,
-  Zap,
-  Sparkles,
-  BarChart3,
-  CreditCard,
-  Wallet,
-  ChevronRight,
-  Shield,
-  CheckCircle,
-  PlayCircle,
-  Users,
-  Crown,
-  Star,
-  Trophy,
-  TrendingDown,
-  ArrowLeft,
-  PlusCircle,
-  Flame,
-  Lock,
-  Eye,
-  EyeOff
-} from "lucide-react";
-import {
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-  Tooltip,
-  CartesianGrid,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis
-} from "recharts";
+import { TrendingUp, DollarSign, Clock, Target, Calendar, Bot, Timer, Play, ArrowUpDown, Activity, Zap, Sparkles, BarChart3, CreditCard, Wallet, ChevronRight, Shield, CheckCircle, PlayCircle, Users, Crown, Star, Trophy, TrendingDown, ArrowLeft, PlusCircle, Flame, Lock, Eye, EyeOff } from "lucide-react";
+import { ResponsiveContainer, Area, AreaChart, Tooltip, CartesianGrid, LineChart, Line, XAxis, YAxis } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 // import { PlanTradingChart } from "@/components/PlanTradingChart"; // Temporariamente removido para debug
@@ -76,7 +28,6 @@ interface InvestmentPlan {
   minimum_indicators: number;
   features: string[];
 }
-
 interface UserInvestment {
   id: string;
   investment_plan_id: string;
@@ -95,582 +46,565 @@ interface UserInvestment {
   created_at: string;
   updated_at: string;
 }
-
 const TradingInvestments = () => {
   console.log('🔍 TradingInvestments: Componente iniciando...');
-  
+
   // Error boundary básico
   try {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  
-  // State Management
-  const [plans, setPlans] = useState<InvestmentPlan[]>([]);
-  const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
-  const [selectedAmount, setSelectedAmount] = useState<string>("");
-  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
-  const [userReferrals, setUserReferrals] = useState<number>(0);
-  const [showInvestDialog, setShowInvestDialog] = useState(false);
-  const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
-  const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
-  const [showArbitrageModal, setShowArbitrageModal] = useState(false);
+    const {
+      user
+    } = useAuth();
+    const {
+      toast
+    } = useToast();
+    const navigate = useNavigate();
+    const isMobile = useIsMobile();
 
-  // Função para verificar requisitos de cada plano
-  const getRequirementMessage = (planId: string) => {
-    switch (planId) {
-      case '1':
-        return '';
-      case '2':
-        return 'Precisa de 10 pessoas ativas no Robô 4.0 para acessar. ';
-      case '3':
-        return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
-      default:
-        return '';
-    }
-  };
+    // State Management
+    const [plans, setPlans] = useState<InvestmentPlan[]>([]);
+    const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
+    const [selectedAmount, setSelectedAmount] = useState<string>("");
+    const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
+    const [userReferrals, setUserReferrals] = useState<number>(0);
+    const [showInvestDialog, setShowInvestDialog] = useState(false);
+    const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
+    const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
+    const [showArbitrageModal, setShowArbitrageModal] = useState(false);
 
-  // Função para verificar se pode acessar o plano
-  const checkPlanRequirements = async (planId: string, userId: string) => {
-    switch (planId) {
-      case '1': // Robô 4.0 - sempre pode acessar
-        return true;
-      case '2': // Robô 4.0.5 - precisa de 10 pessoas ativas no plano 1
-        return await checkActiveReferralsInPlan(userId, '1', 10);
-      case '3': // Robô 4.1.0 - precisa de 40 pessoas ativas no plano 2
-        return await checkActiveReferralsInPlan(userId, '2', 40);
-      default:
-        return true;
-    }
-  };
+    // Função para verificar requisitos de cada plano
+    const getRequirementMessage = (planId: string) => {
+      switch (planId) {
+        case '1':
+          return '';
+        case '2':
+          return 'Precisa de 10 pessoas ativas no Robô 4.0 para acessar. ';
+        case '3':
+          return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
+        default:
+          return '';
+      }
+    };
 
-  // Função para verificar indicações ativas em um plano específico
-  const checkActiveReferralsInPlan = async (userId: string, planId: string, requiredCount: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('referrals')
-        .select(`
+    // Função para verificar se pode acessar o plano
+    const checkPlanRequirements = async (planId: string, userId: string) => {
+      switch (planId) {
+        case '1':
+          // Robô 4.0 - sempre pode acessar
+          return true;
+        case '2':
+          // Robô 4.0.5 - precisa de 10 pessoas ativas no plano 1
+          return await checkActiveReferralsInPlan(userId, '1', 10);
+        case '3':
+          // Robô 4.1.0 - precisa de 40 pessoas ativas no plano 2
+          return await checkActiveReferralsInPlan(userId, '2', 40);
+        default:
+          return true;
+      }
+    };
+
+    // Função para verificar indicações ativas em um plano específico
+    const checkActiveReferralsInPlan = async (userId: string, planId: string, requiredCount: number) => {
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('referrals').select(`
           referred_id,
           user_investments!inner(*)
-        `)
-        .eq('referrer_id', userId)
-        .eq('status', 'active')
-        .eq('user_investments.investment_plan_id', planId)
-        .eq('user_investments.status', 'active');
-
-      if (error) throw error;
-      return (data?.length || 0) >= requiredCount;
-    } catch (error) {
-      console.error('Erro ao verificar indicações ativas:', error);
-      return false;
-    }
-  };
-  const [currentArbitrage, setCurrentArbitrage] = useState<{
-    investment: UserInvestment | null;
-    progress: number;
-    currentProfit: number;
-    finalProfit: number;
-    stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
-    pair: string;
-    exchanges: string[];
-    buyPrice: number;
-    sellPrice: number;
-    chartData: Array<{
-      time: string;
-      price: number;
-      exchange: string;
-      volume: number;
-    }>;
-    operationStartTime: number;
-  }>({
-    investment: null,
-    progress: 0,
-    currentProfit: 0,
-    finalProfit: 0,
-    stage: 'analyzing',
-    pair: '',
-    exchanges: [],
-    buyPrice: 0,
-    sellPrice: 0,
-    chartData: [],
-    operationStartTime: 0
-  });
-
-  useEffect(() => {
-    console.log('🔍 TradingInvestments useEffect: user =', user);
-    if (user) {
-      console.log('🔍 TradingInvestments: Carregando dados...');
-      fetchPlans();
-      fetchUserInvestments();
-      fetchUserReferrals();
-    }
-  }, [user]);
-
-  const fetchPlans = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('investment_plans')
-        .select('*')
-        .eq('status', 'active')
-        .order('minimum_amount');
-
-      if (error) throw error;
-      setPlans(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar planos:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar planos de investimento",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchUserInvestments = async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_investments')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUserInvestments(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar investimentos:', error);
-    }
-  };
-
-  // Função para gerar dados do gráfico de trading
-  const generateTradingData = () => {
-    const data = [];
-    let price = 45000; // Preço inicial do BTC
-    
-    for (let i = 0; i < 24; i++) {
-      const variation = (Math.random() - 0.5) * 1000; // Variação aleatória
-      price += variation;
-      data.push({
-        time: `${i.toString().padStart(2, '0')}:00`,
-        price: Math.round(price),
-      });
-    }
-    return data;
-  };
-
-  const fetchUserReferrals = async () => {
-    if (!user?.id) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('referrals')
-        .select('*')
-        .eq('referrer_id', user.id)
-        .eq('status', 'active');
-        
-      if (error) throw error;
-      setUserReferrals(data?.length || 0);
-    } catch (error) {
-      console.error('Erro ao buscar indicações:', error);
-    }
-  };
-
-  const populateTestData = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('populate-trading-data');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "✅ Dados Populados",
-        description: "Dados de trading foram adicionados com sucesso!",
-      });
-    } catch (error) {
-      console.error('Erro ao popular dados:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao popular dados de teste",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const createInvestment = async () => {
-    console.log('🔍 createInvestment iniciado');
-    console.log('selectedPlan:', selectedPlan);
-    console.log('selectedAmount:', selectedAmount);
-    console.log('user?.id:', user?.id);
-    
-    if (!selectedPlan || !selectedAmount || !user?.id) {
-      console.log('❌ Dados insuficientes para criar investimento');
-      return;
-    }
-
-    const amount = parseFloat(selectedAmount);
-    console.log('💰 Valor do investimento:', amount);
-    
-    if (amount < selectedPlan.minimum_amount) {
-      console.log('❌ Valor menor que o mínimo');
-      toast({
-        title: "Valor Inválido",
-        description: `Valor mínimo é $${selectedPlan.minimum_amount}`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (selectedPlan.max_investment_amount && amount > selectedPlan.max_investment_amount) {
-      console.log('❌ Valor maior que o máximo');
-      toast({
-        title: "Valor Inválido", 
-        description: `Valor máximo é $${selectedPlan.max_investment_amount}`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    console.log('👥 Verificando indicações - userReferrals:', userReferrals, 'minimum_indicators:', selectedPlan.minimum_indicators);
-    if (userReferrals < selectedPlan.minimum_indicators) {
-      console.log('❌ Indicações insuficientes');
-      toast({
-        title: "Indicações Insuficientes",
-        description: `Este plano requer ${selectedPlan.minimum_indicators} indicações ativas`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      console.log('🚀 Iniciando criação do investimento...');
-      setIsLoading(true);
-
-      const startDate = new Date();
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + selectedPlan.duration_days);
-
-      const investmentData = {
-        user_id: user.id,
-        investment_plan_id: selectedPlan.id,
-        amount: amount,
-        daily_rate: selectedPlan.daily_rate,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        total_earned: 0,
-        status: 'active',
-        operations_completed: 0,
-        total_operations: selectedPlan.duration_days * 2, // 2 operações por dia
-        current_day_progress: 0,
-        today_earnings: 0,
-        daily_target: amount * (selectedPlan.daily_rate / 100),
-        days_remaining: selectedPlan.duration_days
-      };
-
-      console.log('📋 Dados do investimento:', investmentData);
-
-      const { data, error } = await supabase
-        .from('user_investments')
-        .insert(investmentData)
-        .select();
-
-      console.log('📊 Resposta do Supabase:', { data, error });
-
-      if (error) {
-        console.error('❌ Erro do Supabase:', error);
-        throw error;
+        `).eq('referrer_id', userId).eq('status', 'active').eq('user_investments.investment_plan_id', planId).eq('user_investments.status', 'active');
+        if (error) throw error;
+        return (data?.length || 0) >= requiredCount;
+      } catch (error) {
+        console.error('Erro ao verificar indicações ativas:', error);
+        return false;
       }
-
-      // Registrar operação de comissão para referrer
-      if (userReferrals > 0) {
-        await supabase.rpc('calculate_referral_commission_auto', {
-          referred_user_id: user.id,
-          investment_amount: amount
-        });
-      }
-
-      toast({
-        title: "✅ Investimento Criado!",
-        description: `Seu plano ${selectedPlan.id === '1' ? 'Robo 4.0' : selectedPlan.id === '2' ? 'Robô 4.0.5' : selectedPlan.id === '3' ? 'Robô 4.1.0' : selectedPlan.name} está ativo!`,
-      });
-
-      setShowInvestDialog(false);
-      setSelectedAmount("");
-      setSelectedPlan(null);
-      fetchUserInvestments();
-
-    } catch (error) {
-      console.error('Erro ao criar investimento:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao criar investimento. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const executeArbitrage = async (investment: UserInvestment) => {
-    if (processingOperations.has(investment.id)) return;
-
-    // Verificar limite de operações por dia
-    if (investment.operations_completed >= 2) {
-      toast({
-        title: "⚠️ Limite Atingido",
-        description: "Aguarde o reset diário para executar novas operações.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Calcular lucro da operação baseado na daily_rate com variação
-    const baseProfit = (investment.amount * investment.daily_rate) / 100 / 2;
-    const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
-    const finalProfit = baseProfit * variation;
-
-    // Configurar dados da arbitragem
-    const pairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'];
-    const exchanges = ['Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'KuCoin'];
-    const selectedPair = pairs[Math.floor(Math.random() * pairs.length)];
-    const selectedExchanges = exchanges.sort(() => 0.5 - Math.random()).slice(0, 2);
-    
-    let buyPrice = 0;
-    if (selectedPair.includes('BTC')) buyPrice = 40000 + Math.random() * 20000;
-    else if (selectedPair.includes('ETH')) buyPrice = 2000 + Math.random() * 1000;
-    else if (selectedPair.includes('BNB')) buyPrice = 200 + Math.random() * 100;
-    else buyPrice = 0.5 + Math.random() * 2;
-
-    const sellPrice = buyPrice * (1 + (finalProfit / investment.amount));
-
-    // Dados iniciais do gráfico
-    const initialChartData = Array.from({ length: 20 }, (_, i) => ({
-      time: new Date(Date.now() - (20 - i) * 1000).toLocaleTimeString(),
-      price: buyPrice + (Math.random() - 0.5) * (buyPrice * 0.001),
-      exchange: selectedExchanges[0],
-      volume: Math.random() * 1000 + 500
-    }));
-
-    setCurrentArbitrage({
-      investment,
+    };
+    const [currentArbitrage, setCurrentArbitrage] = useState<{
+      investment: UserInvestment | null;
+      progress: number;
+      currentProfit: number;
+      finalProfit: number;
+      stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
+      pair: string;
+      exchanges: string[];
+      buyPrice: number;
+      sellPrice: number;
+      chartData: Array<{
+        time: string;
+        price: number;
+        exchange: string;
+        volume: number;
+      }>;
+      operationStartTime: number;
+    }>({
+      investment: null,
       progress: 0,
       currentProfit: 0,
-      finalProfit,
+      finalProfit: 0,
       stage: 'analyzing',
-      pair: selectedPair,
-      exchanges: selectedExchanges,
-      buyPrice,
-      sellPrice,
-      chartData: initialChartData,
-      operationStartTime: Date.now()
+      pair: '',
+      exchanges: [],
+      buyPrice: 0,
+      sellPrice: 0,
+      chartData: [],
+      operationStartTime: 0
     });
-
-    setShowArbitrageModal(true);
-    setProcessingOperations(prev => new Set(prev).add(investment.id));
-
-    // Simulação será executada no modal
-  };
-
-  const runArbitrageSimulation = async () => {
-    const investment = currentArbitrage.investment;
-    if (!investment) return;
-
-    try {
-      let waveOffset = 0;
-      
-      // Etapa 1: Analisando mercados e spreads (12 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'analyzing' }));
-      for (let i = 0; i <= 15; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        waveOffset += 0.2;
-        setCurrentArbitrage(prev => ({ 
-          ...prev, 
-          progress: i,
-          chartData: [...prev.chartData.slice(-19), {
-            time: new Date().toLocaleTimeString(),
-            price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.004) + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
-            exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
-            volume: Math.random() * 1000 + 500
-          }]
-        }));
+    useEffect(() => {
+      console.log('🔍 TradingInvestments useEffect: user =', user);
+      if (user) {
+        console.log('🔍 TradingInvestments: Carregando dados...');
+        fetchPlans();
+        fetchUserInvestments();
+        fetchUserReferrals();
       }
-
-      // Etapa 2: Identificando melhores oportunidades (10 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'opportunity' }));
-      for (let i = 15; i <= 30; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 650));
-        waveOffset += 0.3;
-        setCurrentArbitrage(prev => ({ 
-          ...prev, 
-          progress: i,
-          chartData: [...prev.chartData.slice(-19), {
-            time: new Date().toLocaleTimeString(),
-            price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.003) + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
-            exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
-            volume: Math.random() * 1500 + 800
-          }]
-        }));
+    }, [user]);
+    const fetchPlans = async () => {
+      try {
+        setIsLoading(true);
+        const {
+          data,
+          error
+        } = await supabase.from('investment_plans').select('*').eq('status', 'active').order('minimum_amount');
+        if (error) throw error;
+        setPlans(data || []);
+      } catch (error) {
+        console.error('Erro ao buscar planos:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar planos de investimento",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
       }
-
-      // Etapa 3: Calculando riscos e volumes (8 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'calculating' }));
-      for (let i = 30; i <= 40; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        waveOffset += 0.25;
-        setCurrentArbitrage(prev => ({ 
-          ...prev, 
-          progress: i,
-          chartData: [...prev.chartData.slice(-19), {
-            time: new Date().toLocaleTimeString(),
-            price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.002) + (Math.random() - 0.5) * (prev.buyPrice * 0.0008),
-            exchange: prev.exchanges[0],
-            volume: Math.random() * 2000 + 1000
-          }]
-        }));
+    };
+    const fetchUserInvestments = async () => {
+      if (!user?.id) return;
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('user_investments').select('*').eq('user_id', user.id).order('created_at', {
+          ascending: false
+        });
+        if (error) throw error;
+        setUserInvestments(data || []);
+      } catch (error) {
+        console.error('Erro ao buscar investimentos:', error);
       }
+    };
 
-      // Etapa 4: Executando ordem de compra (12 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'buying' }));
-      for (let i = 40; i <= 60; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 600));
-        waveOffset += 0.4;
-        setCurrentArbitrage(prev => {
-          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 20) * 0.4;
-          const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.003);
-          return {
-            ...prev, 
-            progress: i,
-            currentProfit: (prev.finalProfit * (i - 40)) / 60,
-            chartData: [...prev.chartData.slice(-19), {
-              time: new Date().toLocaleTimeString(),
-              price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
-              exchange: prev.exchanges[0],
-              volume: Math.random() * 3000 + 2000
-            }]
-          };
+    // Função para gerar dados do gráfico de trading
+    const generateTradingData = () => {
+      const data = [];
+      let price = 45000; // Preço inicial do BTC
+
+      for (let i = 0; i < 24; i++) {
+        const variation = (Math.random() - 0.5) * 1000; // Variação aleatória
+        price += variation;
+        data.push({
+          time: `${i.toString().padStart(2, '0')}:00`,
+          price: Math.round(price)
         });
       }
+      return data;
+    };
+    const fetchUserReferrals = async () => {
+      if (!user?.id) return;
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('referrals').select('*').eq('referrer_id', user.id).eq('status', 'active');
+        if (error) throw error;
+        setUserReferrals(data?.length || 0);
+      } catch (error) {
+        console.error('Erro ao buscar indicações:', error);
+      }
+    };
+    const populateTestData = async () => {
+      try {
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('populate-trading-data');
+        if (error) throw error;
+        toast({
+          title: "✅ Dados Populados",
+          description: "Dados de trading foram adicionados com sucesso!"
+        });
+      } catch (error) {
+        console.error('Erro ao popular dados:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao popular dados de teste",
+          variant: "destructive"
+        });
+      }
+    };
+    const createInvestment = async () => {
+      console.log('🔍 createInvestment iniciado');
+      console.log('selectedPlan:', selectedPlan);
+      console.log('selectedAmount:', selectedAmount);
+      console.log('user?.id:', user?.id);
+      if (!selectedPlan || !selectedAmount || !user?.id) {
+        console.log('❌ Dados insuficientes para criar investimento');
+        return;
+      }
+      const amount = parseFloat(selectedAmount);
+      console.log('💰 Valor do investimento:', amount);
+      if (amount < selectedPlan.minimum_amount) {
+        console.log('❌ Valor menor que o mínimo');
+        toast({
+          title: "Valor Inválido",
+          description: `Valor mínimo é $${selectedPlan.minimum_amount}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      if (selectedPlan.max_investment_amount && amount > selectedPlan.max_investment_amount) {
+        console.log('❌ Valor maior que o máximo');
+        toast({
+          title: "Valor Inválido",
+          description: `Valor máximo é $${selectedPlan.max_investment_amount}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      console.log('👥 Verificando indicações - userReferrals:', userReferrals, 'minimum_indicators:', selectedPlan.minimum_indicators);
+      if (userReferrals < selectedPlan.minimum_indicators) {
+        console.log('❌ Indicações insuficientes');
+        toast({
+          title: "Indicações Insuficientes",
+          description: `Este plano requer ${selectedPlan.minimum_indicators} indicações ativas`,
+          variant: "destructive"
+        });
+        return;
+      }
+      try {
+        console.log('🚀 Iniciando criação do investimento...');
+        setIsLoading(true);
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + selectedPlan.duration_days);
+        const investmentData = {
+          user_id: user.id,
+          investment_plan_id: selectedPlan.id,
+          amount: amount,
+          daily_rate: selectedPlan.daily_rate,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          total_earned: 0,
+          status: 'active',
+          operations_completed: 0,
+          total_operations: selectedPlan.duration_days * 2,
+          // 2 operações por dia
+          current_day_progress: 0,
+          today_earnings: 0,
+          daily_target: amount * (selectedPlan.daily_rate / 100),
+          days_remaining: selectedPlan.duration_days
+        };
+        console.log('📋 Dados do investimento:', investmentData);
+        const {
+          data,
+          error
+        } = await supabase.from('user_investments').insert(investmentData).select();
+        console.log('📊 Resposta do Supabase:', {
+          data,
+          error
+        });
+        if (error) {
+          console.error('❌ Erro do Supabase:', error);
+          throw error;
+        }
 
-      // Etapa 5: Transferindo entre exchanges (8 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'transferring' }));
-      for (let i = 60; i <= 75; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 530));
-        waveOffset += 0.35;
-        setCurrentArbitrage(prev => {
-          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 35) * 0.6;
-          const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.002);
-          return {
-            ...prev, 
+        // Registrar operação de comissão para referrer
+        if (userReferrals > 0) {
+          await supabase.rpc('calculate_referral_commission_auto', {
+            referred_user_id: user.id,
+            investment_amount: amount
+          });
+        }
+        toast({
+          title: "✅ Investimento Criado!",
+          description: `Seu plano ${selectedPlan.id === '1' ? 'Robo 4.0' : selectedPlan.id === '2' ? 'Robô 4.0.5' : selectedPlan.id === '3' ? 'Robô 4.1.0' : selectedPlan.name} está ativo!`
+        });
+        setShowInvestDialog(false);
+        setSelectedAmount("");
+        setSelectedPlan(null);
+        fetchUserInvestments();
+      } catch (error) {
+        console.error('Erro ao criar investimento:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao criar investimento. Tente novamente.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    const executeArbitrage = async (investment: UserInvestment) => {
+      if (processingOperations.has(investment.id)) return;
+
+      // Verificar limite de operações por dia
+      if (investment.operations_completed >= 2) {
+        toast({
+          title: "⚠️ Limite Atingido",
+          description: "Aguarde o reset diário para executar novas operações.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Calcular lucro da operação baseado na daily_rate com variação
+      const baseProfit = investment.amount * investment.daily_rate / 100 / 2;
+      const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
+      const finalProfit = baseProfit * variation;
+
+      // Configurar dados da arbitragem
+      const pairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'];
+      const exchanges = ['Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'KuCoin'];
+      const selectedPair = pairs[Math.floor(Math.random() * pairs.length)];
+      const selectedExchanges = exchanges.sort(() => 0.5 - Math.random()).slice(0, 2);
+      let buyPrice = 0;
+      if (selectedPair.includes('BTC')) buyPrice = 40000 + Math.random() * 20000;else if (selectedPair.includes('ETH')) buyPrice = 2000 + Math.random() * 1000;else if (selectedPair.includes('BNB')) buyPrice = 200 + Math.random() * 100;else buyPrice = 0.5 + Math.random() * 2;
+      const sellPrice = buyPrice * (1 + finalProfit / investment.amount);
+
+      // Dados iniciais do gráfico
+      const initialChartData = Array.from({
+        length: 20
+      }, (_, i) => ({
+        time: new Date(Date.now() - (20 - i) * 1000).toLocaleTimeString(),
+        price: buyPrice + (Math.random() - 0.5) * (buyPrice * 0.001),
+        exchange: selectedExchanges[0],
+        volume: Math.random() * 1000 + 500
+      }));
+      setCurrentArbitrage({
+        investment,
+        progress: 0,
+        currentProfit: 0,
+        finalProfit,
+        stage: 'analyzing',
+        pair: selectedPair,
+        exchanges: selectedExchanges,
+        buyPrice,
+        sellPrice,
+        chartData: initialChartData,
+        operationStartTime: Date.now()
+      });
+      setShowArbitrageModal(true);
+      setProcessingOperations(prev => new Set(prev).add(investment.id));
+
+      // Simulação será executada no modal
+    };
+    const runArbitrageSimulation = async () => {
+      const investment = currentArbitrage.investment;
+      if (!investment) return;
+      try {
+        let waveOffset = 0;
+
+        // Etapa 1: Analisando mercados e spreads (12 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'analyzing'
+        }));
+        for (let i = 0; i <= 15; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          waveOffset += 0.2;
+          setCurrentArbitrage(prev => ({
+            ...prev,
             progress: i,
-            currentProfit: (prev.finalProfit * (i - 40)) / 50,
             chartData: [...prev.chartData.slice(-19), {
               time: new Date().toLocaleTimeString(),
-              price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0008),
-              exchange: 'Transferindo...',
+              price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.004) + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+              exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
               volume: Math.random() * 1000 + 500
             }]
-          };
-        });
-      }
+          }));
+        }
 
-      // Etapa 6: Executando ordem de venda (8 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'selling' }));
-      for (let i = 75; i <= 95; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 400));
-        waveOffset += 0.45;
-        setCurrentArbitrage(prev => {
-          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 55);
-          const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.0015);
-          return {
-            ...prev, 
+        // Etapa 2: Identificando melhores oportunidades (10 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'opportunity'
+        }));
+        for (let i = 15; i <= 30; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 650));
+          waveOffset += 0.3;
+          setCurrentArbitrage(prev => ({
+            ...prev,
             progress: i,
-            currentProfit: (prev.finalProfit * (i - 40)) / 55,
             chartData: [...prev.chartData.slice(-19), {
               time: new Date().toLocaleTimeString(),
-              price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0005),
-              exchange: prev.exchanges[1],
-              volume: Math.random() * 4000 + 2500
+              price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.003) + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+              exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
+              volume: Math.random() * 1500 + 800
             }]
-          };
-        });
-      }
+          }));
+        }
 
-      // Etapa 7: Finalizando e confirmando lucros (2 segundos)
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'finalizing' }));
-      for (let i = 95; i <= 100; i += 1) {
-        await new Promise(resolve => setTimeout(resolve, 400));
-        waveOffset += 0.3;
+        // Etapa 3: Calculando riscos e volumes (8 segundos)
         setCurrentArbitrage(prev => ({
-          ...prev, 
-          progress: i,
-          currentProfit: prev.finalProfit,
-          chartData: [...prev.chartData.slice(-19), {
-            time: new Date().toLocaleTimeString(),
-            price: prev.sellPrice + Math.sin(waveOffset) * (prev.sellPrice * 0.001) + (Math.random() - 0.5) * (prev.sellPrice * 0.0003),
-            exchange: prev.exchanges[1],
-            volume: Math.random() * 2000 + 1000
-          }]
+          ...prev,
+          stage: 'calculating'
         }));
-      }
+        for (let i = 30; i <= 40; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          waveOffset += 0.25;
+          setCurrentArbitrage(prev => ({
+            ...prev,
+            progress: i,
+            chartData: [...prev.chartData.slice(-19), {
+              time: new Date().toLocaleTimeString(),
+              price: prev.buyPrice + Math.sin(waveOffset) * (prev.buyPrice * 0.002) + (Math.random() - 0.5) * (prev.buyPrice * 0.0008),
+              exchange: prev.exchanges[0],
+              volume: Math.random() * 2000 + 1000
+            }]
+          }));
+        }
 
-      // Finalizar com timestamp de operação
-      setCurrentArbitrage(prev => ({ 
-        ...prev, 
-        stage: 'completed',
-        progress: 100,
-        currentProfit: prev.finalProfit,
-        operationStartTime: prev.operationStartTime || Date.now()
-      }));
+        // Etapa 4: Executando ordem de compra (12 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'buying'
+        }));
+        for (let i = 40; i <= 60; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 600));
+          waveOffset += 0.4;
+          setCurrentArbitrage(prev => {
+            const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 20) * 0.4;
+            const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.003);
+            return {
+              ...prev,
+              progress: i,
+              currentProfit: prev.finalProfit * (i - 40) / 60,
+              chartData: [...prev.chartData.slice(-19), {
+                time: new Date().toLocaleTimeString(),
+                price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+                exchange: prev.exchanges[0],
+                volume: Math.random() * 3000 + 2000
+              }]
+            };
+          });
+        }
 
-      // Aguardar 2 segundos e atualizar banco de dados
-      await new Promise(resolve => setTimeout(resolve, 2000));
+        // Etapa 5: Transferindo entre exchanges (8 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'transferring'
+        }));
+        for (let i = 60; i <= 75; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 530));
+          waveOffset += 0.35;
+          setCurrentArbitrage(prev => {
+            const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 35) * 0.6;
+            const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.002);
+            return {
+              ...prev,
+              progress: i,
+              currentProfit: prev.finalProfit * (i - 40) / 50,
+              chartData: [...prev.chartData.slice(-19), {
+                time: new Date().toLocaleTimeString(),
+                price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0008),
+                exchange: 'Transferindo...',
+                volume: Math.random() * 1000 + 500
+              }]
+            };
+          });
+        }
 
-      // Atualizar saldo do usuário na tabela profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance, total_profit')
-        .eq('user_id', user?.id)
-        .single();
+        // Etapa 6: Executando ordem de venda (8 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'selling'
+        }));
+        for (let i = 75; i <= 95; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 400));
+          waveOffset += 0.45;
+          setCurrentArbitrage(prev => {
+            const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 55);
+            const waveEffect = Math.sin(waveOffset) * (prev.buyPrice * 0.0015);
+            return {
+              ...prev,
+              progress: i,
+              currentProfit: prev.finalProfit * (i - 40) / 55,
+              chartData: [...prev.chartData.slice(-19), {
+                time: new Date().toLocaleTimeString(),
+                price: prev.buyPrice + priceMovement + waveEffect + (Math.random() - 0.5) * (prev.buyPrice * 0.0005),
+                exchange: prev.exchanges[1],
+                volume: Math.random() * 4000 + 2500
+              }]
+            };
+          });
+        }
 
-      if (profileError) throw profileError;
+        // Etapa 7: Finalizando e confirmando lucros (2 segundos)
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'finalizing'
+        }));
+        for (let i = 95; i <= 100; i += 1) {
+          await new Promise(resolve => setTimeout(resolve, 400));
+          waveOffset += 0.3;
+          setCurrentArbitrage(prev => ({
+            ...prev,
+            progress: i,
+            currentProfit: prev.finalProfit,
+            chartData: [...prev.chartData.slice(-19), {
+              time: new Date().toLocaleTimeString(),
+              price: prev.sellPrice + Math.sin(waveOffset) * (prev.sellPrice * 0.001) + (Math.random() - 0.5) * (prev.sellPrice * 0.0003),
+              exchange: prev.exchanges[1],
+              volume: Math.random() * 2000 + 1000
+            }]
+          }));
+        }
 
-      const newBalance = (profileData.balance || 0) + currentArbitrage.finalProfit;
+        // Finalizar com timestamp de operação
+        setCurrentArbitrage(prev => ({
+          ...prev,
+          stage: 'completed',
+          progress: 100,
+          currentProfit: prev.finalProfit,
+          operationStartTime: prev.operationStartTime || Date.now()
+        }));
 
-      // Atualizar saldo principal
-      const { error: balanceUpdateError } = await supabase
-        .from('profiles')
-        .update({ 
+        // Aguardar 2 segundos e atualizar banco de dados
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Atualizar saldo do usuário na tabela profiles
+        const {
+          data: profileData,
+          error: profileError
+        } = await supabase.from('profiles').select('balance, total_profit').eq('user_id', user?.id).single();
+        if (profileError) throw profileError;
+        const newBalance = (profileData.balance || 0) + currentArbitrage.finalProfit;
+
+        // Atualizar saldo principal
+        const {
+          error: balanceUpdateError
+        } = await supabase.from('profiles').update({
           balance: newBalance,
-          total_profit: (profileData.total_profit || 0) + currentArbitrage.finalProfit 
-        })
-        .eq('user_id', user?.id);
+          total_profit: (profileData.total_profit || 0) + currentArbitrage.finalProfit
+        }).eq('user_id', user?.id);
+        if (balanceUpdateError) throw balanceUpdateError;
 
-      if (balanceUpdateError) throw balanceUpdateError;
-
-      // Atualizar investimento
-      const { error: updateError } = await supabase
-        .from('user_investments')
-        .update({
+        // Atualizar investimento
+        const {
+          error: updateError
+        } = await supabase.from('user_investments').update({
           operations_completed: investment.operations_completed + 1,
           total_earned: investment.total_earned + currentArbitrage.finalProfit,
           today_earnings: investment.today_earnings + currentArbitrage.finalProfit,
-          current_day_progress: ((investment.operations_completed + 1) / 2) * 100,
+          current_day_progress: (investment.operations_completed + 1) / 2 * 100,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', investment.id)
-        .eq('user_id', user?.id);
+        }).eq('id', investment.id).eq('user_id', user?.id);
+        if (updateError) throw updateError;
 
-      if (updateError) throw updateError;
-
-      // Registrar no histórico de trading
-      await supabase
-        .from('trading_profits')
-        .insert({
+        // Registrar no histórico de trading
+        await supabase.from('trading_profits').insert({
           user_id: user?.id,
           investment_amount: investment.amount,
           daily_rate: investment.daily_rate,
@@ -688,65 +622,56 @@ const TradingInvestments = () => {
             profit_percentage: (currentArbitrage.finalProfit / investment.amount * 100).toFixed(4)
           }
         });
-
-      toast({
-        title: "✅ Arbitragem Concluída!",
-        description: `Lucro de $${currentArbitrage.finalProfit.toFixed(2)} adicionado ao seu saldo!`,
-      });
-
-      fetchUserInvestments();
-
-    } catch (error) {
-      console.error('Erro ao executar arbitragem:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao executar arbitragem. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingOperations(prev => {
+        toast({
+          title: "✅ Arbitragem Concluída!",
+          description: `Lucro de $${currentArbitrage.finalProfit.toFixed(2)} adicionado ao seu saldo!`
+        });
+        fetchUserInvestments();
+      } catch (error) {
+        console.error('Erro ao executar arbitragem:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao executar arbitragem. Tente novamente.",
+          variant: "destructive"
+        });
+      } finally {
+        setProcessingOperations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(investment.id);
+          return newSet;
+        });
+      }
+    };
+    const toggleHideAmount = (investmentId: string) => {
+      setHiddenAmounts(prev => {
         const newSet = new Set(prev);
-        newSet.delete(investment.id);
+        if (newSet.has(investmentId)) {
+          newSet.delete(investmentId);
+        } else {
+          newSet.add(investmentId);
+        }
         return newSet;
       });
-    }
-  };
-
-  const toggleHideAmount = (investmentId: string) => {
-    setHiddenAmounts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(investmentId)) {
-        newSet.delete(investmentId);
-      } else {
-        newSet.add(investmentId);
-      }
-      return newSet;
+    };
+    const getPlanDisplayName = (planId: string) => {
+      const plan = plans.find(p => p.id === planId);
+      return plan?.name || 'Plano Desconhecido';
+    };
+    const activeInvestments = userInvestments.filter(inv => inv.status === 'active');
+    const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.total_earned, 0);
+    console.log('🔍 TradingInvestments: Renderizando...', {
+      user,
+      isLoading,
+      plans: plans.length,
+      userInvestments: userInvestments.length
     });
-  };
-
-  const getPlanDisplayName = (planId: string) => {
-    const plan = plans.find(p => p.id === planId);
-    return plan?.name || 'Plano Desconhecido';
-  };
-
-  const activeInvestments = userInvestments.filter(inv => inv.status === 'active');
-  const totalInvested = userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-  const totalEarnings = userInvestments.reduce((sum, inv) => sum + inv.total_earned, 0);
-
-  console.log('🔍 TradingInvestments: Renderizando...', { user, isLoading, plans: plans.length, userInvestments: userInvestments.length });
-  
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Trading Style */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700/50"
-            >
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700/50">
               <ArrowLeft className="h-4 w-4" />
               Dashboard
             </Button>
@@ -768,12 +693,7 @@ const TradingInvestments = () => {
               <Activity className="h-4 w-4 mr-2" />
               {activeInvestments.length} Ativos
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={populateTestData}
-              className="bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={populateTestData} className="bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 text-xs">
               🧪 Popular Dados
             </Button>
           </div>
@@ -781,30 +701,30 @@ const TradingInvestments = () => {
 
         {/* Navigation Tabs */}
         <div className="flex gap-1 p-1 bg-slate-800/50 rounded-xl border border-slate-600/30">
-          {[
-            { key: 'plans', label: 'Planos Disponíveis', icon: Bot },
-            { key: 'active', label: 'Investimentos Ativos', icon: Activity },
-            { key: 'history', label: 'Histórico', icon: BarChart3 }
-          ].map(({ key, label, icon: Icon }) => (
-            <Button
-              key={key}
-              variant={activeTab === key ? 'default' : 'ghost'}
-              onClick={() => setActiveTab(key as any)}
-              className={`flex-1 flex items-center gap-2 ${
-                activeTab === key 
-                  ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
+          {[{
+            key: 'plans',
+            label: 'Planos Disponíveis',
+            icon: Bot
+          }, {
+            key: 'active',
+            label: 'Investimentos Ativos',
+            icon: Activity
+          }, {
+            key: 'history',
+            label: 'Histórico',
+            icon: BarChart3
+          }].map(({
+            key,
+            label,
+            icon: Icon
+          }) => <Button key={key} variant={activeTab === key ? 'default' : 'ghost'} onClick={() => setActiveTab(key as any)} className={`flex-1 flex items-center gap-2 ${activeTab === key ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold' : 'text-slate-300 hover:text-white hover:bg-slate-700/50'}`}>
               <Icon className="h-4 w-4" />
               {label}
-            </Button>
-          ))}
+            </Button>)}
         </div>
 
         {/* Stats Cards */}
-        {activeInvestments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {activeInvestments.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -842,34 +762,28 @@ const TradingInvestments = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        )}
+          </div>}
 
         {/* Content based on active tab */}
-        {activeTab === 'plans' && (
-          <div className="space-y-8">
+        {activeTab === 'plans' && <div className="space-y-8">
             {/* Plans Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {plans.map((plan) => {
-                // Verificar requisitos específicos para cada plano baseado nos dados já carregados
-                let canInvest = false;
-                if (plan.id === '1') {
-                  canInvest = true; // Robô 4.0 sempre pode acessar
-                } else if (plan.id === '2') {
-                  canInvest = userReferrals >= 10; // Robô 4.0.5 precisa de 10 indicações ativas
-                } else if (plan.id === '3') {
-                  canInvest = userReferrals >= 40; // Robô 4.1.0 precisa de 40 indicações ativas
-                } else {
-                  canInvest = userReferrals >= plan.minimum_indicators;
-                }
-                const isLocked = !canInvest;
-                
-                return (
-                  <div key={plan.id} className="space-y-6">
+              {plans.map(plan => {
+              // Verificar requisitos específicos para cada plano baseado nos dados já carregados
+              let canInvest = false;
+              if (plan.id === '1') {
+                canInvest = true; // Robô 4.0 sempre pode acessar
+              } else if (plan.id === '2') {
+                canInvest = userReferrals >= 10; // Robô 4.0.5 precisa de 10 indicações ativas
+              } else if (plan.id === '3') {
+                canInvest = userReferrals >= 40; // Robô 4.1.0 precisa de 40 indicações ativas
+              } else {
+                canInvest = userReferrals >= plan.minimum_indicators;
+              }
+              const isLocked = !canInvest;
+              return <div key={plan.id} className="space-y-6">
                     {/* Plan Card */}
-                    <Card 
-                      className="relative overflow-hidden transition-all duration-300 bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 border-cyan-500/30 shadow-lg shadow-cyan-500/10 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10"
-                    >
+                    <Card className="relative overflow-hidden transition-all duration-300 bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 border-cyan-500/30 shadow-lg shadow-cyan-500/10 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10">
                       {/* Profit Information Box */}
                       <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-b border-emerald-500/30 p-4">
                         <div className="flex items-center justify-between">
@@ -880,11 +794,9 @@ const TradingInvestments = () => {
                             <p className="text-emerald-400 text-lg font-bold">
                               {plan.id === '1' ? 'Até 2% ao dia*' : plan.id === '2' ? 'Até 3% ao dia*' : plan.id === '3' ? 'Até 4% ao dia*' : 'Até 2% ao dia*'}
                             </p>
-                            {plan.id === '1' && (
-                              <p className="text-yellow-300 text-xs mt-1">
+                            {plan.id === '1' && <p className="text-yellow-300 text-xs mt-1">
                                 *Arbitragem variável - pode ser menor
-                              </p>
-                            )}
+                              </p>}
                           </div>
                           <div className="text-right">
                             <p className="text-slate-300 text-xs">
@@ -897,27 +809,17 @@ const TradingInvestments = () => {
                         </div>
                         <div className="mt-3 text-center">
                           <p className="text-white text-sm">
-                            {isLocked 
-                              ? `🔒 ${getRequirementMessage(plan.id)} Veja abaixo a simulação em tempo real de como você poderia lucrar ${plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'} hoje!`
-                              : plan.id === '1' 
-                                ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)'
-                                : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'
-                            }
+                            {isLocked ? `🔒 ${getRequirementMessage(plan.id)} Veja abaixo a simulação em tempo real de como você poderia lucrar ${plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'} hoje!` : plan.id === '1' ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)' : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'}
                           </p>
-                          {canInvest && plan.id === '1' && (
-                            <p className="text-yellow-300 text-xs mt-2">
+                          {canInvest && plan.id === '1' && <p className="text-yellow-300 text-xs mt-2">
                               ⚠️ Arbitragem variável: pode ganhar menos de 2% - ganhos não fixos
-                            </p>
-                          )}
-                          {canInvest && plan.id !== '1' && (
-                            <p className="text-yellow-300 text-xs mt-2">
+                            </p>}
+                          {canInvest && plan.id !== '1' && <p className="text-yellow-300 text-xs mt-2">
                               ⚠️ Ganhos não garantidos - Sistema automatizado variável
-                            </p>
-                          )}
+                            </p>}
                         </div>
                       </div>
-                      {isLocked && (
-                        <div className="absolute top-2 right-4 z-10">
+                      {isLocked && <div className="absolute top-2 right-4 z-10">
                           {/* Texto de indicações acima da barra */}
                           <div className="text-xs text-white text-center mb-1">
                             {plan.id === '2' ? '10 indicações' : plan.id === '3' ? '40 indicações' : '0 indicações'}
@@ -925,17 +827,13 @@ const TradingInvestments = () => {
                           {/* Barra de progresso vermelha acima do cadeado */}
                           <div className="mb-2">
                             <div className="w-12 bg-slate-600 rounded-full h-1">
-                              <div 
-                                className="bg-red-500 h-1 rounded-full transition-all duration-500"
-                                style={{ 
-                                  width: `${Math.min(100, (userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1)) * 100)}%` 
-                                }}
-                              ></div>
+                              <div className="bg-red-500 h-1 rounded-full transition-all duration-500" style={{
+                          width: `${Math.min(100, userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1) * 100)}%`
+                        }}></div>
                             </div>
                           </div>
-                          <Lock className="h-5 w-5 text-red-400" />
-                        </div>
-                      )}
+                          
+                        </div>}
                       
                       
 
@@ -945,30 +843,21 @@ const TradingInvestments = () => {
                             <Bot className="h-5 w-5 text-emerald-400" />
                             {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robô 4.0.5' : plan.id === '3' ? 'Robô 4.1.0' : plan.name}
                           </CardTitle>
-                          <Badge 
-                            variant="default"
-                            className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
-                          >
+                          <Badge variant="default" className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
                             {plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'}
                           </Badge>
                         </div>
                         {/* Informações específicas de cada plano */}
                         <div className="mt-2">
-                          {plan.id === '1' && (
-                            <p className="text-xs text-white flex items-center gap-1">
+                          {plan.id === '1' && <p className="text-xs text-white flex items-center gap-1">
                               📊 Sistema de Arbitragem Variável
-                            </p>
-                          )}
-                          {plan.id === '2' && (
-                            <p className="text-xs text-white flex items-center gap-1">
+                            </p>}
+                          {plan.id === '2' && <p className="text-xs text-white flex items-center gap-1">
                               📋 Requisito: 10 pessoas ativas no Robô 4.0
-                            </p>
-                          )}
-                          {plan.id === '3' && (
-                            <p className="text-xs text-white flex items-center gap-1">
+                            </p>}
+                          {plan.id === '3' && <p className="text-xs text-white flex items-center gap-1">
                               📋 Requisito: 40 pessoas ativas no Robô 4.0.5
-                            </p>
-                          )}
+                            </p>}
                           <p className="text-xs text-white mt-1 flex items-center gap-1">
                             🤖 Sistema Automatizado - {plan.id === '1' ? 'Arbitragem' : 'Rentabilidade'} Variável
                           </p>
@@ -1005,8 +894,7 @@ const TradingInvestments = () => {
                           </div>
                         </div>
 
-                        {plan.minimum_indicators > 0 && (
-                          <div className="space-y-1">
+                        {plan.minimum_indicators > 0 && <div className="space-y-1">
                             <div className="flex items-center gap-1 text-sm text-white">
                               <Users className="w-4 h-4" />
                               Indicações Necessárias
@@ -1017,36 +905,26 @@ const TradingInvestments = () => {
                               <div className="font-semibold text-white">
                                 {plan.minimum_indicators}
                               </div>
-                              <Badge 
-                                variant={canInvest ? "default" : "destructive"} 
-                                className="text-xs"
-                              >
+                              <Badge variant={canInvest ? "default" : "destructive"} className="text-xs">
                                 Você tem: {userReferrals}
                               </Badge>
                             </div>
-                          </div>
-                        )}
+                          </div>}
 
                         <div className="space-y-2">
                           <h4 className="text-sm font-medium text-white">
                             Recursos:
                           </h4>
                           <div className="space-y-1">
-                            {plan.features?.slice(0, 3).map((feature, index) => (
-                              <div 
-                                key={index} 
-                                className="text-xs flex items-center gap-1 text-white"
-                              >
+                            {plan.features?.slice(0, 3).map((feature, index) => <div key={index} className="text-xs flex items-center gap-1 text-white">
                                 <div className="w-1 h-1 rounded-full bg-emerald-400"></div>
                                 {feature}
-                              </div>
-                            ))}
+                              </div>)}
                           </div>
                         </div>
 
                         {/* Advanced Arbitrage Trading Simulator - Only for available plans */}
-                        {canInvest && (
-                          <div className="mb-4 bg-gradient-to-br from-slate-900/20 via-blue-900/10 to-slate-900/20 rounded-xl p-5 border border-cyan-500/20 shadow-lg shadow-cyan-500/5 animate-fade-in backdrop-blur-sm">
+                        {canInvest && <div className="mb-4 bg-gradient-to-br from-slate-900/20 via-blue-900/10 to-slate-900/20 rounded-xl p-5 border border-cyan-500/20 shadow-lg shadow-cyan-500/5 animate-fade-in backdrop-blur-sm">
                             {/* Header with live indicator */}
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center space-x-3">
@@ -1091,21 +969,19 @@ const TradingInvestments = () => {
                               <div className="h-24 bg-gradient-to-r from-slate-800/20 to-blue-900/15 rounded border border-cyan-500/10 relative overflow-hidden">
                                 {/* Wave animation overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent animate-slide-in-right"></div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/5 to-transparent animate-slide-in-right" style={{ animationDelay: '0.5s' }}></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/5 to-transparent animate-slide-in-right" style={{
+                            animationDelay: '0.5s'
+                          }}></div>
                                 
                                 {/* Animated wave bars */}
                                 <div className="absolute inset-2 flex items-end justify-between">
-                                  {Array.from({ length: 24 }, (_, i) => (
-                                    <div
-                                      key={i}
-                                      className="w-1 bg-gradient-to-t from-cyan-400/40 via-green-400/60 to-cyan-400/40 rounded-sm"
-                                      style={{
-                                        height: `${30 + 40 * Math.sin((Date.now() / 500 + i * 0.3) % (2 * Math.PI))}%`,
-                                        animation: `fade-in 0.5s ease-out ${i * 0.05}s infinite alternate`,
-                                        transform: `scaleY(${1 + 0.3 * Math.sin((Date.now() / 300 + i * 0.5) % (2 * Math.PI))})`
-                                      }}
-                                    ></div>
-                                  ))}
+                                  {Array.from({
+                              length: 24
+                            }, (_, i) => <div key={i} className="w-1 bg-gradient-to-t from-cyan-400/40 via-green-400/60 to-cyan-400/40 rounded-sm" style={{
+                              height: `${30 + 40 * Math.sin((Date.now() / 500 + i * 0.3) % (2 * Math.PI))}%`,
+                              animation: `fade-in 0.5s ease-out ${i * 0.05}s infinite alternate`,
+                              transform: `scaleY(${1 + 0.3 * Math.sin((Date.now() / 300 + i * 0.5) % (2 * Math.PI))})`
+                            }}></div>)}
                                 </div>
                                 
                                 {/* Animated trading line with wave effect */}
@@ -1115,8 +991,12 @@ const TradingInvestments = () => {
                                 
                                 {/* Floating particles effect */}
                                 <div className="absolute top-2 left-4 w-1 h-1 bg-cyan-400 rounded-full animate-ping opacity-60"></div>
-                                <div className="absolute top-4 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40" style={{ animationDelay: '0.5s' }}></div>
-                                <div className="absolute bottom-3 left-8 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '1s' }}></div>
+                                <div className="absolute top-4 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40" style={{
+                            animationDelay: '0.5s'
+                          }}></div>
+                                <div className="absolute bottom-3 left-8 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-50" style={{
+                            animationDelay: '1s'
+                          }}></div>
                               </div>
                             </div>
 
@@ -1170,7 +1050,9 @@ const TradingInvestments = () => {
                                 </div>
                               </div>
 
-                              <div className="bg-gradient-to-r from-yellow-900/20 to-yellow-800/10 rounded-lg p-2 border border-yellow-500/20 hover-scale animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                              <div className="bg-gradient-to-r from-yellow-900/20 to-yellow-800/10 rounded-lg p-2 border border-yellow-500/20 hover-scale animate-fade-in" style={{
+                          animationDelay: '0.1s'
+                        }}>
                                 <div className="flex justify-between items-center">
                                   <div className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
@@ -1183,7 +1065,9 @@ const TradingInvestments = () => {
                                 </div>
                               </div>
 
-                              <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 rounded-lg p-2 border border-blue-500/20 hover-scale animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                              <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 rounded-lg p-2 border border-blue-500/20 hover-scale animate-fade-in" style={{
+                          animationDelay: '0.2s'
+                        }}>
                                 <div className="flex justify-between items-center">
                                   <div className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
@@ -1211,65 +1095,50 @@ const TradingInvestments = () => {
                                 </span>
                                 <div className="flex items-center space-x-1">
                                   <div className="w-1 h-1 bg-green-400 rounded-full animate-ping"></div>
-                                  <div className="w-1 h-1 bg-green-400 rounded-full animate-ping" style={{ animationDelay: '0.2s' }}></div>
-                                  <div className="w-1 h-1 bg-green-400 rounded-full animate-ping" style={{ animationDelay: '0.4s' }}></div>
+                                  <div className="w-1 h-1 bg-green-400 rounded-full animate-ping" style={{
+                              animationDelay: '0.2s'
+                            }}></div>
+                                  <div className="w-1 h-1 bg-green-400 rounded-full animate-ping" style={{
+                              animationDelay: '0.4s'
+                            }}></div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          </div>}
 
-                        <Button 
-                          onClick={() => {
-                            if (canInvest) {
-                              setSelectedPlan(plan);
-                              setShowInvestDialog(true);
-                            }
-                          }}
-                          disabled={isLocked}
-                          className={`w-full flex items-center justify-center gap-2 ${
-                            isLocked 
-                              ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500 cursor-not-allowed' 
-                              : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold hover-scale'
-                          }`}
-                        >
+                        <Button onClick={() => {
+                      if (canInvest) {
+                        setSelectedPlan(plan);
+                        setShowInvestDialog(true);
+                      }
+                    }} disabled={isLocked} className={`w-full flex items-center justify-center gap-2 ${isLocked ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold hover-scale'}`}>
                           {isLocked && <Lock className="w-4 h-4" />}
-                          {canInvest ? 'Investir Agora' : 
-                            plan.id === '2' ? 'Precisa de 10 indicações ativas' : 
-                            plan.id === '3' ? 'Precisa de 40 indicações ativas' : 
-                            `Precisa de ${plan.minimum_indicators} indicações`
-                          }
+                          {canInvest ? 'Investir Agora' : plan.id === '2' ? 'Precisa de 10 indicações ativas' : plan.id === '3' ? 'Precisa de 40 indicações ativas' : `Precisa de ${plan.minimum_indicators} indicações`}
                         </Button>
 
-                        {plan.max_investment_amount && (
-                          <div className="text-xs text-center text-white">
+                        {plan.max_investment_amount && <div className="text-xs text-center text-white">
                             Máximo: ${plan.max_investment_amount}
-                          </div>
-                        )}
+                          </div>}
                       </CardContent>
                     </Card>
 
                     {/* Trading Chart for this plan - Temporariamente removido */}
                     {/*
-                    <PlanTradingChart 
+                     <PlanTradingChart 
                       planId={plan.id}
                       planName={plan.name}
                       dailyRate={plan.daily_rate}
                       isLocked={isLocked}
                       userInvestmentAmount={1000}
-                    />
-                    */}
-                  </div>
-                );
-              })}
+                     />
+                     */}
+                  </div>;
+            })}
             </div>
-          </div>
-        )}
+          </div>}
 
-        {activeTab === 'active' && (
-          <div className="space-y-6">
-            {activeInvestments.length === 0 ? (
-              <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
+        {activeTab === 'active' && <div className="space-y-6">
+            {activeInvestments.length === 0 ? <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
                 <CardContent className="p-12 text-center">
                   <Bot className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
                   <h3 className="text-2xl font-bold text-white mb-2">
@@ -1278,27 +1147,17 @@ const TradingInvestments = () => {
                   <p className="text-slate-300 mb-6">
                     Comece a investir em nossos robôs de arbitragem!
                   </p>
-                  <Button 
-                    onClick={() => setActiveTab('plans')}
-                    className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
-                  >
+                  <Button onClick={() => setActiveTab('plans')} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
                     Ver Planos Disponíveis
                   </Button>
                 </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {activeInvestments.map((investment) => {
-                  const isHidden = hiddenAmounts.has(investment.id);
-                  const isProcessing = processingOperations.has(investment.id);
-                  const canExecuteOperation = investment.operations_completed < 2;
-                  const planName = getPlanDisplayName(investment.investment_plan_id);
-                  
-                  return (
-                    <Card 
-                      key={investment.id} 
-                      className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30 hover:border-emerald-500/50 transition-all duration-300"
-                    >
+              </Card> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {activeInvestments.map(investment => {
+              const isHidden = hiddenAmounts.has(investment.id);
+              const isProcessing = processingOperations.has(investment.id);
+              const canExecuteOperation = investment.operations_completed < 2;
+              const planName = getPlanDisplayName(investment.investment_plan_id);
+              return <Card key={investment.id} className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30 hover:border-emerald-500/50 transition-all duration-300">
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -1306,12 +1165,7 @@ const TradingInvestments = () => {
                             <CardTitle className="text-white">{planName}</CardTitle>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleHideAmount(investment.id)}
-                              className="h-8 w-8 p-0 text-slate-400 hover:text-white"
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => toggleHideAmount(investment.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-white">
                               {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
@@ -1342,10 +1196,7 @@ const TradingInvestments = () => {
                             <span className="text-slate-400">Progresso Diário</span>
                             <span className="text-white">{investment.current_day_progress}%</span>
                           </div>
-                          <Progress 
-                            value={investment.current_day_progress} 
-                            className="h-2 bg-slate-700"
-                          />
+                          <Progress value={investment.current_day_progress} className="h-2 bg-slate-700" />
                         </div>
                         
                         <div className="grid grid-cols-3 gap-3 text-center">
@@ -1368,44 +1219,26 @@ const TradingInvestments = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button 
-                            onClick={() => executeArbitrage(investment)}
-                            disabled={!canExecuteOperation || isProcessing}
-                            className={`flex-1 ${
-                              canExecuteOperation 
-                                ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900' 
-                                : 'bg-slate-600 text-slate-400'
-                            } font-bold transition-all duration-300`}
-                          >
-                            {isProcessing ? (
-                              <>
+                          <Button onClick={() => executeArbitrage(investment)} disabled={!canExecuteOperation || isProcessing} className={`flex-1 ${canExecuteOperation ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900' : 'bg-slate-600 text-slate-400'} font-bold transition-all duration-300`}>
+                            {isProcessing ? <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900 mr-2"></div>
                                 Executando Arbitragem...
-                              </>
-                            ) : canExecuteOperation ? (
-                              <>
+                              </> : canExecuteOperation ? <>
                                 <ArrowUpDown className="h-4 w-4 mr-2" />
                                 Executar Arbitragem
-                              </>
-                            ) : (
-                              <>
+                              </> : <>
                                 <Clock className="h-4 w-4 mr-2" />
                                 Aguardar Reset (24h)
-                              </>
-                            )}
+                              </>}
                           </Button>
                         </div>
                       </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+                    </Card>;
+            })}
+              </div>}
+          </div>}
 
-        {activeTab === 'history' && (
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
+        {activeTab === 'history' && <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
             <CardContent className="p-12 text-center">
               <BarChart3 className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-white mb-2">
@@ -1415,8 +1248,7 @@ const TradingInvestments = () => {
                 Funcionalidade em desenvolvimento
               </p>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
       </div>
 
       {/* Investment Dialog */}
@@ -1443,48 +1275,29 @@ const TradingInvestments = () => {
               <Label htmlFor="amount" className="text-emerald-400 font-bold">
                 Valor do Investimento
               </Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="Digite o valor"
-                value={selectedAmount}
-                onChange={(e) => setSelectedAmount(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
-                min={selectedPlan?.minimum_amount}
-                max={selectedPlan?.max_investment_amount}
-              />
+              <Input id="amount" type="number" placeholder="Digite o valor" value={selectedAmount} onChange={e => setSelectedAmount(e.target.value)} className="bg-slate-700 border-slate-600 text-white placeholder-slate-400" min={selectedPlan?.minimum_amount} max={selectedPlan?.max_investment_amount} />
             </div>
             
-            {selectedAmount && selectedPlan && (
-              <div className="space-y-2 p-4 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
+            {selectedAmount && selectedPlan && <div className="space-y-2 p-4 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
                 <h4 className="font-bold text-emerald-400">Projeção de Ganhos:</h4>
                 <div className="text-sm space-y-1">
                   <div>Ganho Diário: <span className="text-emerald-400 font-bold">
-                    Até ${((parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2)) / 100).toFixed(2)}
+                    Até ${(parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) / 100).toFixed(2)}
                   </span></div>
                   <div>Ganho Total: <span className="text-emerald-400 font-bold">
-                    Até ${((parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days) / 100).toFixed(2)}
+                    Até ${(parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days / 100).toFixed(2)}
                   </span></div>
                   <div>ROI: <span className="text-emerald-400 font-bold">
                     Até {((selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days).toFixed(1)}%
                   </span></div>
                 </div>
-              </div>
-            )}
+              </div>}
             
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowInvestDialog(false)}
-                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
-              >
+              <Button variant="outline" onClick={() => setShowInvestDialog(false)} className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700">
                 Cancelar
               </Button>
-              <Button 
-                onClick={createInvestment}
-                disabled={!selectedAmount || isLoading}
-                className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
-              >
+              <Button onClick={createInvestment} disabled={!selectedAmount || isLoading} className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
                 {isLoading ? 'Criando...' : 'Confirmar Investimento'}
               </Button>
             </div>
@@ -1568,35 +1381,24 @@ const TradingInvestments = () => {
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={currentArbitrage.chartData}>
-                        <XAxis 
-                          dataKey="time" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 10 }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 10 }}
-                          domain={['dataMin - 50', 'dataMax + 50']}
-                          tickFormatter={(value) => `$${value.toFixed(2)}`}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #475569',
-                            borderRadius: '8px',
-                            color: '#f1f5f9'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="price" 
-                          stroke="#10b981" 
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={{ r: 4, fill: '#10b981' }}
-                        />
+                        <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{
+                          fill: '#94a3b8',
+                          fontSize: 10
+                        }} />
+                        <YAxis axisLine={false} tickLine={false} tick={{
+                          fill: '#94a3b8',
+                          fontSize: 10
+                        }} domain={['dataMin - 50', 'dataMax + 50']} tickFormatter={value => `$${value.toFixed(2)}`} />
+                        <Tooltip contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #475569',
+                          borderRadius: '8px',
+                          color: '#f1f5f9'
+                        }} />
+                        <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{
+                          r: 4,
+                          fill: '#10b981'
+                        }} />
                       </LineChart>
                     </ResponsiveContainer>
                    </div>
@@ -1845,56 +1647,34 @@ const TradingInvestments = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              {currentArbitrage.stage !== 'completed' ? (
-                <Button 
-                  onClick={runArbitrageSimulation}
-                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
-                  disabled={currentArbitrage.progress > 0}
-                >
-                  {currentArbitrage.progress === 0 ? (
-                    <>
+              {currentArbitrage.stage !== 'completed' ? <Button onClick={runArbitrageSimulation} className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3" disabled={currentArbitrage.progress > 0}>
+                  {currentArbitrage.progress === 0 ? <>
                       <Play className="h-5 w-5 mr-2" />
                       Iniciar Operação de Arbitragem
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
                       Operação em Andamento...
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => setShowArbitrageModal(false)}
-                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
-                >
+                    </>}
+                </Button> : <Button onClick={() => setShowArbitrageModal(false)} className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3">
                   <CheckCircle className="h-5 w-5 mr-2" />
                   Finalizar Operação
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
   } catch (error) {
     console.error('🚨 Erro em TradingInvestments:', error);
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-400 mb-4">Erro na Página de Investimentos</h1>
           <p className="text-slate-300 mb-4">Ocorreu um erro ao carregar a página.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
+          <button onClick={() => window.location.reload()} className="bg-blue-500 text-white px-4 py-2 rounded">
             Recarregar Página
           </button>
         </div>
-      </div>
-    );
+      </div>;
   }
 };
-
 export default TradingInvestments;
