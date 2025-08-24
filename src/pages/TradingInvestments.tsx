@@ -198,11 +198,21 @@ const TradingInvestments = () => {
   };
 
   const createInvestment = async () => {
-    if (!selectedPlan || !selectedAmount || !user?.id) return;
+    console.log('🔍 createInvestment iniciado');
+    console.log('selectedPlan:', selectedPlan);
+    console.log('selectedAmount:', selectedAmount);
+    console.log('user?.id:', user?.id);
+    
+    if (!selectedPlan || !selectedAmount || !user?.id) {
+      console.log('❌ Dados insuficientes para criar investimento');
+      return;
+    }
 
     const amount = parseFloat(selectedAmount);
+    console.log('💰 Valor do investimento:', amount);
     
     if (amount < selectedPlan.minimum_amount) {
+      console.log('❌ Valor menor que o mínimo');
       toast({
         title: "Valor Inválido",
         description: `Valor mínimo é $${selectedPlan.minimum_amount}`,
@@ -212,6 +222,7 @@ const TradingInvestments = () => {
     }
 
     if (selectedPlan.max_investment_amount && amount > selectedPlan.max_investment_amount) {
+      console.log('❌ Valor maior que o máximo');
       toast({
         title: "Valor Inválido", 
         description: `Valor máximo é $${selectedPlan.max_investment_amount}`,
@@ -220,7 +231,9 @@ const TradingInvestments = () => {
       return;
     }
 
+    console.log('👥 Verificando indicações - userReferrals:', userReferrals, 'minimum_indicators:', selectedPlan.minimum_indicators);
     if (userReferrals < selectedPlan.minimum_indicators) {
+      console.log('❌ Indicações insuficientes');
       toast({
         title: "Indicações Insuficientes",
         description: `Este plano requer ${selectedPlan.minimum_indicators} indicações ativas`,
@@ -230,33 +243,43 @@ const TradingInvestments = () => {
     }
 
     try {
+      console.log('🚀 Iniciando criação do investimento...');
       setIsLoading(true);
 
       const startDate = new Date();
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + selectedPlan.duration_days);
 
+      const investmentData = {
+        user_id: user.id,
+        investment_plan_id: selectedPlan.id,
+        amount: amount,
+        daily_rate: selectedPlan.daily_rate,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        total_earned: 0,
+        status: 'active',
+        operations_completed: 0,
+        total_operations: selectedPlan.duration_days * 2, // 2 operações por dia
+        current_day_progress: 0,
+        today_earnings: 0,
+        daily_target: amount * (selectedPlan.daily_rate / 100),
+        days_remaining: selectedPlan.duration_days
+      };
+
+      console.log('📋 Dados do investimento:', investmentData);
+
       const { data, error } = await supabase
         .from('user_investments')
-        .insert({
-          user_id: user.id,
-          investment_plan_id: selectedPlan.id,
-          amount: amount,
-          daily_rate: selectedPlan.daily_rate,
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          total_earned: 0,
-          status: 'active',
-          operations_completed: 0,
-          total_operations: selectedPlan.duration_days * 2, // 2 operações por dia
-          current_day_progress: 0,
-          today_earnings: 0,
-          daily_target: amount * (selectedPlan.daily_rate / 100),
-          days_remaining: selectedPlan.duration_days
-        })
+        .insert(investmentData)
         .select();
 
-      if (error) throw error;
+      console.log('📊 Resposta do Supabase:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro do Supabase:', error);
+        throw error;
+      }
 
       // Registrar operação de comissão para referrer
       if (userReferrals > 0) {
