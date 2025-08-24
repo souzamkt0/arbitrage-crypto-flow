@@ -937,35 +937,6 @@ const TradingInvestments = () => {
                         </div>
                       )}
                       
-                      {/* Barra de Progresso para Planos Bloqueados */}
-                      {isLocked && (
-                        <div className="absolute top-2 left-2 right-2 z-10">
-                          <div className="bg-slate-800/90 rounded-lg p-3 border border-cyan-500/30">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-white font-medium">
-                                {getRequirementMessage(plan.id).replace('Precisa de ', '').replace(' para acessar. ', '')}
-                              </span>
-                              <Lock className="h-4 w-4 text-cyan-400" />
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-xs">
-                                <span className="text-white">Progresso</span>
-                                <span className="text-white">
-                                  {userReferrals}/{plan.id === '2' ? '10' : plan.id === '3' ? '40' : '0'} pessoas ativas
-                                </span>
-                              </div>
-                              <div className="w-full bg-slate-700 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-2 rounded-full transition-all duration-500"
-                                  style={{ 
-                                    width: `${Math.min(100, (userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1)) * 100)}%` 
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                       
 
                       <CardHeader className="pb-4">
