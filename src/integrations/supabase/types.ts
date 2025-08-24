@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_action_logs: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          reason: string | null
+          target_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          reason?: string | null
+          target_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          reason?: string | null
+          target_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_balance_transactions: {
         Row: {
           admin_user_id: string
@@ -1976,6 +2009,10 @@ export type Database = {
         Args: { admin_reason?: string; investment_id_param: string }
         Returns: Json
       }
+      admin_delete_user: {
+        Args: { admin_email?: string; reason?: string; target_user_id: string }
+        Returns: Json
+      }
       admin_get_all_investments: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2008,6 +2045,10 @@ export type Database = {
       }
       admin_test_cancel_investment: {
         Args: { admin_reason?: string; investment_id_param: string }
+        Returns: Json
+      }
+      admin_toggle_user_ban: {
+        Args: { admin_email?: string; reason?: string; target_user_id: string }
         Returns: Json
       }
       admin_toggle_user_status: {

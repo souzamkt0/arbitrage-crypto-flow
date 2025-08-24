@@ -829,72 +829,67 @@ const Admin = () => {
   const totalDepositAmount = deposits.filter(d => d.status === "paid").reduce((sum, d) => sum + d.amount, 0);
   const totalWithdrawalAmount = withdrawals.filter(w => w.status === "approved").reduce((sum, w) => sum + w.netAmount, 0);
 
-  const handleToggleStatus = async (userId: string) => {
-    try {
-      // Encontrar o usuário atual
-      const currentUser = users.find(u => u.id === userId);
-      if (!currentUser) {
-        toast({
-          title: "Erro",
-          description: "Usuário não encontrado.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Não permitir banir outros admins
-      if (currentUser.role === 'admin' && currentUser.id !== user?.id) {
-        toast({
-          title: "Erro",
-          description: "Não é possível alterar status de outros administradores.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Alternar status
-      const newStatus = currentUser.status === 'active' ? 'inactive' : 'active';
-
-      // Atualizar no banco
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error updating user status:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao alterar status do usuário.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Atualizar localmente
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId
-            ? { ...user, status: newStatus }
-            : user
-        )
-      );
-
-      toast({
-        title: newStatus === 'active' ? "Usuário ativado" : "Usuário banido",
-        description: `Status do usuário alterado para ${newStatus === 'active' ? 'ativo' : 'inativo'}.`,
-        variant: "default"
-      });
-
-    } catch (error) {
-      console.error('Error toggling user status:', error);
+  const handleBanUser = async (userId: string, currentStatus: string) => {
+    if (userId === user?.id) {
       toast({
         title: "Erro",
-        description: "Erro ao alterar status do usuário.",
-        variant: "destructive"
+        description: "Você não pode banir sua própria conta de administrador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Don't allow banning the main admin account
+    if (userId === '3df866ff-b7f7-4f56-9690-d12ff9c10944') {
+      toast({
+        title: "Erro",
+        description: "Não é possível banir a conta de administrador principal.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const reason = prompt(`Motivo para ${currentStatus === 'active' ? 'banir' : 'desbanir'} este usuário:`);
+      if (!reason) return;
+
+      const { data: result, error } = await supabase.rpc('admin_toggle_user_ban', {
+        target_user_id: userId,
+        reason: reason,
+        admin_email: user?.email || 'admin@clean.com'
+      });
+
+      if (error) {
+        console.error('Erro ao alterar status do usuário:', error);
+        toast({
+          title: "Erro",
+          description: `Erro ao alterar status: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: "Sucesso",
+          description: result.message,
+        });
+        
+        // Reload users
+        await loadAllUsers();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao alterar status do usuário:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao alterar status do usuário.",
+        variant: "destructive",
       });
     }
   };
@@ -930,72 +925,53 @@ const Admin = () => {
     setShowDeleteUserModal(false);
 
     try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('user_id', userToDelete.id);
+      const reason = prompt("Motivo para deletar este usuário:") || "Usuário deletado pelo administrador";
 
-      if (profileError) {
-        console.error('Erro ao excluir perfil:', profileError);
+      const { data: result, error } = await supabase.rpc('admin_delete_user', {
+        target_user_id: userToDelete.id,
+        reason: reason,
+        admin_email: user?.email || 'admin@clean.com'
+      });
+
+      if (error) {
+        console.error('Erro ao deletar usuário:', error);
         toast({
           title: "Erro",
-          description: "Erro ao excluir perfil do usuário.",
+          description: `Erro ao deletar usuário: ${error.message}`,
           variant: "destructive",
         });
+        setDeletingUser(null);
         return;
       }
 
-      try {
-        const { error: authError } = await supabase.auth.admin.deleteUser(userToDelete.id);
-        if (authError) {
-          console.warn('Aviso: Não foi possível excluir usuário da autenticação:', authError);
-        }
-      } catch (authError) {
-        console.warn('Aviso: Erro ao excluir usuário da autenticação:', authError);
+      if (result?.success) {
+        toast({
+          title: "Sucesso",
+          description: result.message,
+        });
+        
+        // Reload users
+        await loadAllUsers();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido",
+          variant: "destructive",
+        });
       }
-
-      const tablesToDelete = [
-        'user_investments',
-        'deposits', 
-        'withdrawals',
-        'admin_balance_transactions',
-        'community_posts'
-      ];
-
-      for (const table of tablesToDelete) {
-        try {
-          const { error: deleteError } = await supabase
-            .from(table)
-            .delete()
-            .eq('user_id', userToDelete.id);
-
-          if (deleteError) {
-            console.warn(`Aviso: Erro ao excluir dados da tabela ${table}:`, deleteError);
-          }
-        } catch (error) {
-          console.warn(`Aviso: Erro ao excluir dados da tabela ${table}:`, error);
-        }
-      }
-
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
-      
-      toast({
-        title: "Usuário excluído",
-        description: "Usuário foi excluído do sistema com sucesso.",
-        variant: "default",
-      });
-
     } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
+      console.error('Erro ao deletar usuário:', error);
       toast({
         title: "Erro",
-        description: "Erro ao excluir usuário do sistema.",
+        description: "Erro interno ao deletar usuário.",
         variant: "destructive",
       });
     } finally {
       setDeletingUser(null);
+      setUserToDelete(null);
     }
   };
+
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -4191,7 +4167,7 @@ const Admin = () => {
                                 variant="ghost" 
                                 size="sm" 
                                 className={`h-8 w-8 p-0 ${user.status === 'active' ? 'hover:bg-red-500/20' : 'hover:bg-emerald-500/20'}`}
-                                onClick={() => handleToggleStatus(user.id)}
+                                onClick={() => handleBanUser(user.id, user.status)}
                                 title={user.status === 'active' ? 'Banir usuário' : 'Ativar usuário'}
                               >
                                 {user.status === 'active' ? (
