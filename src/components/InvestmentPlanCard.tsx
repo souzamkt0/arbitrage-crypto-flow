@@ -155,64 +155,6 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
           </div>
         )}
 
-        {/* Gráfico de Trading - aparece sempre */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
-            <TrendingUp className="w-4 h-4 text-teal-400" />
-            Trading ao Vivo (BTC/USDT)
-          </h4>
-          <div className="h-40 bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={tradingData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="time" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
-                  interval={3}
-                />
-                <YAxis 
-                  hide={false}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                  domain={['dataMin - 500', 'dataMax + 500']}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1f2937', 
-                    border: '1px solid #14b8a6',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: '#fff'
-                  }}
-                  formatter={(value: any, name: string) => [
-                    name === 'price' ? `$${value.toLocaleString()}` : `${value.toFixed(2)}%`,
-                    name === 'price' ? 'Preço BTC' : 'Lucro'
-                  ]}
-                  labelFormatter={(label) => `Hora: ${label}`}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="price" 
-                  stroke="#14b8a6" 
-                  strokeWidth={2.5}
-                  dot={{ fill: '#14b8a6', strokeWidth: 2, r: 3 }}
-                  activeDot={{ r: 5, stroke: '#14b8a6', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-400">Últimas 24h</span>
-            <div className="flex gap-4">
-              <span className="text-teal-400">📈 +1.8% média</span>
-              <span className="text-green-400">🟢 Ativo</span>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-300">Recursos:</h4>
           <div className="space-y-1">
@@ -224,6 +166,66 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
             ))}
           </div>
         </div>
+
+        {/* Gráfico de Trading - apenas para planos disponíveis */}
+        {canInvest && (
+          <div className="space-y-3 border-t border-gray-700 pt-4">
+            <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
+              <TrendingUp className="w-4 h-4 text-teal-400" />
+              Trading ao Vivo (BTC/USDT)
+            </h4>
+            <div className="h-40 bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={tradingData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    dataKey="time" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                    interval={3}
+                  />
+                  <YAxis 
+                    hide={false}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    domain={['dataMin - 500', 'dataMax + 500']}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: '1px solid #14b8a6',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      color: '#fff'
+                    }}
+                    formatter={(value: any, name: string) => [
+                      name === 'price' ? `$${value.toLocaleString()}` : `${value.toFixed(2)}%`,
+                      name === 'price' ? 'Preço BTC' : 'Lucro'
+                    ]}
+                    labelFormatter={(label) => `Hora: ${label}`}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke="#14b8a6" 
+                    strokeWidth={2.5}
+                    dot={{ fill: '#14b8a6', strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5, stroke: '#14b8a6', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-400">Últimas 24h</span>
+              <div className="flex gap-4">
+                <span className="text-teal-400">📈 +1.8% média</span>
+                <span className="text-green-400">🟢 Ativo</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Button 
           onClick={handleInvest}
