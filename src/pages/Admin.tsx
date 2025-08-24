@@ -210,6 +210,7 @@ const Admin = () => {
   const [isLoadingInvestments, setIsLoadingInvestments] = useState(false);
   const [selectedInvestmentForDeletion, setSelectedInvestmentForDeletion] = useState<any>(null);
   const [isIndividualDeleteModalOpen, setIsIndividualDeleteModalOpen] = useState(false);
+  const [confTradingSearchTerm, setConfTradingSearchTerm] = useState("");
   
   const [partners, setPartners] = useState<any[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
@@ -3590,12 +3591,17 @@ const Admin = () => {
     setIsLoadingInvestments(true);
     try {
       console.log('📊 Carregando investimentos ativos usando admin_get_all_investments...');
+      console.log('👤 User atual:', user);
+      console.log('🔑 User ID:', user?.id);
+      console.log('📧 User email:', user?.email);
+      console.log('🛡️ Is admin:', isAdmin);
       
       // Usar a nova função admin que traz todos os dados necessários
       const { data: investmentsData, error: investmentsError } = await supabase.rpc('admin_get_all_investments');
 
       if (investmentsError) {
         console.error('❌ Erro ao carregar investimentos:', investmentsError);
+        console.error('❌ Erro detalhado:', JSON.stringify(investmentsError, null, 2));
         toast({
           title: "Erro",
           description: `Erro ao carregar investimentos: ${investmentsError.message}`,
@@ -3628,6 +3634,18 @@ const Admin = () => {
   const deleteIndividualInvestment = async (investmentId: string, userEmail: string, investmentName: string) => {
     try {
       console.log('🗑️ Excluindo investimento individual usando admin_cancel_user_investment:', { investmentId, userEmail, investmentName });
+      console.log('🗑️ Dados completos do investimento:', selectedInvestmentForDeletion);
+      
+      // Verificar se temos um ID válido
+      if (!investmentId || investmentId === 'undefined') {
+        console.error('❌ ID do investimento inválido:', investmentId);
+        toast({
+          title: "Erro",
+          description: "ID do investimento não encontrado. Recarregue a página e tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       // Usar a função admin para cancelar investimento com motivo
       const { data: result, error } = await supabase.rpc('admin_cancel_user_investment', {
@@ -4267,8 +4285,8 @@ const Admin = () => {
                         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Buscar por nome ou email..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
+                          value={confTradingSearchTerm}
+                          onChange={(e) => setConfTradingSearchTerm(e.target.value)}
                           className="pl-10 bg-muted/50 border-border/50"
                         />
                       </div>
@@ -4292,8 +4310,8 @@ const Admin = () => {
                           {(() => {
                             // Filter investments based on search term
                             const filteredInvestments = activeInvestments.filter(investment => {
-                              if (!searchTerm) return true;
-                              const searchLower = searchTerm.toLowerCase();
+                              if (!confTradingSearchTerm) return true;
+                              const searchLower = confTradingSearchTerm.toLowerCase();
                               return (
                                 investment.user_name?.toLowerCase().includes(searchLower) ||
                                 investment.user_email?.toLowerCase().includes(searchLower)
@@ -4304,8 +4322,8 @@ const Admin = () => {
                               return (
                                 <TableRow>
                                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                    {searchTerm 
-                                      ? `Nenhum investimento encontrado para "${searchTerm}"`
+                                    {confTradingSearchTerm 
+                                      ? `Nenhum investimento encontrado para "${confTradingSearchTerm}"`
                                       : isLoadingInvestments 
                                         ? "Carregando investimentos..." 
                                         : "Nenhum investimento ativo encontrado"}
@@ -5711,12 +5729,12 @@ const Admin = () => {
                 <AlertTriangle className="h-5 w-5" />
                 Confirmar Exclusão
               </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Tem certeza de que deseja excluir este investimento?
+              </p>
             </DialogHeader>
             {selectedInvestmentForDeletion && (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Tem certeza de que deseja excluir este investimento?
-                </p>
                 
                 <div className="bg-muted/30 p-4 rounded-lg space-y-2">
                   <div className="flex justify-between">
