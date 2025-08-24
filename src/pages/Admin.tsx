@@ -3615,7 +3615,8 @@ const Admin = () => {
 
       // Mapear os dados para o formato esperado pela tabela
       const activeInvestmentsData = investmentsData?.map((inv: any) => ({
-        id: inv.investment_id, // Usar investment_id que é retornado pela função
+        investment_id: inv.investment_id, // Manter investment_id para compatibilidade
+        id: inv.investment_id, // Também manter id por compatibilidade
         user_email: inv.user_email,
         user_name: inv.user_name,
         plan_name: inv.plan_name,
