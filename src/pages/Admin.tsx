@@ -211,6 +211,8 @@ const Admin = () => {
   const [selectedInvestmentForDeletion, setSelectedInvestmentForDeletion] = useState<any>(null);
   const [isIndividualDeleteModalOpen, setIsIndividualDeleteModalOpen] = useState(false);
   const [confTradingSearchTerm, setConfTradingSearchTerm] = useState("");
+  const [selectedInvestments, setSelectedInvestments] = useState<string[]>([]);
+  const [isMultiDeleteModalOpen, setIsMultiDeleteModalOpen] = useState(false);
   
   const [partners, setPartners] = useState<any[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
@@ -3725,6 +3727,25 @@ const Admin = () => {
     setSelectedInvestmentForDeletion(null);
   };
 
+  const deleteMultipleInvestments = async () => {
+    if (selectedInvestments.length === 0) return;
+
+    const selectedInvestmentData = activeInvestments.filter(inv => 
+      selectedInvestments.includes(inv.investment_id)
+    );
+
+    for (const investment of selectedInvestmentData) {
+      await deleteIndividualInvestment(
+        investment.investment_id,
+        investment.user_email || `ID: ${investment.investment_id}`,
+        investment.plan_name || 'Plano de Investimento'
+      );
+    }
+
+    setSelectedInvestments([]);
+    setIsMultiDeleteModalOpen(false);
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-background flex items-center justify-center">
@@ -4296,8 +4317,8 @@ const Admin = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {/* Search Filter */}
-                    <div className="mb-4">
+                    {/* Search Filter and Multi-Select Actions */}
+                    <div className="mb-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                       <div className="relative max-w-sm">
                         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -4307,11 +4328,77 @@ const Admin = () => {
                           className="pl-10 bg-muted/50 border-border/50"
                         />
                       </div>
+                      
+                      {selectedInvestments.length > 0 && (
+                        <div className="flex gap-2 items-center">
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                            {selectedInvestments.length} selecionado(s)
+                          </Badge>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setIsMultiDeleteModalOpen(true)}
+                            className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir Selecionados
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedInvestments([])}
+                            className="bg-muted/50 hover:bg-muted"
+                          >
+                            Limpar Seleção
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="rounded-md border">
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead className="w-12">
+                              <Checkbox
+                                checked={selectedInvestments.length === (() => {
+                                  const filteredInvestments = activeInvestments.filter(investment => {
+                                    if (!confTradingSearchTerm) return true;
+                                    const searchLower = confTradingSearchTerm.toLowerCase();
+                                    return (
+                                      investment.user_name?.toLowerCase().includes(searchLower) ||
+                                      investment.user_email?.toLowerCase().includes(searchLower)
+                                    );
+                                  });
+                                  return filteredInvestments.length;
+                                })() && (() => {
+                                  const filteredInvestments = activeInvestments.filter(investment => {
+                                    if (!confTradingSearchTerm) return true;
+                                    const searchLower = confTradingSearchTerm.toLowerCase();
+                                    return (
+                                      investment.user_name?.toLowerCase().includes(searchLower) ||
+                                      investment.user_email?.toLowerCase().includes(searchLower)
+                                    );
+                                  });
+                                  return filteredInvestments.length > 0;
+                                })()}
+                                onCheckedChange={(checked) => {
+                                  const filteredInvestments = activeInvestments.filter(investment => {
+                                    if (!confTradingSearchTerm) return true;
+                                    const searchLower = confTradingSearchTerm.toLowerCase();
+                                    return (
+                                      investment.user_name?.toLowerCase().includes(searchLower) ||
+                                      investment.user_email?.toLowerCase().includes(searchLower)
+                                    );
+                                  });
+                                  
+                                  if (checked) {
+                                    setSelectedInvestments(filteredInvestments.map(inv => inv.investment_id));
+                                  } else {
+                                    setSelectedInvestments([]);
+                                  }
+                                }}
+                              />
+                            </TableHead>
                             <TableHead>Usuário</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Plano</TableHead>
@@ -4338,7 +4425,7 @@ const Admin = () => {
                             if (filteredInvestments.length === 0) {
                               return (
                                 <TableRow>
-                                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                                     {confTradingSearchTerm 
                                       ? `Nenhum investimento encontrado para "${confTradingSearchTerm}"`
                                       : isLoadingInvestments 
@@ -4351,6 +4438,18 @@ const Admin = () => {
 
                             return filteredInvestments.map((investment) => (
                               <TableRow key={investment.investment_id}>
+                                <TableCell>
+                                  <Checkbox
+                                    checked={selectedInvestments.includes(investment.investment_id)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedInvestments([...selectedInvestments, investment.investment_id]);
+                                      } else {
+                                        setSelectedInvestments(selectedInvestments.filter(id => id !== investment.investment_id));
+                                      }
+                                    }}
+                                  />
+                                </TableCell>
                                 <TableCell className="font-medium">
                                   {investment.user_name || 'N/A'}
                                 </TableCell>
@@ -5804,6 +5903,68 @@ const Admin = () => {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Multiple Investments Delete Modal */}
+        <Dialog open={isMultiDeleteModalOpen} onOpenChange={setIsMultiDeleteModalOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+                Confirmar Exclusão Múltipla
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Tem certeza de que deseja excluir {selectedInvestments.length} investimento(s) selecionado(s)?
+              </p>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="bg-muted/30 p-4 rounded-lg max-h-48 overflow-y-auto">
+                <h4 className="font-medium mb-3">Investimentos que serão excluídos:</h4>
+                <div className="space-y-2">
+                  {activeInvestments
+                    .filter(inv => selectedInvestments.includes(inv.investment_id))
+                    .map((investment) => (
+                      <div key={investment.investment_id} className="flex justify-between items-center p-2 bg-background rounded border">
+                        <div>
+                          <p className="font-medium text-sm">{investment.user_name}</p>
+                          <p className="text-xs text-muted-foreground">{investment.user_email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{investment.plan_name}</p>
+                          <p className="text-xs text-muted-foreground">${investment.amount?.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong>Atenção:</strong> Esta ação não pode ser desfeita. Todos os investimentos selecionados serão cancelados permanentemente.
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsMultiDeleteModalOpen(false);
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={deleteMultipleInvestments}
+                  className="flex-1"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir {selectedInvestments.length} Investimento(s)
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
