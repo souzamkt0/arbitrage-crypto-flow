@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TrendingUp, DollarSign, Clock, Target, Calendar, Bot, Timer, Play, ArrowUpDown, Activity, Zap, Sparkles, BarChart3, CreditCard, Wallet, ChevronRight, Shield, CheckCircle, PlayCircle, Users, Crown, Star, Trophy, TrendingDown, ArrowLeft, PlusCircle, Flame, Lock, Eye, EyeOff } from "lucide-react";
+import { TrendingUp, DollarSign, Clock, Target, Calendar, Bot, Timer, Play, ArrowUpDown, Activity, Zap, Sparkles, BarChart3, CreditCard, Wallet, ChevronRight, Shield, CheckCircle, PlayCircle, Users, Crown, Star, Trophy, TrendingDown, ArrowLeft, PlusCircle, Flame, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { ResponsiveContainer, Area, AreaChart, Tooltip, CartesianGrid, LineChart, Line, XAxis, YAxis } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
@@ -828,15 +828,40 @@ const TradingInvestments = () => {
                           </div>
                         </div>
                         <div className="mt-3 text-center">
-          <p className="text-white text-sm">
-                            {isLocked ? `🔒 ${getRequirementMessage(plan.name)} Veja abaixo a simulação em tempo real de como você poderia lucrar até ${Math.round(plan.daily_rate * 100)}% hoje!` : plan.name.includes('4.0.0') ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)' : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'}
-                          </p>
-                          {canInvest && plan.id === '1' && <p className="text-yellow-300 text-xs mt-2">
-                              ⚠️ Arbitragem variável: pode ganhar menos de 2% - ganhos não fixos
-                            </p>}
-                          {canInvest && plan.id !== '1' && <p className="text-yellow-300 text-xs mt-2">
-                              ⚠️ Ganhos não garantidos - Sistema automatizado variável
-                            </p>}
+          <div className="space-y-2">
+            <p className="text-white text-sm">
+              {isLocked ? (
+                <span className="flex items-center gap-2 text-red-300">
+                  <Lock className="h-4 w-4" />
+                  Plano bloqueado - {getRequirementMessage(plan.name)}
+                </span>
+              ) : plan.name.includes('4.0.0') ? (
+                <span className="flex items-center gap-2 text-emerald-300">
+                  <TrendingUp className="h-4 w-4" />
+                  Sistema de arbitragem automática - ganhos variáveis
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-blue-300">
+                  <Bot className="h-4 w-4" />
+                  Sistema automatizado com rentabilidade variável
+                </span>
+              )}
+            </p>
+            
+            {canInvest && plan.name.includes('4.0.0') && (
+              <p className="text-yellow-300 text-xs flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Arbitragem variável: pode ganhar menos de 2% - ganhos não fixos
+              </p>
+            )}
+            
+            {canInvest && !plan.name.includes('4.0.0') && (
+              <p className="text-yellow-300 text-xs flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Ganhos não garantidos - Sistema automatizado variável
+              </p>
+            )}
+          </div>
                         </div>
                       </div>
                       {isLocked}
@@ -854,19 +879,57 @@ const TradingInvestments = () => {
                           </Badge>
                         </div>
                         {/* Informações específicas de cada plano */}
-                        <div className="mt-2">
-                          {plan.id === '1' && <p className="text-xs text-white flex items-center gap-1">
-                              📊 Sistema de Arbitragem Variável
-                            </p>}
-          {plan.id === '2' && <p className="text-xs text-white flex items-center gap-1">
-              📋 Paga até 3% - 10 pessoas ativas no primeiro nível
-            </p>}
-                          {plan.id === '3' && <p className="text-xs text-white flex items-center gap-1">
-                              📋 Requisito: 40 pessoas ativas no Robô 4.0.5
-                            </p>}
-                          <p className="text-xs text-white mt-1 flex items-center gap-1">
-                            🤖 Sistema Automatizado - {plan.id === '1' ? 'Arbitragem' : 'Rentabilidade'} Variável
-                          </p>
+                        <div className="mt-2 space-y-2">
+                          {plan.name.includes('4.0.0') && (
+                            <div className="space-y-1">
+                              <p className="text-xs text-emerald-300 flex items-center gap-1">
+                                <TrendingUp className="h-3 w-3" />
+                                Arbitragem Automática
+                              </p>
+                              <p className="text-xs text-yellow-300 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Ganhos variáveis (não fixos)
+                              </p>
+                              <p className="text-xs text-green-300 flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Sem requisitos de indicação
+                              </p>
+                            </div>
+                          )}
+                          
+                          {plan.name.includes('4.0.5') && (
+                            <div className="space-y-1">
+                              <p className="text-xs text-emerald-300 flex items-center gap-1">
+                                <DollarSign className="h-3 w-3" />
+                                Até 3% ao dia
+                              </p>
+                              <p className="text-xs text-orange-300 flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                Precisa de 10 indicados ativos no 4.0.0
+                              </p>
+                              <p className="text-xs text-red-300 flex items-center gap-1">
+                                <Lock className="h-3 w-3" />
+                                Bloqueado sem os requisitos
+                              </p>
+                            </div>
+                          )}
+                          
+                          {plan.name.includes('4.1.0') && (
+                            <div className="space-y-1">
+                              <p className="text-xs text-emerald-300 flex items-center gap-1">
+                                <Crown className="h-3 w-3" />
+                                Até 4% ao dia - Nível Premium
+                              </p>
+                              <p className="text-xs text-orange-300 flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                Precisa de 40 indicados ativos no 4.0.5
+                              </p>
+                              <p className="text-xs text-purple-300 flex items-center gap-1">
+                                <Trophy className="h-3 w-3" />
+                                Máximo potencial de lucro
+                              </p>
+                            </div>
+                          )}
                         </div>
                         <p className="text-sm text-white">
                           {plan.description}
@@ -1268,12 +1331,27 @@ const TradingInvestments = () => {
           
           <div className="space-y-6">
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
-              <h4 className="font-bold text-emerald-400">Detalhes do Plano:</h4>
+              <h4 className="font-bold text-emerald-400 flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Detalhes do Plano:
+              </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>Taxa Diária: <span className="text-emerald-400 font-bold">até {Math.round(selectedPlan?.daily_rate * 100)}%</span></div>
-                <div>Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span></div>
-                <div>Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span></div>
-                <div>Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span></div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  Taxa Diária: <span className="text-emerald-400 font-bold">até {Math.round(selectedPlan?.daily_rate * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-400" />
+                  Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-green-400" />
+                  Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-purple-400" />
+                  Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span>
+                </div>
               </div>
             </div>
             
