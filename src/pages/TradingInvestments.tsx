@@ -288,7 +288,7 @@ const TradingInvestments = () => {
     }
   };
 
-  const executeOperation = async (investment: UserInvestment) => {
+  const executeArbitrage = async (investment: UserInvestment) => {
     if (processingOperations.has(investment.id)) return;
 
     // Verificar limite de operações por dia
@@ -304,10 +304,45 @@ const TradingInvestments = () => {
     setProcessingOperations(prev => new Set(prev).add(investment.id));
 
     try {
-      // Calcular lucro da operação baseado na daily_rate
-      const operationProfit = (investment.amount * investment.daily_rate) / 100 / 2; // Dividido por 2 para cada operação
+      // Iniciar simulação em tempo real
+      toast({
+        title: "🚀 Arbitragem Iniciada!",
+        description: "Executando operação em tempo real...",
+      });
 
-      // Atualizar no Supabase
+      // Simular tempo de execução (3-8 segundos)
+      const executionTime = 3000 + Math.random() * 5000;
+      
+      await new Promise(resolve => setTimeout(resolve, executionTime));
+
+      // Calcular lucro da operação baseado na daily_rate com variação
+      const baseProfit = (investment.amount * investment.daily_rate) / 100 / 2;
+      const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
+      const operationProfit = baseProfit * variation;
+
+      // Atualizar saldo do usuário na tabela profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance, total_profit')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const newBalance = (profileData.balance || 0) + operationProfit;
+
+      // Atualizar saldo principal
+      const { error: balanceUpdateError } = await supabase
+        .from('profiles')
+        .update({ 
+          balance: newBalance,
+          total_profit: (profileData.total_profit || 0) + operationProfit 
+        })
+        .eq('user_id', user?.id);
+
+      if (balanceUpdateError) throw balanceUpdateError;
+
+      // Atualizar investimento
       const { error: updateError } = await supabase
         .from('user_investments')
         .update({
@@ -331,29 +366,31 @@ const TradingInvestments = () => {
           daily_rate: investment.daily_rate,
           plan_name: plans.find(p => p.id === investment.plan_id)?.name || 'Unknown',
           total_profit: operationProfit,
-          exchanges_count: 1,
+          exchanges_count: Math.floor(Math.random() * 3) + 2, // 2-4 exchanges
           completed_operations: 1,
-          execution_time_seconds: Math.floor(Math.random() * 300) + 60, // 1-5 minutos
-          profit_per_exchange: operationProfit,
+          execution_time_seconds: Math.floor(executionTime / 1000),
+          profit_per_exchange: operationProfit / (Math.floor(Math.random() * 3) + 2),
           metadata: {
             operation_number: investment.operations_completed + 1,
-            operation_type: 'daily_operation',
-            pair: ['BTC/USDT', 'ETH/USDT', 'BNB/USDT'][Math.floor(Math.random() * 3)]
+            operation_type: 'arbitrage_operation',
+            pair: ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'][Math.floor(Math.random() * 5)],
+            exchanges: ['Binance', 'Coinbase', 'Kraken', 'Bitfinex'],
+            profit_percentage: (operationProfit / investment.amount * 100).toFixed(4)
           }
         });
 
       toast({
-        title: "🎯 Operação Executada!",
-        description: `Lucro de $${operationProfit.toFixed(2)} registrado!`,
+        title: "✅ Arbitragem Concluída!",
+        description: `Lucro de $${operationProfit.toFixed(2)} adicionado ao seu saldo!`,
       });
 
       fetchUserInvestments();
 
     } catch (error) {
-      console.error('Erro ao executar operação:', error);
+      console.error('Erro ao executar arbitragem:', error);
       toast({
         title: "Erro",
-        description: "Erro ao executar operação. Tente novamente.",
+        description: "Erro ao executar arbitragem. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -789,23 +826,23 @@ const TradingInvestments = () => {
                         
                         <div className="flex gap-2">
                           <Button 
-                            onClick={() => executeOperation(investment)}
+                            onClick={() => executeArbitrage(investment)}
                             disabled={!canExecuteOperation || isProcessing}
                             className={`flex-1 ${
                               canExecuteOperation 
                                 ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900' 
                                 : 'bg-slate-600 text-slate-400'
-                            } font-bold`}
+                            } font-bold transition-all duration-300`}
                           >
                             {isProcessing ? (
                               <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Processando...
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900 mr-2"></div>
+                                Executando Arbitragem...
                               </>
                             ) : canExecuteOperation ? (
                               <>
-                                <Play className="h-4 w-4 mr-2" />
-                                Iniciar Operação
+                                <ArrowUpDown className="h-4 w-4 mr-2" />
+                                Executar Arbitragem
                               </>
                             ) : (
                               <>
@@ -814,18 +851,17 @@ const TradingInvestments = () => {
                               </>
                             )}
                           </Button>
-                          
-                          {/* Trading Chart for active investment */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="px-3 border-slate-600 text-slate-300 hover:bg-slate-700/50"
-                            onClick={() => {
-                              // Toggle para mostrar gráfico inline
-                            }}
-                          >
-                            <Activity className="h-4 w-4" />
-                          </Button>
+                        </div>
+                        
+                        {/* Gráfico de Trading em Tempo Real */}
+                        <div className="mt-4">
+                          <PlanTradingChart 
+                            planId={investment.plan_id}
+                            planName={planName}
+                            dailyRate={investment.daily_rate}
+                            isLocked={false}
+                            userInvestmentAmount={investment.amount}
+                          />
                         </div>
                       </CardContent>
                     </Card>
