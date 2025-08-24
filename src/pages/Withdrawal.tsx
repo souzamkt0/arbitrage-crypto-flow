@@ -28,48 +28,68 @@ import {
   EyeOff
 } from "lucide-react";
 
-// Generate massive order book data with thousands of orders
-const generateMassiveOrderBook = (count: number, type: 'buy' | 'sell') => {
+// Generate massive order book data with thousands of orders from major exchanges
+const generateMegaOrderBook = (count: number, type: 'buy' | 'sell') => {
   const orders = [];
   const basePrice = 64880.033; // BTC price from image
-  const spreadPercent = 0.001; // 0.1% spread
+  const spreadPercent = 0.0008; // 0.08% spread
   
-  // Popular exchanges/brokers from image
+  // Expanded list of major exchanges and brokers
   const exchanges = [
-    'Binance', 'Bybit', 'Coinbase', 'Bitget', 'Gemini', 'Cryptomarket',
-    'Bittrex', 'KuCoin', 'OKX', 'MEXC', 'Huobi', 'FTX',
-    'Bitstamp', 'Kraken', 'Poloniex', 'HitBTC', 'Gate.io', 'Crypto.com'
+    'Binance', 'Bybit', 'Coinbase Pro', 'Bitget', 'Gemini', 'Cryptomarket',
+    'Bittrex', 'KuCoin', 'OKX', 'MEXC Global', 'Huobi Global', 'FTX Pro',
+    'Bitstamp', 'Kraken Pro', 'Poloniex', 'HitBTC', 'Gate.io', 'Crypto.com Exchange',
+    'Binance US', 'Coinbase Advanced', 'BitMEX', 'Bitfinex', 'Deribit', 'ByBit Pro',
+    'KuCoin Futures', 'OKX Pro', 'Binance Futures', 'FTX Derivatives', 'Huobi Futures',
+    'BitMart', 'MEXC Pro', 'Gate.io Pro', 'Bitget Pro', 'CoinEx', 'ProBit Global',
+    'LBank', 'DigiFinex', 'ZB.com', 'Hotbit', 'WazirX', 'CoinDCX Pro',
+    'Bitrue', 'BitFlyer', 'BitMax', 'AscendEX', 'Phemex', 'WOO X',
+    'BingX', 'Bitvenus', 'CoinW', 'XT.com', 'Tidex', 'BigONE',
+    'BitZ', 'Coinsbit', 'BKEX', 'PancakeSwap V3', 'Uniswap V3', 'SushiSwap'
   ];
 
   const cryptoPairs = [
-    'BTC/USD', 'ETH/USD', 'BNB/USD', 'ADA/USD', 'XRP/USD',
-    'SOL/USD', 'DOT/USD', 'DOGE/USD', 'AVAX/USD', 'MATIC/USD'
+    'BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'XRP/USDT', 'SOL/USDT',
+    'DOT/USDT', 'DOGE/USDT', 'AVAX/USDT', 'MATIC/USDT', 'SHIB/USDT', 'LTC/USDT',
+    'UNI/USDT', 'LINK/USDT', 'ATOM/USDT', 'BCH/USDT', 'ICP/USDT', 'FIL/USDT',
+    'TRX/USDT', 'ETC/USDT', 'XLM/USDT', 'VET/USDT', 'THETA/USDT', 'FTM/USDT',
+    'ALGO/USDT', 'EGLD/USDT', 'XTZ/USDT', 'AAVE/USDT', 'GRT/USDT', 'ENJ/USDT'
   ];
+
+  const orderTypes = ['MARKET', 'LIMIT', 'STOP', 'OCO', 'TRAILING'];
+  const statuses = ['EXECUTADA', 'EXECUTANDO', 'PENDENTE', 'PARCIAL'];
   
   for (let i = 0; i < count; i++) {
     const priceOffset = type === 'sell' 
-      ? spreadPercent + (i * 0.00005) // Sell orders above market price
-      : -spreadPercent - (i * 0.00005); // Buy orders below market price
+      ? spreadPercent + (i * 0.000015) // Sell orders above market price
+      : -spreadPercent - (i * 0.000015); // Buy orders below market price
     
-    const price = basePrice * (1 + priceOffset + (Math.random() - 0.5) * 0.002);
-    const amount = (Math.random() * 10 + 0.001).toFixed(3);
-    const total = (price * parseFloat(amount)).toFixed(0);
-    const bid = (price * 0.9999).toFixed(0);
+    const price = basePrice * (1 + priceOffset + (Math.random() - 0.5) * 0.003);
+    const amount = (Math.random() * 25 + 0.001).toFixed(4);
+    const total = (price * parseFloat(amount));
+    const bid = (price * (type === 'sell' ? 0.9998 : 1.0002));
     const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
     const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
-    const orderId = Math.floor(Math.random() * 100000) + 40000;
+    const orderType = orderTypes[Math.floor(Math.random() * orderTypes.length)];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const orderId = Math.floor(Math.random() * 1000000) + 100000;
+    const time = new Date(Date.now() - Math.random() * 3600000).toLocaleTimeString();
     
     orders.push({
       id: orderId,
       pair: pair,
-      value: `$${price.toFixed(2)}`,
+      price: price.toFixed(2),
       amount: amount,
-      bid: `$${bid}`,
-      total: `$${total}`,
+      bid: bid.toFixed(2),
+      total: total.toFixed(0),
       exchange: exchange,
-      timestamp: Date.now() + i * 5,
+      timestamp: Date.now() + i * 2,
       qty: amount,
-      status: Math.random() > 0.4 ? 'EXECUTADA' : Math.random() > 0.6 ? 'EXECUTANDO' : 'PENDENTE'
+      orderType: orderType,
+      status: status,
+      time: time,
+      volume: Math.floor(Math.random() * 10000000) + 100000,
+      fee: (total * 0.001).toFixed(4) // 0.1% fee
     });
   }
   
@@ -83,9 +103,9 @@ const Withdrawal = () => {
   
   const [activeTab, setActiveTab] = useState("digitopay");
   const [isLoading, setIsLoading] = useState(false);
-  const [sellOrders, setSellOrders] = useState(() => generateMassiveOrderBook(8000, 'sell'));
-  const [buyOrders, setBuyOrders] = useState(() => generateMassiveOrderBook(8000, 'buy'));
-  const [sideBuyOrders, setSideBuyOrders] = useState(() => generateMassiveOrderBook(5000, 'buy'));
+  const [sellOrders, setSellOrders] = useState(() => generateMegaOrderBook(15000, 'sell'));
+  const [buyOrders, setBuyOrders] = useState(() => generateMegaOrderBook(15000, 'buy'));
+  const [sideBuyOrders, setSideBuyOrders] = useState(() => generateMegaOrderBook(10000, 'buy'));
   const [userBalance, setUserBalance] = useState(905.58); // Value from image
   const [referralBalance, setReferralBalance] = useState(0);
   const [residualBalance, setResidualBalance] = useState(0);
@@ -139,10 +159,10 @@ const Withdrawal = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       // Generate fresh massive orders - Ultra frequent updates
-      setSellOrders(generateMassiveOrderBook(8000, 'sell'));
-      setBuyOrders(generateMassiveOrderBook(8000, 'buy'));
-      setSideBuyOrders(generateMassiveOrderBook(5000, 'buy'));
-    }, 100); // Update every 100ms for extreme activity
+      setSellOrders(generateMegaOrderBook(15000, 'sell'));
+      setBuyOrders(generateMegaOrderBook(15000, 'buy'));
+      setSideBuyOrders(generateMegaOrderBook(10000, 'buy'));
+    }, 50); // Update every 50ms for extreme activity
 
     return () => clearInterval(interval);
   }, []);
@@ -201,39 +221,60 @@ const Withdrawal = () => {
               <div className="bg-slate-800 border border-red-500/30 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingDown className="h-4 w-4 text-red-400" />
-                  <span className="text-sm font-semibold text-white">Live Sell Orders</span>
-                  <div className="bg-red-500/20 px-2 py-1 rounded text-xs text-red-400">LIVE</div>
+                  <span className="text-sm font-semibold text-white">SELL ORDERS</span>
+                  <div className="bg-red-500/20 px-2 py-1 rounded text-xs text-red-400">
+                    {sellOrders.length.toLocaleString()} ORDENS
+                  </div>
                   <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse ml-auto"></div>
                 </div>
                 
                 <div className="text-xs text-slate-400 mb-3">
-                  <div className="grid grid-cols-4 gap-1 text-xs text-slate-400 border-b border-slate-600 pb-1 mb-2">
-                    <div>EXCHANGE</div>
+                  <div className="grid grid-cols-5 gap-1 text-xs text-slate-400 border-b border-slate-600 pb-1 mb-2">
+                    <div>CORRETORA</div>
+                    <div>PAR</div>
                     <div>PREÇO</div>
                     <div>QTD</div>
-                    <div>TOTAL</div>
+                    <div>STATUS</div>
                   </div>
                   
                   <div className="space-y-1 max-h-96 overflow-y-auto">
-                    {sellOrders.slice(0, 150).map((order, index) => (
+                    {sellOrders.slice(0, 200).map((order, index) => (
                       <div 
                         key={`sell-${order.id}-${index}`}
-                        className="grid grid-cols-4 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-red-500/50 hover:bg-red-900/20 transition-colors"
+                        className="grid grid-cols-5 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-red-500/50 hover:bg-red-900/20 transition-colors animate-pulse"
+                        style={{ animationDelay: `${index * 10}ms` }}
                       >
-                        <div className="text-yellow-400 font-medium truncate">
+                        <div className="text-yellow-400 font-medium truncate text-xs">
                           {order.exchange}
                         </div>
-                        <div className="text-red-400 font-medium">
-                          ${order.value.replace('$', '').slice(0, 7)}
+                        <div className="text-blue-400 font-medium text-xs">
+                          {order.pair}
+                        </div>
+                        <div className="text-red-400 font-bold text-xs">
+                          ${order.price}
                         </div>
                         <div className="text-white text-xs">
                           {order.qty}
                         </div>
-                        <div className="text-slate-400 text-xs">
-                          ${order.total.replace('$', '').slice(0, 6)}
+                        <div className={`text-xs px-1 rounded ${
+                          order.status === 'EXECUTADA' ? 'text-green-400 bg-green-500/20' :
+                          order.status === 'EXECUTANDO' ? 'text-blue-400 bg-blue-500/20' :
+                          order.status === 'PARCIAL' ? 'text-yellow-400 bg-yellow-500/20' :
+                          'text-orange-400 bg-orange-500/20'
+                        }`}>
+                          {order.status}
                         </div>
                       </div>
                     ))}
+                  </div>
+                  
+                  <div className="mt-2 pt-2 border-t border-slate-600">
+                    <div className="text-xs text-slate-400">
+                      🔥 {sellOrders.length.toLocaleString()} ordens sell ativas
+                    </div>
+                    <div className="text-xs text-red-400">
+                      💰 Volume: ${sellOrders.reduce((sum, order) => sum + parseFloat(order.total), 0).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -332,39 +373,60 @@ const Withdrawal = () => {
               <div className="bg-slate-800 border border-emerald-500/30 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm font-semibold text-white">Live Buy Orders</span>
-                  <div className="bg-emerald-500/20 px-2 py-1 rounded text-xs text-emerald-400">LIVE</div>
+                  <span className="text-sm font-semibold text-white">BUY ORDERS</span>
+                  <div className="bg-emerald-500/20 px-2 py-1 rounded text-xs text-emerald-400">
+                    {buyOrders.length.toLocaleString()} ORDENS
+                  </div>
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse ml-auto"></div>
                 </div>
                 
                 <div className="text-xs text-slate-400 mb-3">
-                  <div className="grid grid-cols-4 gap-1 text-xs text-slate-400 border-b border-slate-600 pb-1 mb-2">
-                    <div>EXCHANGE</div>
+                  <div className="grid grid-cols-5 gap-1 text-xs text-slate-400 border-b border-slate-600 pb-1 mb-2">
+                    <div>CORRETORA</div>
+                    <div>PAR</div>
                     <div>PREÇO</div>
                     <div>QTD</div>
-                    <div>TOTAL</div>
+                    <div>STATUS</div>
                   </div>
                   
                   <div className="space-y-1 max-h-96 overflow-y-auto">
-                    {buyOrders.slice(0, 150).map((order, index) => (
+                    {buyOrders.slice(0, 200).map((order, index) => (
                       <div 
                         key={`buy-${order.id}-${index}`}
-                        className="grid grid-cols-4 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-emerald-500/50 hover:bg-emerald-900/20 transition-colors"
+                        className="grid grid-cols-5 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-emerald-500/50 hover:bg-emerald-900/20 transition-colors animate-pulse"
+                        style={{ animationDelay: `${index * 15}ms` }}
                       >
-                        <div className="text-yellow-400 font-medium truncate">
+                        <div className="text-yellow-400 font-medium truncate text-xs">
                           {order.exchange}
                         </div>
-                        <div className="text-emerald-400 font-medium">
-                          ${order.value.replace('$', '').slice(0, 7)}
+                        <div className="text-blue-400 font-medium text-xs">
+                          {order.pair}
+                        </div>
+                        <div className="text-emerald-400 font-bold text-xs">
+                          ${order.price}
                         </div>
                         <div className="text-white text-xs">
                           {order.qty}
                         </div>
-                        <div className="text-slate-400 text-xs">
-                          ${order.total.replace('$', '').slice(0, 6)}
+                        <div className={`text-xs px-1 rounded ${
+                          order.status === 'EXECUTADA' ? 'text-green-400 bg-green-500/20' :
+                          order.status === 'EXECUTANDO' ? 'text-blue-400 bg-blue-500/20' :
+                          order.status === 'PARCIAL' ? 'text-yellow-400 bg-yellow-500/20' :
+                          'text-orange-400 bg-orange-500/20'
+                        }`}>
+                          {order.status}
                         </div>
                       </div>
                     ))}
+                  </div>
+                  
+                  <div className="mt-2 pt-2 border-t border-slate-600">
+                    <div className="text-xs text-slate-400">
+                      🚀 {buyOrders.length.toLocaleString()} ordens buy ativas
+                    </div>
+                    <div className="text-xs text-emerald-400">
+                      💎 Volume: ${buyOrders.reduce((sum, order) => sum + parseFloat(order.total), 0).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
