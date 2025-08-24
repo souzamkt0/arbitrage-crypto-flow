@@ -64,6 +64,28 @@ export function TradingConfig() {
 
   useEffect(() => {
     loadPlansAndConfigs();
+    
+    // Configurar sincronização em tempo real
+    const channel = supabase
+      .channel('investment_plans_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investment_plans'
+        },
+        (payload) => {
+          console.log('🔄 Mudança detectada na tabela investment_plans:', payload);
+          // Recarregar dados quando houver mudanças
+          loadPlansAndConfigs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadPlansAndConfigs = async () => {
@@ -747,6 +769,52 @@ export function TradingConfig() {
             </div>
           </div>
         </CardContent>
+      </Card>
+
+      {/* Botão de Salvar Flutuante */}
+      {hasChanges && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button 
+            onClick={savePlansConfiguration}
+            disabled={loading}
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 shadow-lg animate-pulse"
+          >
+            <Save className="h-5 w-5 mr-2" />
+            {loading ? 'Salvando...' : 'Salvar Alterações'}
+          </Button>
+        </div>
+      )}
+
+      {/* Botão de Salvar Adicional no final */}
+      <Card className="p-4 bg-green-50 border-green-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="font-medium text-green-800">Configurações de Trading</h3>
+            <p className="text-sm text-green-600">
+              {hasChanges ? 'Você tem alterações não salvas' : 'Configurações sincronizadas'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={loadPlansAndConfigs} 
+              variant="outline" 
+              disabled={loading}
+              className="border-green-300 hover:bg-green-100"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Recarregar
+            </Button>
+            <Button 
+              onClick={savePlansConfiguration}
+              disabled={loading || !hasChanges}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? 'Salvando...' : 'Salvar Tudo'}
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );
