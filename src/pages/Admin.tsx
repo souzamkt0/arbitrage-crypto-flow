@@ -3589,14 +3589,10 @@ const Admin = () => {
   const loadActiveInvestments = async () => {
     setIsLoadingInvestments(true);
     try {
-      console.log('📊 Carregando investimentos ativos...');
+      console.log('📊 Carregando investimentos ativos usando admin_get_all_investments...');
       
-      // Carregar investimentos sem join para evitar problemas de schema cache
-      const { data: investmentsData, error: investmentsError } = await supabase
-        .from('user_investments')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+      // Usar a nova função admin que traz todos os dados necessários
+      const { data: investmentsData, error: investmentsError } = await supabase.rpc('admin_get_all_investments');
 
       if (investmentsError) {
         console.error('❌ Erro ao carregar investimentos:', investmentsError);
@@ -3608,42 +3604,14 @@ const Admin = () => {
         return;
       }
 
-      console.log('📊 Investimentos carregados:', investmentsData?.length || 0);
+      console.log('📊 Investimentos carregados via admin function:', investmentsData?.length || 0);
+      console.log('📊 Dados recebidos:', investmentsData);
 
-      // Carregar dados dos usuários separadamente se houver investimentos
-      let investmentsWithUsers = investmentsData || [];
+      // Filtrar apenas investimentos ativos
+      const activeInvestmentsData = investmentsData?.filter(inv => inv.status === 'active') || [];
       
-      if (investmentsData && investmentsData.length > 0) {
-        const userIds = [...new Set(investmentsData.map(inv => inv.user_id).filter(Boolean))];
-        
-        if (userIds.length > 0) {
-          const { data: usersData, error: usersError } = await supabase
-            .from('profiles')
-            .select('user_id, display_name, email, username')
-            .in('user_id', userIds);
-
-          if (usersError) {
-            console.error('❌ Erro ao carregar usuários dos investimentos:', usersError);
-            toast({
-              title: "Aviso",
-              description: "Investimentos carregados sem dados de usuário.",
-            });
-          } else {
-            // Combinar dados localmente
-            investmentsWithUsers = investmentsData.map(investment => {
-              const user = usersData?.find(u => u.user_id === investment.user_id);
-              return {
-                ...investment,
-                profiles: user || null
-              };
-            });
-            console.log('📊 Dados de usuários combinados com investimentos');
-          }
-        }
-      }
-
-      console.log('✅ Investimentos carregados com sucesso:', investmentsWithUsers.length);
-      setActiveInvestments(investmentsWithUsers);
+      console.log('✅ Investimentos ativos carregados:', activeInvestmentsData.length);
+      setActiveInvestments(activeInvestmentsData);
       
     } catch (error) {
       console.error('❌ Erro ao carregar investimentos:', error);
@@ -3659,49 +3627,40 @@ const Admin = () => {
 
   const deleteIndividualInvestment = async (investmentId: string, userEmail: string, investmentName: string) => {
     try {
-      console.log('🗑️ Excluindo investimento individual:', { investmentId, userEmail, investmentName });
+      console.log('🗑️ Excluindo investimento individual usando admin_cancel_user_investment:', { investmentId, userEmail, investmentName });
       
-      const { error } = await supabase
-        .from('user_investments')
-        .delete()
-        .eq('id', investmentId);
+      // Usar a função admin para cancelar investimento com motivo
+      const { data: result, error } = await supabase.rpc('admin_cancel_user_investment', {
+        p_investment_id: investmentId,
+        p_reason: `Exclusão manual pelo admin - Investimento: ${investmentName} do usuário ${userEmail}`
+      });
 
       if (error) {
-        console.error('❌ Erro ao excluir investimento:', error);
+        console.error('❌ Erro ao cancelar investimento:', error);
         toast({
           title: "Erro",
-          description: `Erro ao excluir investimento: ${error.message}`,
+          description: `Erro ao cancelar investimento: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
 
-      console.log('✅ Investimento excluído com sucesso!');
-      
-      if (user) {
-        const { error: transactionError } = await supabase
-          .from('admin_balance_transactions')
-          .insert([{
-            user_id: investmentId,
-            admin_user_id: user.id,
-            amount_before: 0,
-            amount_after: 0,
-            amount_changed: 0,
-            transaction_type: 'individual_investment_deletion',
-            reason: `Exclusão de investimento individual: ${investmentName} do usuário ${userEmail}`
-          }]);
+      if (result?.success) {
+        console.log('✅ Investimento cancelado com sucesso!', result);
+        
+        toast({
+          title: "Investimento Cancelado",
+          description: `Investimento "${investmentName}" de ${userEmail} foi cancelado com sucesso.`,
+        });
 
-        if (transactionError) {
-          console.error('❌ Erro ao registrar transação:', transactionError);
-        }
+        loadActiveInvestments();
+      } else {
+        toast({
+          title: "Erro",
+          description: result?.error || "Erro desconhecido ao cancelar investimento",
+          variant: "destructive"
+        });
       }
-
-      toast({
-        title: "Investimento Excluído",
-        description: `Investimento "${investmentName}" de ${userEmail} foi excluído com sucesso.`,
-      });
-
-      loadActiveInvestments();
       
     } catch (error) {
       console.error('❌ Erro ao excluir investimento individual:', error);
@@ -3722,9 +3681,9 @@ const Admin = () => {
     if (!selectedInvestmentForDeletion) return;
 
     await deleteIndividualInvestment(
-      selectedInvestmentForDeletion.id,
-      selectedInvestmentForDeletion.profiles?.email || `ID: ${selectedInvestmentForDeletion.user_id}`,
-      'Plano de Investimento'
+      selectedInvestmentForDeletion.investment_id,
+      selectedInvestmentForDeletion.user_email || `ID: ${selectedInvestmentForDeletion.investment_id}`,
+      selectedInvestmentForDeletion.plan_name || 'Plano de Investimento'
     );
 
     setIsIndividualDeleteModalOpen(false);
@@ -4279,70 +4238,100 @@ const Admin = () => {
                   </CardContent>
                 </Card>
 
-                {/* Live Operations Monitor */}
+                {/* Active Users with Plans */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Activity className="h-5 w-5" />
-                      Monitor de Operações em Tempo Real
+                      <Users className="h-5 w-5" />
+                      Usuários com Planos Ativos
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={loadActiveInvestments}
+                        disabled={isLoadingInvestments}
+                        className="ml-auto"
+                      >
+                        {isLoadingInvestments ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                        Atualizar
+                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                        <div className="text-2xl font-bold text-green-500">143</div>
-                        <div className="text-sm text-muted-foreground">Operações Ativas</div>
-                      </div>
-                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                        <div className="text-2xl font-bold text-blue-500">+2.34%</div>
-                        <div className="text-sm text-muted-foreground">Lucro Médio</div>
-                      </div>
-                      <div className="text-center p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                        <div className="text-2xl font-bold text-orange-500">$12,543</div>
-                        <div className="text-sm text-muted-foreground">Volume 24h</div>
-                      </div>
-                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                        <div className="text-2xl font-bold text-purple-500">98.7%</div>
-                        <div className="text-sm text-muted-foreground">Taxa de Sucesso</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Últimas Operações</h4>
-                      <div className="space-y-2">
-                        {[
-                          { pair: "BTC/USDT", type: "Cross-Exchange", profit: "+1.85%", volume: "$532", status: "completed" },
-                          { pair: "ETH/USDT", type: "Triangular", profit: "+2.14%", volume: "$789", status: "running" },
-                          { pair: "ADA/USDT", type: "Cross-Exchange", profit: "+0.92%", volume: "$234", status: "completed" },
-                          { pair: "SOL/USDT", type: "Grid Trading", profit: "+3.27%", volume: "$1,234", status: "running" },
-                        ].map((operation, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Badge variant={operation.status === 'completed' ? 'default' : 'secondary'}>
-                                {operation.status === 'completed' ? <CheckCircle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
-                                {operation.status === 'completed' ? 'Finalizada' : 'Executando'}
-                              </Badge>
-                              <span className="font-medium">{operation.pair}</span>
-                              <span className="text-sm text-muted-foreground">{operation.type}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-green-500 font-medium">{operation.profit}</span>
-                              <span className="text-sm text-muted-foreground">{operation.volume}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <Button className="flex-1">
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Atualizar Dados
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        <Download className="h-4 w-4 mr-2" />
-                        Exportar Relatório
-                      </Button>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Usuário</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Plano</TableHead>
+                            <TableHead>Valor</TableHead>
+                            <TableHead>Taxa Diária</TableHead>
+                            <TableHead>Total Ganho</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Dias Restantes</TableHead>
+                            <TableHead className="text-center">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {activeInvestments.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                {isLoadingInvestments ? "Carregando investimentos..." : "Nenhum investimento ativo encontrado"}
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            activeInvestments.map((investment) => (
+                              <TableRow key={investment.investment_id}>
+                                <TableCell className="font-medium">
+                                  {investment.user_name || 'N/A'}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                  {investment.user_email}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">{investment.plan_name}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                  ${investment.amount?.toFixed(2)}
+                                </TableCell>
+                                <TableCell>
+                                  {(investment.daily_rate * 100).toFixed(2)}%
+                                </TableCell>
+                                <TableCell className="text-green-600">
+                                  ${investment.total_earned?.toFixed(2)}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={investment.status === 'active' ? 'default' : 'secondary'}
+                                  >
+                                    {investment.status === 'active' ? 'Ativo' : investment.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {investment.days_remaining} dias
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-red-500/20 text-red-500"
+                                    onClick={() => {
+                                      setSelectedInvestmentForDeletion(investment);
+                                      setIsIndividualDeleteModalOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
                   </CardContent>
                 </Card>
@@ -5677,6 +5666,75 @@ const Admin = () => {
                       <Calculator className="h-4 w-4 mr-2" />
                     )}
                     {balanceOperation === 'add' ? 'Adicionar' : 'Subtrair'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Individual Investment Delete Modal */}
+        <Dialog open={isIndividualDeleteModalOpen} onOpenChange={setIsIndividualDeleteModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+                Confirmar Exclusão
+              </DialogTitle>
+            </DialogHeader>
+            {selectedInvestmentForDeletion && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Tem certeza de que deseja excluir este investimento?
+                </p>
+                
+                <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Usuário:</span>
+                    <span>{selectedInvestmentForDeletion.user_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Email:</span>
+                    <span>{selectedInvestmentForDeletion.user_email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Plano:</span>
+                    <span>{selectedInvestmentForDeletion.plan_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Valor:</span>
+                    <span>${selectedInvestmentForDeletion.amount?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Total Ganho:</span>
+                    <span className="text-green-600">${selectedInvestmentForDeletion.total_earned?.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Atenção:</strong> Esta ação não pode ser desfeita. O investimento será cancelado permanentemente.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsIndividualDeleteModalOpen(false);
+                      setSelectedInvestmentForDeletion(null);
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={confirmIndividualDeletion}
+                    className="flex-1"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Investimento
                   </Button>
                 </div>
               </div>
