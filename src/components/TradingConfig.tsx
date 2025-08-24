@@ -301,28 +301,33 @@ export function TradingConfig() {
                       </span>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Slider
-                        value={[currentRate]}
-                        onValueChange={(values) => {
-                          const newRate = values[0];
-                          // Marcar que há mudanças para ativar o botão salvar
-                          setHasChanges(true);
-                          // Atualizar estado local imediatamente
-                          setPlans(prev => prev.map(p => 
-                            p.id === plan.id ? { ...p, daily_rate: newRate / 100 } : p
-                          ));
-                        }}
-                        max={maxRate}
-                        min={0.01}
-                        step={0.01}
-                        className="w-full h-2 touch-pan-x" // Melhor para touch
-                      />
+                     <div className="space-y-2">
+                       <Slider
+                         value={[currentRate]}
+                         onValueChange={(values) => {
+                           const newRate = values[0];
+                           console.log(`🎚️ Alterando taxa do ${plan.name}: ${currentRate}% → ${newRate}%`);
+                           // Marcar que há mudanças para ativar o botão salvar
+                           setHasChanges(true);
+                           // Atualizar estado local imediatamente
+                           setPlans(prev => prev.map(p => 
+                             p.id === plan.id ? { 
+                               ...p, 
+                               daily_rate: newRate / 100,
+                               max_daily_return: Math.max(newRate, p.max_daily_return) // Garante que o max não seja menor que o atual
+                             } : p
+                           ));
+                         }}
+                         max={Math.max(maxRate, currentRate + 1)} // Permite ir além do max atual se necessário
+                         min={0.01}
+                         step={0.01}
+                         className="w-full h-2 touch-pan-x" // Melhor para touch
+                       />
                       
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0.01%</span>
-                        <span>máx: {maxRate}%</span>
-                      </div>
+                       <div className="flex justify-between text-xs text-muted-foreground">
+                         <span>0.01%</span>
+                         <span>atual máx: {Math.max(maxRate, currentRate).toFixed(2)}%</span>
+                       </div>
                     </div>
                     
                     <div className="p-3 bg-muted/30 rounded-lg">
