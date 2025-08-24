@@ -380,7 +380,7 @@ const TradingInvestments = () => {
       }
 
       // Calcular lucro da operação baseado na daily_rate com variação
-      const baseProfit = investment.amount * investment.daily_rate / 100 / 2;
+      const baseProfit = investment.amount * investment.daily_rate / 2; // daily_rate já está em decimal (0.0033)
       const variation = 0.8 + Math.random() * 0.4; // 80% a 120% da taxa base
       const finalProfit = baseProfit * variation;
 
