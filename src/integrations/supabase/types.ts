@@ -2014,6 +2014,15 @@ export type Database = {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
       }
+      admin_update_investment_plan: {
+        Args: {
+          admin_email?: string
+          new_daily_rate: number
+          new_max_daily_return: number
+          plan_id_param: string
+        }
+        Returns: Json
+      }
       admin_update_plan_rate: {
         Args: {
           p_effective_date?: string

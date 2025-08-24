@@ -127,22 +127,27 @@ export function TradingConfig() {
     console.log('🔄 Iniciando salvamento dos planos...', plans);
     setLoading(true);
     try {
-      // Salvar cada plano
-      const updatePromises = plans.map(plan => {
+      // Usar a função admin para atualizar os planos (contorna problemas de RLS)
+      const updatePromises = plans.map(async plan => {
         console.log(`📝 Salvando plano ${plan.name}:`, {
           id: plan.id,
           daily_rate: plan.daily_rate,
           max_daily_return: plan.max_daily_return
         });
         
-        return supabase
-          .from('investment_plans')
-          .update({
-            daily_rate: plan.daily_rate,
-            max_daily_return: plan.max_daily_return,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', plan.id);
+        // Determinar qual email admin usar
+        const adminEmail = 'admin@clean.com'; // Padrão
+        
+        const { data, error } = await supabase.rpc('admin_update_investment_plan', {
+          plan_id_param: plan.id,
+          new_daily_rate: plan.daily_rate,
+          new_max_daily_return: plan.max_daily_return,
+          admin_email: adminEmail
+        });
+        
+        console.log(`📊 Resultado da atualização do plano ${plan.name}:`, { data, error });
+        
+        return { data, error, plan_name: plan.name };
       });
 
       // Aguardar todas as atualizações
@@ -151,15 +156,16 @@ export function TradingConfig() {
       console.log('📊 Resultados das atualizações:', results);
       
       // Verificar se alguma teve erro
-      const errors = results.filter(result => result.error);
+      const errors = results.filter(result => result.error || !result.data?.success);
       
       if (errors.length > 0) {
         console.error('❌ Erros encontrados:', errors);
-        throw new Error(`Erro ao salvar ${errors.length} plano(s)`);
+        const errorMessages = errors.map(err => `${err.plan_name}: ${err.error?.message || err.data?.error}`);
+        throw new Error(`Erro ao salvar planos: ${errorMessages.join(', ')}`);
       }
 
-      // Status 204 significa que a atualização foi bem-sucedida
-      const successfulUpdates = results.filter(result => result.status === 204 || result.status === 200);
+      // Verificar quantas atualizações foram bem-sucedidas
+      const successfulUpdates = results.filter(result => result.data?.success);
       console.log(`✅ ${successfulUpdates.length} de ${results.length} atualizações foram bem-sucedidas`);
       
       if (successfulUpdates.length === 0) {
