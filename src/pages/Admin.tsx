@@ -3590,14 +3590,14 @@ const Admin = () => {
   const loadActiveInvestments = async () => {
     setIsLoadingInvestments(true);
     try {
-      console.log('📊 Carregando investimentos ativos usando admin_get_all_investments...');
+      console.log('📊 Carregando investimentos ativos usando admin_get_all_investments_fixed...');
       console.log('👤 User atual:', user);
       console.log('🔑 User ID:', user?.id);
       console.log('📧 User email:', user?.email);
       console.log('🛡️ Is admin:', isAdmin);
       
-      // Usar a nova função admin que traz todos os dados necessários
-      const { data: investmentsData, error: investmentsError } = await supabase.rpc('admin_get_all_investments');
+      // Usar a função admin corrigida que traz todos os dados necessários
+      const { data: investmentsData, error: investmentsError } = await supabase.rpc('admin_get_all_investments_fixed');
 
       if (investmentsError) {
         console.error('❌ Erro ao carregar investimentos:', investmentsError);

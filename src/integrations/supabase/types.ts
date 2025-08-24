@@ -1928,6 +1928,21 @@ export type Database = {
           user_name: string
         }[]
       }
+      admin_get_all_investments_fixed: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number
+          created_at: string
+          daily_rate: number
+          days_remaining: number
+          investment_id: string
+          plan_name: string
+          status: string
+          total_earned: number
+          user_email: string
+          user_name: string
+        }[]
+      }
       admin_toggle_user_status: {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
@@ -2188,6 +2203,10 @@ export type Database = {
       }
       sync_user_withdrawal_balance: {
         Args: { target_user_id: string }
+        Returns: Json
+      }
+      test_admin_access: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       test_referral_signup: {
