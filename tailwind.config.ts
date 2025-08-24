@@ -63,6 +63,12 @@ export default {
 				},
 				'trading-green': 'hsl(var(--trading-green))',
 				'trading-red': 'hsl(var(--trading-red))',
+				// Trading Investment Colors
+				'emerald-400': 'hsl(var(--emerald-400))',
+				'teal-400': 'hsl(var(--teal-400))',
+				'cyan-400': 'hsl(var(--cyan-400))',
+				'blue-400': 'hsl(var(--blue-400))',
+				'indigo-400': 'hsl(var(--indigo-400))',
 				// Binance colors
 				'binance-yellow': 'hsl(var(--binance-yellow))',
 				'binance-green': 'hsl(var(--binance-green))',

@@ -46,6 +46,13 @@ All colors MUST be HSL.
     --trading-green: 120 100% 40%;   /* #02C076 - Verde trading */
     --trading-red: 0 91% 58%;        /* #F84960 - Vermelho trading */
     
+    /* Trading Investment Colors */
+    --emerald-400: 158 64% 52%;      /* #10B981 - Emerald 400 */
+    --teal-400: 170 76% 46%;         /* #14B8A6 - Teal 400 */
+    --cyan-400: 188 86% 53%;         /* #22D3EE - Cyan 400 */
+    --blue-400: 213 94% 68%;         /* #3B82F6 - Blue 400 */
+    --indigo-400: 239 84% 67%;       /* #6366F1 - Indigo 400 */
+    
     /* Gradients Binance */
     --gradient-primary: linear-gradient(135deg, hsl(220 100% 50%), hsl(220 100% 60%));
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 11%));
