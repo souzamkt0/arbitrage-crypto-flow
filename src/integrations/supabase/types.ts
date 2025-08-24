@@ -1646,6 +1646,13 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "user_investments_investment_plan_id_fkey"
+            columns: ["investment_plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_investments_profiles_fkey"
             columns: ["user_id"]
             isOneToOne: false
