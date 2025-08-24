@@ -157,7 +157,15 @@ export function ActivePlans({ userInvestments, isMobile, activeInvestments, onIn
 
     try {
       // Calcular ganho da operação (1.25% por operação)
-      const operationProfit = (investment.amount * 1.25) / 100;
+      // Obter a taxa diária das configurações do admin ou padrão
+      const adminSettings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
+      const strategy = investment.investmentName?.toLowerCase().includes('conservador') ? 'conservador' :
+                      investment.investmentName?.toLowerCase().includes('moderado') ? 'moderado' : 'livre';
+      
+      const dailyRate = adminSettings[`${strategy}DailyRate`] || 
+                       (strategy === 'conservador' ? 2.0 : strategy === 'moderado' ? 3.0 : 4.0);
+      
+      const operationProfit = (investment.amount * dailyRate) / 100;
       
       // Verificar se o cálculo está correto
       console.log(`Cálculo: $${investment.amount} × 1.25% = $${operationProfit.toFixed(2)}`);
@@ -213,7 +221,7 @@ export function ActivePlans({ userInvestments, isMobile, activeInvestments, onIn
           .insert({
             user_id: user.id,
             investment_amount: investment.amount,
-            daily_rate: 2.5,
+            daily_rate: dailyRate,
             plan_name: investment.investmentName,
             total_profit: operationProfit,
             exchanges_count: 1,

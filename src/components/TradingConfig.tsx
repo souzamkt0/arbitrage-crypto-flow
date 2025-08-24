@@ -493,15 +493,43 @@ export function TradingConfig() {
                         <Input
                           type="number"
                           value={currentRate.toFixed(2)}
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const newRate = parseFloat(e.target.value);
                             if (newRate <= plan.max_daily_return && newRate >= 0.01) {
-                              updatePlanStrategy(
-                                plan.id,
-                                plan.trading_strategy,
-                                plan.max_daily_return,
-                                newRate
-                              );
+                              // Atualizar no banco de dados - investment_plans
+                              const { error: planError } = await supabase
+                                .from('investment_plans')
+                                .update({ daily_rate: newRate / 100 })
+                                .eq('id', plan.id);
+
+                              // Atualizar no banco de dados - trading_configurations
+                              const { error: configError } = await supabase
+                                .from('trading_configurations')
+                                .update({ max_daily_return: newRate })
+                                .eq('strategy_type', plan.trading_strategy);
+
+                              // Salvar nas configurações do admin (localStorage para uso imediato)
+                              const adminSettings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
+                              adminSettings[`${plan.trading_strategy}DailyRate`] = newRate;
+                              localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
+
+                              if (planError || configError) {
+                                toast({
+                                  title: "Erro",
+                                  description: "Erro ao sincronizar taxa de arbitragem",
+                                  variant: "destructive",
+                                });
+                              } else {
+                                // Atualizar estado local
+                                setPlans(prev => prev.map(p => 
+                                  p.id === plan.id ? { ...p, daily_rate: newRate / 100 } : p
+                                ));
+                                
+                                toast({
+                                  title: "Taxa sincronizada",
+                                  description: `Taxa do ${plan.name} atualizada para ${newRate}% nos resultados de arbitragem`,
+                                });
+                              }
                             }
                           }}
                           className="w-20 text-center"
