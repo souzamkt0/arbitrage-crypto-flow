@@ -74,16 +74,15 @@ const TradingInvestments = () => {
     const [showArbitrageModal, setShowArbitrageModal] = useState(false);
 
     // Função para verificar requisitos de cada plano
-    const getRequirementMessage = (planId: string) => {
-      switch (planId) {
-        case '1':
-          return '';
-        case '2':
-          return 'Paga até 3% porém tem que ter 10 pessoas ativas no primeiro nível com planos ativos. Não pode ativar se não tiver apto com os 10 indicados ativos. ';
-        case '3':
-          return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
-        default:
-          return '';
+    const getRequirementMessage = (planName: string) => {
+      if (planName.includes('4.0.0')) {
+        return '';
+      } else if (planName.includes('4.0.5')) {
+        return 'Paga até 3% porém tem que ter 10 pessoas ativas no primeiro nível com planos ativos. Não pode ativar se não tiver apto com os 10 indicados ativos. ';
+      } else if (planName.includes('4.1.0')) {
+        return 'Precisa de 40 pessoas ativas no Robô 4.0.5 para acessar. ';
+      } else {
+        return '';
       }
     };
 
@@ -158,6 +157,27 @@ const TradingInvestments = () => {
         fetchPlans();
         fetchUserInvestments();
         fetchUserReferrals();
+        
+        // Configurar sincronização em tempo real para investment_plans
+        const plansChannel = supabase
+          .channel('investment_plans_realtime')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'investment_plans'
+            },
+            () => {
+              console.log('🔄 Planos atualizados - recarregando...');
+              fetchPlans();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(plansChannel);
+        };
       }
     }, [user]);
     const fetchPlans = async () => {
@@ -792,7 +812,7 @@ const TradingInvestments = () => {
                               💰 Lucro Diário Potencial (Variável)
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              {plan.id === '1' ? 'Até 2% ao dia*' : plan.id === '2' ? 'Até 3% ao dia*' : plan.id === '3' ? 'Até 4% ao dia*' : 'Até 2% ao dia*'}
+                              Até {Math.round(plan.daily_rate * 100)}% ao dia*
                             </p>
                             {plan.id === '1' && <p className="text-yellow-300 text-xs mt-1">
                                 *Arbitragem variável - pode ser menor
@@ -808,8 +828,8 @@ const TradingInvestments = () => {
                           </div>
                         </div>
                         <div className="mt-3 text-center">
-                          <p className="text-white text-sm">
-                            {isLocked ? `🔒 ${getRequirementMessage(plan.id)} Veja abaixo a simulação em tempo real de como você poderia lucrar ${plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'} hoje!` : plan.id === '1' ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)' : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'}
+          <p className="text-white text-sm">
+                            {isLocked ? `🔒 ${getRequirementMessage(plan.name)} Veja abaixo a simulação em tempo real de como você poderia lucrar até ${Math.round(plan.daily_rate * 100)}% hoje!` : plan.name.includes('4.0.0') ? '📊 Sistema de arbitragem automática - ganhos variáveis (pode ser menor que 2%)' : '🎯 Sistema automatizado com rentabilidade variável - ganhos não garantidos!'}
                           </p>
                           {canInvest && plan.id === '1' && <p className="text-yellow-300 text-xs mt-2">
                               ⚠️ Arbitragem variável: pode ganhar menos de 2% - ganhos não fixos
@@ -829,8 +849,8 @@ const TradingInvestments = () => {
                             <Bot className="h-5 w-5 text-emerald-400" />
                             {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robô 4.0.5' : plan.id === '3' ? 'Robô 4.1.0' : plan.name}
                           </CardTitle>
-                          <Badge variant="default" className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
-                            {plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'}
+          <Badge variant="default" className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
+                            até {Math.round(plan.daily_rate * 100)}%
                           </Badge>
                         </div>
                         {/* Informações específicas de cada plano */}
@@ -1250,7 +1270,7 @@ const TradingInvestments = () => {
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
               <h4 className="font-bold text-emerald-400">Detalhes do Plano:</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>Taxa Diária: <span className="text-emerald-400 font-bold">{selectedPlan?.id === '1' ? 'até 2%' : selectedPlan?.id === '2' ? 'até 3%' : selectedPlan?.id === '3' ? 'até 4%' : 'até 2%'}</span></div>
+                <div>Taxa Diária: <span className="text-emerald-400 font-bold">até {Math.round(selectedPlan?.daily_rate * 100)}%</span></div>
                 <div>Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span></div>
                 <div>Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span></div>
                 <div>Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span></div>
@@ -1271,10 +1291,10 @@ const TradingInvestments = () => {
                     Até ${(parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) / 100).toFixed(2)}
                   </span></div>
                   <div>Ganho Total: <span className="text-emerald-400 font-bold">
-                    Até ${(parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days / 100).toFixed(2)}
+                    Até ${(parseFloat(selectedAmount) * (selectedPlan.daily_rate * 100) * selectedPlan.duration_days / 100).toFixed(2)}
                   </span></div>
                   <div>ROI: <span className="text-emerald-400 font-bold">
-                    Até {((selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) * selectedPlan.duration_days).toFixed(1)}%
+                    Até {(selectedPlan.daily_rate * 100 * selectedPlan.duration_days).toFixed(1)}%
                   </span></div>
                 </div>
               </div>}
