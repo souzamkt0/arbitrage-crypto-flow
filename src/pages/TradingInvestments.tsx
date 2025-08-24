@@ -386,7 +386,12 @@ const TradingInvestments = () => {
         investmentId: investment.id
       });
       const baseProfit = investment.amount * investment.daily_rate; // Baseado na taxa configurada
-      console.log('💰 Lucro calculado:', baseProfit);
+      console.log('💰 Lucro calculado:', {
+        amount: investment.amount,
+        daily_rate: investment.daily_rate,
+        baseProfit: baseProfit,
+        shouldBe_1_84: '1.84 para $100 com 1.84%'
+      });
       const variation = 1; // Sem variação
       const finalProfit = baseProfit * variation;
 
