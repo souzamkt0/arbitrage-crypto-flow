@@ -3613,8 +3613,19 @@ const Admin = () => {
       console.log('📊 Investimentos carregados via admin function:', investmentsData?.length || 0);
       console.log('📊 Dados recebidos:', investmentsData);
 
-      // Filtrar apenas investimentos ativos
-      const activeInvestmentsData = investmentsData?.filter(inv => inv.status === 'active') || [];
+      // Mapear os dados para o formato esperado pela tabela
+      const activeInvestmentsData = investmentsData?.map((inv: any) => ({
+        id: inv.investment_id, // Usar investment_id que é retornado pela função
+        user_email: inv.user_email,
+        user_name: inv.user_name,
+        plan_name: inv.plan_name,
+        amount: inv.amount,
+        daily_rate: inv.daily_rate,
+        total_earned: inv.total_earned || 0,
+        status: inv.status,
+        created_at: inv.created_at,
+        days_remaining: inv.days_remaining
+      })).filter(inv => inv.status === 'active') || [];
       
       console.log('✅ Investimentos ativos carregados:', activeInvestmentsData.length);
       setActiveInvestments(activeInvestmentsData);
