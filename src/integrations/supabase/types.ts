@@ -1947,6 +1947,10 @@ export type Database = {
           user_name: string
         }[]
       }
+      admin_test_cancel_investment: {
+        Args: { admin_reason?: string; investment_id_param: string }
+        Returns: Json
+      }
       admin_toggle_user_status: {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
