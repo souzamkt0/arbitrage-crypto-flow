@@ -875,17 +875,6 @@ const TradingInvestments = () => {
                             )}
                           </Button>
                         </div>
-                        
-                        {/* Gráfico de Trading em Tempo Real */}
-                        <div className="mt-4">
-                          <PlanTradingChart 
-                            planId={investment.investment_plan_id}
-                            planName={planName}
-                            dailyRate={investment.daily_rate}
-                            isLocked={false}
-                            userInvestmentAmount={investment.amount}
-                          />
-                        </div>
                       </CardContent>
                     </Card>
                   );
