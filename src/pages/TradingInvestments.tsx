@@ -177,6 +177,26 @@ const TradingInvestments = () => {
     }
   };
 
+  const populateTestData = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('populate-trading-data');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "✅ Dados Populados",
+        description: "Dados de trading foram adicionados com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao popular dados:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao popular dados de teste",
+        variant: "destructive"
+      });
+    }
+  };
+
   const createInvestment = async () => {
     if (!selectedPlan || !selectedAmount || !user?.id) return;
 
@@ -399,6 +419,14 @@ const TradingInvestments = () => {
               <Activity className="h-4 w-4 mr-2" />
               {activeInvestments.length} Ativos
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={populateTestData}
+              className="bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 text-xs"
+            >
+              🧪 Popular Dados
+            </Button>
           </div>
         </div>
 

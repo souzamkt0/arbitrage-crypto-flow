@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Activity, ArrowUpDown, Zap, Target } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 ChartJS.register(
   CategoryScale,
@@ -69,134 +70,79 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Gerar dados simulados de arbitragem
-  const generateArbitrageData = () => {
-    const pairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT'];
-    const exchanges = ['Binance', 'Coinbase', 'Kraken', 'KuCoin', 'Bybit'];
-    
-    const pair = pairs[Math.floor(Math.random() * pairs.length)];
-    const exchangeFrom = exchanges[Math.floor(Math.random() * exchanges.length)];
-    let exchangeTo = exchanges[Math.floor(Math.random() * exchanges.length)];
-    while (exchangeTo === exchangeFrom) {
-      exchangeTo = exchanges[Math.floor(Math.random() * exchanges.length)];
+  // Buscar dados reais do Supabase
+  const fetchPlanData = async () => {
+    try {
+      // Buscar dados de trading do plano
+      const { data: tradingData, error: tradingError } = await supabase
+        .from('plan_arbitrage_operations')
+        .select('*')
+        .eq('plan_id', planId)
+        .order('completed_at', { ascending: false })
+        .limit(10);
+
+      if (tradingError) throw tradingError;
+      setTradingData(tradingData || []);
+
+      // Buscar estatísticas do plano
+      const { data: statsData, error: statsError } = await supabase
+        .from('plan_trading_stats')
+        .select('*')
+        .eq('plan_id', planId)
+        .single();
+
+      if (statsError && statsError.code !== 'PGRST116') throw statsError;
+      setStats(statsData);
+
+      // Buscar histórico de preços
+      const { data: priceData, error: priceError } = await supabase
+        .from('plan_price_history')
+        .select('*')
+        .eq('plan_id', planId)
+        .order('timestamp', { ascending: false })
+        .limit(20);
+
+      if (priceError) throw priceError;
+      
+      if (priceData && priceData.length > 0) {
+        const prices = priceData.reverse().map(item => item.price);
+        const timeLabels = priceData.map(item => 
+          new Date(item.timestamp).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })
+        );
+        setPriceHistory(prices);
+        setLabels(timeLabels);
+      }
+
+      // Se há dados de trading, pegar a operação mais recente
+      if (tradingData && tradingData.length > 0) {
+        setCurrentOperation(tradingData[0]);
+      }
+
+    } catch (error) {
+      console.error('Erro ao buscar dados do plano:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Preços baseados no par
-    let basePrice;
-    switch (pair.split('/')[0]) {
-      case 'BTC':
-        basePrice = 43000 + (Math.random() - 0.5) * 2000;
-        break;
-      case 'ETH':
-        basePrice = 2600 + (Math.random() - 0.5) * 200;
-        break;
-      case 'BNB':
-        basePrice = 300 + (Math.random() - 0.5) * 30;
-        break;
-      case 'ADA':
-        basePrice = 0.5 + (Math.random() - 0.5) * 0.1;
-        break;
-      case 'SOL':
-        basePrice = 100 + (Math.random() - 0.5) * 20;
-        break;
-      default:
-        basePrice = 100;
-    }
-
-    // Calcular lucro baseado na daily_rate do plano
-    const profitPercentage = (dailyRate / 100) * (0.8 + Math.random() * 0.4); // ±20% da taxa diária
-    const buyPrice = basePrice;
-    const sellPrice = buyPrice * (1 + profitPercentage / 100);
-    const volume = Math.random() * 10 + 1;
-
-    return {
-      id: Math.random().toString(36).substr(2, 9),
-      pair,
-      buy_price: buyPrice,
-      sell_price: sellPrice,
-      volume,
-      profit_percentage: profitPercentage,
-      exchange_from: exchangeFrom,
-      exchange_to: exchangeTo,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-  };
-
-  // Simular estatísticas do plano
-  const generatePlanStats = (): PlanTradingStats => {
-    const baseOperations = Math.floor(Math.random() * 50) + 20;
-    const totalProfit = baseOperations * (dailyRate / 100) * 1000; // Simular lucro baseado em investimento médio
-    
-    return {
-      id: planId,
-      total_operations: baseOperations,
-      total_profit: totalProfit,
-      avg_profit_percentage: dailyRate / 4, // Média por operação
-      best_profit_percentage: dailyRate / 2, // Melhor operação
-      total_volume: Math.random() * 100000 + 50000,
-      success_rate: 95 + Math.random() * 5, // 95-100%
-      avg_execution_time: Math.floor(Math.random() * 300) + 60, // 1-6 minutos
-      last_operation_at: new Date().toISOString(),
-    };
   };
 
   useEffect(() => {
-    // Carregar dados iniciais
-    setStats(generatePlanStats());
+    // Buscar dados reais do plano
+    fetchPlanData();
     
-    // Gerar histórico inicial de preços
-    const initialPrices = Array.from({ length: 20 }, () => 
-      40000 + Math.random() * 10000
-    );
-    const initialLabels = Array.from({ length: 20 }, (_, i) => {
-      const date = new Date(Date.now() - (20 - i) * 60000);
-      return date.toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    });
-    
-    setPriceHistory(initialPrices);
-    setLabels(initialLabels);
-    setIsLoading(false);
-
-    // Iniciar simulação de trading em tempo real
+    // Definir um intervalo para atualizar os dados periodicamente
     intervalRef.current = setInterval(() => {
-      // Gerar nova operação de arbitragem
-      const newOperation = generateArbitrageData();
-      setCurrentOperation(newOperation);
-      
-      // Atualizar histórico de preços
-      setPriceHistory(prev => {
-        const newPrice = newOperation.buy_price;
-        const newPrices = [...prev.slice(1), newPrice];
-        return newPrices;
-      });
-      
-      setLabels(prev => {
-        const newLabel = new Date().toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-        const newLabels = [...prev.slice(1), newLabel];
-        return newLabels;
-      });
-
-      // Simular histórico de operações
-      setTradingData(prev => {
-        const newData = [...prev, newOperation].slice(-10); // Manter apenas últimas 10
-        return newData;
-      });
-
-    }, 3000 + Math.random() * 2000); // 3-5 segundos
+      fetchPlanData();
+    }, 30000); // Atualizar a cada 30 segundos
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [planId, dailyRate]);
+  }, [planId]);
 
   const chartOptions: ChartOptions<'line'> = {
     responsive: true,
