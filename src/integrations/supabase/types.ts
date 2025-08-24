@@ -927,6 +927,54 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_rate_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          effective_date: string
+          id: string
+          new_daily_rate: number
+          old_daily_rate: number
+          plan_id: string
+          reason: string | null
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          new_daily_rate: number
+          old_daily_rate: number
+          plan_id: string
+          reason?: string | null
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          new_daily_rate?: number
+          old_daily_rate?: number
+          plan_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_rate_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "plan_rate_history_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "investment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_trading_data: {
         Row: {
           buy_price: number
