@@ -917,7 +917,18 @@ const TradingInvestments = () => {
                         </div>
                       </div>
                       {isLocked && (
-                        <div className="absolute top-4 right-4 z-10">
+                        <div className="absolute top-2 right-4 z-10">
+                          {/* Barra de progresso vermelha acima do cadeado */}
+                          <div className="mb-2">
+                            <div className="w-12 bg-slate-600 rounded-full h-1">
+                              <div 
+                                className="bg-red-500 h-1 rounded-full transition-all duration-500"
+                                style={{ 
+                                  width: `${Math.min(100, (userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1)) * 100)}%` 
+                                }}
+                              ></div>
+                            </div>
+                          </div>
                           <Lock className="h-5 w-5 text-red-400" />
                         </div>
                       )}
