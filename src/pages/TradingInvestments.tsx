@@ -940,38 +940,6 @@ const TradingInvestments = () => {
                         </div>
                       )}
                       
-                      {/* Barra de Progresso para Planos Bloqueados */}
-                      {isLocked && (
-                        <div className="absolute top-16 left-4 right-4 z-10">
-                          <div className="bg-slate-800/95 rounded-lg p-4 border border-cyan-500/40 shadow-lg">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-sm text-white font-semibold">
-                                {getRequirementMessage(plan.id).replace('Precisa de ', '').replace(' para acessar. ', '')}
-                              </span>
-                              <Lock className="h-5 w-5 text-cyan-400" />
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-slate-200">Progresso para desbloqueio</span>
-                                <span className="text-cyan-400 font-bold">
-                                  {userReferrals}/{plan.id === '2' ? '10' : plan.id === '3' ? '40' : '0'} pessoas ativas
-                                </span>
-                              </div>
-                              <div className="w-full bg-slate-700 rounded-full h-3 shadow-inner">
-                                <div 
-                                  className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-3 rounded-full transition-all duration-700 shadow-lg"
-                                  style={{ 
-                                    width: `${Math.min(100, (userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1)) * 100)}%` 
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="text-center text-xs text-slate-300 mt-2">
-                                Faltam {Math.max(0, (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 0) - userReferrals)} pessoas para desbloquear
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
 
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
