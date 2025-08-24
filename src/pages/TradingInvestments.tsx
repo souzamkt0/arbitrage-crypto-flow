@@ -915,7 +915,7 @@ const TradingInvestments = () => {
                         <div className="absolute top-2 left-2 right-2 z-10">
                           <div className="bg-slate-800/90 rounded-lg p-3 border border-cyan-500/30">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-cyan-300 font-medium">
+                              <span className="text-xs text-white font-medium">
                                 {getRequirementMessage(plan.id).replace('Precisa de ', '').replace(' para acessar. ', '')}
                               </span>
                               <Lock className="h-4 w-4 text-cyan-400" />
