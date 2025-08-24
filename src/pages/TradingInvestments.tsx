@@ -380,7 +380,13 @@ const TradingInvestments = () => {
       }
 
       // Lucro baseado na configuração do plano no admin
+      console.log('💰 Calculando lucro:', {
+        investmentAmount: investment.amount,
+        dailyRate: investment.daily_rate,
+        investmentId: investment.id
+      });
       const baseProfit = investment.amount * investment.daily_rate; // Baseado na taxa configurada
+      console.log('💰 Lucro calculado:', baseProfit);
       const variation = 1; // Sem variação
       const finalProfit = baseProfit * variation;
 
