@@ -253,6 +253,82 @@ const Admin = () => {
 
   const { toast } = useToast();
 
+  // Load investment plans function
+  const loadInvestmentPlans = async () => {
+    try {
+      const { data: plans, error } = await supabase
+        .from('investment_plans')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading investment plans:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar planos de investimento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formattedPlans = plans?.map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        dailyRate: plan.daily_rate,
+        minimumAmount: plan.minimum_amount,
+        maxInvestmentAmount: plan.max_investment_amount,
+        duration: plan.duration_days,
+        description: plan.description,
+        status: plan.status,
+        requiredReferrals: plan.minimum_indicators
+      })) || [];
+
+      setInvestmentPlans(formattedPlans);
+    } catch (error) {
+      console.error('Error loading investment plans:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao carregar planos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete plan function
+  const deletePlan = async (planId: string) => {
+    try {
+      const { error } = await supabase
+        .from('investment_plans')
+        .delete()
+        .eq('id', planId);
+
+      if (error) {
+        console.error('Error deleting plan:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir plano de investimento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Plano de investimento excluído com sucesso",
+      });
+
+      // Reload plans
+      await loadInvestmentPlans();
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno ao excluir plano",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleChangePassword = async () => {
     if (!selectedUserForPassword) return;
     
@@ -1780,6 +1856,7 @@ const Admin = () => {
     loadPartners();
     calculatePartnerEarnings();
     loadAllUsers();
+    loadInvestmentPlans();
   }, []);
 
   useEffect(() => {
@@ -4149,6 +4226,154 @@ const Admin = () => {
           
           <TabsContent value="trading">
             <p className="text-muted-foreground">Conteúdo de trading será implementado...</p>
+          </TabsContent>
+
+          {/* Robots Tab */}
+          <TabsContent value="robots" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Gerenciar Robôs de Arbitragem</h2>
+              <p className="text-muted-foreground">Visualize, edite e exclua os planos de investimento (robôs) do sistema</p>
+            </div>
+
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  Robôs Disponíveis
+                </CardTitle>
+                <CardDescription>
+                  Gerencie todos os robôs de arbitragem do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Filter and Actions */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        onClick={loadInvestmentPlans}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Recarregar
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setSelectedPlan(null);
+                          setIsNewPlan(true);
+                          setIsPlanModalOpen(true);
+                        }}
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Novo Robô
+                      </Button>
+                    </div>
+                    <Badge variant="secondary">
+                      {investmentPlans.length} robô(s) encontrado(s)
+                    </Badge>
+                  </div>
+
+                  {/* Robots Table */}
+                  <div className="border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Taxa Diária</TableHead>
+                          <TableHead>Valor Min/Max</TableHead>
+                          <TableHead>Duração</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {investmentPlans.map((plan) => (
+                          <TableRow key={plan.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{plan.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Min. {plan.requiredReferrals} indicações
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {(plan.dailyRate * 100).toFixed(2)}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                <p>${plan.minimumAmount} - ${plan.maxInvestmentAmount || '∞'}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">
+                                {plan.duration} dias
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={plan.status === 'active' ? 'default' : 'destructive'}
+                              >
+                                {plan.status === 'active' ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center gap-2 justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedPlan(plan);
+                                    setIsNewPlan(false);
+                                    setIsPlanModalOpen(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (window.confirm(`Tem certeza que deseja excluir o robô ${plan.name}?`)) {
+                                      deletePlan(plan.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {investmentPlans.length === 0 && (
+                      <div className="p-8 text-center text-muted-foreground">
+                        <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Nenhum robô encontrado</p>
+                        <Button 
+                          className="mt-2"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPlan(null);
+                            setIsNewPlan(true);
+                            setIsPlanModalOpen(true);
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Criar Primeiro Robô
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Partners Tab */}
