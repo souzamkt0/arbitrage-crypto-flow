@@ -810,8 +810,8 @@ const TradingInvestments = () => {
                     <Card 
                       className={`relative overflow-hidden transition-all duration-300 ${
                         isLocked 
-                          ? 'bg-slate-800/50 border-slate-600/50 opacity-75' 
-                          : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border-slate-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'
+                          ? 'bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 border-cyan-500/30 shadow-lg shadow-cyan-500/10 opacity-75' 
+                          : 'bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 border-cyan-500/30 shadow-lg shadow-cyan-500/10 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'
                       }`}
                     >
                       {/* Profit Information Box */}
