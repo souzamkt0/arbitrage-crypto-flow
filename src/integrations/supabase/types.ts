@@ -267,6 +267,48 @@ export type Database = {
           },
         ]
       }
+      daily_market_rates: {
+        Row: {
+          created_at: string | null
+          current_rate: number
+          date: string
+          hourly_rates: Json | null
+          id: string
+          last_updated: string | null
+          market_sentiment: string | null
+          max_rate: number
+          min_rate: number
+          plan_id: string
+          volatility_index: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_rate: number
+          date?: string
+          hourly_rates?: Json | null
+          id?: string
+          last_updated?: string | null
+          market_sentiment?: string | null
+          max_rate: number
+          min_rate: number
+          plan_id: string
+          volatility_index?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_rate?: number
+          date?: string
+          hourly_rates?: Json | null
+          id?: string
+          last_updated?: string | null
+          market_sentiment?: string | null
+          max_rate?: number
+          min_rate?: number
+          plan_id?: string
+          volatility_index?: number | null
+        }
+        Relationships: []
+      }
       daily_profits: {
         Row: {
           created_at: string
@@ -2082,6 +2124,10 @@ export type Database = {
       test_referral_signup: {
         Args: { ref_code?: string; test_email: string }
         Returns: Json
+      }
+      update_current_market_rate: {
+        Args: { p_plan_id: string }
+        Returns: undefined
       }
       update_operations_progress: {
         Args: Record<PropertyKey, never>
