@@ -1913,6 +1913,15 @@ export type Database = {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
       }
+      admin_update_plan_rate: {
+        Args: {
+          p_effective_date?: string
+          p_new_rate: number
+          p_plan_id: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
       admin_update_user_balance: {
         Args: {
           admin_email?: string
