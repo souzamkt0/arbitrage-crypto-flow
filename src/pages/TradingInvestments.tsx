@@ -487,6 +487,32 @@ const TradingInvestments = () => {
                           : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border-slate-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'
                       }`}
                     >
+                      {/* Profit Information Box */}
+                      <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-b border-emerald-500/30 p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-emerald-300 text-sm font-medium">
+                              💰 Lucro Diário Estimado
+                            </p>
+                            <p className="text-emerald-400 text-lg font-bold">
+                              {plan.daily_rate}% ao dia
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-slate-300 text-xs">
+                              Com investimento de $1,000
+                            </p>
+                            <p className="text-emerald-400 text-xl font-bold">
+                              ${(1000 * plan.daily_rate / 100).toFixed(2)}/dia
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 text-center">
+                          <p className="text-emerald-200 text-sm">
+                            🎯 Participe do plano e veja seus lucros crescerem diariamente com arbitragem automática!
+                          </p>
+                        </div>
+                      </div>
                       {isLocked && (
                         <div className="absolute top-4 right-4 z-10">
                           <Lock className="h-5 w-5 text-red-400" />
