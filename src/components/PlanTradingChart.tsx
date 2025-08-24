@@ -198,32 +198,45 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     animation: {
-      duration: 750,
-      easing: 'easeInOutQuart',
+      duration: 1500,
+      easing: 'easeInOutCubic',
+      delay: (context) => context.dataIndex * 100,
+    },
+    transitions: {
+      active: {
+        animation: {
+          duration: 800,
+          easing: 'easeInOutQuart',
+        }
+      }
     },
     scales: {
       x: {
         display: true,
         grid: {
-          color: 'rgba(255, 255, 255, 0.05)',
+          color: 'rgba(16, 185, 129, 0.1)',
+          lineWidth: 1,
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.6)',
+          color: 'rgba(255, 255, 255, 0.7)',
           maxTicksLimit: 6,
           font: {
             size: 11,
+            weight: 500,
           },
         },
       },
       y: {
         display: true,
         grid: {
-          color: 'rgba(255, 255, 255, 0.05)',
+          color: 'rgba(16, 185, 129, 0.1)',
+          lineWidth: 1,
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.6)',
+          color: 'rgba(255, 255, 255, 0.7)',
           font: {
             size: 11,
+            weight: 500,
           },
           callback: function(value) {
             return '$' + Number(value).toLocaleString(undefined, {
@@ -239,14 +252,23 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: 'white',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        titleColor: '#10b981',
         bodyColor: 'white',
-        borderColor: 'rgba(16, 185, 129, 0.5)',
-        borderWidth: 1,
+        borderColor: 'rgba(16, 185, 129, 0.8)',
+        borderWidth: 2,
+        cornerRadius: 8,
+        displayColors: false,
         callbacks: {
+          title: function(context) {
+            return `Arbitragem - ${context[0].label}`;
+          },
           label: function(context) {
             return `Preço: $${Number(context.parsed.y).toLocaleString()}`;
+          },
+          afterLabel: function(context) {
+            const profit = ((context.parsed.y - 40000) / 40000 * 100).toFixed(3);
+            return `Potencial: +${profit}%`;
           },
         },
       },
@@ -257,11 +279,16 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
     },
     elements: {
       line: {
-        tension: 0.4,
+        tension: 0.6,
+        borderCapStyle: 'round',
+        borderJoinStyle: 'round',
       },
       point: {
         radius: 0,
-        hoverRadius: 6,
+        hoverRadius: 8,
+        pointStyle: 'circle',
+        borderWidth: 3,
+        hoverBorderWidth: 4,
       },
     },
   };
@@ -270,7 +297,7 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
     labels,
     datasets: [
       {
-        label: 'Preço de Arbitragem',
+        label: 'Arbitragem em Tempo Real',
         data: priceHistory,
         borderColor: connectionStatus === 'connected' ? 'rgba(16, 185, 129, 1)' : 'rgba(156, 163, 175, 1)',
         backgroundColor: (context: any) => {
@@ -283,29 +310,40 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
           
           const color = connectionStatus === 'connected' ? '16, 185, 129' : '156, 163, 175';
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, `rgba(${color}, 0.05)`);
-          gradient.addColorStop(0.5, `rgba(${color}, 0.15)`);
-          gradient.addColorStop(1, `rgba(${color}, 0.3)`);
+          gradient.addColorStop(0, `rgba(${color}, 0.02)`);
+          gradient.addColorStop(0.3, `rgba(${color}, 0.1)`);
+          gradient.addColorStop(0.7, `rgba(${color}, 0.2)`);
+          gradient.addColorStop(1, `rgba(${color}, 0.4)`);
           return gradient;
         },
-        borderWidth: 2,
+        borderWidth: 3,
         fill: true,
         pointRadius: 0,
-        pointHoverRadius: 6,
+        pointHoverRadius: 8,
         pointHoverBackgroundColor: connectionStatus === 'connected' ? 'rgba(16, 185, 129, 1)' : 'rgba(156, 163, 175, 1)',
         pointHoverBorderColor: 'white',
-        pointHoverBorderWidth: 2,
-        tension: 0.4,
+        pointHoverBorderWidth: 3,
+        tension: 0.6,
+        segment: {
+          borderColor: (ctx: any) => {
+            const current = ctx.p1.parsed.y;
+            const previous = ctx.p0.parsed.y;
+            return current > previous ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)';
+          },
+        },
       },
     ],
   };
 
   if (isLoading) {
     return (
-      <Card className="bg-slate-800/50 border-slate-600/30">
+      <Card className="bg-slate-800/50 border-slate-600/30 animate-fade-in">
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-400"></div>
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-emerald-400"></div>
+              <div className="animate-ping absolute top-0 left-0 rounded-full h-12 w-12 border border-emerald-400/50"></div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -313,7 +351,7 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
   }
 
   return (
-    <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
+    <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30 animate-fade-in hover-scale transition-all duration-300">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
@@ -322,18 +360,18 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
           </CardTitle>
           
           <div className="flex items-center gap-2">
-            {/* Status de conexão */}
+            {/* Status de conexão com animação */}
             <Badge className={`${
               connectionStatus === 'connected' 
                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
                 : connectionStatus === 'connecting'
                 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
                 : 'bg-red-500/20 text-red-400 border-red-500/30'
-            }`}>
-              <div className={`w-2 h-2 rounded-full mr-2 ${
-                connectionStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 
-                connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' :
-                'bg-red-400'
+            } transition-all duration-500 animate-scale-in`}>
+              <div className={`w-3 h-3 rounded-full mr-2 ${
+                connectionStatus === 'connected' ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50' : 
+                connectionStatus === 'connecting' ? 'bg-yellow-400 animate-ping' :
+                'bg-red-400 animate-pulse'
               }`}></div>
               {connectionStatus === 'connected' ? 'CONECTADO' : 
                connectionStatus === 'connecting' ? 'CONECTANDO' : 'DESCONECTADO'}
@@ -341,27 +379,28 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
           </div>
         </div>
         
-        {/* Informações de ganho hoje */}
-        <div className="mt-4 p-4 bg-gradient-to-r from-emerald-900/20 to-teal-900/20 rounded-lg border border-emerald-500/30">
-          <div className="text-center space-y-2">
-            <p className="text-emerald-300 text-sm font-medium">
+        {/* Informações de ganho hoje com animações */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-emerald-900/20 to-teal-900/20 rounded-lg border border-emerald-500/30 animate-scale-in relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-teal-400/5 animate-pulse"></div>
+          <div className="relative z-10 text-center space-y-2">
+            <p className="text-emerald-300 text-sm font-medium animate-fade-in">
               💰 {isLocked ? 'Potencial de Ganho Hoje' : 'Ganho Atual Hoje'}
             </p>
             <div className="flex items-center justify-center gap-4">
-              <div>
+              <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <p className="text-emerald-200 text-xs">Com ${userInvestmentAmount}</p>
-                <p className="text-emerald-400 text-xl font-bold">
+                <p className="text-emerald-400 text-xl font-bold animate-pulse">
                   ${todayProfit.amount.toFixed(2)}
                 </p>
               </div>
-              <div>
+              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <p className="text-emerald-200 text-xs">Taxa de hoje</p>
-                <p className="text-emerald-400 text-xl font-bold">
+                <p className="text-emerald-400 text-xl font-bold animate-pulse">
                   {todayProfit.percentage.toFixed(2)}%
                 </p>
               </div>
             </div>
-            <p className="text-emerald-200 text-xs">
+            <p className="text-emerald-200 text-xs animate-fade-in" style={{ animationDelay: '0.6s' }}>
               ⚡ {isLocked ? 'Baseado em dados reais do mercado' : 'Dados em tempo real'}
             </p>
           </div>
@@ -369,66 +408,77 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Gráfico de Preços */}
-        <div className="h-48 w-full">
+        {/* Gráfico de Preços com animação */}
+        <div className="h-48 w-full relative animate-fade-in">
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/5 to-transparent rounded-lg animate-pulse"></div>
           <Line data={chartData} options={chartOptions} />
         </div>
 
-        {/* Operação Atual de Trading */}
+        {/* Operação Atual de Trading com animações */}
         {currentTrade && (
-          <div className="p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg border border-blue-500/30">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-blue-400" />
-                <span className="text-blue-300 font-medium">Operação Ativa</span>
-                <Badge className={`${
-                  currentTrade.status === 'executing' 
-                    ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' 
-                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                }`}>
-                  {currentTrade.status === 'executing' ? 'EXECUTANDO' : 'CONCLUÍDA'}
-                </Badge>
+          <div className="p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg border border-blue-500/30 animate-scale-in relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-purple-400/5 animate-pulse"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-blue-400 animate-pulse" />
+                  <span className="text-blue-300 font-medium">Operação Ativa</span>
+                  <Badge className={`${
+                    currentTrade.status === 'executing' 
+                      ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse' 
+                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 animate-bounce'
+                  } transition-all duration-500`}>
+                    {currentTrade.status === 'executing' ? 'EXECUTANDO' : 'CONCLUÍDA'}
+                  </Badge>
+                </div>
+                <div className="text-emerald-400 font-bold animate-pulse text-lg">
+                  +{currentTrade.profitPercent.toFixed(3)}%
+                </div>
               </div>
-              <div className="text-emerald-400 font-bold">
-                +{currentTrade.profitPercent.toFixed(3)}%
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1 animate-fade-in">
+                  <p className="text-slate-400">Par: <span className="text-white font-medium">{currentTrade.pair}</span></p>
+                  <p className="text-slate-400">Compra: <span className="text-blue-300 font-medium">{currentTrade.buyExchange}</span></p>
+                  <p className="text-slate-400">Preço: <span className="text-white font-mono">${currentTrade.buyPrice.toFixed(2)}</span></p>
+                </div>
+                <div className="space-y-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                  <p className="text-slate-400">Volume: <span className="text-white font-medium">{currentTrade.volume.toFixed(1)}</span></p>
+                  <p className="text-slate-400">Venda: <span className="text-orange-300 font-medium">{currentTrade.sellExchange}</span></p>
+                  <p className="text-slate-400">Preço: <span className="text-white font-mono">${currentTrade.sellPrice.toFixed(2)}</span></p>
+                </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-slate-400">Par: <span className="text-white">{currentTrade.pair}</span></p>
-                <p className="text-slate-400">Compra: <span className="text-blue-300">{currentTrade.buyExchange}</span></p>
-                <p className="text-slate-400">Preço: <span className="text-white">${currentTrade.buyPrice.toFixed(2)}</span></p>
+              
+              <div className="mt-3 text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <p className="text-emerald-300 font-medium text-lg animate-pulse">
+                  💰 Lucro: ${currentTrade.profit.toFixed(2)}
+                </p>
               </div>
-              <div>
-                <p className="text-slate-400">Volume: <span className="text-white">{currentTrade.volume.toFixed(1)}</span></p>
-                <p className="text-slate-400">Venda: <span className="text-orange-300">{currentTrade.sellExchange}</span></p>
-                <p className="text-slate-400">Preço: <span className="text-white">${currentTrade.sellPrice.toFixed(2)}</span></p>
-              </div>
-            </div>
-            
-            <div className="mt-3 text-center">
-              <p className="text-emerald-300 font-medium">
-                Lucro: ${currentTrade.profit.toFixed(2)}
-              </p>
             </div>
           </div>
         )}
 
-        {/* Últimas Operações */}
+        {/* Últimas Operações com animações */}
         {tradingOperations.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-white font-medium text-sm">Últimas Operações</h4>
+          <div className="space-y-2 animate-fade-in">
+            <h4 className="text-white font-medium text-sm flex items-center gap-2">
+              <Activity className="h-4 w-4 text-emerald-400 animate-pulse" />
+              Últimas Operações
+            </h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {tradingOperations.slice(-3).reverse().map((operation, index) => (
-                <div key={operation.id} className="flex items-center justify-between p-2 bg-slate-700/30 rounded text-xs">
+                <div 
+                  key={operation.id} 
+                  className="flex items-center justify-between p-2 bg-slate-700/30 rounded text-xs hover-scale transition-all duration-300 animate-fade-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{operation.pair}</span>
-                    <span className="text-blue-300">{operation.buyExchange}</span>
-                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
-                    <span className="text-orange-300">{operation.sellExchange}</span>
+                    <span className="text-slate-400 font-mono">{operation.pair}</span>
+                    <span className="text-blue-300 text-xs px-1 py-0.5 bg-blue-500/20 rounded">{operation.buyExchange}</span>
+                    <ArrowUpDown className="h-3 w-3 text-slate-400 animate-pulse" />
+                    <span className="text-orange-300 text-xs px-1 py-0.5 bg-orange-500/20 rounded">{operation.sellExchange}</span>
                   </div>
-                  <div className="text-emerald-400 font-medium">
+                  <div className="text-emerald-400 font-medium animate-pulse">
                     +{operation.profitPercent.toFixed(2)}%
                   </div>
                 </div>
@@ -437,19 +487,22 @@ export const PlanTradingChart: React.FC<PlanTradingChartProps> = ({
           </div>
         )}
 
-        {/* Status do mercado */}
+        {/* Status do mercado com animações */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div className="text-center p-3 bg-slate-700/20 rounded-lg">
+          <div className="text-center p-3 bg-slate-700/20 rounded-lg hover-scale transition-all duration-300 animate-fade-in">
             <p className="text-slate-400 text-xs">Taxa Mínima</p>
-            <p className="text-white font-bold">{marketRate ? marketRate.min_rate.toFixed(2) : '0.50'}%</p>
+            <p className="text-white font-bold text-lg">{marketRate ? marketRate.min_rate.toFixed(2) : '0.50'}%</p>
           </div>
-          <div className="text-center p-3 bg-emerald-900/20 rounded-lg border border-emerald-500/20">
-            <p className="text-emerald-200 text-xs">Hoje o mercado pagaria</p>
-            <p className="text-emerald-400 font-bold">{todayProfit.percentage.toFixed(2)}%</p>
+          <div className="text-center p-3 bg-emerald-900/20 rounded-lg border border-emerald-500/20 hover-scale transition-all duration-300 animate-scale-in relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 to-emerald-600/10 animate-pulse"></div>
+            <div className="relative z-10">
+              <p className="text-emerald-200 text-xs">Hoje o mercado pagaria</p>
+              <p className="text-emerald-400 font-bold text-lg animate-pulse">{todayProfit.percentage.toFixed(2)}%</p>
+            </div>
           </div>
-          <div className="text-center p-3 bg-slate-700/20 rounded-lg">
+          <div className="text-center p-3 bg-slate-700/20 rounded-lg hover-scale transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <p className="text-slate-400 text-xs">Taxa Máxima</p>
-            <p className="text-white font-bold">{dailyRate.toFixed(2)}%</p>
+            <p className="text-white font-bold text-lg">{dailyRate.toFixed(2)}%</p>
           </div>
         </div>
       </CardContent>
