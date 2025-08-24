@@ -48,7 +48,8 @@ import {
   User,
   Key,
   LogOut,
-  Menu
+  Menu,
+  ArrowDown
 } from "lucide-react";
 import {
   LineChart,
@@ -158,6 +159,45 @@ const Investments = () => {
   const [showPlanSimulator, setShowPlanSimulator] = useState<string | null>(null);
   const [simulatorAmount, setSimulatorAmount] = useState<number>(1000);
   const [userReferrals, setUserReferrals] = useState<number>(0);
+  
+  // Live sell orders data
+  const [sellOrders, setSellOrders] = useState(() => generateMegaSellOrders(8000));
+
+// Generate thousands of live sell orders
+const generateMegaSellOrders = (count: number) => {
+  const orders = [];
+  const basePrice = 42585; // Base price from image
+  
+  // Major exchanges from the image
+  const exchanges = [
+    'Huobi', 'Binance', 'Bitget', 'KuCoin', 'Coinbase', 'FTX', 'Bitstamp', 
+    'Kraken', 'OKX', 'MEXC', 'Gate.io', 'Crypto.com', 'HitBTC', 'Poloniex',
+    'Gemini', 'Bitfinex', 'CoinEx', 'BitMart', 'ProBit', 'LBank', 'DigiFinex',
+    'ZB.com', 'Hotbit', 'WazirX', 'CoinDCX', 'Bitrue', 'BitFlyer', 'BitMax',
+    'AscendEX', 'Phemex', 'WOO X', 'BingX', 'Bitvenus', 'CoinW', 'XT.com'
+  ];
+  
+  for (let i = 0; i < count; i++) {
+    const priceVariation = (Math.random() - 0.5) * 200; // ±$100 variation
+    const price = basePrice + priceVariation + (i * 0.5);
+    const qtd = (Math.random() * 5 + 0.1).toFixed(3);
+    const bid = price * 0.9995; // Slightly lower bid
+    const total = (price * parseFloat(qtd));
+    const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+    
+    orders.push({
+      id: Math.floor(Math.random() * 1000000) + 100000,
+      exchange: exchange,
+      preco: price.toFixed(0),
+      qtd: qtd,
+      bid: bid.toFixed(0),
+      total: total.toFixed(0),
+      timestamp: Date.now() + i
+    });
+  }
+  
+  return orders.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco)); // Sort by price
+};
 
   useEffect(() => {
     if (user) {
@@ -167,6 +207,15 @@ const Investments = () => {
       fetchUserReferrals();
     }
   }, [user]);
+
+  // Update sell orders every 200ms for real-time effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSellOrders(generateMegaSellOrders(8000));
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchUserReferrals = async () => {
     if (!user?.id) return;
@@ -2010,6 +2059,71 @@ const Investments = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Live Sell Orders Section - Exact model from image */}
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 p-4 z-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
+            {/* Header exactly like the image */}
+            <div className="flex items-center gap-3 mb-4">
+              <ArrowDown className="h-5 w-5 text-red-400" />
+              <span className="text-lg font-bold text-white">Live Sell Orders</span>
+              <div className="bg-red-500 px-2 py-1 rounded text-xs text-white font-bold animate-pulse">
+                LIVE
+              </div>
+              <div className="ml-auto text-sm text-slate-300">
+                {sellOrders.length.toLocaleString()} ordens executando
+              </div>
+            </div>
+
+            {/* Table header exactly like the image */}
+            <div className="grid grid-cols-5 gap-4 text-sm font-semibold text-slate-400 border-b border-slate-600 pb-2 mb-3">
+              <div>EXCHANGE</div>
+              <div>PREÇO</div>
+              <div>QTD</div>
+              <div>BID</div>
+              <div>TOTAL</div>
+            </div>
+
+            {/* Live orders exactly like the image */}
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {sellOrders.slice(0, 100).map((order, index) => (
+                <div 
+                  key={`${order.id}-${index}`}
+                  className="grid grid-cols-5 gap-4 text-sm py-2 hover:bg-slate-700/50 transition-colors animate-pulse border-l-2 border-red-500/30"
+                  style={{ animationDelay: `${index * 20}ms` }}
+                >
+                  <div className="text-yellow-400 font-medium">
+                    {order.exchange}
+                  </div>
+                  <div className="text-red-400 font-bold">
+                    ${order.preco}
+                  </div>
+                  <div className="text-white">
+                    {order.qtd}
+                  </div>
+                  <div className="text-slate-300">
+                    ${order.bid}
+                  </div>
+                  <div className="text-emerald-400 font-semibold">
+                    ${order.total}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer stats */}
+            <div className="mt-4 pt-3 border-t border-slate-600 flex justify-between text-xs">
+              <div className="text-slate-400">
+                🔥 Volume total: ${sellOrders.reduce((sum, order) => sum + parseFloat(order.total), 0).toLocaleString()}
+              </div>
+              <div className="text-red-400 font-medium">
+                {sellOrders.length.toLocaleString()} ORDENS SELL ATIVAS
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
             </div>
     </div>
   );
