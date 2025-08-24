@@ -1597,7 +1597,7 @@ export type Database = {
           total_earned: number | null
           total_operations: number
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           amount: number
@@ -1616,7 +1616,7 @@ export type Database = {
           total_earned?: number | null
           total_operations: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           amount?: number
@@ -1635,7 +1635,7 @@ export type Database = {
           total_earned?: number | null
           total_operations?: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
