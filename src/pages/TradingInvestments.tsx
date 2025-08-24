@@ -1199,177 +1199,216 @@ const TradingInvestments = () => {
       <Dialog open={showArbitrageModal} onOpenChange={setShowArbitrageModal}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-7xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-bold text-center mb-4">
-              🚀 Executando Arbitragem em Tempo Real
-            </DialogTitle>
+            {/* Header com Lucro Atual */}
+            <div className="flex items-center justify-between bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-emerald-500 rounded-lg p-2">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">ARBITRAGEM EM TEMPO REAL</h3>
+                  <p className="text-sm text-slate-300">• Executando operação • {currentArbitrage.pair}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-emerald-400">+${currentArbitrage.currentProfit.toFixed(4)}</div>
+                <div className="text-sm text-slate-300">Lucro Atual</div>
+              </div>
+            </div>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Main Section - Chart (70%) + Metrics Panel (30%) */}
-            <div className="flex gap-6">
-              {/* Trading Chart - 70% */}
-              <div className="flex-1 w-[70%]">
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={currentArbitrage.chartData}>
-                      <XAxis 
-                        dataKey="time" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10 }}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10 }}
-                        domain={['dataMin - 50', 'dataMax + 50']}
-                        tickFormatter={(value) => `$${value.toFixed(2)}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1e293b',
-                          border: '1px solid #475569',
-                          borderRadius: '8px',
-                          color: '#f1f5f9'
-                        }}
-                        formatter={(value: any, name) => [
-                          `$${value.toFixed(8)}`,
-                          name === 'price' ? 'Preço' : name
-                        ]}
-                        labelFormatter={(label) => `Tempo: ${label}`}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="price" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#10b981' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+            {/* Progress Bar com Ícones */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-white">Progresso da Operação</span>
+                <span className="text-xl font-bold text-white">{currentArbitrage.progress}%</span>
+              </div>
+              
+              <Progress value={currentArbitrage.progress} className="h-3 bg-slate-700" />
+              
+              <div className="flex justify-between">
+                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
+                    ✓
+                  </div>
+                  <span className="text-xs">Análise</span>
+                </div>
+                <div className={`flex flex-col items-center ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-blue-400' : 'text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-blue-400 bg-blue-400/20' : 'border-slate-500'}`}>
+                    💰
+                  </div>
+                  <span className="text-xs">Compra</span>
+                </div>
+                <div className={`flex flex-col items-center ${['selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-yellow-400 bg-yellow-400/20' : 'border-slate-500'}`}>
+                    ⏳
+                  </div>
+                  <span className="text-xs">Aguardo</span>
+                </div>
+                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'completed' ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'completed' ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
+                    ✓
+                  </div>
+                  <span className="text-xs">Venda</span>
                 </div>
               </div>
+            </div>
 
-              {/* Right Side Metrics Panel - 30% */}
-              <div className="w-[30%] space-y-4">
-                <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                      {currentArbitrage.pair}
-                    </Badge>
-                    <div className="text-sm text-slate-300">
-                      Spread: {((currentArbitrage.sellPrice - currentArbitrage.buyPrice) / currentArbitrage.buyPrice * 100).toFixed(3)}%
+            {/* Main Section - Chart + Right Panel */}
+            <div className="flex gap-6">
+              {/* Chart Section - 60% */}
+              <div className="flex-1 w-[60%]">
+                <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-white">{currentArbitrage.pair} - Gráfico em Tempo Real</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-emerald-400">LIVE</span>
                     </div>
                   </div>
                   
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={currentArbitrage.chartData}>
+                        <XAxis 
+                          dataKey="time" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 10 }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 10 }}
+                          domain={['dataMin - 50', 'dataMax + 50']}
+                          tickFormatter={(value) => `$${value.toFixed(2)}`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #475569',
+                            borderRadius: '8px',
+                            color: '#f1f5f9'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="price" 
+                          stroke="#10b981" 
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, fill: '#10b981' }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Panel - 40% */}
+              <div className="w-[40%] space-y-4">
+                {/* Operação Atual */}
+                <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h4 className="text-lg font-bold text-white">Operação Atual</h4>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  </div>
+                  
                   <div className="space-y-3">
-                    <div>
-                      <p className="text-slate-400 text-xs">Volume</p>
-                      <p className="text-white font-semibold text-lg">
-                        {currentArbitrage.chartData.length > 0 ? 
-                          Math.round(currentArbitrage.chartData[currentArbitrage.chartData.length - 1]?.volume || 0).toLocaleString() 
-                          : '0'
-                        }
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Par:</span>
+                      <span className="text-white font-semibold">{currentArbitrage.pair}</span>
                     </div>
-                    
-                    <div>
-                      <p className="text-slate-400 text-xs">Entrada</p>
-                      <p className="text-white font-semibold text-lg">${currentArbitrage.buyPrice.toFixed(6)}</p>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Status:</span>
+                      <span className="text-blue-400 font-semibold">
+                        {currentArbitrage.stage === 'analyzing' && 'Aguardando'}
+                        {currentArbitrage.stage === 'opportunity' && 'Analisando'}
+                        {currentArbitrage.stage === 'calculating' && 'Calculando'}
+                        {currentArbitrage.stage === 'buying' && 'Comprando'}
+                        {currentArbitrage.stage === 'transferring' && 'Transferindo'}
+                        {currentArbitrage.stage === 'selling' && 'Vendendo'}
+                        {currentArbitrage.stage === 'finalizing' && 'Finalizando'}
+                        {currentArbitrage.stage === 'completed' && 'Concluído'}
+                      </span>
                     </div>
-                    
-                    <div>
-                      <p className="text-slate-400 text-xs">Ano</p>
-                      <p className="text-white font-semibold text-lg">${currentArbitrage.sellPrice.toFixed(6)}</p>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Preço Compra:</span>
+                      <span className="text-white font-semibold">${currentArbitrage.buyPrice.toFixed(2)}</span>
                     </div>
-                    
-                    <div>
-                      <p className="text-slate-400 text-xs">Atual</p>
-                      <p className="text-emerald-400 font-semibold text-lg">
-                        ${currentArbitrage.chartData.length > 0 ? 
-                          currentArbitrage.chartData[currentArbitrage.chartData.length - 1]?.price.toFixed(6) || '0.000000'
-                          : '0.000000'
-                        }
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Meta Venda:</span>
+                      <span className="text-emerald-400 font-semibold">${currentArbitrage.sellPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lucro em Tempo Real */}
+                <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="text-lg font-bold text-white">Lucro em Tempo Real</h4>
+                    <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  <div className="text-3xl font-bold text-emerald-400 mb-1">
+                    +${currentArbitrage.currentProfit.toFixed(4)}
+                  </div>
+                  <div className="text-sm text-emerald-300">
+                    +{((currentArbitrage.currentProfit / (currentArbitrage.investment?.amount || 1)) * 100).toFixed(3)}%
+                  </div>
+                </div>
+
+                {/* Informações do Investimento */}
+                <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
+                  <h4 className="text-lg font-bold text-white mb-4">Informações do Investimento</h4>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Capital:</span>
+                      <span className="text-white font-semibold">${currentArbitrage.investment?.amount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Robô:</span>
+                      <span className="text-white font-semibold">Robô de Arbitragem</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Operações Hoje:</span>
+                      <span className="text-white font-semibold">{currentArbitrage.investment?.operations_completed || 0}/2</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Section */}
-            <div className="space-y-4">
-              {/* Exchanges */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-slate-400 text-sm mb-1">Exchange Compra</p>
-                  <p className="text-2xl font-bold text-blue-400">{currentArbitrage.exchanges[0]}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-slate-400 text-sm mb-1">Exchange Venda</p>
-                  <p className="text-2xl font-bold text-emerald-400">{currentArbitrage.exchanges[1]}</p>
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="text-center">
-                <p className="text-lg text-slate-300 mb-2">
-                  Status: {currentArbitrage.stage === 'analyzing' && 'Analisando Oportunidades de Arbitragem...'}
-                  {currentArbitrage.stage === 'opportunity' && 'Oportunidade Identificada!'}
-                  {currentArbitrage.stage === 'calculating' && 'Calculando Spread...'}
-                  {currentArbitrage.stage === 'buying' && 'Executando Compra...'}
-                  {currentArbitrage.stage === 'transferring' && 'Transferindo Assets...'}
-                  {currentArbitrage.stage === 'selling' && 'Executando Venda...'}
-                  {currentArbitrage.stage === 'finalizing' && 'Finalizando Operação...'}
-                  {currentArbitrage.stage === 'completed' && 'Arbitragem Concluída!'}
-                  ({currentArbitrage.progress}%)
-                </p>
-                
-                <Progress 
-                  value={currentArbitrage.progress} 
-                  className="h-2 bg-slate-700 mb-4"
-                />
-              </div>
-
-              {/* Profit */}
-              <div className="text-center p-4 bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-lg">
-                <p className="text-slate-300 mb-2">Lucro da Operação</p>
-                <p className="text-4xl font-bold text-emerald-400">
-                  +${currentArbitrage.currentProfit.toFixed(2)}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                {currentArbitrage.stage !== 'completed' ? (
-                  <Button 
-                    onClick={runArbitrageSimulation}
-                    className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
-                    disabled={currentArbitrage.progress > 0}
-                  >
-                    {currentArbitrage.progress === 0 ? (
-                      <>
-                        <Play className="h-5 w-5 mr-2" />
-                        Iniciar Operação de Arbitragem
-                      </>
-                    ) : (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
-                        Operação em Andamento...
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => setShowArbitrageModal(false)}
-                    className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
-                  >
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Finalizar Operação
-                  </Button>
-                )}
-              </div>
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              {currentArbitrage.stage !== 'completed' ? (
+                <Button 
+                  onClick={runArbitrageSimulation}
+                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
+                  disabled={currentArbitrage.progress > 0}
+                >
+                  {currentArbitrage.progress === 0 ? (
+                    <>
+                      <Play className="h-5 w-5 mr-2" />
+                      Iniciar Operação de Arbitragem
+                    </>
+                  ) : (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
+                      Operação em Andamento...
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => setShowArbitrageModal(false)}
+                  className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Finalizar Operação
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
