@@ -162,6 +162,7 @@ const Investments = () => {
   
   // Live sell orders data
   const [sellOrders, setSellOrders] = useState<any[]>([]);
+  const [executingOrders, setExecutingOrders] = useState<any[]>([]);
 
   // Generate thousands of live sell orders
   const generateMegaSellOrders = (count: number) => {
@@ -199,6 +200,36 @@ const Investments = () => {
     return orders.sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco)); // Sort by price
   };
 
+  // Generate thousands of executing orders (BUY orders)
+  const generateExecutingOrders = (count: number) => {
+    const orders = [];
+    const cryptoPairs = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'SOL/USDT', 'XRP/USDT'];
+    const exchanges = ['Bitfinex', 'Kraken', 'Binance', 'KuCoin', 'OKX', 'Huobi', 'Coinbase', 'FTX'];
+    const statuses = ['PENDENTE', 'EXECUTANDO', 'EXECUTADA'];
+    
+    for (let i = 0; i < count; i++) {
+      const basePrice = 48000 + (Math.random() * 2000); // BTC price range
+      const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
+      const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
+      const qtd = (Math.random() * 1 + 0.0001).toFixed(4);
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const orderId = Math.floor(Math.random() * 10000) + 1000;
+      
+      orders.push({
+        id: orderId,
+        orderNumber: `BUY #${orderId}`,
+        pair: pair,
+        preco: `$${basePrice.toFixed(2)}`,
+        qtd: qtd,
+        exchange: exchange,
+        status: status,
+        timestamp: Date.now() + i
+      });
+    }
+    
+    return orders;
+  };
+
   useEffect(() => {
     if (user) {
       fetchInvestments();
@@ -208,16 +239,18 @@ const Investments = () => {
     }
   }, [user]);
 
-  // Initialize sell orders on component mount
+  // Initialize sell orders and executing orders on component mount
   useEffect(() => {
     setSellOrders(generateMegaSellOrders(8000));
+    setExecutingOrders(generateExecutingOrders(5000));
   }, []);
 
-  // Update sell orders every 200ms for real-time effect
+  // Update orders every 150ms for ultra-fast updates
   useEffect(() => {
     const interval = setInterval(() => {
       setSellOrders(generateMegaSellOrders(8000));
-    }, 200);
+      setExecutingOrders(generateExecutingOrders(5000));
+    }, 150);
 
     return () => clearInterval(interval);
   }, []);
@@ -2065,11 +2098,73 @@ const Investments = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Live Sell Orders Section - Exact model from image */}
+      {/* Live Orders Section - Split into two columns */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 p-4 z-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-            {/* Header exactly like the image */}
+        <div className="max-w-7xl mx-auto grid grid-cols-2 gap-4">
+          
+          {/* Ordens em Execução - Left Column */}
+          <div className="bg-slate-800 border border-blue-500/30 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <Activity className="h-5 w-5 text-blue-400" />
+              <span className="text-lg font-bold text-white">Ordens em Execução</span>
+              <div className="bg-blue-500 px-2 py-1 rounded text-xs text-white font-bold animate-pulse">
+                LIVE
+              </div>
+              <div className="ml-auto text-sm text-slate-300">
+                {executingOrders.length.toLocaleString()} ordens ativas
+              </div>
+            </div>
+
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {executingOrders.slice(0, 80).map((order, index) => (
+                <div 
+                  key={`exec-${order.id}-${index}`}
+                  className="bg-slate-700/50 rounded-lg p-3 border-l-4 border-blue-500/50 animate-pulse"
+                  style={{ animationDelay: `${index * 10}ms` }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="text-emerald-400 font-bold text-sm">
+                        {order.orderNumber}
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${
+                        order.status === 'EXECUTADA' ? 'bg-green-500/20 text-green-400' :
+                        order.status === 'EXECUTANDO' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {order.status}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <div className="text-slate-400">Par:</div>
+                      <div className="text-blue-400 font-medium">{order.pair}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-400">Exchange:</div>
+                      <div className="text-yellow-400 font-medium">{order.exchange}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-400">Preço:</div>
+                      <div className="text-emerald-400 font-bold">{order.preco}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-400">Qtd:</div>
+                      <div className="text-white font-medium">{order.qtd}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-slate-600 text-xs text-blue-400 font-medium">
+              🚀 {executingOrders.length.toLocaleString()} ORDENS BUY EM TEMPO REAL
+            </div>
+          </div>
+
+          {/* Live Sell Orders - Right Column */}
+          <div className="bg-slate-800 border border-red-500/30 rounded-lg p-4">
             <div className="flex items-center gap-3 mb-4">
               <ArrowDown className="h-5 w-5 text-red-400" />
               <span className="text-lg font-bold text-white">Live Sell Orders</span>
@@ -2081,8 +2176,8 @@ const Investments = () => {
               </div>
             </div>
 
-            {/* Table header exactly like the image */}
-            <div className="grid grid-cols-5 gap-4 text-sm font-semibold text-slate-400 border-b border-slate-600 pb-2 mb-3">
+            {/* Table header */}
+            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-slate-400 border-b border-slate-600 pb-2 mb-3">
               <div>EXCHANGE</div>
               <div>PREÇO</div>
               <div>QTD</div>
@@ -2090,15 +2185,15 @@ const Investments = () => {
               <div>TOTAL</div>
             </div>
 
-            {/* Live orders exactly like the image */}
+            {/* Live orders */}
             <div className="space-y-1 max-h-60 overflow-y-auto">
               {sellOrders.slice(0, 100).map((order, index) => (
                 <div 
-                  key={`${order.id}-${index}`}
-                  className="grid grid-cols-5 gap-4 text-sm py-2 hover:bg-slate-700/50 transition-colors animate-pulse border-l-2 border-red-500/30"
-                  style={{ animationDelay: `${index * 20}ms` }}
+                  key={`sell-${order.id}-${index}`}
+                  className="grid grid-cols-5 gap-2 text-xs py-1 hover:bg-slate-700/50 transition-colors animate-pulse border-l-2 border-red-500/30"
+                  style={{ animationDelay: `${index * 15}ms` }}
                 >
-                  <div className="text-yellow-400 font-medium">
+                  <div className="text-yellow-400 font-medium truncate">
                     {order.exchange}
                   </div>
                   <div className="text-red-400 font-bold">
@@ -2117,14 +2212,8 @@ const Investments = () => {
               ))}
             </div>
 
-            {/* Footer stats */}
-            <div className="mt-4 pt-3 border-t border-slate-600 flex justify-between text-xs">
-              <div className="text-slate-400">
-                🔥 Volume total: ${sellOrders.reduce((sum, order) => sum + parseFloat(order.total), 0).toLocaleString()}
-              </div>
-              <div className="text-red-400 font-medium">
-                {sellOrders.length.toLocaleString()} ORDENS SELL ATIVAS
-              </div>
+            <div className="mt-3 pt-3 border-t border-slate-600 text-xs text-red-400 font-medium">
+              🔥 {sellOrders.length.toLocaleString()} ORDENS SELL ATIVAS
             </div>
           </div>
         </div>
