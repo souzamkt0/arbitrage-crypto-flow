@@ -1909,6 +1909,10 @@ export type Database = {
         Args: { commission_percentage?: number; partner_email: string }
         Returns: Json
       }
+      admin_cancel_user_investment: {
+        Args: { p_investment_id: string; p_reason?: string }
+        Returns: Json
+      }
       admin_toggle_user_status: {
         Args: { admin_email?: string; target_user_id: string }
         Returns: Json
