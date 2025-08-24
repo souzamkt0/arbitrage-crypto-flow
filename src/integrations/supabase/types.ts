@@ -2149,7 +2149,7 @@ export type Database = {
         }[]
       }
       get_user_active_investments: {
-        Args: Record<PropertyKey, never> | { target_user_id: string }
+        Args: { target_user_id?: string }
         Returns: {
           amount: number
           created_at: string
