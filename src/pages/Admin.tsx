@@ -4261,6 +4261,18 @@ const Admin = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {/* Search Filter */}
+                    <div className="mb-4">
+                      <div className="relative max-w-sm">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar por nome ou email..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 bg-muted/50 border-border/50"
+                        />
+                      </div>
+                    </div>
                     <div className="rounded-md border">
                       <Table>
                         <TableHeader>
@@ -4277,14 +4289,32 @@ const Admin = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {activeInvestments.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                {isLoadingInvestments ? "Carregando investimentos..." : "Nenhum investimento ativo encontrado"}
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            activeInvestments.map((investment) => (
+                          {(() => {
+                            // Filter investments based on search term
+                            const filteredInvestments = activeInvestments.filter(investment => {
+                              if (!searchTerm) return true;
+                              const searchLower = searchTerm.toLowerCase();
+                              return (
+                                investment.user_name?.toLowerCase().includes(searchLower) ||
+                                investment.user_email?.toLowerCase().includes(searchLower)
+                              );
+                            });
+
+                            if (filteredInvestments.length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                    {searchTerm 
+                                      ? `Nenhum investimento encontrado para "${searchTerm}"`
+                                      : isLoadingInvestments 
+                                        ? "Carregando investimentos..." 
+                                        : "Nenhum investimento ativo encontrado"}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            return filteredInvestments.map((investment) => (
                               <TableRow key={investment.investment_id}>
                                 <TableCell className="font-medium">
                                   {investment.user_name || 'N/A'}
@@ -4328,8 +4358,8 @@ const Admin = () => {
                                   </Button>
                                 </TableCell>
                               </TableRow>
-                            ))
-                          )}
+                            ));
+                          })()}
                         </TableBody>
                       </Table>
                     </div>
