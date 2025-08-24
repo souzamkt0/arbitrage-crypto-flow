@@ -77,7 +77,7 @@ interface InvestmentPlan {
 
 interface UserInvestment {
   id: string;
-  plan_id: string;
+  investment_plan_id: string;
   amount: number;
   daily_rate: number;
   start_date: string;
@@ -240,7 +240,7 @@ const TradingInvestments = () => {
         .from('user_investments')
         .insert({
           user_id: user.id,
-          plan_id: selectedPlan.id,
+          investment_plan_id: selectedPlan.id,
           amount: amount,
           daily_rate: selectedPlan.daily_rate,
           start_date: startDate.toISOString(),
@@ -364,7 +364,7 @@ const TradingInvestments = () => {
           user_id: user?.id,
           investment_amount: investment.amount,
           daily_rate: investment.daily_rate,
-          plan_name: plans.find(p => p.id === investment.plan_id)?.name || 'Unknown',
+          plan_name: plans.find(p => p.id === investment.investment_plan_id)?.name || 'Unknown',
           total_profit: operationProfit,
           exchanges_count: Math.floor(Math.random() * 3) + 2, // 2-4 exchanges
           completed_operations: 1,
@@ -749,7 +749,7 @@ const TradingInvestments = () => {
                   const isHidden = hiddenAmounts.has(investment.id);
                   const isProcessing = processingOperations.has(investment.id);
                   const canExecuteOperation = investment.operations_completed < 2;
-                  const planName = getPlanDisplayName(investment.plan_id);
+                  const planName = getPlanDisplayName(investment.investment_plan_id);
                   
                   return (
                     <Card 
@@ -856,7 +856,7 @@ const TradingInvestments = () => {
                         {/* Gráfico de Trading em Tempo Real */}
                         <div className="mt-4">
                           <PlanTradingChart 
-                            planId={investment.plan_id}
+                            planId={investment.investment_plan_id}
                             planName={planName}
                             dailyRate={investment.daily_rate}
                             isLocked={false}

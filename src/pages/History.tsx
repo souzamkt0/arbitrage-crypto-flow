@@ -377,7 +377,7 @@ const History = () => {
         .from('user_investments')
         .select(`
           *,
-          investment_plans!user_investments_plan_id_fkey(name, robot_version)
+          investment_plans!user_investments_investment_plan_id_fkey(name, robot_version)
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
