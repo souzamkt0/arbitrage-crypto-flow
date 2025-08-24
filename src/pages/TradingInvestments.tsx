@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,8 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
-  Tooltip
+  Tooltip,
+  CartesianGrid
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
@@ -195,6 +197,22 @@ const TradingInvestments = () => {
     } catch (error) {
       console.error('Erro ao buscar investimentos:', error);
     }
+  };
+
+  // Função para gerar dados do gráfico de trading
+  const generateTradingData = () => {
+    const data = [];
+    let price = 45000; // Preço inicial do BTC
+    
+    for (let i = 0; i < 24; i++) {
+      const variation = (Math.random() - 0.5) * 1000; // Variação aleatória
+      price += variation;
+      data.push({
+        time: `${i.toString().padStart(2, '0')}:00`,
+        price: Math.round(price),
+      });
+    }
+    return data;
   };
 
   const fetchUserReferrals = async () => {
@@ -856,6 +874,62 @@ const TradingInvestments = () => {
                       </CardHeader>
                       
                       <CardContent className="space-y-4">
+                        {/* Gráfico de Trading */}
+                        {!isLocked && (
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-slate-300 flex items-center gap-1">
+                              <TrendingUp className="w-4 h-4 text-teal-400" />
+                              Trading ao Vivo (BTC/USDT)
+                            </h4>
+                            <div className="h-40 bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={generateTradingData()}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                                  <XAxis 
+                                    dataKey="time" 
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 11, fill: '#94a3b8' }}
+                                    interval={3}
+                                  />
+                                  <YAxis 
+                                    hide={false}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                    domain={['dataMin - 500', 'dataMax + 500']}
+                                  />
+                                  <Tooltip 
+                                    contentStyle={{ 
+                                      backgroundColor: '#1e293b', 
+                                      border: '1px solid #14b8a6',
+                                      borderRadius: '8px',
+                                      fontSize: '12px',
+                                      color: '#fff'
+                                    }}
+                                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Preço BTC']}
+                                    labelFormatter={(label) => `Hora: ${label}`}
+                                  />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="price" 
+                                    stroke="#14b8a6" 
+                                    strokeWidth={2.5}
+                                    dot={{ fill: '#14b8a6', strokeWidth: 2, r: 3 }}
+                                    activeDot={{ r: 5, stroke: '#14b8a6', strokeWidth: 2 }}
+                                  />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-400">Últimas 24h</span>
+                              <div className="flex gap-4">
+                                <span className="text-teal-400">📈 +{(Math.random() * 3 + 0.5).toFixed(1)}% hoje</span>
+                                <span className="text-green-400">🟢 Ativo</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
                             <div className={`flex items-center gap-1 text-sm ${
