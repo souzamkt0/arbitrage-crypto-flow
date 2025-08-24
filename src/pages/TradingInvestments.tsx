@@ -121,7 +121,7 @@ const TradingInvestments = () => {
     progress: number;
     currentProfit: number;
     finalProfit: number;
-    stage: 'analyzing' | 'buying' | 'selling' | 'completed';
+    stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
     pair: string;
     exchanges: string[];
     buyPrice: number;
@@ -413,60 +413,129 @@ const TradingInvestments = () => {
     if (!investment) return;
 
     try {
-      // Etapa 1: Analisando mercado (2-3 segundos)
+      // Etapa 1: Analisando mercados e spreads (25 segundos)
       setCurrentArbitrage(prev => ({ ...prev, stage: 'analyzing' }));
-      for (let i = 0; i <= 25; i += 5) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      for (let i = 0; i <= 15; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1600));
+        setCurrentArbitrage(prev => ({ 
+          ...prev, 
+          progress: i,
+          chartData: [...prev.chartData.slice(-19), {
+            time: new Date().toLocaleTimeString(),
+            price: prev.buyPrice + (Math.random() - 0.5) * (prev.buyPrice * 0.003),
+            exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
+            volume: Math.random() * 1000 + 500
+          }]
+        }));
+      }
+
+      // Etapa 2: Identificando melhores oportunidades (20 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'opportunity' }));
+      for (let i = 15; i <= 30; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1300));
         setCurrentArbitrage(prev => ({ 
           ...prev, 
           progress: i,
           chartData: [...prev.chartData.slice(-19), {
             time: new Date().toLocaleTimeString(),
             price: prev.buyPrice + (Math.random() - 0.5) * (prev.buyPrice * 0.002),
-            exchange: prev.exchanges[0],
-            volume: Math.random() * 1000 + 500
+            exchange: prev.exchanges[Math.floor(Math.random() * prev.exchanges.length)],
+            volume: Math.random() * 1500 + 800
           }]
         }));
       }
 
-      // Etapa 2: Comprando (2-3 segundos)
+      // Etapa 3: Calculando riscos e volumes (15 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'calculating' }));
+      for (let i = 30; i <= 40; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setCurrentArbitrage(prev => ({ 
+          ...prev, 
+          progress: i,
+          chartData: [...prev.chartData.slice(-19), {
+            time: new Date().toLocaleTimeString(),
+            price: prev.buyPrice + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+            exchange: prev.exchanges[0],
+            volume: Math.random() * 2000 + 1000
+          }]
+        }));
+      }
+
+      // Etapa 4: Executando ordem de compra (25 segundos)
       setCurrentArbitrage(prev => ({ ...prev, stage: 'buying' }));
-      for (let i = 25; i <= 60; i += 5) {
-        await new Promise(resolve => setTimeout(resolve, 80));
+      for (let i = 40; i <= 60; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1250));
         setCurrentArbitrage(prev => {
-          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 25) / 35) * 0.3;
+          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 20) * 0.4;
           return {
             ...prev, 
             progress: i,
-            currentProfit: (prev.finalProfit * (i - 25)) / 35,
+            currentProfit: (prev.finalProfit * (i - 40)) / 60,
             chartData: [...prev.chartData.slice(-19), {
               time: new Date().toLocaleTimeString(),
-              price: prev.buyPrice + priceMovement + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+              price: prev.buyPrice + priceMovement + (Math.random() - 0.5) * (prev.buyPrice * 0.002),
               exchange: prev.exchanges[0],
-              volume: Math.random() * 2000 + 1000
+              volume: Math.random() * 3000 + 2000
             }]
           };
         });
       }
 
-      // Etapa 3: Vendendo (2-3 segundos)  
-      setCurrentArbitrage(prev => ({ ...prev, stage: 'selling' }));
-      for (let i = 60; i <= 100; i += 5) {
-        await new Promise(resolve => setTimeout(resolve, 70));
+      // Etapa 5: Transferindo entre exchanges (20 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'transferring' }));
+      for (let i = 60; i <= 75; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1300));
         setCurrentArbitrage(prev => {
-          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 25) / 75);
+          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 35) * 0.6;
           return {
             ...prev, 
             progress: i,
-            currentProfit: (prev.finalProfit * (i - 25)) / 75,
+            currentProfit: (prev.finalProfit * (i - 40)) / 50,
             chartData: [...prev.chartData.slice(-19), {
               time: new Date().toLocaleTimeString(),
-              price: prev.buyPrice + priceMovement + (Math.random() - 0.5) * (prev.buyPrice * 0.0005),
-              exchange: i > 80 ? prev.exchanges[1] : prev.exchanges[0],
-              volume: Math.random() * 3000 + 1500
+              price: prev.buyPrice + priceMovement + (Math.random() - 0.5) * (prev.buyPrice * 0.0015),
+              exchange: 'Transferindo...',
+              volume: Math.random() * 1000 + 500
             }]
           };
         });
+      }
+
+      // Etapa 6: Executando ordem de venda (20 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'selling' }));
+      for (let i = 75; i <= 95; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCurrentArbitrage(prev => {
+          const priceMovement = (prev.sellPrice - prev.buyPrice) * ((i - 40) / 55);
+          return {
+            ...prev, 
+            progress: i,
+            currentProfit: (prev.finalProfit * (i - 40)) / 55,
+            chartData: [...prev.chartData.slice(-19), {
+              time: new Date().toLocaleTimeString(),
+              price: prev.buyPrice + priceMovement + (Math.random() - 0.5) * (prev.buyPrice * 0.001),
+              exchange: prev.exchanges[1],
+              volume: Math.random() * 4000 + 2500
+            }]
+          };
+        });
+      }
+
+      // Etapa 7: Finalizando e confirmando lucros (5 segundos)
+      setCurrentArbitrage(prev => ({ ...prev, stage: 'finalizing' }));
+      for (let i = 95; i <= 100; i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCurrentArbitrage(prev => ({
+          ...prev, 
+          progress: i,
+          currentProfit: prev.finalProfit,
+          chartData: [...prev.chartData.slice(-19), {
+            time: new Date().toLocaleTimeString(),
+            price: prev.sellPrice + (Math.random() - 0.5) * (prev.sellPrice * 0.0005),
+            exchange: prev.exchanges[1],
+            volume: Math.random() * 2000 + 1000
+          }]
+        }));
       }
 
       // Finalizar com timestamp de operação
