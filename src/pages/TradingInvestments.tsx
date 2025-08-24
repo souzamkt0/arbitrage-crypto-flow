@@ -346,7 +346,7 @@ const TradingInvestments = () => {
 
       toast({
         title: "✅ Investimento Criado!",
-        description: `Seu plano ${selectedPlan.name} está ativo!`,
+        description: `Seu plano ${selectedPlan.id === '1' ? 'Robo 4.0' : selectedPlan.id === '2' ? 'Robo 4.05' : selectedPlan.id === '3' ? 'Robo 4.1.0' : selectedPlan.name} está ativo!`,
       });
 
       setShowInvestDialog(false);
@@ -855,7 +855,7 @@ const TradingInvestments = () => {
                             isLocked ? 'text-slate-400' : 'text-white'
                           }`}>
                             <Bot className={`h-5 w-5 ${isLocked ? 'text-slate-400' : 'text-emerald-400'}`} />
-                            {plan.name}
+                            {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robo 4.05' : plan.id === '3' ? 'Robo 4.1.0' : plan.name}
                           </CardTitle>
                           <Badge 
                             variant={isLocked ? "secondary" : "default"} 
@@ -865,7 +865,7 @@ const TradingInvestments = () => {
                                 : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
                             } font-bold`}
                           >
-                            0.02% / dia
+                            {plan.id === '1' ? 'até 3%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : '0.02% / dia'}
                           </Badge>
                         </div>
                         <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
@@ -1320,7 +1320,7 @@ const TradingInvestments = () => {
         <DialogContent className="bg-slate-800 border-slate-600 text-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-              Investir em {selectedPlan?.name}
+              Investir em {selectedPlan?.id === '1' ? 'Robo 4.0' : selectedPlan?.id === '2' ? 'Robo 4.05' : selectedPlan?.id === '3' ? 'Robo 4.1.0' : selectedPlan?.name}
             </DialogTitle>
           </DialogHeader>
           
@@ -1328,7 +1328,7 @@ const TradingInvestments = () => {
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
               <h4 className="font-bold text-emerald-400">Detalhes do Plano:</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>Taxa Diária: <span className="text-emerald-400 font-bold">0.02%</span></div>
+                <div>Taxa Diária: <span className="text-emerald-400 font-bold">{selectedPlan?.id === '1' ? 'até 3%' : selectedPlan?.id === '2' ? 'até 3%' : selectedPlan?.id === '3' ? 'até 4%' : '0.02%'}</span></div>
                 <div>Duração: <span className="text-white font-bold">{selectedPlan?.duration_days} dias</span></div>
                 <div>Mínimo: <span className="text-white font-bold">${selectedPlan?.minimum_amount}</span></div>
                 <div>Máximo: <span className="text-white font-bold">${selectedPlan?.max_investment_amount || 'Ilimitado'}</span></div>
