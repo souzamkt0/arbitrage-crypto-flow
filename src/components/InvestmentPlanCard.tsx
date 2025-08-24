@@ -95,7 +95,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                 <DollarSign className="w-4 h-4" />
                 Lucro Diário Potencial
               </div>
-              <div className="text-lg font-bold">Até {(plan.daily_rate * 100).toFixed(2)}% ao dia</div>
+              <div className="text-lg font-bold">Até 2% ao dia</div>
             </div>
             <div className="text-right">
               <div className="text-sm opacity-90">Simulação com ${simulatorValue.toFixed(0)}</div>

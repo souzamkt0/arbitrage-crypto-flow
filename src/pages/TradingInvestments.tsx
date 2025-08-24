@@ -812,7 +812,7 @@ const TradingInvestments = () => {
                               💰 Lucro Diário Potencial (Variável)
                             </p>
                             <p className="text-emerald-400 text-lg font-bold">
-                              Até {Math.round(plan.daily_rate * 100)}% ao dia*
+                              Até 2% ao dia*
                             </p>
                             {plan.id === '1' && <p className="text-yellow-300 text-xs mt-1">
                                 *Arbitragem variável - pode ser menor
@@ -875,7 +875,7 @@ const TradingInvestments = () => {
                             {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robô 4.0.5' : plan.id === '3' ? 'Robô 4.1.0' : plan.name}
                           </CardTitle>
           <Badge variant="default" className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
-                            até {Math.round(plan.daily_rate * 100)}%
+                            até 2%
                           </Badge>
                         </div>
                         {/* Informações específicas de cada plano */}
@@ -1458,7 +1458,7 @@ const TradingInvestments = () => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  Taxa Diária: <span className="text-emerald-400 font-bold">até {Math.round(selectedPlan?.daily_rate * 100)}%</span>
+                  Taxa Diária: <span className="text-emerald-400 font-bold">até 2%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-blue-400" />
