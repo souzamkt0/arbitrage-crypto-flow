@@ -1525,7 +1525,7 @@ const TradingInvestments = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-400">+${currentArbitrage.currentProfit.toFixed(4)}</div>
+                <div className="text-2xl font-bold text-emerald-400">+${currentArbitrage.currentProfit.toFixed(2)}</div>
                 <div className="text-sm text-slate-300">Lucro Atual</div>
               </div>
             </div>
@@ -1820,7 +1820,7 @@ const TradingInvestments = () => {
                     <TrendingUp className="h-4 w-4 text-emerald-400" />
                   </div>
                   <div className="text-3xl font-bold text-emerald-400 mb-1">
-                    +${currentArbitrage.currentProfit.toFixed(4)}
+                    +${currentArbitrage.currentProfit.toFixed(2)}
                   </div>
                   <div className="text-sm text-emerald-300">
                     +{((currentArbitrage.investment?.daily_rate * 100) || 0.33).toFixed(2)}%
