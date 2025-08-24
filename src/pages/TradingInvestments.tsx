@@ -60,6 +60,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
+import { PlanTradingChart } from "@/components/PlanTradingChart";
 
 interface InvestmentPlan {
   id: string;
@@ -469,148 +470,160 @@ const TradingInvestments = () => {
 
         {/* Content based on active tab */}
         {activeTab === 'plans' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan) => {
-              const canInvest = userReferrals >= plan.minimum_indicators;
-              const isLocked = !canInvest;
-              
-              return (
-                <Card 
-                  key={plan.id} 
-                  className={`relative overflow-hidden transition-all duration-300 ${
-                    isLocked 
-                      ? 'bg-slate-800/50 border-slate-600/50 opacity-75' 
-                      : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border-slate-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'
-                  }`}
-                >
-                  {isLocked && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <Lock className="h-5 w-5 text-red-400" />
-                    </div>
-                  )}
-                  
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className={`text-xl font-bold flex items-center gap-2 ${
-                        isLocked ? 'text-slate-400' : 'text-white'
-                      }`}>
-                        <Bot className={`h-5 w-5 ${isLocked ? 'text-slate-400' : 'text-emerald-400'}`} />
-                        {plan.name}
-                      </CardTitle>
-                      <Badge 
-                        variant={isLocked ? "secondary" : "default"} 
-                        className={`${
-                          isLocked 
-                            ? 'bg-slate-600 text-slate-300' 
-                            : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
-                        } font-bold`}
-                      >
-                        {plan.daily_rate}% / dia
-                      </Badge>
-                    </div>
-                    <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
-                      {plan.description}
-                    </p>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <div className={`flex items-center gap-1 text-sm ${
-                          isLocked ? 'text-slate-500' : 'text-slate-400'
-                        }`}>
-                          <DollarSign className="w-4 h-4" />
-                          Valor Mínimo
-                        </div>
-                        <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
-                          ${plan.minimum_amount}
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className={`flex items-center gap-1 text-sm ${
-                          isLocked ? 'text-slate-500' : 'text-slate-400'
-                        }`}>
-                          <Clock className="w-4 h-4" />
-                          Duração
-                        </div>
-                        <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
-                          {plan.duration_days} dias
-                        </div>
-                      </div>
-                    </div>
-
-                    {plan.minimum_indicators > 0 && (
-                      <div className="space-y-1">
-                        <div className={`flex items-center gap-1 text-sm ${
-                          isLocked ? 'text-slate-500' : 'text-slate-400'
-                        }`}>
-                          <Users className="w-4 h-4" />
-                          Indicações Necessárias
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
-                            {plan.minimum_indicators}
-                          </div>
-                          <Badge 
-                            variant={canInvest ? "default" : "destructive"} 
-                            className="text-xs"
-                          >
-                            Você tem: {userReferrals}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <h4 className={`text-sm font-medium ${
-                        isLocked ? 'text-slate-500' : 'text-slate-300'
-                      }`}>
-                        Recursos:
-                      </h4>
-                      <div className="space-y-1">
-                        {plan.features?.slice(0, 3).map((feature, index) => (
-                          <div 
-                            key={index} 
-                            className={`text-xs flex items-center gap-1 ${
-                              isLocked ? 'text-slate-600' : 'text-slate-400'
-                            }`}
-                          >
-                            <div className={`w-1 h-1 rounded-full ${
-                              isLocked ? 'bg-slate-500' : 'bg-emerald-400'
-                            }`}></div>
-                            {feature}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button 
-                      onClick={() => {
-                        setSelectedPlan(plan);
-                        setShowInvestDialog(true);
-                      }}
-                      disabled={isLocked}
-                      className={`w-full ${
+          <div className="space-y-8">
+            {/* Plans Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {plans.map((plan) => {
+                const canInvest = userReferrals >= plan.minimum_indicators;
+                const isLocked = !canInvest;
+                
+                return (
+                  <div key={plan.id} className="space-y-6">
+                    {/* Plan Card */}
+                    <Card 
+                      className={`relative overflow-hidden transition-all duration-300 ${
                         isLocked 
-                          ? 'bg-slate-600 text-slate-400 cursor-not-allowed' 
-                          : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold'
+                          ? 'bg-slate-800/50 border-slate-600/50 opacity-75' 
+                          : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border-slate-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'
                       }`}
                     >
-                      {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações`}
-                    </Button>
+                      {isLocked && (
+                        <div className="absolute top-4 right-4 z-10">
+                          <Lock className="h-5 w-5 text-red-400" />
+                        </div>
+                      )}
+                      
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className={`text-xl font-bold flex items-center gap-2 ${
+                            isLocked ? 'text-slate-400' : 'text-white'
+                          }`}>
+                            <Bot className={`h-5 w-5 ${isLocked ? 'text-slate-400' : 'text-emerald-400'}`} />
+                            {plan.name}
+                          </CardTitle>
+                          <Badge 
+                            variant={isLocked ? "secondary" : "default"} 
+                            className={`${
+                              isLocked 
+                                ? 'bg-slate-600 text-slate-300' 
+                                : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
+                            } font-bold`}
+                          >
+                            {plan.daily_rate}% / dia
+                          </Badge>
+                        </div>
+                        <p className={`text-sm ${isLocked ? 'text-slate-500' : 'text-slate-300'}`}>
+                          {plan.description}
+                        </p>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <div className={`flex items-center gap-1 text-sm ${
+                              isLocked ? 'text-slate-500' : 'text-slate-400'
+                            }`}>
+                              <DollarSign className="w-4 h-4" />
+                              Valor Mínimo
+                            </div>
+                            <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                              ${plan.minimum_amount}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className={`flex items-center gap-1 text-sm ${
+                              isLocked ? 'text-slate-500' : 'text-slate-400'
+                            }`}>
+                              <Clock className="w-4 h-4" />
+                              Duração
+                            </div>
+                            <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                              {plan.duration_days} dias
+                            </div>
+                          </div>
+                        </div>
 
-                    {plan.max_investment_amount && (
-                      <div className={`text-xs text-center ${
-                        isLocked ? 'text-slate-600' : 'text-slate-500'
-                      }`}>
-                        Máximo: ${plan.max_investment_amount}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                        {plan.minimum_indicators > 0 && (
+                          <div className="space-y-1">
+                            <div className={`flex items-center gap-1 text-sm ${
+                              isLocked ? 'text-slate-500' : 'text-slate-400'
+                            }`}>
+                              <Users className="w-4 h-4" />
+                              Indicações Necessárias
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className={`font-semibold ${isLocked ? 'text-slate-400' : 'text-white'}`}>
+                                {plan.minimum_indicators}
+                              </div>
+                              <Badge 
+                                variant={canInvest ? "default" : "destructive"} 
+                                className="text-xs"
+                              >
+                                Você tem: {userReferrals}
+                              </Badge>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          <h4 className={`text-sm font-medium ${
+                            isLocked ? 'text-slate-500' : 'text-slate-300'
+                          }`}>
+                            Recursos:
+                          </h4>
+                          <div className="space-y-1">
+                            {plan.features?.slice(0, 3).map((feature, index) => (
+                              <div 
+                                key={index} 
+                                className={`text-xs flex items-center gap-1 ${
+                                  isLocked ? 'text-slate-600' : 'text-slate-400'
+                                }`}
+                              >
+                                <div className={`w-1 h-1 rounded-full ${
+                                  isLocked ? 'bg-slate-500' : 'bg-emerald-400'
+                                }`}></div>
+                                {feature}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <Button 
+                          onClick={() => {
+                            setSelectedPlan(plan);
+                            setShowInvestDialog(true);
+                          }}
+                          disabled={isLocked}
+                          className={`w-full ${
+                            isLocked 
+                              ? 'bg-slate-600 text-slate-400 cursor-not-allowed' 
+                              : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold'
+                          }`}
+                        >
+                          {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações`}
+                        </Button>
+
+                        {plan.max_investment_amount && (
+                          <div className={`text-xs text-center ${
+                            isLocked ? 'text-slate-600' : 'text-slate-500'
+                          }`}>
+                            Máximo: ${plan.max_investment_amount}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Trading Chart for this plan */}
+                    <PlanTradingChart 
+                      planId={plan.id}
+                      planName={plan.name}
+                      dailyRate={plan.daily_rate}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

@@ -798,6 +798,183 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_arbitrage_operations: {
+        Row: {
+          buy_exchange: string
+          buy_price: number
+          completed_at: string | null
+          created_at: string | null
+          execution_time: number
+          id: string
+          operation_id: string
+          pair: string
+          plan_id: string
+          profit_amount: number
+          profit_percentage: number
+          sell_exchange: string
+          sell_price: number
+          status: string | null
+          volume: number
+        }
+        Insert: {
+          buy_exchange: string
+          buy_price: number
+          completed_at?: string | null
+          created_at?: string | null
+          execution_time: number
+          id?: string
+          operation_id: string
+          pair: string
+          plan_id: string
+          profit_amount: number
+          profit_percentage: number
+          sell_exchange: string
+          sell_price: number
+          status?: string | null
+          volume: number
+        }
+        Update: {
+          buy_exchange?: string
+          buy_price?: number
+          completed_at?: string | null
+          created_at?: string | null
+          execution_time?: number
+          id?: string
+          operation_id?: string
+          pair?: string
+          plan_id?: string
+          profit_amount?: number
+          profit_percentage?: number
+          sell_exchange?: string
+          sell_price?: number
+          status?: string | null
+          volume?: number
+        }
+        Relationships: []
+      }
+      plan_price_history: {
+        Row: {
+          created_at: string | null
+          exchange: string
+          id: string
+          pair: string
+          plan_id: string
+          price: number
+          timestamp: string | null
+          volume: number
+        }
+        Insert: {
+          created_at?: string | null
+          exchange: string
+          id?: string
+          pair: string
+          plan_id: string
+          price: number
+          timestamp?: string | null
+          volume: number
+        }
+        Update: {
+          created_at?: string | null
+          exchange?: string
+          id?: string
+          pair?: string
+          plan_id?: string
+          price?: number
+          timestamp?: string | null
+          volume?: number
+        }
+        Relationships: []
+      }
+      plan_trading_data: {
+        Row: {
+          buy_price: number
+          created_at: string | null
+          exchange_from: string
+          exchange_to: string
+          id: string
+          pair: string
+          plan_id: string
+          profit_percentage: number
+          sell_price: number
+          status: string | null
+          updated_at: string | null
+          volume: number
+        }
+        Insert: {
+          buy_price: number
+          created_at?: string | null
+          exchange_from: string
+          exchange_to: string
+          id?: string
+          pair: string
+          plan_id: string
+          profit_percentage: number
+          sell_price: number
+          status?: string | null
+          updated_at?: string | null
+          volume: number
+        }
+        Update: {
+          buy_price?: number
+          created_at?: string | null
+          exchange_from?: string
+          exchange_to?: string
+          id?: string
+          pair?: string
+          plan_id?: string
+          profit_percentage?: number
+          sell_price?: number
+          status?: string | null
+          updated_at?: string | null
+          volume?: number
+        }
+        Relationships: []
+      }
+      plan_trading_stats: {
+        Row: {
+          avg_execution_time: number | null
+          avg_profit_percentage: number | null
+          best_profit_percentage: number | null
+          created_at: string | null
+          id: string
+          last_operation_at: string | null
+          plan_id: string
+          success_rate: number | null
+          total_operations: number | null
+          total_profit: number | null
+          total_volume: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_execution_time?: number | null
+          avg_profit_percentage?: number | null
+          best_profit_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          last_operation_at?: string | null
+          plan_id: string
+          success_rate?: number | null
+          total_operations?: number | null
+          total_profit?: number | null
+          total_volume?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_execution_time?: number | null
+          avg_profit_percentage?: number | null
+          best_profit_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          last_operation_at?: string | null
+          plan_id?: string
+          success_rate?: number | null
+          total_operations?: number | null
+          total_profit?: number | null
+          total_volume?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar: string | null
