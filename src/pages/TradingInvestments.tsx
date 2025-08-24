@@ -1001,6 +1001,82 @@ const TradingInvestments = () => {
                           </div>
                         </div>
 
+                        {/* Arbitrage Simulator - Only for available plans */}
+                        {canInvest && (
+                          <div className="mb-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <TrendingUp className="w-3 h-3 text-white" />
+                                </div>
+                                <div>
+                                  <h4 className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                                    Arbitragem CoinMarketCap
+                                  </h4>
+                                  <p className="text-xs text-blue-600 dark:text-blue-300">
+                                    Oportunidades em tempo real
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-blue-600 dark:text-blue-300">Spread</div>
+                                <div className="text-xs font-bold text-green-600">
+                                  +{(Math.random() * 2 + 1).toFixed(2)}%
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                              <div className="bg-white dark:bg-gray-800 rounded p-2 border border-blue-100 dark:border-blue-800">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">Binance</span>
+                                  <span className="text-xs text-red-500">Comprar</span>
+                                </div>
+                                <div className="text-xs font-semibold">${(67000 - Math.random() * 50 - 10).toFixed(0)}</div>
+                              </div>
+                              <div className="bg-white dark:bg-gray-800 rounded p-2 border border-blue-100 dark:border-blue-800">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">Coinbase</span>
+                                  <span className="text-xs text-green-500">Vender</span>
+                                </div>
+                                <div className="text-xs font-semibold">${(67000 + Math.random() * 50 + 10).toFixed(0)}</div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center p-1 bg-white dark:bg-gray-800 rounded text-xs border border-blue-100 dark:border-blue-800">
+                                <div className="flex items-center space-x-1">
+                                  <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+                                  <span className="font-medium">BTC/USDT</span>
+                                  <span className="text-gray-500">Kraken → Bybit</span>
+                                </div>
+                                <div className="font-semibold text-green-600">
+                                  +{(Math.random() * 1.5 + 0.8).toFixed(2)}%
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center p-1 bg-white dark:bg-gray-800 rounded text-xs border border-blue-100 dark:border-blue-800">
+                                <div className="flex items-center space-x-1">
+                                  <div className="w-1 h-1 bg-yellow-500 rounded-full animate-pulse"></div>
+                                  <span className="font-medium">ETH/USDT</span>
+                                  <span className="text-gray-500">Binance → OKX</span>
+                                </div>
+                                <div className="font-semibold text-green-600">
+                                  +{(Math.random() * 1.2 + 0.6).toFixed(2)}%
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-2 flex items-center justify-between text-xs">
+                              <span className="text-blue-600 dark:text-blue-300">
+                                🔄 {new Date().toLocaleTimeString()}
+                              </span>
+                              <span className="text-green-600 font-medium">
+                                Próx: {Math.floor(Math.random() * 30 + 10)}s
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <Button 
                           onClick={() => {
                             setSelectedPlan(plan);
