@@ -942,28 +942,31 @@ const TradingInvestments = () => {
                       
                       {/* Barra de Progresso para Planos Bloqueados */}
                       {isLocked && (
-                        <div className="absolute top-2 left-2 right-2 z-10">
-                          <div className="bg-slate-800/90 rounded-lg p-3 border border-cyan-500/30">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-cyan-300 font-medium">
+                        <div className="absolute top-16 left-4 right-4 z-10">
+                          <div className="bg-slate-800/95 rounded-lg p-4 border border-cyan-500/40 shadow-lg">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm text-white font-semibold">
                                 {getRequirementMessage(plan.id).replace('Precisa de ', '').replace(' para acessar. ', '')}
                               </span>
-                              <Lock className="h-4 w-4 text-cyan-400" />
+                              <Lock className="h-5 w-5 text-cyan-400" />
                             </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-xs">
-                                <span className="text-slate-300">Progresso</span>
-                                <span className="text-cyan-400">
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-200">Progresso para desbloqueio</span>
+                                <span className="text-cyan-400 font-bold">
                                   {userReferrals}/{plan.id === '2' ? '10' : plan.id === '3' ? '40' : '0'} pessoas ativas
                                 </span>
                               </div>
-                              <div className="w-full bg-slate-700 rounded-full h-2">
+                              <div className="w-full bg-slate-700 rounded-full h-3 shadow-inner">
                                 <div 
-                                  className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-2 rounded-full transition-all duration-500"
+                                  className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-3 rounded-full transition-all duration-700 shadow-lg"
                                   style={{ 
                                     width: `${Math.min(100, (userReferrals / (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 1)) * 100)}%` 
                                   }}
                                 ></div>
+                              </div>
+                              <div className="text-center text-xs text-slate-300 mt-2">
+                                Faltam {Math.max(0, (plan.id === '2' ? 10 : plan.id === '3' ? 40 : 0) - userReferrals)} pessoas para desbloquear
                               </div>
                             </div>
                           </div>
@@ -972,19 +975,13 @@ const TradingInvestments = () => {
 
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
-                          <CardTitle className={`text-xl font-bold flex items-center gap-2 ${
-                            isLocked ? 'text-slate-400' : 'text-white'
-                          }`}>
-                            <Bot className={`h-5 w-5 ${isLocked ? 'text-slate-400' : 'text-emerald-400'}`} />
+                          <CardTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                            <Bot className="h-5 w-5 text-emerald-400" />
                             {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robo 4.05' : plan.id === '3' ? 'Robo 4.1.0' : plan.name}
                           </CardTitle>
                           <Badge 
-                            variant={isLocked ? "secondary" : "default"} 
-                            className={`${
-                              isLocked 
-                                ? 'bg-slate-600 text-slate-300' 
-                                : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900'
-                            } font-bold`}
+                            variant="default"
+                            className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold"
                           >
                             {plan.id === '1' ? 'até 2%' : plan.id === '2' ? 'até 3%' : plan.id === '3' ? 'até 4%' : 'até 2%'}
                           </Badge>
