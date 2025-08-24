@@ -415,7 +415,7 @@ const TradingInvestments = () => {
         chartData: initialChartData,
         operationStartTime: Date.now()
       });
-      // setShowArbitrageModal(true); // Removido: não abre modal automaticamente
+      setShowArbitrageModal(true);
       setProcessingOperations(prev => new Set(prev).add(investment.id));
 
       // Simulação será executada no modal
