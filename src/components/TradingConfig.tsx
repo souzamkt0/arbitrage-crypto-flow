@@ -140,13 +140,14 @@ export function TradingConfig() {
           max_daily_return: plan.max_daily_return
         });
         
-            return supabase
-              .from('investment_plans')
-              .update({
-                daily_rate: plan.daily_rate,
-                max_daily_return: plan.max_daily_return
-              })
-              .eq('id', plan.id);
+        return supabase
+          .from('investment_plans')
+          .update({
+            daily_rate: plan.daily_rate,
+            max_daily_return: plan.max_daily_return,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', plan.id);
       });
 
       // Aguardar todas as atualizações
