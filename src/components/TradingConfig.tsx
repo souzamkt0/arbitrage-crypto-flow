@@ -52,6 +52,7 @@ export function TradingConfig() {
   const [configs, setConfigs] = useState<TradingConfig[]>([]);
   const [editingConfig, setEditingConfig] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   
   // Estados do simulador
   const [simulatorValue, setSimulatorValue] = useState(1000);
@@ -123,6 +124,57 @@ export function TradingConfig() {
         description: "Erro ao atualizar configuração.",
         variant: "destructive",
       });
+    }
+  };
+
+  const savePlansConfiguration = async () => {
+    setLoading(true);
+    try {
+      // Salvar cada plano
+      const updatePromises = plans.map(plan => 
+        supabase
+          .from('investment_plans')
+          .update({
+            name: plan.name,
+            daily_rate: plan.daily_rate,
+            max_daily_return: plan.max_daily_return,
+            trading_strategy: plan.trading_strategy,
+            minimum_indicators: plan.minimum_indicators
+          })
+          .eq('id', plan.id)
+      );
+
+      // Aguardar todas as atualizações
+      const results = await Promise.all(updatePromises);
+      
+      // Verificar se alguma teve erro
+      const errors = results.filter(result => result.error);
+      
+      if (errors.length > 0) {
+        throw new Error(`Erro ao salvar ${errors.length} plano(s)`);
+      }
+
+      // Sincronizar configurações do admin
+      const adminSettings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
+      plans.forEach(plan => {
+        adminSettings[`${plan.trading_strategy}DailyRate`] = plan.daily_rate * 100;
+      });
+      localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
+
+      setHasChanges(false);
+      toast({
+        title: "Sucesso",
+        description: "Configurações dos planos salvos com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar planos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar as configurações dos planos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -222,11 +274,39 @@ export function TradingConfig() {
             Configure estratégias de trading para cada plano de investimento
           </p>
         </div>
-        <Button onClick={loadPlansAndConfigs} variant="outline">
-          <BarChart3 className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={savePlansConfiguration} 
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {loading ? 'Salvando...' : 'Salvar Planos'}
+          </Button>
+          <Button onClick={loadPlansAndConfigs} variant="outline">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
       </div>
+
+      {/* Alerta de mudanças não salvas */}
+      {hasChanges && (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-sm text-yellow-800">Você tem alterações não salvas</span>
+          </div>
+          <Button 
+            onClick={savePlansConfiguration}
+            disabled={loading}
+            size="sm"
+            className="bg-yellow-600 hover:bg-yellow-700"
+          >
+            {loading ? 'Salvando...' : 'Salvar Agora'}
+          </Button>
+        </div>
+      )}
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -310,12 +390,12 @@ export function TradingConfig() {
                         value={[currentRate]}
                         onValueChange={(values) => {
                           const newRate = values[0];
-                          updatePlanStrategy(
-                            plan.id,
-                            plan.trading_strategy,
-                            plan.max_daily_return,
-                            newRate
-                          );
+                          // Marcar que há mudanças para ativar o botão salvar
+                          setHasChanges(true);
+                          // Atualizar estado local imediatamente
+                          setPlans(prev => prev.map(p => 
+                            p.id === plan.id ? { ...p, daily_rate: newRate / 100 } : p
+                          ));
                         }}
                         max={maxRate}
                         min={0.01}
@@ -494,43 +574,15 @@ export function TradingConfig() {
                         <Input
                           type="number"
                           value={currentRate.toFixed(2)}
-                          onChange={async (e) => {
+                          onChange={(e) => {
                             const newRate = parseFloat(e.target.value);
                             if (newRate <= plan.max_daily_return && newRate >= 0.01) {
-                              // Atualizar no banco de dados - investment_plans
-                              const { error: planError } = await supabase
-                                .from('investment_plans')
-                                .update({ daily_rate: newRate / 100 })
-                                .eq('id', plan.id);
-
-                              // Atualizar no banco de dados - trading_configurations
-                              const { error: configError } = await supabase
-                                .from('trading_configurations')
-                                .update({ max_daily_return: newRate })
-                                .eq('strategy_type', plan.trading_strategy);
-
-                              // Salvar nas configurações do admin (localStorage para uso imediato)
-                              const adminSettings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
-                              adminSettings[`${plan.trading_strategy}DailyRate`] = newRate;
-                              localStorage.setItem("alphabit_admin_settings", JSON.stringify(adminSettings));
-
-                              if (planError || configError) {
-                                toast({
-                                  title: "Erro",
-                                  description: "Erro ao sincronizar taxa de arbitragem",
-                                  variant: "destructive",
-                                });
-                              } else {
-                                // Atualizar estado local
-                                setPlans(prev => prev.map(p => 
-                                  p.id === plan.id ? { ...p, daily_rate: newRate / 100 } : p
-                                ));
-                                
-                                toast({
-                                  title: "Taxa sincronizada",
-                                  description: `Taxa do ${plan.name} atualizada para ${newRate}% nos resultados de arbitragem`,
-                                });
-                              }
+                              // Marcar que há mudanças
+                              setHasChanges(true);
+                              // Atualizar estado local imediatamente
+                              setPlans(prev => prev.map(p => 
+                                p.id === plan.id ? { ...p, daily_rate: newRate / 100 } : p
+                              ));
                             }
                           }}
                           className="w-20 text-center"
