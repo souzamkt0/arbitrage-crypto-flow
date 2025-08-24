@@ -99,34 +99,6 @@ export function TradingConfig() {
     }
   };
 
-  const updateTradingConfig = async (configId: string, updates: Partial<TradingConfig>) => {
-    try {
-      const { error } = await supabase
-        .from('trading_configurations')
-        .update(updates)
-        .eq('id', configId);
-
-      if (error) throw error;
-
-      // Atualizar estado local
-      setConfigs(configs.map(config => 
-        config.id === configId ? { ...config, ...updates } : config
-      ));
-
-      toast({
-        title: "Sucesso",
-        description: "Configuração atualizada com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar configuração:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar configuração.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const savePlansConfiguration = async () => {
     setLoading(true);
     try {
@@ -178,62 +150,6 @@ export function TradingConfig() {
     }
   };
 
-  const updatePlanStrategy = async (planId: string, strategy: string, maxReturn: number, currentRate?: number) => {
-    try {
-      // Definir limites baseados na estratégia
-      const strategyLimits = {
-        'conservador': 2.0,
-        'moderado': 3.0,
-        'livre': 4.0
-      };
-
-      const actualMaxReturn = strategyLimits[strategy] || 2.0;
-
-      const updateData: any = {
-        trading_strategy: strategy,
-        max_daily_return: actualMaxReturn,
-        risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3
-      };
-
-      // Se foi fornecida uma taxa atual, atualizar também
-      if (currentRate !== undefined) {
-        // Garantir que não ultrapasse o limite da estratégia
-        const limitedRate = Math.min(currentRate, actualMaxReturn);
-        updateData.daily_rate = limitedRate / 100; // Converter para decimal
-      }
-
-      const { error } = await supabase
-        .from('investment_plans')
-        .update(updateData)
-        .eq('id', planId);
-
-      if (error) throw error;
-
-      // Atualizar estado local
-      setPlans(plans.map(plan => 
-        plan.id === planId ? { 
-          ...plan, 
-          trading_strategy: strategy,
-          max_daily_return: actualMaxReturn,
-          risk_level: strategy === 'conservador' ? 1 : strategy === 'moderado' ? 2 : 3,
-          ...(currentRate !== undefined && { daily_rate: Math.min(currentRate, actualMaxReturn) / 100 })
-        } : plan
-      ));
-
-      toast({
-        title: "Sucesso",
-        description: "Configuração do plano atualizada com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar plano:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar configuração do plano.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const getStrategyColor = (strategy: string) => {
     switch (strategy) {
       case 'conservador': return 'bg-green-100 text-green-800';
@@ -241,16 +157,6 @@ export function TradingConfig() {
       case 'livre': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getRiskBadge = (level: number) => {
-    const levels = {
-      1: { text: 'Baixo', color: 'bg-green-100 text-green-800' },
-      2: { text: 'Médio', color: 'bg-yellow-100 text-yellow-800' },
-      3: { text: 'Alto', color: 'bg-red-100 text-red-800' }
-    };
-    const risk = levels[level] || levels[1];
-    return <Badge className={risk.color}>{risk.text}</Badge>;
   };
 
   if (loading) {
@@ -262,28 +168,28 @@ export function TradingConfig() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Settings className="h-6 w-6" />
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
             Configuração do Trader
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Configure estratégias de trading para cada plano de investimento
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Button 
             onClick={savePlansConfiguration} 
             disabled={loading}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
           >
             <Save className="h-4 w-4 mr-2" />
             {loading ? 'Salvando...' : 'Salvar Planos'}
           </Button>
-          <Button onClick={loadPlansAndConfigs} variant="outline">
+          <Button onClick={loadPlansAndConfigs} variant="outline" className="w-full sm:w-auto">
             <BarChart3 className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
@@ -292,95 +198,52 @@ export function TradingConfig() {
 
       {/* Alerta de mudanças não salvas */}
       {hasChanges && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+        <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse flex-shrink-0"></div>
             <span className="text-sm text-yellow-800">Você tem alterações não salvas</span>
           </div>
           <Button 
             onClick={savePlansConfiguration}
             disabled={loading}
             size="sm"
-            className="bg-yellow-600 hover:bg-yellow-700"
+            className="bg-yellow-600 hover:bg-yellow-700 w-full sm:w-auto"
           >
             {loading ? 'Salvando...' : 'Salvar Agora'}
           </Button>
         </div>
       )}
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Planos Ativos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{plans.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Conservadores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {plans.filter(p => p.trading_strategy === 'conservador').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Moderados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {plans.filter(p => p.trading_strategy === 'moderado').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Livres</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {plans.filter(p => p.trading_strategy === 'livre').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-
-      {/* Controle de Volume - Configuração de Taxas */}
+      {/* Controle de Volume por Estratégia */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Volume2 className="h-5 w-5" />
-            Controle de Taxas Diárias
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            Controle de Taxa por Estratégia
           </CardTitle>
-          <CardDescription>
-            Ajuste as taxas de retorno diário usando controles deslizantes como um volume
+          <CardDescription className="text-sm">
+            Ajuste a taxa diária para cada estratégia de trading
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {plans.map((plan) => {
               const currentRate = plan.daily_rate * 100;
               const maxRate = plan.max_daily_return;
               
               return (
-                <Card key={plan.id} className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">{plan.name}</h4>
+                <Card key={plan.id} className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h3 className="font-medium text-sm sm:text-base">{plan.name}</h3>
                     <Badge className={getStrategyColor(plan.trading_strategy)}>
                       {plan.trading_strategy}
                     </Badge>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Taxa Diária</span>
-                      <span className="font-semibold text-blue-600">
+                      <span className="text-xs sm:text-sm">Taxa Diária</span>
+                      <span className="font-semibold text-blue-600 text-sm sm:text-base">
                         {currentRate.toFixed(2)}%
                       </span>
                     </div>
@@ -400,7 +263,7 @@ export function TradingConfig() {
                         max={maxRate}
                         min={0.01}
                         step={0.01}
-                        className="w-full"
+                        className="w-full h-2 touch-pan-x" // Melhor para touch
                       />
                       
                       <div className="flex justify-between text-xs text-muted-foreground">
@@ -410,11 +273,20 @@ export function TradingConfig() {
                     </div>
                     
                     <div className="p-3 bg-muted/30 rounded-lg">
-                      <div className="text-sm font-medium mb-1">Simulação de Retorno</div>
+                      <div className="text-xs sm:text-sm font-medium mb-1">Simulação de Retorno</div>
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <div>R$ 100 → R$ {(100 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
-                        <div>R$ 500 → R$ {(500 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
-                        <div>R$ 1.000 → R$ {(1000 * (1 + plan.daily_rate)).toFixed(2)} por dia</div>
+                        <div className="flex justify-between">
+                          <span>R$ 100:</span>
+                          <span>R$ {(100 * (1 + plan.daily_rate)).toFixed(2)}/dia</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>R$ 500:</span>
+                          <span>R$ {(500 * (1 + plan.daily_rate)).toFixed(2)}/dia</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>R$ 1.000:</span>
+                          <span>R$ {(1000 * (1 + plan.daily_rate)).toFixed(2)}/dia</span>
+                        </div>
                       </div>
                     </div>
                     
@@ -434,143 +306,169 @@ export function TradingConfig() {
       </Card>
 
       {/* Informações sobre as Estratégias */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-green-600">Conservador</CardTitle>
-            <CardDescription>Até 2% de retorno diário</CardDescription>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="p-0 pb-3">
+            <CardTitle className="text-green-600 text-base sm:text-lg">Robô 4.0.0</CardTitle>
+            <CardDescription className="text-sm">Até 2% de retorno diário*</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ul className="text-sm space-y-1">
+          <CardContent className="p-0">
+            <ul className="text-xs sm:text-sm space-y-1">
               <li>• Risco baixo</li>
               <li>• 6-8 operações por dia</li>
               <li>• Foco em estabilidade</li>
-              <li>• Ideal para iniciantes</li>
+              <li>• Sem requisitos de indicação</li>
             </ul>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-yellow-600">Moderado</CardTitle>
-            <CardDescription>Até 3% de retorno diário</CardDescription>
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="p-0 pb-3">
+            <CardTitle className="text-yellow-600 text-base sm:text-lg">Robô 4.0.5</CardTitle>
+            <CardDescription className="text-sm">Até 3% de retorno diário*</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ul className="text-sm space-y-1">
+          <CardContent className="p-0">
+            <ul className="text-xs sm:text-sm space-y-1">
               <li>• Risco médio</li>
               <li>• 8-10 operações por dia</li>
+              <li>• Requer 10 indicados ativos</li>
               <li>• Equilibrio risco/retorno</li>
-              <li>• Para investidores experientes</li>
             </ul>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-600">Livre</CardTitle>
-            <CardDescription>Até 4% de retorno diário</CardDescription>
+        <Card className="p-3 sm:p-4 md:col-span-2 lg:col-span-1">
+          <CardHeader className="p-0 pb-3">
+            <CardTitle className="text-red-600 text-base sm:text-lg">Robô 4.1.0</CardTitle>
+            <CardDescription className="text-sm">Até 4% de retorno diário*</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ul className="text-sm space-y-1">
+          <CardContent className="p-0">
+            <ul className="text-xs sm:text-sm space-y-1">
               <li>• Risco alto</li>
               <li>• 10-12 operações por dia</li>
+              <li>• Requer 40 indicados ativos</li>
               <li>• Máximo potencial de lucro</li>
-              <li>• Para investidores avançados</li>
             </ul>
           </CardContent>
         </Card>
       </div>
 
-      {/* Simulador de Arbitragem Avançado */}
+      {/* Simulador Avançado de Arbitragem */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Simulador de Arbitragem Avançado
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
+            Simulador Avançado de Arbitragem
           </CardTitle>
-          <CardDescription>
-            Configure e simule ganhos em tempo real com suporte a USD e controle total das taxas
+          <CardDescription className="text-sm">
+            Simule ganhos potenciais com valores personalizados em BRL ou USD
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4 sm:space-y-6">
           {/* Controles do Simulador */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="space-y-4">
-              <h4 className="font-medium flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Configurações da Simulação
-              </h4>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Toggle BRL/USD */}
+              <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                <Label htmlFor="currency-toggle" className="text-sm font-medium">
+                  Moeda:
+                </Label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm ${!showUSD ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
+                    BRL (R$)
+                  </span>
+                  <Switch
+                    id="currency-toggle"
+                    checked={showUSD}
+                    onCheckedChange={setShowUSD}
+                  />
+                  <span className={`text-sm ${showUSD ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
+                    USD ($)
+                  </span>
+                </div>
+              </div>
               
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label>Valor do Investimento</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      value={simulatorValue}
-                      onChange={(e) => setSimulatorValue(parseFloat(e.target.value) || 0)}
-                      placeholder="Digite o valor"
-                      className="flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowUSD(!showUSD)}
-                      className="flex items-center gap-1"
-                    >
-                      <DollarSign className="h-3 w-3" />
-                      {showUSD ? 'USD' : 'BRL'}
-                    </Button>
-                  </div>
+              {/* Valor de Investimento */}
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="simulator-value" className="text-sm font-medium">
+                  Valor do Investimento
+                </Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {showUSD ? '$' : 'R$'}
+                  </span>
+                  <Input
+                    id="simulator-value"
+                    type="number"
+                    value={simulatorValue}
+                    onChange={(e) => setSimulatorValue(parseFloat(e.target.value) || 0)}
+                    placeholder="Digite o valor"
+                    className="flex-1 text-base sm:text-sm" // Texto maior no mobile
+                    min="0"
+                    step="0.01"
+                  />
                 </div>
-                
-                <div className="space-y-2">
-                  <Label>Período</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      value={simulatorPeriod}
-                      onChange={(e) => setSimulatorPeriod(parseInt(e.target.value) || 1)}
-                      placeholder="Dias"
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-muted-foreground self-center">dias</span>
-                  </div>
-                </div>
+              </div>
 
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <div className="text-sm font-medium mb-1">Taxa de Câmbio</div>
-                  <div className="text-xs text-muted-foreground">
-                    1 USD = R$ {usdRate.toFixed(2)}
-                  </div>
-                  {showUSD && (
-                    <div className="text-xs text-blue-600 mt-1">
-                      {showUSD ? `$${(simulatorValue / usdRate).toFixed(2)} USD` : `R$ ${simulatorValue.toFixed(2)}`}
-                    </div>
-                  )}
+              {/* Período */}
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="simulator-period" className="text-sm font-medium">
+                  Período (dias)
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="simulator-period"
+                    type="number"
+                    value={simulatorPeriod}
+                    onChange={(e) => setSimulatorPeriod(parseInt(e.target.value) || 1)}
+                    placeholder="Dias"
+                    className="flex-1 text-base sm:text-sm" // Texto maior no mobile
+                    min="1"
+                    max="365"
+                  />
+                  <span className="text-sm text-muted-foreground">dias</span>
                 </div>
               </div>
             </div>
 
-            {/* Configuração de Taxas Rápida */}
-            <div className="space-y-4">
-              <h4 className="font-medium flex items-center gap-2">
-                <Percent className="h-4 w-4" />
-                Ajuste Rápido de Taxas
-              </h4>
-              
-              <div className="space-y-3">
-                {plans.map((plan) => {
-                  const currentRate = plan.daily_rate * 100;
-                  return (
-                    <div key={plan.id} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{plan.name}</span>
-                        <Badge className={getStrategyColor(plan.trading_strategy)}>
-                          {plan.trading_strategy}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
+            {/* Taxa de Câmbio */}
+            <div className="p-3 bg-muted/30 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="text-sm font-medium">Taxa de Câmbio</div>
+                  <div className="text-xs text-muted-foreground">
+                    1 USD = R$ {usdRate.toFixed(2)}
+                  </div>
+                </div>
+                {showUSD && (
+                  <div className="text-xs text-blue-600">
+                    {`$${(simulatorValue / usdRate).toFixed(2)} USD = R$ ${simulatorValue.toFixed(2)}`}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Configuração de Taxas Rápida - Mobile Otimizada */}
+          <div className="space-y-4">
+            <h4 className="font-medium flex items-center gap-2 text-base sm:text-lg">
+              <Percent className="h-4 w-4" />
+              Ajuste Rápido de Taxas
+            </h4>
+            
+            <div className="space-y-3">
+              {plans.map((plan) => {
+                const currentRate = plan.daily_rate * 100;
+                return (
+                  <div key={plan.id} className="p-3 border rounded-lg space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{plan.name}</span>
+                      <Badge className={getStrategyColor(plan.trading_strategy)}>
+                        {plan.trading_strategy}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-2 flex-1">
                         <Input
                           type="number"
                           value={currentRate.toFixed(2)}
@@ -585,99 +483,99 @@ export function TradingConfig() {
                               ));
                             }
                           }}
-                          className="w-20 text-center"
+                          className="w-20 text-center text-base sm:text-sm" // Texto maior no mobile
                           step="0.01"
                           min="0.01"
                           max={plan.max_daily_return}
                         />
                         <span className="text-xs">%</span>
-                        <div className="text-xs text-muted-foreground">
-                          (máx: {plan.max_daily_return}%)
-                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        (máx: {plan.max_daily_return}%)
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Valores de Referência */}
-            <div className="space-y-4">
-              <h4 className="font-medium">Valores de Referência</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(100)}
-                  className="h-8"
-                >
-                  {showUSD ? '$18' : 'R$ 100'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(500)}
-                  className="h-8"
-                >
-                  {showUSD ? '$91' : 'R$ 500'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(1000)}
-                  className="h-8"
-                >
-                  {showUSD ? '$182' : 'R$ 1K'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(5000)}
-                  className="h-8"
-                >
-                  {showUSD ? '$909' : 'R$ 5K'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(10000)}
-                  className="h-8"
-                >
-                  {showUSD ? '$1,818' : 'R$ 10K'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSimulatorValue(50000)}
-                  className="h-8"
-                >
-                  {showUSD ? '$9,091' : 'R$ 50K'}
-                </Button>
-              </div>
+          {/* Valores de Referência - Mobile Grid */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-base">Valores de Referência</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(100)}
+                className="h-10 text-xs sm:text-sm" // Botões maiores no mobile
+              >
+                {showUSD ? '$18' : 'R$ 100'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(500)}
+                className="h-10 text-xs sm:text-sm"
+              >
+                {showUSD ? '$91' : 'R$ 500'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(1000)}
+                className="h-10 text-xs sm:text-sm"
+              >
+                {showUSD ? '$182' : 'R$ 1K'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(5000)}
+                className="h-10 text-xs sm:text-sm"
+              >
+                {showUSD ? '$909' : 'R$ 5K'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(10000)}
+                className="h-10 text-xs sm:text-sm"
+              >
+                {showUSD ? '$1,818' : 'R$ 10K'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSimulatorValue(50000)}
+                className="h-10 text-xs sm:text-sm"
+              >
+                {showUSD ? '$9,091' : 'R$ 50K'}
+              </Button>
             </div>
           </div>
 
           {/* Resultados da Simulação de Arbitragem */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">Simulação de Arbitragem - Ganhos Variáveis</h4>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h4 className="font-medium text-base sm:text-lg">Simulação de Arbitragem - Ganhos Variáveis</h4>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Mostrando valores em:</span>
-                <Badge variant="outline">
+                <span className="text-xs sm:text-sm text-muted-foreground">Mostrando valores em:</span>
+                <Badge variant="outline" className="text-xs">
                   {showUSD ? 'USD' : 'BRL'} {showUSD ? '($)' : '(R$)'}
                 </Badge>
               </div>
             </div>
             
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="text-sm text-yellow-800">
+              <div className="text-xs sm:text-sm text-yellow-800">
                 <strong>⚠️ AVISO IMPORTANTE:</strong> Os valores são simulações baseadas em arbitragem. 
                 Ganhos reais são variáveis e não garantidos. O sistema realiza operações automáticas 
                 entre exchanges buscando diferenças de preços.
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {plans.map((plan) => {
                 const baseValue = showUSD ? simulatorValue / usdRate : simulatorValue;
                 const currency = showUSD ? '$' : 'R$';
@@ -693,10 +591,10 @@ export function TradingConfig() {
                                  (plan.trading_strategy === 'livre' && plan.minimum_indicators <= 40);
 
                 return (
-                  <Card key={plan.id} className={`p-4 space-y-3 ${!isEligible ? 'opacity-50 bg-muted/20' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <h5 className="font-medium">{plan.name}</h5>
-                      <div className="flex flex-col items-end gap-1">
+                  <Card key={plan.id} className={`p-3 sm:p-4 space-y-3 ${!isEligible ? 'opacity-50 bg-muted/20' : ''}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h5 className="font-medium text-sm sm:text-base">{plan.name}</h5>
+                      <div className="flex flex-col items-start sm:items-end gap-1">
                         <Badge className={getStrategyColor(plan.trading_strategy)}>
                           {plan.trading_strategy}
                         </Badge>
@@ -709,20 +607,20 @@ export function TradingConfig() {
                     </div>
                     
                     {isEligible ? (
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-xs sm:text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Taxa atual:</span>
                           <span className="font-semibold text-blue-600">
                             até {(plan.daily_rate * 100).toFixed(1)}%/dia*
                           </span>
                         </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Investimento:</span>
-                        <span className="font-semibold">
-                          {currency} {baseValue.toFixed(2)}
-                        </span>
-                      </div>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Investimento:</span>
+                          <span className="font-semibold">
+                            {currency} {baseValue.toFixed(2)}
+                          </span>
+                        </div>
                         
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Ganho/dia:</span>
@@ -753,9 +651,15 @@ export function TradingConfig() {
                         </div>
                         
                         <div className="text-xs text-muted-foreground space-y-1">
-                          <div>• Mensal: +{currency} {monthlyProfit.toFixed(2)}*</div>
-                          <div>• Anual: +{currency} {(dailyProfit * 365).toFixed(2)}*</div>
-                          <div className="text-yellow-600">* Valores não garantidos</div>
+                          <div className="flex justify-between">
+                            <span>Mensal:</span>
+                            <span>+{currency} {monthlyProfit.toFixed(2)}*</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Anual:</span>
+                            <span>+{currency} {(dailyProfit * 365).toFixed(2)}*</span>
+                          </div>
+                          <div className="text-yellow-600 text-center">* Valores não garantidos</div>
                         </div>
                       </div>
                     ) : (
@@ -772,37 +676,44 @@ export function TradingConfig() {
             </div>
           </div>
 
-          {/* Comparativo de Moedas */}
+          {/* Comparativo de Moedas - Mobile Otimizado */}
           {simulatorValue > 0 && (
-            <div className="mt-6 pt-6 border-t">
-              <h4 className="font-medium mb-4">Comparativo BRL vs USD</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-4">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
+              <h4 className="font-medium mb-3 sm:mb-4 text-base sm:text-lg">Comparativo BRL vs USD</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <Card className="p-3 sm:p-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">Real (BRL)</div>
-                    <div className="text-2xl font-bold">R$ {simulatorValue.toFixed(2)}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Ganho médio/mês: R$ {(simulatorValue * (plans.reduce((acc, p) => acc + p.daily_rate, 0) / plans.length) * 30).toFixed(2)}
+                    <div className="text-base sm:text-lg font-bold text-green-600">Real (BRL)</div>
+                    <div className="text-xl sm:text-2xl font-bold">R$ {simulatorValue.toFixed(2)}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+                      Ganho estimado: R$ {(simulatorValue * 0.025).toFixed(2)}/dia*
                     </div>
                   </div>
                 </Card>
-                <Card className="p-4">
+                
+                <Card className="p-3 sm:p-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">Dólar (USD)</div>
-                    <div className="text-2xl font-bold">$ {(simulatorValue / usdRate).toFixed(2)}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Ganho médio/mês: $ {((simulatorValue / usdRate) * (plans.reduce((acc, p) => acc + p.daily_rate, 0) / plans.length) * 30).toFixed(2)}
+                    <div className="text-base sm:text-lg font-bold text-blue-600">Dólar (USD)</div>
+                    <div className="text-xl sm:text-2xl font-bold">
+                      $ {(simulatorValue / usdRate).toFixed(2)}
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+                      Ganho estimado: $ {((simulatorValue / usdRate) * 0.025).toFixed(2)}/dia*
                     </div>
                   </div>
                 </Card>
+              </div>
+              
+              <div className="mt-3 sm:mt-4 text-xs text-center text-muted-foreground">
+                * Baseado na taxa média de 2.5% ao dia (valores não garantidos)
               </div>
             </div>
           )}
 
           {/* Disclaimer */}
-          <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+          <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-muted/30 rounded-lg">
             <div className="flex items-start gap-2">
-              <TrendingUp className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <TrendingUp className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
               <div className="text-xs text-muted-foreground">
                 <strong>Aviso Legal:</strong> Esta é uma simulação baseada nas configurações atuais. 
                 Resultados reais podem variar significativamente devido a condições de mercado, volatilidade, 
