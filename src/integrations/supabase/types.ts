@@ -1589,8 +1589,8 @@ export type Database = {
           days_remaining: number | null
           end_date: string
           id: string
+          investment_plan_id: string
           operations_completed: number | null
-          plan_id: string | null
           start_date: string | null
           status: string | null
           today_earnings: number | null
@@ -1608,8 +1608,8 @@ export type Database = {
           days_remaining?: number | null
           end_date: string
           id?: string
+          investment_plan_id: string
           operations_completed?: number | null
-          plan_id?: string | null
           start_date?: string | null
           status?: string | null
           today_earnings?: number | null
@@ -1627,8 +1627,8 @@ export type Database = {
           days_remaining?: number | null
           end_date?: string
           id?: string
+          investment_plan_id?: string
           operations_completed?: number | null
-          plan_id?: string | null
           start_date?: string | null
           status?: string | null
           today_earnings?: number | null
@@ -1644,20 +1644,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_investments_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "investment_plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_investments_plans_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "investment_plans"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "user_investments_profiles_fkey"
