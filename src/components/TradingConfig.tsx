@@ -163,6 +163,14 @@ export function TradingConfig() {
         throw new Error(`Erro ao salvar ${errors.length} plano(s)`);
       }
 
+      // Status 204 significa que a atualização foi bem-sucedida
+      const successfulUpdates = results.filter(result => result.status === 204 || result.status === 200);
+      console.log(`✅ ${successfulUpdates.length} de ${results.length} atualizações foram bem-sucedidas`);
+      
+      if (successfulUpdates.length === 0) {
+        throw new Error('Nenhuma atualização foi processada');
+      }
+
       // Sincronizar configurações do admin
       const adminSettings = JSON.parse(localStorage.getItem("alphabit_admin_settings") || "{}");
       plans.forEach(plan => {
