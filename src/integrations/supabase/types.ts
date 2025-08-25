@@ -223,6 +223,116 @@ export type Database = {
         }
         Relationships: []
       }
+      bnb20_admin_approvals: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string | null
+          id: string
+          reason: string | null
+          transaction_id: string
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          transaction_id: string
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bnb20_admin_approvals_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "bnb20_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bnb20_transactions: {
+        Row: {
+          admin_approved_at: string | null
+          admin_approved_by: string | null
+          admin_notes: string | null
+          amount_bnb: number
+          amount_usd: number
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invoice_id: string | null
+          nowpayments_response: Json | null
+          pay_address: string | null
+          pay_amount: number | null
+          pay_currency: string | null
+          payin_extra_id: string | null
+          payment_id: string | null
+          price_currency: string | null
+          qr_code_base64: string | null
+          status: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          webhook_data: Json | null
+        }
+        Insert: {
+          admin_approved_at?: string | null
+          admin_approved_by?: string | null
+          admin_notes?: string | null
+          amount_bnb: number
+          amount_usd: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          nowpayments_response?: Json | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency?: string | null
+          payin_extra_id?: string | null
+          payment_id?: string | null
+          price_currency?: string | null
+          qr_code_base64?: string | null
+          status?: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          webhook_data?: Json | null
+        }
+        Update: {
+          admin_approved_at?: string | null
+          admin_approved_by?: string | null
+          admin_notes?: string | null
+          amount_bnb?: number
+          amount_usd?: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          nowpayments_response?: Json | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency?: string | null
+          payin_extra_id?: string | null
+          payment_id?: string | null
+          price_currency?: string | null
+          qr_code_base64?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          webhook_data?: Json | null
+        }
+        Relationships: []
+      }
       current_operations: {
         Row: {
           buy_price: number
@@ -713,6 +823,78 @@ export type Database = {
           rank?: number | null
           symbol?: string
           volume_24h?: number | null
+        }
+        Relationships: []
+      }
+      nowpayments_config: {
+        Row: {
+          active: boolean | null
+          api_key: string
+          api_secret: string
+          created_at: string | null
+          environment: string
+          id: string
+          ipn_secret: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          api_key: string
+          api_secret: string
+          created_at?: string | null
+          environment?: string
+          id?: string
+          ipn_secret: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          api_key?: string
+          api_secret?: string
+          created_at?: string | null
+          environment?: string
+          id?: string
+          ipn_secret?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      nowpayments_webhooks: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          payment_id: string
+          processed: boolean | null
+          processed_at: string | null
+          signature: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          payment_id: string
+          processed?: boolean | null
+          processed_at?: string | null
+          signature: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          payment_id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          signature?: string
+          status?: string
         }
         Relationships: []
       }
@@ -2001,6 +2183,15 @@ export type Database = {
         Args: { commission_percentage?: number; partner_email: string }
         Returns: Json
       }
+      admin_approve_bnb20_transaction: {
+        Args: {
+          action_param: string
+          admin_email?: string
+          reason_param?: string
+          transaction_id_param: string
+        }
+        Returns: Json
+      }
       admin_cancel_user_investment: {
         Args: { admin_reason?: string; investment_id_param: string }
         Returns: Json
@@ -2352,6 +2543,10 @@ export type Database = {
       }
       update_user_role: {
         Args: { new_role: string; user_id_param: string }
+        Returns: boolean
+      }
+      validate_nowpayments_webhook: {
+        Args: { payload: Json; secret: string; signature: string }
         Returns: boolean
       }
     }
