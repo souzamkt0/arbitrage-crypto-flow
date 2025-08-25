@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { BNB20Deposit } from '@/components/BNB20Deposit';
 import { BNB20Withdrawal } from '@/components/BNB20Withdrawal';
 import { BNB20History } from '@/components/BNB20History';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Coins, 
   TrendingUp, 
@@ -12,17 +15,68 @@ import {
   History, 
   Shield, 
   Zap,
-  Info
+  Info,
+  TestTube
 } from 'lucide-react';
 
 export default function BNB20Page() {
   const [activeTab, setActiveTab] = useState('deposit');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [testingIntegration, setTestingIntegration] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
+  const { toast } = useToast();
 
   const handleSuccess = () => {
     // Refresh history when transaction is successful
     setRefreshKey(prev => prev + 1);
     setActiveTab('history');
+  };
+
+  const testNOWPaymentsIntegration = async () => {
+    setTestingIntegration(true);
+    setTestResult(null);
+    
+    try {
+      console.log('🧪 Iniciando teste da integração NOWPayments...');
+      
+      const { data, error } = await supabase.functions.invoke('test-nowpayments-integration');
+      
+      if (error) {
+        console.error('❌ Erro na edge function:', error);
+        toast({
+          title: "Erro no teste",
+          description: "Falha ao executar teste da integração",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('📋 Resultado do teste:', data);
+      setTestResult(data);
+      
+      if (data.success) {
+        toast({
+          title: "✅ Teste concluído",
+          description: "Integração NOWPayments funcionando corretamente!",
+        });
+      } else {
+        toast({
+          title: "⚠️ Teste falhou",
+          description: "Foram encontrados problemas na integração",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error('💥 Erro crítico no teste:', error);
+      toast({
+        title: "Erro crítico",
+        description: "Falha inesperada durante o teste",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingIntegration(false);
+    }
   };
 
   return (
@@ -90,6 +144,70 @@ export default function BNB20Page() {
         </TabsList>
 
         <TabsContent value="deposit" className="space-y-6">
+          {/* Test Integration Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TestTube className="h-5 w-5" />
+                Teste da Integração NOWPayments
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={testNOWPaymentsIntegration}
+                  disabled={testingIntegration}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <TestTube className="h-4 w-4" />
+                  {testingIntegration ? 'Testando...' : 'Testar Integração'}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Verifica conectividade, API key e teste de pagamento de $10
+                </p>
+              </div>
+              
+              {testResult && (
+                <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-3 h-3 rounded-full ${testResult.success ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="font-medium">
+                      {testResult.success ? '✅ Integração OK' : '❌ Integração com problemas'}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div>Status: {testResult.summary.overall_status}</div>
+                    <div>Passos executados: {testResult.summary.total_steps}</div>
+                    <div>Sucessos: {testResult.summary.successful_steps}</div>
+                    <div>Falhas: {testResult.summary.failed_steps}</div>
+                  </div>
+                  
+                  {testResult.test_results && (
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm font-medium">Ver detalhes completos</summary>
+                      <pre className="mt-2 text-xs bg-background p-2 rounded border overflow-auto max-h-40">
+                        {JSON.stringify(testResult.test_results, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                  
+                  {testResult.recommendations && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium mb-1">Recomendações:</div>
+                      <ul className="text-sm space-y-1">
+                        {testResult.recommendations.map((rec: string, idx: number) => (
+                          <li key={idx}>• {rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
