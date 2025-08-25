@@ -337,6 +337,7 @@ export default function SimpleUSDTPayment() {
     try {
       console.log('🔗 Testing NOWPayments connection...');
       
+      // Call test endpoint without authentication (test mode)
       const { data, error } = await supabase.functions.invoke('nowpayments-status', {
         body: { test: true }
       });
@@ -345,7 +346,7 @@ export default function SimpleUSDTPayment() {
         console.error('NOWPayments test error:', error);
         toast({
           title: "❌ Erro de Conexão",
-          description: "Falha ao conectar com NOWPayments",
+          description: `Falha: ${error.message || 'Erro desconhecido'}`,
           variant: "destructive",
         });
         return;
@@ -354,7 +355,7 @@ export default function SimpleUSDTPayment() {
       if (data?.success) {
         toast({
           title: "✅ Conexão OK!",
-          description: `NOWPayments funcionando. API: ${data.environment || 'production'}`,
+          description: `NOWPayments funcionando. ${data.currencies_count || 0} moedas disponíveis`,
         });
       } else {
         toast({
@@ -663,6 +664,18 @@ export default function SimpleUSDTPayment() {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Verificar Status
               </Button>
+              
+              {/* Test Auto-Confirm Button (for testing purposes) */}
+              {!isCompleted && !isFailed && (
+                <Button 
+                  onClick={handleAutoConfirm} 
+                  variant="secondary" 
+                  className="flex-1"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Confirmar (Teste)
+                </Button>
+              )}
               
               <Button 
                 onClick={startNewPayment} 

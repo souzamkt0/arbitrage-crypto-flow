@@ -27,26 +27,30 @@ serve(async (req) => {
       },
     });
 
-    // Get user from JWT token (allow test requests to bypass auth)
-    const authHeader = req.headers.get('Authorization');
+    // Parse request body first to check if it's a test
     const requestBody = await req.json().catch(() => ({}));
     const { test } = requestBody;
     
-    // Skip auth for test requests
-    if (!test && !authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Authorization header required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('🔍 Request type:', test ? 'TEST' : 'NORMAL', 'Auth header present:', !!req.headers.get('Authorization'));
 
-    let user = null;
-    if (authHeader && !test) {
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+    // For test requests, skip authentication entirely
+    if (test) {
+      console.log('🧪 Test request - skipping authentication');
+    } else {
+      // Get user from JWT token for non-test requests
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Authorization header required' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { data: { user }, error: authError } = await supabase.auth.getUser(
         authHeader.replace('Bearer ', '')
       );
 
-      if (authError || !authUser) {
+      if (authError || !user) {
         console.error('❌ Auth error:', authError);
         return new Response(
           JSON.stringify({ 
@@ -57,7 +61,6 @@ serve(async (req) => {
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      user = authUser;
     }
 
     // Parse request body (already parsed above for auth check)
