@@ -33,6 +33,7 @@ import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import BNB20Page from "./pages/BNB20";
 import USDTPayments from "./pages/USDTPayments";
+import USDTCheckout from "./pages/USDTCheckout";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -179,6 +180,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <USDTPayments />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usdt-checkout"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <USDTCheckout />
                 </Layout>
               </ProtectedRoute>
             }

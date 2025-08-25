@@ -19,7 +19,8 @@ import {
   Wallet,
   ArrowDown,
   Gift,
-  Coins
+  Coins,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -34,6 +35,7 @@ const Navbar = () => {
     { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
     { path: "/usdt-payments", label: "USDT", icon: Coins },
+    { path: "/usdt-checkout", label: "Checkout", icon: CreditCard },
     { path: "/referrals", label: "Indicações", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
     { path: "/history", label: "Histórico", icon: History },
