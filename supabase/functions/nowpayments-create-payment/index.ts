@@ -61,6 +61,51 @@ serve(async (req) => {
 
     console.log('🚀 Criando pagamento NOWPayments para:', { user_id: user.id, price_amount, price_currency, pay_currency })
 
+    // Primeiro, verificar se a API está funcionando
+    const statusResponse = await fetch('https://api.nowpayments.io/v1/status', {
+      headers: {
+        'x-api-key': nowpaymentsApiKey,
+      },
+    })
+
+    if (!statusResponse.ok) {
+      console.error('❌ API NOWPayments indisponível:', statusResponse.statusText)
+      return new Response(
+        JSON.stringify({ error: 'Serviço NOWPayments temporariamente indisponível' }),
+        { status: 503, headers: corsHeaders }
+      )
+    }
+
+    const apiStatus = await statusResponse.json()
+    console.log('✅ Status API NOWPayments:', apiStatus)
+
+    // Verificar moedas disponíveis
+    const currenciesResponse = await fetch('https://api.nowpayments.io/v1/currencies', {
+      headers: {
+        'x-api-key': nowpaymentsApiKey,
+      },
+    })
+
+    if (!currenciesResponse.ok) {
+      console.error('❌ Erro ao buscar moedas:', currenciesResponse.statusText)
+      return new Response(
+        JSON.stringify({ error: 'Erro ao verificar moedas disponíveis' }),
+        { status: 500, headers: corsHeaders }
+      )
+    }
+
+    const currencies = await currenciesResponse.json()
+    console.log('💰 Moedas disponíveis:', currencies.currencies?.slice(0, 10)) // Log apenas primeiras 10
+
+    // Verificar se bnbbsc está disponível
+    if (!currencies.currencies?.includes(pay_currency)) {
+      console.error('❌ Moeda não disponível:', pay_currency)
+      return new Response(
+        JSON.stringify({ error: `Moeda ${pay_currency} não disponível` }),
+        { status: 400, headers: corsHeaders }
+      )
+    }
+
     // Buscar cotação na NOWPayments
     const estimateResponse = await fetch(
       `https://api.nowpayments.io/v1/estimate?amount=${price_amount}&currency_from=${price_currency}&currency_to=${pay_currency}`,
@@ -72,9 +117,10 @@ serve(async (req) => {
     )
 
     if (!estimateResponse.ok) {
-      console.error('❌ Erro ao buscar cotação:', estimateResponse.statusText)
+      const errorText = await estimateResponse.text()
+      console.error('❌ Erro ao buscar cotação:', estimateResponse.statusText, errorText)
       return new Response(
-        JSON.stringify({ error: 'Erro ao buscar cotação' }),
+        JSON.stringify({ error: 'Erro ao buscar cotação', details: errorText }),
         { status: 500, headers: corsHeaders }
       )
     }
@@ -103,12 +149,18 @@ serve(async (req) => {
       body: JSON.stringify(paymentData),
     })
 
+    console.log('📤 Enviando dados de pagamento:', JSON.stringify(paymentData, null, 2))
+
     if (!paymentResponse.ok) {
-      console.error('❌ Erro ao criar pagamento:', paymentResponse.statusText)
-      const errorData = await paymentResponse.text()
-      console.error('❌ Detalhes do erro:', errorData)
+      const errorText = await paymentResponse.text()
+      console.error('❌ Erro ao criar pagamento:', paymentResponse.status, paymentResponse.statusText)
+      console.error('❌ Detalhes do erro:', errorText)
       return new Response(
-        JSON.stringify({ error: 'Erro ao criar pagamento' }),
+        JSON.stringify({ 
+          error: 'Erro ao criar pagamento', 
+          status: paymentResponse.status,
+          details: errorText 
+        }),
         { status: 500, headers: corsHeaders }
       )
     }
