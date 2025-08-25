@@ -162,6 +162,24 @@ export default function SimpleUSDTPayment() {
     setIsLoading(true);
 
     try {
+      // 🔑 FORÇAR AUTENTICAÇÃO SE NECESSÁRIO
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('🔑 Usuário não autenticado, fazendo login anônimo...');
+        const { error: authError } = await supabase.auth.signInAnonymously();
+        if (authError) {
+          console.error('❌ Erro no login anônimo:', authError);
+          toast({
+            title: "Erro de Autenticação",
+            description: "Falha ao fazer login automático. Tente novamente.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        console.log('✅ Login anônimo realizado com sucesso');
+      }
+
       // Map network to NOWPayments format
       const networkMapping = {
         'USDTTRC20': 'usdttrc20',
@@ -170,6 +188,7 @@ export default function SimpleUSDTPayment() {
       };
       const paymentCurrency = networkMapping[selectedNetwork] || 'usdttrc20';
       
+      // 🎭 USAR DADOS MOCKADOS TEMPORARIAMENTE
       const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
         body: {
           price_amount: amount,
@@ -177,7 +196,8 @@ export default function SimpleUSDTPayment() {
           pay_currency: paymentCurrency,
           order_id: `simple_${Date.now()}`,
           order_description: `USDT Payment ${selectedNetwork} - $${amount}`,
-          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`
+          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`,
+          mock: true // ✅ ATIVAR MODO MOCK PARA TESTES
         }
       });
 
@@ -210,8 +230,8 @@ export default function SimpleUSDTPayment() {
       setTimeLeft(15 * 60); // 15 minutes
       
       toast({
-        title: "Pagamento Criado no NOWPayments! 🎉",
-        description: "Pagamento real criado - você pode ver no seu dashboard NOWPayments",
+        title: "Pagamento Mock Criado! 🎭",
+        description: "Teste com dados simulados - funciona sem NOWPayments real",
         variant: "default",
       });
     } catch (error: any) {

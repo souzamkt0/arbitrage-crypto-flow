@@ -97,8 +97,9 @@ serve(async (req) => {
       order_description,
       ipn_callback_url,
       success_url,
-      cancel_url
-    }: CreatePaymentRequest = requestBody;
+      cancel_url,
+      mock = false // 🎭 NOVO: parâmetro para ativar dados mockados
+    }: CreatePaymentRequest & { mock?: boolean } = requestBody;
 
     // Validate required fields
     console.log('🔍 Validating required fields...');
@@ -121,6 +122,97 @@ serve(async (req) => {
         JSON.stringify({
           success: false,
           error: 'Amount must be between $10.00 and $10,000.00'
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 🎭 MODO MOCK: Se ativado, retorna dados simulados sem chamar NOWPayments
+    if (mock) {
+      console.log('🎭 MODO MOCK ATIVADO - Retornando dados simulados');
+      
+      const mockPayment = {
+        payment_id: `mock_${Date.now()}`,
+        payment_status: 'waiting',
+        pay_address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // Endereço USDT TRC-20 exemplo
+        price_amount: price_amount,
+        price_currency: price_currency.toUpperCase(),
+        pay_amount: price_amount * 0.9999, // Simula pequena diferença de conversão
+        pay_currency: pay_currency.toUpperCase(),
+        order_id: order_id,
+        order_description: order_description || `Mock USDT Payment - ${order_id}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
+      };
+
+      // Gerar QR code mock
+      let qr_code_base64 = '';
+      try {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(mockPayment.pay_address)}&format=png`;
+        const qrResponse = await fetch(qrUrl);
+        if (qrResponse.ok) {
+          const qrBuffer = await qrResponse.arrayBuffer();
+          qr_code_base64 = btoa(String.fromCharCode(...new Uint8Array(qrBuffer)));
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to generate mock QR code:', error);
+      }
+
+      // Salvar pagamento mock no banco
+      const mockPaymentData = {
+        user_id: user.id,
+        payment_id: mockPayment.payment_id,
+        amount: mockPayment.price_amount,
+        currency_from: mockPayment.price_currency,
+        currency_to: mockPayment.pay_currency,
+        status: mockPayment.payment_status,
+        payment_address: mockPayment.pay_address,
+        actually_paid: 0,
+        price_amount: mockPayment.pay_amount,
+        order_description: mockPayment.order_description,
+        webhook_data: {
+          mock: true,
+          mock_created_at: new Date().toISOString(),
+          qr_code_generated: !!qr_code_base64
+        }
+      };
+
+      const { data: savedMockPayment, error: mockDbError } = await supabase
+        .from('payments')
+        .insert(mockPaymentData)
+        .select()
+        .single();
+
+      if (mockDbError) {
+        console.error('❌ Erro ao salvar pagamento mock:', mockDbError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Failed to save mock payment',
+            details: mockDbError.message
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('✅ Mock payment saved successfully');
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          payment: {
+            ...mockPayment,
+            qr_code: qr_code_base64 || null,
+            database_id: savedMockPayment.id
+          },
+          debug_info: {
+            mock_mode: true,
+            real_nowpayments_call: false,
+            supabase_connected: true,
+            qr_generated: !!qr_code_base64,
+            user_id: user.id
+          }
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
