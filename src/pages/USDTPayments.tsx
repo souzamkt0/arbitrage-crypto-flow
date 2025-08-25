@@ -74,9 +74,42 @@ export default function USDTPayments() {
     loadSupportedCurrencies();
   }, []);
 
-  // Carregar transações do usuário
+  // Carregar transações do usuário e configurar real-time
   useEffect(() => {
     loadUserTransactions();
+
+    // Set up real-time subscription for user transactions
+    const subscription = supabase
+      .channel('user_transactions')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'payments'
+        },
+        (payload) => {
+          console.log('Payment update received:', payload);
+          // Reload transactions when any payment is updated
+          loadUserTransactions();
+        }
+      )
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'bnb20_transactions'
+        },
+        (payload) => {
+          console.log('BNB20 transaction update received:', payload);
+          // Reload transactions when any BNB20 transaction is updated
+          loadUserTransactions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, [refreshKey]);
 
   // Carregar estatísticas (só para admins)

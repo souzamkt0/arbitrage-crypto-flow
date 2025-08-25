@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { USDTPaymentService, PaymentResponse } from '@/services/usdtPaymentService';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   QrCode, 
   Copy, 
@@ -38,47 +39,67 @@ export function USDTPaymentActive({ paymentData, onPaymentComplete }: USDTPaymen
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Check payment status periodically
+  // Real-time payment status updates
   useEffect(() => {
     if (!paymentData.payment_id) return;
 
+    // Check status immediately
     const checkStatus = async () => {
       try {
         setCheckingStatus(true);
         const statusResponse = await USDTPaymentService.getPaymentStatus(paymentData.payment_id!);
         const newStatus = statusResponse.payment_status || statusResponse.pay_status || 'waiting';
-        
-        if (newStatus !== status) {
-          setStatus(newStatus);
-          
-          if (newStatus === 'finished' || newStatus === 'confirmed') {
-            toast({
-              title: "Pagamento Confirmado!",
-              description: "Seu pagamento foi processado com sucesso",
-              variant: "default",
-            });
-            setTimeout(() => onPaymentComplete(), 2000);
-          } else if (newStatus === 'failed' || newStatus === 'expired') {
-            toast({
-              title: "Pagamento Falhou",
-              description: "Seu pagamento não foi processado",
-              variant: "destructive",
-            });
-          }
-        }
+        setStatus(newStatus);
       } catch (error) {
-        console.error('Erro ao verificar status:', error);
+        console.error('Erro ao verificar status inicial:', error);
       } finally {
         setCheckingStatus(false);
       }
     };
 
-    // Check immediately
     checkStatus();
 
-    // Then check every 10 seconds
-    const interval = setInterval(checkStatus, 10000);
-    return () => clearInterval(interval);
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('payment_status_updates')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'payments',
+          filter: `payment_id=eq.${paymentData.payment_id}`
+        },
+        (payload) => {
+          const newStatus = payload.new.status;
+          if (newStatus !== status) {
+            setStatus(newStatus);
+            
+            if (newStatus === 'finished' || newStatus === 'confirmed') {
+              toast({
+                title: "Pagamento Confirmado!",
+                description: "Seu pagamento foi processado com sucesso",
+                variant: "default",
+              });
+              setTimeout(() => onPaymentComplete(), 2000);
+            } else if (newStatus === 'failed' || newStatus === 'expired') {
+              toast({
+                title: "Pagamento Falhou",
+                description: "Seu pagamento não foi processado",
+                variant: "destructive",
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Fallback polling every 30 seconds (reduced frequency since we have real-time)
+    const interval = setInterval(checkStatus, 30000);
+
+    return () => {
+      supabase.removeChannel(subscription);
+      clearInterval(interval);
+    };
   }, [paymentData.payment_id, status, onPaymentComplete, toast]);
 
   const formatTime = (seconds: number) => {
