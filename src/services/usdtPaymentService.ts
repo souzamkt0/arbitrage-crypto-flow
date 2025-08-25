@@ -99,7 +99,7 @@ export class USDTPaymentService {
   static async getUserTransactions(): Promise<any[]> {
     try {
       const { data, error } = await supabase
-        .from('bnb20_transactions')
+        .from('payments')
         .select('*')
         .order('created_at', { ascending: false });
 

@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface StatusRequest {
+  payment_id?: string;
+  transaction_id?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -13,148 +18,176 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    )
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+      },
+    });
 
-    // Verificar se o usuário está autenticado
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-    if (authError || !user) {
+    // Get user from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: corsHeaders }
-      )
+        JSON.stringify({ success: false, error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const url = new URL(req.url)
-    const payment_id = url.searchParams.get('payment_id')
-    const transaction_id = url.searchParams.get('transaction_id')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse request body
+    const { payment_id, transaction_id }: StatusRequest = await req.json();
 
     if (!payment_id && !transaction_id) {
       return new Response(
-        JSON.stringify({ error: 'payment_id ou transaction_id é obrigatório' }),
-        { status: 400, headers: corsHeaders }
-      )
+        JSON.stringify({
+          success: false,
+          error: 'Either payment_id or transaction_id is required'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log('🔍 Consultando status:', { payment_id, transaction_id, user_id: user.id })
+    // Find transaction in database
+    let query = supabase
+      .from('payments')
+      .select('*')
+      .eq('user_id', user.id);
 
-    let transaction
-    
-    if (transaction_id) {
-      // Buscar por ID da transação interna
-      const { data, error } = await supabaseClient
-        .from('bnb20_transactions')
-        .select('*')
-        .eq('id', transaction_id)
-        .eq('user_id', user.id)
-        .single()
-      
-      if (error || !data) {
-        return new Response(
-          JSON.stringify({ error: 'Transação não encontrada' }),
-          { status: 404, headers: corsHeaders }
-        )
-      }
-      
-      transaction = data
-    } else {
-      // Buscar por payment_id da NOWPayments
-      const { data, error } = await supabaseClient
-        .from('bnb20_transactions')
-        .select('*')
-        .eq('payment_id', payment_id)
-        .eq('user_id', user.id)
-        .single()
-      
-      if (error || !data) {
-        return new Response(
-          JSON.stringify({ error: 'Transação não encontrada' }),
-          { status: 404, headers: corsHeaders }
-        )
-      }
-      
-      transaction = data
+    if (payment_id) {
+      query = query.eq('payment_id', payment_id);
+    } else if (transaction_id) {
+      query = query.eq('id', transaction_id);
     }
 
-    // Se temos payment_id, consultar status na NOWPayments
-    if (transaction.payment_id) {
-      const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY')
-      if (nowpaymentsApiKey) {
-        try {
+    const { data: payment, error: dbError } = await query.single();
+
+    if (dbError || !payment) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Payment not found'
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('📊 Checking payment status:', {
+      payment_id: payment.payment_id,
+      current_status: payment.status,
+      user_id: user.id
+    });
+
+    // If we have a payment_id, check status with NOWPayments
+    let updatedStatus = payment.status;
+    let nowpaymentsData = null;
+
+    if (payment.payment_id) {
+      try {
+        const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
+        if (nowpaymentsApiKey) {
           const statusResponse = await fetch(
-            `https://api.nowpayments.io/v1/payment/${transaction.payment_id}`,
+            `https://api.nowpayments.io/v1/payment/${payment.payment_id}`,
             {
+              method: 'GET',
               headers: {
                 'x-api-key': nowpaymentsApiKey,
               },
             }
-          )
+          );
 
           if (statusResponse.ok) {
-            const nowpaymentsStatus = await statusResponse.json()
-            console.log('📊 Status da NOWPayments:', nowpaymentsStatus)
+            nowpaymentsData = await statusResponse.json();
+            const newStatus = nowpaymentsData.payment_status;
+            
+            console.log('✅ NOWPayments status check:', {
+              payment_id: payment.payment_id,
+              old_status: payment.status,
+              new_status: newStatus
+            });
 
-            // Atualizar status se mudou
-            if (nowpaymentsStatus.payment_status !== transaction.status) {
-              const { error: updateError } = await supabaseClient
-                .from('bnb20_transactions')
-                .update({
-                  status: nowpaymentsStatus.payment_status,
-                  webhook_data: nowpaymentsStatus,
-                  updated_at: new Date().toISOString(),
-                })
-                .eq('id', transaction.id)
+            // Update status if it changed
+            if (newStatus && newStatus !== payment.status) {
+              const updateData = {
+                status: newStatus,
+                actually_paid: nowpaymentsData.actually_paid || payment.actually_paid,
+                webhook_data: {
+                  ...payment.webhook_data,
+                  last_status_check: new Date().toISOString(),
+                  nowpayments_status_response: nowpaymentsData
+                }
+              };
+
+              const { error: updateError } = await supabase
+                .from('payments')
+                .update(updateData)
+                .eq('id', payment.id);
 
               if (!updateError) {
-                transaction.status = nowpaymentsStatus.payment_status
-                transaction.webhook_data = nowpaymentsStatus
+                updatedStatus = newStatus;
+                console.log('✅ Payment status updated in database');
+              } else {
+                console.error('❌ Failed to update payment status:', updateError);
               }
             }
+          } else {
+            console.warn('⚠️ Failed to check NOWPayments status:', await statusResponse.text());
           }
-        } catch (error) {
-          console.error('⚠️ Erro ao consultar NOWPayments:', error)
-          // Continuar com os dados locais
         }
+      } catch (error) {
+        console.error('❌ Error checking NOWPayments status:', error);
       }
     }
 
-    // Retornar status da transação
+    // Return payment status
+    const response = {
+      success: true,
+      payment_id: payment.payment_id,
+      transaction_id: payment.id,
+      payment_status: updatedStatus,
+      pay_status: updatedStatus, // Alias for compatibility
+      amount: payment.amount,
+      currency_from: payment.currency_from,
+      currency_to: payment.currency_to,
+      payment_address: payment.payment_address,
+      actually_paid: payment.actually_paid || 0,
+      price_amount: payment.price_amount,
+      order_id: payment.payment_id, // Using payment_id as order_id for now
+      order_description: payment.order_description,
+      created_at: payment.created_at,
+      updated_at: payment.updated_at,
+      nowpayments_data: nowpaymentsData
+    };
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        transaction: {
-          id: transaction.id,
-          payment_id: transaction.payment_id,
-          type: transaction.type,
-          amount_usd: transaction.amount_usd,
-          amount_bnb: transaction.amount_bnb,
-          status: transaction.status,
-          pay_address: transaction.pay_address,
-          pay_amount: transaction.pay_amount,
-          pay_currency: transaction.pay_currency,
-          qr_code_base64: transaction.qr_code_base64,
-          created_at: transaction.created_at,
-          updated_at: transaction.updated_at,
-          expires_at: transaction.expires_at,
-          admin_notes: transaction.admin_notes,
-          admin_approved_at: transaction.admin_approved_at,
-        }
-      }),
-      { status: 200, headers: corsHeaders }
-    )
+      JSON.stringify(response),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
-    console.error('💥 Erro geral:', error)
+    console.error('💥 Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: corsHeaders }
-    )
+      JSON.stringify({
+        success: false,
+        error: 'Internal server error',
+        details: error.message
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
-})
+});
