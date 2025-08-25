@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { BNB20Deposit } from '@/components/BNB20Deposit';
 import { BNB20Withdrawal } from '@/components/BNB20Withdrawal';
 import { BNB20History } from '@/components/BNB20History';
+import USDTPaymentDashboard from '@/components/USDTPaymentDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -128,7 +129,7 @@ export default function BNB20Page() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="deposit" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Depósito
@@ -140,6 +141,10 @@ export default function BNB20Page() {
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
             Histórico
+          </TabsTrigger>
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Dashboard
           </TabsTrigger>
         </TabsList>
 
@@ -231,6 +236,10 @@ export default function BNB20Page() {
 
         <TabsContent value="history" className="space-y-6">
           <BNB20History key={refreshKey} />
+        </TabsContent>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <USDTPaymentDashboard />
         </TabsContent>
       </Tabs>
 

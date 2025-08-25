@@ -32,6 +32,7 @@ import FacebookProfile from "./pages/FacebookProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import BNB20Page from "./pages/BNB20";
+import USDTPayments from "./pages/USDTPayments";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -168,6 +169,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <BNB20Page />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usdt-payments"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <USDTPayments />
                 </Layout>
               </ProtectedRoute>
             }
