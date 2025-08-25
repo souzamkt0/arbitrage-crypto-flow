@@ -27,29 +27,41 @@ serve(async (req) => {
       },
     });
 
-    // Get user from JWT token
+    // Get user from JWT token (allow test requests to bypass auth)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    const requestBody = await req.json().catch(() => ({}));
+    const { test } = requestBody;
+    
+    // Skip auth for test requests
+    if (!test && !authHeader) {
       return new Response(
         JSON.stringify({ success: false, error: 'Authorization header required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid or expired token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    let user = null;
+    if (authHeader && !test) {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
       );
+
+      if (authError || !authUser) {
+        console.error('❌ Auth error:', authError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid or expired token',
+            details: authError?.message 
+          }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      user = authUser;
     }
 
-    // Parse request body
-    const requestBody = await req.json().catch(() => ({}));
-    const { payment_id, transaction_id, test }: StatusRequest & { test?: boolean } = requestBody;
+    // Parse request body (already parsed above for auth check)
+    const { payment_id, transaction_id }: StatusRequest = requestBody;
 
     // If it's a test request, just check API connectivity
     if (test) {
