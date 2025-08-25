@@ -273,6 +273,7 @@ export type Database = {
           pay_address: string | null
           pay_amount: number | null
           pay_currency: string | null
+          pay_currency_variant: string | null
           payin_extra_id: string | null
           payment_id: string | null
           price_currency: string | null
@@ -297,6 +298,7 @@ export type Database = {
           pay_address?: string | null
           pay_amount?: number | null
           pay_currency?: string | null
+          pay_currency_variant?: string | null
           payin_extra_id?: string | null
           payment_id?: string | null
           price_currency?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           pay_address?: string | null
           pay_amount?: number | null
           pay_currency?: string | null
+          pay_currency_variant?: string | null
           payin_extra_id?: string | null
           payment_id?: string | null
           price_currency?: string | null
@@ -1019,6 +1022,48 @@ export type Database = {
           },
         ]
       }
+      payment_stats: {
+        Row: {
+          avg_processing_time: unknown | null
+          created_at: string | null
+          currency: string
+          date: string
+          failed_transactions: number | null
+          id: string
+          network: string
+          successful_transactions: number | null
+          total_transactions: number | null
+          total_volume: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_processing_time?: unknown | null
+          created_at?: string | null
+          currency: string
+          date?: string
+          failed_transactions?: number | null
+          id?: string
+          network: string
+          successful_transactions?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_processing_time?: unknown | null
+          created_at?: string | null
+          currency?: string
+          date?: string
+          failed_transactions?: number | null
+          id?: string
+          network?: string
+          successful_transactions?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       photo_uploads: {
         Row: {
           created_at: string | null
@@ -1603,6 +1648,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      supported_currencies: {
+        Row: {
+          confirmation_blocks: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_amount: number | null
+          min_amount: number | null
+          name: string
+          network: string
+          symbol: string
+          updated_at: string | null
+        }
+        Insert: {
+          confirmation_blocks?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_amount?: number | null
+          min_amount?: number | null
+          name: string
+          network: string
+          symbol: string
+          updated_at?: string | null
+        }
+        Update: {
+          confirmation_blocks?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_amount?: number | null
+          min_amount?: number | null
+          name?: string
+          network?: string
+          symbol?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       trading_configurations: {
         Row: {
