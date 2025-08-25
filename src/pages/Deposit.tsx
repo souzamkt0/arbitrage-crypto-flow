@@ -33,11 +33,11 @@ const Deposit = () => {
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [pendingDeposits, setPendingDeposits] = useState(0);
   
-  // USDT deposit states
-  const [usdtAmount, setUsdtAmount] = useState("");
-  const [usdtAddress] = useState("TQrZ3wVNfxN3ePJSG3LtWJwF6RtXq8rG47"); // Example USDT address
-  const [showUsdtQR, setShowUsdtQR] = useState(false);
-  const [usdtLoading, setUsdtLoading] = useState(false);
+  // BNB20 deposit states
+  const [bnbAmount, setBnbAmount] = useState("");
+  const [bnbPaymentData, setBnbPaymentData] = useState<any>(null);
+  const [showBnbQR, setShowBnbQR] = useState(false);
+  const [bnbLoading, setBnbLoading] = useState(false);
 
   // Load deposit data
   const loadDepositData = async () => {
@@ -73,57 +73,80 @@ const Deposit = () => {
     navigate('/bnb20');
   };
 
-  const handleUsdtDeposit = async () => {
-    if (!usdtAmount || parseFloat(usdtAmount) <= 0) {
+  const handleBnbDeposit = async () => {
+    if (!bnbAmount || parseFloat(bnbAmount) <= 0) {
       toast({
         title: "Valor inválido",
-        description: "Digite um valor válido em USDT",
+        description: "Digite um valor válido em USD",
         variant: "destructive"
       });
       return;
     }
 
-    setUsdtLoading(true);
+    setBnbLoading(true);
     try {
-      // Generate QR code data
-      const qrData = `${usdtAddress}?amount=${usdtAmount}`;
-      setShowUsdtQR(true);
-      
-      // Create transaction record
-      if (user) {
-        await supabase.from('digitopay_transactions').insert({
-          user_id: user.id,
-          type: 'deposit',
-          amount: parseFloat(usdtAmount),
-          amount_brl: parseFloat(usdtAmount) * 5.85, // Example rate
-          status: 'pending',
-          trx_id: `USDT_${Date.now()}`,
-          external_id: `usdt_${Date.now()}`
-        });
+      // Call NOWPayments create payment endpoint
+      const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
+        body: {
+          price_amount: parseFloat(bnbAmount),
+          price_currency: 'usd',
+          pay_currency: 'bnbbsc', // BNB on BSC network
+          order_id: `order_${Date.now()}`,
+          order_description: `Depósito BNB20 - ${bnbAmount} USD`,
+          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`,
+          success_url: `${window.location.origin}/deposit?success=true`,
+          cancel_url: `${window.location.origin}/deposit?cancelled=true`
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
       }
 
-      toast({
-        title: "QR Code Gerado!",
-        description: "Escaneie o QR code para fazer o pagamento em USDT"
-      });
+      if (data && data.pay_address) {
+        setBnbPaymentData(data);
+        setShowBnbQR(true);
+        
+        // Create transaction record
+        if (user) {
+          await supabase.from('bnb20_transactions').insert({
+            user_id: user.id,
+            type: 'deposit',
+            amount_usd: parseFloat(bnbAmount),
+            amount_bnb: data.pay_amount,
+            pay_address: data.pay_address,
+            payment_id: data.payment_id,
+            status: 'pending',
+            pay_currency: 'bnbbsc',
+            nowpayments_response: data
+          });
+        }
+
+        toast({
+          title: "QR Code Gerado!",
+          description: "Escaneie o QR code para fazer o pagamento em BNB (BSC)"
+        });
+      }
     } catch (error) {
-      console.error('Error creating USDT deposit:', error);
+      console.error('Error creating BNB deposit:', error);
       toast({
         title: "Erro",
         description: "Erro ao gerar QR code. Tente novamente.",
         variant: "destructive"
       });
     } finally {
-      setUsdtLoading(false);
+      setBnbLoading(false);
     }
   };
 
-  const copyUsdtAddress = () => {
-    navigator.clipboard.writeText(usdtAddress);
-    toast({
-      title: "Copiado!",
-      description: "Endereço USDT copiado para área de transferência"
-    });
+  const copyBnbAddress = () => {
+    if (bnbPaymentData?.pay_address) {
+      navigator.clipboard.writeText(bnbPaymentData.pay_address);
+      toast({
+        title: "Copiado!",
+        description: "Endereço BNB copiado para área de transferência"
+      });
+    }
   };
 
   return (
@@ -225,11 +248,11 @@ const Deposit = () => {
                   </TabsTrigger>
                   <TabsTrigger value="usdt" className="flex items-center gap-2">
                     <QrCode className="h-4 w-4" />
-                    USDT QR Code
+                    USDT Automático
                   </TabsTrigger>
                   <TabsTrigger value="bnb20" className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    BNB20 Automático
+                    <QrCode className="h-4 w-4" />
+                    BNB20 QR Code
                   </TabsTrigger>
                 </TabsList>
 
@@ -256,34 +279,58 @@ const Deposit = () => {
                 </TabsContent>
 
                 <TabsContent value="usdt" className="space-y-4">
+                  <div className="text-center py-8">
+                    <div className="p-6 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl inline-block mx-auto">
+                      <Wallet className="h-12 w-12 text-green-600 mx-auto mb-3" />
+                      <h3 className="text-xl font-bold text-foreground mb-2">Depósito Automático USDT</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Sistema automatizado via NOWPayments - USDT TRC20
+                      </p>
+                      <Button 
+                        onClick={handleBNB20Navigate}
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3"
+                      >
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                        Acessar USDT Gateway
+                      </Button>
+                      <div className="mt-4 text-sm text-muted-foreground space-y-1">
+                        <p>• Processamento automático via NOWPayments</p>
+                        <p>• Rede TRC20 (Tron) - taxas baixas</p>
+                        <p>• Confirmação automática</p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="bnb20" className="space-y-4">
                   {user ? (
                     <div className="max-w-md mx-auto space-y-6">
                       <div className="text-center">
-                        <QrCode className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                        <h3 className="text-xl font-bold text-foreground mb-2">Depósito USDT</h3>
+                        <QrCode className="h-12 w-12 text-orange-600 mx-auto mb-3" />
+                        <h3 className="text-xl font-bold text-foreground mb-2">Depósito BNB20</h3>
                         <p className="text-muted-foreground">Digite o valor e gere o QR code para pagamento</p>
                       </div>
 
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="usdt-amount">Valor em USDT</Label>
+                          <Label htmlFor="bnb-amount">Valor em USD</Label>
                           <Input
-                            id="usdt-amount"
+                            id="bnb-amount"
                             type="number"
-                            placeholder="Digite o valor em USDT"
-                            value={usdtAmount}
-                            onChange={(e) => setUsdtAmount(e.target.value)}
+                            placeholder="Digite o valor em USD"
+                            value={bnbAmount}
+                            onChange={(e) => setBnbAmount(e.target.value)}
                             min="0"
                             step="0.01"
                           />
                         </div>
 
                         <Button 
-                          onClick={handleUsdtDeposit}
-                          disabled={usdtLoading || !usdtAmount}
-                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={handleBnbDeposit}
+                          disabled={bnbLoading || !bnbAmount}
+                          className="w-full bg-orange-600 hover:bg-orange-700"
                         >
-                          {usdtLoading ? (
+                          {bnbLoading ? (
                             <>
                               <Zap className="h-4 w-4 mr-2 animate-spin" />
                               Gerando QR Code...
@@ -291,35 +338,35 @@ const Deposit = () => {
                           ) : (
                             <>
                               <QrCode className="h-4 w-4 mr-2" />
-                              Gerar QR Code USDT
+                              Gerar QR Code BNB20
                             </>
                           )}
                         </Button>
                       </div>
 
-                      {showUsdtQR && (
+                      {showBnbQR && bnbPaymentData && (
                         <div className="border border-border rounded-lg p-6 space-y-4">
                           <div className="text-center">
                             <div className="bg-white p-4 rounded-lg inline-block">
-                              <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
-                                <QrCode className="h-24 w-24 text-gray-600" />
+                              <div className="w-48 h-48 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-lg flex items-center justify-center mx-auto">
+                                <QrCode className="h-24 w-24 text-orange-600" />
                               </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-2">
-                              QR Code para {usdtAmount} USDT
+                              QR Code para {bnbPaymentData.pay_amount} BNB (${bnbAmount} USD)
                             </p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Endereço USDT (TRC20)</Label>
+                            <Label>Endereço BNB (BSC Network)</Label>
                             <div className="flex gap-2">
                               <Input 
-                                value={usdtAddress} 
+                                value={bnbPaymentData.pay_address || ''} 
                                 readOnly 
                                 className="font-mono text-xs"
                               />
                               <Button 
-                                onClick={copyUsdtAddress}
+                                onClick={copyBnbAddress}
                                 variant="outline"
                                 size="sm"
                               >
@@ -328,10 +375,15 @@ const Deposit = () => {
                             </div>
                           </div>
 
-                          <div className="text-center text-sm text-muted-foreground space-y-1">
-                            <p>• Envie exatamente {usdtAmount} USDT para este endereço</p>
-                            <p>• Use apenas rede TRC20 (Tron)</p>
-                            <p>• Confirmação automática após 1 confirmação</p>
+                          <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg">
+                            <div className="text-center text-sm space-y-1">
+                              <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                                Envie exatamente {bnbPaymentData.pay_amount} BNB
+                              </p>
+                              <p className="text-yellow-700 dark:text-yellow-300">• Use apenas rede BSC (Binance Smart Chain)</p>
+                              <p className="text-yellow-700 dark:text-yellow-300">• Confirmação automática via NOWPayments</p>
+                              <p className="text-yellow-700 dark:text-yellow-300">• ID do Pagamento: {bnbPaymentData.payment_id}</p>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -345,30 +397,6 @@ const Deposit = () => {
                       </div>
                     </div>
                   )}
-                </TabsContent>
-
-                <TabsContent value="bnb20" className="space-y-4">
-                  <div className="text-center py-8">
-                    <div className="p-6 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl inline-block mx-auto">
-                      <Wallet className="h-12 w-12 text-blue-600 mx-auto mb-3" />
-                      <h3 className="text-xl font-bold text-foreground mb-2">Depósito Automático BNB20</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Sistema automatizado via Binance Smart Chain (BSC)
-                      </p>
-                      <Button 
-                        onClick={handleBNB20Navigate}
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold px-8 py-3"
-                      >
-                        <ArrowUpRight className="h-4 w-4 mr-2" />
-                        Acessar BNB20 Gateway
-                      </Button>
-                      <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                        <p>• Processamento automático via NOWPayments</p>
-                        <p>• Confirmação instantânea na blockchain</p>
-                        <p>• Suporte 24/7 para transações</p>
-                      </div>
-                    </div>
-                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
