@@ -24,9 +24,16 @@ serve(async (req) => {
       )
     }
 
-    console.log('🔑 API Key presente:', nowpaymentsApiKey ? 'SIM' : 'NÃO')
+    console.log('🔑 Testando NOWPayments API Key...')
+    
+    // Log da API key (apenas primeiros e últimos caracteres por segurança)
+    const keyMask = nowpaymentsApiKey.length > 8 
+      ? `${nowpaymentsApiKey.slice(0, 4)}...${nowpaymentsApiKey.slice(-4)}`
+      : 'Key muito curta'
+    console.log('🔑 API Key format:', keyMask)
 
     // Testar status da API
+    console.log('📊 Testando endpoint /status...')
     const statusResponse = await fetch('https://api.nowpayments.io/v1/status', {
       headers: {
         'x-api-key': nowpaymentsApiKey,

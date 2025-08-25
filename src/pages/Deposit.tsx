@@ -38,6 +38,10 @@ const Deposit = () => {
   const [bnbPaymentData, setBnbPaymentData] = useState<any>(null);
   const [showBnbQR, setShowBnbQR] = useState(false);
   const [bnbLoading, setBnbLoading] = useState(false);
+  
+  // Test states
+  const [testResult, setTestResult] = useState<any>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   // Load deposit data
   const loadDepositData = async () => {
@@ -124,6 +128,45 @@ const Deposit = () => {
       });
     } finally {
       setBnbLoading(false);
+    }
+  };
+
+  const testNowPayments = async () => {
+    setTestLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-nowpayments');
+      
+      if (error) {
+        console.error('Test Error:', error);
+        setTestResult({
+          success: false,
+          error: error.message,
+          details: 'Erro ao chamar função de teste'
+        });
+      } else {
+        console.log('Test Result:', data);
+        setTestResult(data);
+      }
+
+      toast({
+        title: data?.success ? "✅ Teste Passou!" : "❌ Teste Falhou",
+        description: data?.success ? "NOWPayments API funcionando" : data?.error || "Erro no teste",
+        variant: data?.success ? "default" : "destructive"
+      });
+    } catch (error: any) {
+      console.error('Test Exception:', error);
+      setTestResult({
+        success: false,
+        error: error.message,
+        details: 'Exceção durante o teste'
+      });
+      toast({
+        title: "❌ Erro no Teste",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setTestLoading(false);
     }
   };
 
@@ -313,26 +356,71 @@ const Deposit = () => {
                           />
                         </div>
 
-                        <Button 
-                          onClick={handleBnbDeposit}
-                          disabled={bnbLoading || !bnbAmount}
-                          className="w-full bg-orange-600 hover:bg-orange-700"
-                        >
-                          {bnbLoading ? (
-                            <>
-                              <Zap className="h-4 w-4 mr-2 animate-spin" />
-                              Gerando QR Code...
-                            </>
-                          ) : (
-                            <>
-                              <QrCode className="h-4 w-4 mr-2" />
-                              Gerar QR Code BNB20
-                            </>
-                          )}
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            onClick={testNowPayments}
+                            disabled={testLoading}
+                            variant="outline"
+                            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                          >
+                            {testLoading ? (
+                              <>
+                                <Zap className="h-4 w-4 mr-2 animate-spin" />
+                                Testando...
+                              </>
+                            ) : (
+                              <>
+                                <Activity className="h-4 w-4 mr-2" />
+                                Testar API
+                              </>
+                            )}
+                          </Button>
+
+                          <Button 
+                            onClick={handleBnbDeposit}
+                            disabled={bnbLoading || !bnbAmount}
+                            className="bg-orange-600 hover:bg-orange-700"
+                          >
+                            {bnbLoading ? (
+                              <>
+                                <Zap className="h-4 w-4 mr-2 animate-spin" />
+                                Gerando...
+                              </>
+                            ) : (
+                              <>
+                                <QrCode className="h-4 w-4 mr-2" />
+                                Gerar QR Code
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
 
-                       {showBnbQR && bnbPaymentData && (
+                      {testResult && (
+                        <div className={`border rounded-lg p-4 ${testResult.success ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}>
+                          <h4 className={`font-bold mb-2 ${testResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                            {testResult.success ? '✅ Teste da API' : '❌ Falha no Teste'}
+                          </h4>
+                          <div className="text-xs space-y-1">
+                            {testResult.success ? (
+                              <>
+                                <p>• API NOWPayments: ✅ Online</p>
+                                <p>• Moedas disponíveis: {testResult.currencies_available}</p>
+                                <p>• BNB BSC suportado: {testResult.bnbbsc_supported ? '✅ Sim' : '❌ Não'}</p>
+                                <p>• Status: {JSON.stringify(testResult.api_status?.message || 'OK')}</p>
+                              </>
+                            ) : (
+                              <>
+                                <p>• Erro: {testResult.error}</p>
+                                <p>• Detalhes: {testResult.details}</p>
+                                {testResult.status && <p>• Status Code: {testResult.status}</p>}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {showBnbQR && bnbPaymentData && (
                         <div className="border border-border rounded-lg p-6 space-y-4">
                           <div className="text-center">
                             <div className="bg-white p-4 rounded-lg inline-block">
