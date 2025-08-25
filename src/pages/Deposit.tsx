@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/hooks/useAuth";
+import { useEdgeFunction } from "@/hooks/useEdgeFunction";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CreditCard, 
@@ -32,6 +33,7 @@ const Deposit = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { callEdgeFunction } = useEdgeFunction();
   
   const [activeTab, setActiveTab] = useState("digitopay");
   const [depositBalance, setDepositBalance] = useState(0);
@@ -104,116 +106,102 @@ const Deposit = () => {
     }
 
     setBnbLoading(true);
-    try {
-      // Call NOWPayments create payment endpoint with correct parameters
-      const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
-        body: {
-          price_amount: parseFloat(bnbAmount),
-          price_currency: 'usd',
-          pay_currency: 'bnbbsc', // BNB on BSC network
-          order_id: `bnbbsc_${Date.now()}`,
-          order_description: `Depósito BNB20 (BSC) - ${bnbAmount} USD`,
-          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`,
-          success_url: `${window.location.origin}/deposit?success=true`,
-          cancel_url: `${window.location.origin}/deposit?cancelled=true`
-        }
-      });
+    
+    const { data, error } = await callEdgeFunction('nowpayments-create-payment', {
+      body: {
+        price_amount: parseFloat(bnbAmount),
+        price_currency: 'usd',
+        pay_currency: 'bnbbsc', // BNB on BSC network
+        order_id: `bnbbsc_${Date.now()}`,
+        order_description: `Depósito BNB20 (BSC) - ${bnbAmount} USD`,
+        ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`,
+        success_url: `${window.location.origin}/deposit?success=true`,
+        cancel_url: `${window.location.origin}/deposit?cancelled=true`
+      },
+      showLoadingToast: true,
+      retryOnAuthError: true
+    });
 
-      if (error) {
-        console.error('Edge Function Error:', error);
-        throw new Error(error.message || 'Erro na função');
-      }
-
-      if (data && data.success && data.pay_address) {
-        setBnbPaymentData(data);
-        setShowBnbQR(true);
-
-        toast({
-          title: "QR Code Gerado!",
-          description: `Escaneie o QR code para fazer o pagamento de ${data.pay_amount} BNB`
-        });
-      } else {
-        throw new Error(data?.error || 'Dados de pagamento inválidos');
-      }
-    } catch (error: any) {
+    if (error) {
       console.error('Error creating BNB deposit:', error);
+    } else if (data && data.success && data.pay_address) {
+      setBnbPaymentData(data);
+      setShowBnbQR(true);
+
+      toast({
+        title: "QR Code Gerado!",
+        description: `Escaneie o QR code para fazer o pagamento de ${data.pay_amount} BNB`
+      });
+    } else {
       toast({
         title: "Erro",
-        description: error.message || "Erro ao gerar QR code. Tente novamente.",
+        description: data?.error || 'Dados de pagamento inválidos',
         variant: "destructive"
       });
-    } finally {
-      setBnbLoading(false);
     }
+    
+    setBnbLoading(false);
   };
 
   const testNowPayments = async () => {
     setTestLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('test-nowpayments');
-      
-      if (error) {
-        console.error('Test Error:', error);
-        setTestResult({
-          success: false,
-          error: error.message,
-          details: 'Erro ao chamar função de teste'
-        });
-      } else {
-        console.log('Test Result:', data);
-        setTestResult(data);
-      }
-
-      toast({
-        title: data?.success ? "✅ Teste Passou!" : "❌ Teste Falhou",
-        description: data?.success ? "NOWPayments API funcionando" : data?.error || "Erro no teste",
-        variant: data?.success ? "default" : "destructive"
-      });
-    } catch (error: any) {
-      console.error('Test Exception:', error);
+    
+    const { data, error } = await callEdgeFunction('test-nowpayments', {
+      showLoadingToast: false,
+      retryOnAuthError: true
+    });
+    
+    if (error) {
+      console.error('Test Error:', error);
       setTestResult({
         success: false,
         error: error.message,
-        details: 'Exceção durante o teste'
+        details: 'Erro ao chamar função de teste'
       });
-      toast({
-        title: "❌ Erro no Teste",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setTestLoading(false);
+    } else {
+      console.log('Test Result:', data);
+      setTestResult(data);
     }
+
+    toast({
+      title: data?.success ? "✅ Teste Passou!" : "❌ Teste Falhou",
+      description: data?.success ? "NOWPayments API funcionando" : data?.error || "Erro no teste",
+      variant: data?.success ? "default" : "destructive"
+    });
+    
+    setTestLoading(false);
   };
 
   const testDetailedIntegration = async () => {
     setDetailedTestLoading(true);
     setDetailedTestResult(null);
     
-    try {
-      console.log('🧪 Iniciando teste detalhado da integração NOWPayments...');
-      
-      const { data, error } = await supabase.functions.invoke('test-nowpayments-integration');
-      
-      if (error) {
-        console.error('❌ Erro na edge function:', error);
-        toast({
-          title: "Erro no teste detalhado",
-          description: "Falha ao executar teste da integração",
-          variant: "destructive",
-        });
-        setDetailedTestResult({
-          success: false,
-          error: error.message,
-          summary: { overall_status: 'CRITICAL_ERROR' }
-        });
-        return;
-      }
-
-      console.log('📋 Resultado do teste detalhado:', data);
+    console.log('🧪 Iniciando teste detalhado da integração NOWPayments...');
+    
+    const { data, error } = await callEdgeFunction('test-nowpayments-integration', {
+      showLoadingToast: false,
+      retryOnAuthError: true
+    });
+    
+    if (error) {
+      console.error('❌ Erro na edge function:', error);
+      setDetailedTestResult({
+        success: false,
+        error: error.message || 'Erro desconhecido',
+        summary: { 
+          total_steps: 0,
+          successful_steps: 0,
+          failed_steps: 1,
+          overall_status: 'EDGE_FUNCTION_ERROR' 
+        },
+        test_results: [],
+        recommendations: ['Verifique os logs da edge function', 'Verifique a conectividade']
+      });
+    } else {
+      console.log('✅ Resultado do teste:', data);
       setDetailedTestResult(data);
       
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "✅ Teste detalhado concluído",
           description: "Integração NOWPayments funcionando corretamente!",
@@ -225,22 +213,9 @@ const Deposit = () => {
           variant: "destructive",
         });
       }
-      
-    } catch (error: any) {
-      console.error('💥 Erro crítico no teste detalhado:', error);
-      toast({
-        title: "Erro crítico",
-        description: "Falha inesperada durante o teste",
-        variant: "destructive",
-      });
-      setDetailedTestResult({
-        success: false,
-        error: error.message,
-        summary: { overall_status: 'EXCEPTION' }
-      });
-    } finally {
-      setDetailedTestLoading(false);
     }
+    
+    setDetailedTestLoading(false);
   };
 
   const copyBnbAddress = () => {
