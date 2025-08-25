@@ -65,13 +65,14 @@ serve(async (req) => {
     
     let user = null;
     let isPublicPayment = false;
+    const PUBLIC_PAYMENTS_UUID = '00000000-0000-0000-0000-000000000001'; // UUID fixo para pagamentos públicos
     
     if (!authHeader) {
       console.log('⚠️ No authorization header - allowing public payment');
       isPublicPayment = true;
-      // Create a temporary user for public payments
+      // Usar UUID fixo para pagamentos públicos
       user = { 
-        id: `public_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: PUBLIC_PAYMENTS_UUID,
         email: 'public@payments.temp'
       };
     } else {
@@ -85,7 +86,7 @@ serve(async (req) => {
         console.log('⚠️ Auth failed, allowing as public payment');
         isPublicPayment = true;
         user = { 
-          id: `public_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: PUBLIC_PAYMENTS_UUID,
           email: 'public@payments.temp'
         };
       } else {
@@ -93,6 +94,8 @@ serve(async (req) => {
         console.log('✅ Authenticated user:', user.id);
       }
     }
+    
+    console.log('🔍 Final user_id for payment:', user.id, 'isPublic:', isPublicPayment);
 
     // Parse request body
     const requestBody = await req.json();
