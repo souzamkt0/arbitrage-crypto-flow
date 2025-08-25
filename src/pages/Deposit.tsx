@@ -78,6 +78,15 @@ const Deposit = () => {
   };
 
   const handleBnbDeposit = async () => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa fazer login para realizar depósitos",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!bnbAmount || parseFloat(bnbAmount) <= 0) {
       toast({
         title: "Valor inválido",
