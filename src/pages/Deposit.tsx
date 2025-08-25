@@ -24,8 +24,7 @@ import {
   TestTube,
   CheckCircle,
   XCircle,
-  Info,
-  LogIn
+  Info
 } from "lucide-react";
 
 const Deposit = () => {
@@ -376,22 +375,7 @@ const Deposit = () => {
                       <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-xl inline-block">
                         <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-3" />
                         <p className="text-destructive font-medium mb-1">Autenticação Necessária</p>
-                        <p className="text-muted-foreground text-sm mb-4">Faça login para acessar os depósitos</p>
-                        <div className="flex gap-3 justify-center">
-                          <Button 
-                            onClick={() => navigate('/auth')}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <LogIn className="h-4 w-4 mr-2" />
-                            Página de Login
-                          </Button>
-                          <Button 
-                            onClick={() => navigate('/login')}
-                            variant="outline"
-                          >
-                            Login Antigo
-                          </Button>
-                        </div>
+                        <p className="text-muted-foreground text-sm">Faça login para acessar os depósitos</p>
                       </div>
                     </div>
                   )}

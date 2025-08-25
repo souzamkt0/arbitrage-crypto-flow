@@ -32,7 +32,6 @@ import FacebookProfile from "./pages/FacebookProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import BNB20Page from "./pages/BNB20";
-import AuthPage from "./pages/Auth";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -125,7 +124,6 @@ const App = () => (
           
           <Routes>
           <Route path="/" element={<AutoRedirect />} />
-          <Route path="/auth" element={<AuthPage />} />
           <Route path="/simple-login" element={<SimpleLogin />} />
           <Route path="/create-admin" element={<CreateAdmin />} />
           <Route path="/login" element={<Login />} />
