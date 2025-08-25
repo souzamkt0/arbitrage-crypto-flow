@@ -173,21 +173,9 @@ serve(async (req) => {
 
       // Salvar pagamento mock no banco
       const mockPaymentData = {
-        user_id: user.id,
         payment_id: mockPayment.payment_id,
-        amount: mockPayment.price_amount,
-        currency_from: mockPayment.price_currency,
-        currency_to: mockPayment.pay_currency,
-        status: mockPayment.payment_status,
-        payment_address: mockPayment.pay_address,
-        actually_paid: 0,
-        price_amount: mockPayment.pay_amount,
-        order_description: mockPayment.order_description,
-        webhook_data: {
-          mock: true,
-          mock_created_at: new Date().toISOString(),
-          qr_code_generated: !!qr_code_base64
-        }
+        amount_usd: mockPayment.price_amount,
+        status: mockPayment.payment_status
       };
 
       const { data: savedMockPayment, error: mockDbError } = await supabase
@@ -223,7 +211,7 @@ serve(async (req) => {
             real_nowpayments_call: false,
             supabase_connected: true,
             qr_generated: !!qr_code_base64,
-            user_id: user.id
+            public_payment: true
           }
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -296,92 +284,12 @@ serve(async (req) => {
     const nowpaymentsData: NOWPaymentsResponse = await nowpaymentsResponse.json();
     console.log('✅ NOWPayments API response:', JSON.stringify(nowpaymentsData, null, 2));
 
-    console.log('🎨 Testando salvamento no Supabase ANTES da API externa...');
-    
-    // Test Supabase connection first
-    const testPaymentData = {
-      user_id: user.id,
-      payment_id: 'TEST_' + Date.now(),
-      amount: price_amount,
-      currency_from: price_currency.toUpperCase(),
-      currency_to: pay_currency.toUpperCase(),
-      status: 'testing',
-      payment_address: 'test_address_123',
-      actually_paid: 0,
-      price_amount: price_amount,
-      order_description: 'Test payment - will be deleted',
-      webhook_data: {
-        test: true,
-        created_at: new Date().toISOString()
-      }
-    };
-
-    console.log('💾 Attempting to save test payment to Supabase...');
-    const { data: testSave, error: testDbError } = await supabase
-      .from('payments')
-      .insert(testPaymentData)
-      .select()
-      .single();
-
-    if (testDbError) {
-      console.error('❌ ERRO NO SUPABASE:', JSON.stringify(testDbError, null, 2));
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Supabase connection failed',
-          details: testDbError.message,
-          code: testDbError.code,
-          hint: testDbError.hint
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('✅ Supabase test save successful:', testSave);
-
-    // Delete test record
-    await supabase.from('payments').delete().eq('id', testSave.id);
-    console.log('🗑️ Test record deleted');
-
-    // Generate QR code data URL for the payment address
-    console.log('🎨 Generating QR code...');
-    let qr_code_base64 = '';
-    try {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(nowpaymentsData.pay_address)}&format=png`;
-      console.log('🔗 QR Code URL:', qrUrl);
-      
-      const qrResponse = await fetch(qrUrl);
-      console.log('🎨 QR Response status:', qrResponse.status);
-      
-      if (qrResponse.ok) {
-        const qrBuffer = await qrResponse.arrayBuffer();
-        const qrBase64 = btoa(String.fromCharCode(...new Uint8Array(qrBuffer)));
-        qr_code_base64 = qrBase64;
-        console.log('✅ QR Code generated successfully, length:', qr_code_base64.length);
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to generate QR code:', error);
-    }
-
     // Save real payment to database
     console.log('💾 Saving real payment data...');
     const paymentData = {
-      user_id: user.id,
       payment_id: nowpaymentsData.payment_id,
-      amount: nowpaymentsData.price_amount,
-      currency_from: nowpaymentsData.price_currency.toUpperCase(),
-      currency_to: nowpaymentsData.pay_currency.toUpperCase(),
-      status: nowpaymentsData.payment_status,
-      payment_address: nowpaymentsData.pay_address,
-      actually_paid: 0,
-      price_amount: nowpaymentsData.pay_amount,
-      order_description: nowpaymentsData.order_description,
-      webhook_data: {
-        nowpayments_response: nowpaymentsData,
-        created_at: new Date().toISOString(),
-        qr_code_generated: qr_code_base64 ? true : false,
-        real_api_call: true
-      }
+      amount_usd: nowpaymentsData.price_amount,
+      status: nowpaymentsData.payment_status
     };
 
     console.log('📤 Payment data to save:', JSON.stringify(paymentData, null, 2));
@@ -423,14 +331,14 @@ serve(async (req) => {
         order_description: nowpaymentsData.order_description,
         created_at: nowpaymentsData.created_at,
         expires_at: nowpaymentsData.expires_at,
-        qr_code: qr_code_base64 || null,
+        qr_code: null, // QR generation removido para simplificar
         database_id: savedPayment.id
       },
       debug_info: {
         real_nowpayments_call: true,
         supabase_connected: true,
-        qr_generated: !!qr_code_base64,
-        user_id: user.id
+        qr_generated: false,
+        public_payment: true
       }
     };
 

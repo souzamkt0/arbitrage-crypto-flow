@@ -1090,52 +1090,25 @@ export type Database = {
       }
       payments: {
         Row: {
-          actually_paid: number | null
-          amount: number
+          amount_usd: number
           created_at: string
-          currency_from: string
-          currency_to: string
           id: string
-          order_description: string | null
-          payment_address: string | null
           payment_id: string
-          price_amount: number
           status: string
-          updated_at: string
-          user_id: string
-          webhook_data: Json | null
         }
         Insert: {
-          actually_paid?: number | null
-          amount: number
+          amount_usd: number
           created_at?: string
-          currency_from?: string
-          currency_to: string
           id?: string
-          order_description?: string | null
-          payment_address?: string | null
           payment_id: string
-          price_amount: number
           status?: string
-          updated_at?: string
-          user_id: string
-          webhook_data?: Json | null
         }
         Update: {
-          actually_paid?: number | null
-          amount?: number
+          amount_usd?: number
           created_at?: string
-          currency_from?: string
-          currency_to?: string
           id?: string
-          order_description?: string | null
-          payment_address?: string | null
           payment_id?: string
-          price_amount?: number
           status?: string
-          updated_at?: string
-          user_id?: string
-          webhook_data?: Json | null
         }
         Relationships: []
       }
