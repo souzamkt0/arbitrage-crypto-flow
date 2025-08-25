@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Copy, RefreshCw, CheckCircle, Clock, Wallet, QrCode, CreditCard, DollarSign, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentData {
   id: string;
@@ -61,10 +62,7 @@ export default function SimpleUSDTPayment() {
       setTimeLeft(prev => {
         const newTime = Math.max(0, prev - 1);
         
-        // Auto-confirm after 30 seconds for demo
-        if (paymentData.status === 'pending' && newTime <= (900 - 30)) {
-          handleAutoConfirm();
-        }
+        // Check payment status periodically (removed auto-confirm for real payments)
         
         return newTime;
       });
@@ -115,43 +113,64 @@ export default function SimpleUSDTPayment() {
 
     setIsLoading(true);
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     try {
-      // Generate fake payment data
-      const fakeAddress = '0x742d35Cc6644C068532A5C4B3b5c3C4d6C6c7A7c';
-      const amountUsdt = amount * 1; // 1:1 ratio for simplicity
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+      // Map network to NOWPayments format
+      const networkMapping = {
+        'USDTTRC20': 'usdttrc20',
+        'USDTERC20': 'usdterc20', 
+        'USDTBEP20': 'usdtbep20'
+      };
+      const paymentCurrency = networkMapping[selectedNetwork] || 'usdttrc20';
       
+      const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
+        body: {
+          price_amount: amount,
+          price_currency: 'usd',
+          pay_currency: paymentCurrency,
+          order_id: `simple_${Date.now()}`,
+          order_description: `USDT Payment ${selectedNetwork} - $${amount}`,
+          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`
+        }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Erro na função Supabase');
+      }
+
+      if (!data.success) {
+        console.error('Payment creation failed:', data);
+        throw new Error(data.error || 'Falha ao criar pagamento');
+      }
+
       const payment: PaymentData = {
-        id: 'USDT_' + Date.now(),
+        id: data.payment.payment_id,
         amount_usd: amount,
-        amount_usdt: amountUsdt,
+        amount_usdt: data.payment.pay_amount,
         network: selectedNetwork,
-        address: fakeAddress,
-        qr_code: generateQRCode(fakeAddress, amountUsdt),
+        address: data.payment.pay_address,
+        qr_code: data.payment.qr_code ? `data:image/png;base64,${data.payment.qr_code}` : generateQRCode(data.payment.pay_address, data.payment.pay_amount),
         status: 'pending',
-        expires_at: expiresAt.toISOString(),
-        created_at: new Date().toISOString()
+        expires_at: data.payment.expires_at || new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        created_at: data.payment.created_at || new Date().toISOString()
       };
 
-      // Save to localStorage
+      // Save to localStorage for persistence
       localStorage.setItem('simple_usdt_payment', JSON.stringify(payment));
       
       setPaymentData(payment);
       setTimeLeft(15 * 60); // 15 minutes
       
       toast({
-        title: "Pagamento Criado! 🎉",
-        description: "Complete o pagamento no tempo limite. Status será confirmado em 30 segundos.",
+        title: "Pagamento Criado no NOWPayments! 🎉",
+        description: "Pagamento real criado - você pode ver no seu dashboard NOWPayments",
         variant: "default",
       });
     } catch (error: any) {
       console.error('Erro ao criar pagamento:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o pagamento",
+        description: error.message || "Não foi possível criar o pagamento",
         variant: "destructive",
       });
     } finally {
@@ -224,7 +243,7 @@ export default function SimpleUSDTPayment() {
             Pagamento USDT Simples
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            Faça pagamentos rápidos e seguros com USDT (Versão Demo)
+            Faça pagamentos rápidos e seguros com USDT (Integração Real NOWPayments)
           </p>
         </div>
 
@@ -485,15 +504,15 @@ export default function SimpleUSDTPayment() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Instruções de Pagamento (Demo):</strong>
+                  <strong>Instruções de Pagamento:</strong>
                   <ol className="list-decimal list-inside mt-2 space-y-1">
                     <li>Escaneie o QR Code ou copie o endereço da carteira</li>
                     <li>Envie o valor exato em USDT para o endereço fornecido</li>
-                    <li>O status será automaticamente confirmado em 30 segundos (demo)</li>
-                    <li>Aguarde a confirmação na blockchain</li>
+                    <li>Aguarde a confirmação na blockchain (geralmente 1-3 confirmações)</li>
+                    <li>O status será atualizado automaticamente quando confirmado</li>
                   </ol>
                   <p className="mt-2 text-sm">
-                    <strong>Nota:</strong> Esta é uma versão demo. O pagamento será automaticamente confirmado em 30 segundos para fins de teste.
+                    <strong>Nota:</strong> Este é um pagamento real via NOWPayments. O status será atualizado automaticamente quando o pagamento for confirmado na blockchain.
                   </p>
                 </AlertDescription>
               </Alert>

@@ -134,27 +134,63 @@ serve(async (req) => {
     const apiUrl = 'https://api.nowpayments.io/v1/payment';
     console.log('🌐 URL chamada:', apiUrl);
 
-    console.log('🔄 Usando dados MOCKADOS para debug...');
+    // Validate NOWPayments API key
+    if (!nowpaymentsApiKey) {
+      console.error('❌ NOWPayments API key not configured');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'NOWPayments API key not configured'
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // ======= MOCK DATA - TEMPORARY FOR DEBUGGING =======
-    const nowpaymentsData: NOWPaymentsResponse = {
-      payment_id: 'FAKE_' + Date.now(),
-      payment_status: 'waiting',
-      pay_address: '0x742d35Cc6644C068532A5C4B3b5c3C4d6C6c7A7c',
-      pay_amount: price_amount, // 1:1 conversion for testing
-      pay_currency: pay_currency,
+    console.log('🌐 Calling NOWPayments API...');
+
+    // Prepare NOWPayments request data
+    const nowpaymentsRequest = {
       price_amount: price_amount,
-      price_currency: price_currency,
+      price_currency: price_currency.toLowerCase(),
+      pay_currency: pay_currency.toLowerCase(),
       order_id: order_id,
       order_description: order_description || `USDT Payment - ${order_id}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
-      ipn_callback_url,
-      success_url,
-      cancel_url
+      ipn_callback_url: ipn_callback_url,
+      success_url: success_url,
+      cancel_url: cancel_url
     };
-    console.log('✅ Mock NOWPayments response:', JSON.stringify(nowpaymentsData, null, 2));
+
+    console.log('📤 NOWPayments request:', JSON.stringify(nowpaymentsRequest, null, 2));
+
+    // Call NOWPayments API
+    const nowpaymentsResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'x-api-key': nowpaymentsApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(nowpaymentsRequest)
+    });
+
+    console.log('📡 NOWPayments response status:', nowpaymentsResponse.status);
+
+    if (!nowpaymentsResponse.ok) {
+      const errorText = await nowpaymentsResponse.text();
+      console.error('❌ NOWPayments API error:', errorText);
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'NOWPayments API error',
+          details: errorText,
+          status: nowpaymentsResponse.status
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const nowpaymentsData: NOWPaymentsResponse = await nowpaymentsResponse.json();
+    console.log('✅ NOWPayments API response:', JSON.stringify(nowpaymentsData, null, 2));
 
     console.log('🎨 Testando salvamento no Supabase ANTES da API externa...');
     
@@ -240,7 +276,7 @@ serve(async (req) => {
         nowpayments_response: nowpaymentsData,
         created_at: new Date().toISOString(),
         qr_code_generated: qr_code_base64 ? true : false,
-        mock_data: true // Flag indicating this is mock data
+        real_api_call: true
       }
     };
 
@@ -287,7 +323,7 @@ serve(async (req) => {
         database_id: savedPayment.id
       },
       debug_info: {
-        mock_data: true,
+        real_nowpayments_call: true,
         supabase_connected: true,
         qr_generated: !!qr_code_base64,
         user_id: user.id
