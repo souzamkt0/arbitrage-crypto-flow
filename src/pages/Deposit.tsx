@@ -303,7 +303,7 @@ const Deposit = () => {
                         className="flex items-center justify-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-2 px-3 text-sm font-medium"
                       >
                         <CreditCard className="h-4 w-4" />
-                        USDT Crypto
+                        BNB20 Automático
                       </TabsTrigger>
                     </TabsList>
 
@@ -328,58 +328,27 @@ const Deposit = () => {
                     </TabsContent>
 
                     <TabsContent value="usdt" className="space-y-4">
-                      <form onSubmit={handleBnbSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="usdt-amount" className="text-blue-400 font-medium">Amount (USDT)</Label>
-                            <div className="relative">
-                              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-blue-400" />
-                              <Input
-                                id="usdt-amount"
-                                type="number"
-                                placeholder="100.00"
-                                className="pl-10 bg-slate-700 border-slate-600 text-white h-12 focus:border-blue-500"
-                                min="10"
-                                step="0.01"
-                                value={bnbForm.amount}
-                                onChange={(e) => setBnbForm({...bnbForm, amount: e.target.value})}
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="sender-name" className="text-blue-400 font-medium">Sender Name</Label>
-                            <Input
-                              id="sender-name"
-                              type="text"
-                              placeholder="Full name"
-                              className="bg-slate-700 border-slate-600 text-white h-12 focus:border-blue-500"
-                              value={bnbForm.senderName}
-                              onChange={(e) => setBnbForm({...bnbForm, senderName: e.target.value})}
-                              required
-                            />
+                      <div className="text-center py-8">
+                        <div className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl inline-block mx-auto">
+                          <Wallet className="h-12 w-12 text-blue-400 mx-auto mb-3" />
+                          <h3 className="text-xl font-bold text-white mb-2">Depósito Automático BNB20</h3>
+                          <p className="text-slate-300 mb-4">
+                            Sistema de depósito automatizado via Binance Smart Chain (BSC)
+                          </p>
+                          <Button 
+                            onClick={() => window.location.href = '/bnb20'}
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold px-8 py-3"
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            Acessar BNB20 Gateway
+                          </Button>
+                          <div className="mt-4 text-sm text-slate-400">
+                            • Processamento automático via NOWPayments<br/>
+                            • Confirmação instantânea na blockchain<br/>
+                            • Suporte 24/7 para transações
                           </div>
                         </div>
-
-                        <Button 
-                          type="submit" 
-                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold h-12"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Processing...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <Zap className="h-4 w-4 mr-2" />
-                              CONFIRM CRYPTO DEPOSIT
-                            </>
-                          )}
-                        </Button>
-                      </form>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>
