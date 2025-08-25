@@ -58,7 +58,10 @@ serve(async (req) => {
 
     // Buscar configuração da NOWPayments
     const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY')
+    console.log('🔑 API Key presente:', !!nowpaymentsApiKey)
+    
     if (!nowpaymentsApiKey) {
+      console.error('❌ NOWPayments API key não configurada')
       return new Response(
         JSON.stringify({ error: 'NOWPayments API key não configurada' }),
         { status: 500, headers: corsHeaders }
@@ -155,12 +158,16 @@ serve(async (req) => {
       body: JSON.stringify(paymentData),
     })
 
+    console.log('📤 Dados enviados:', paymentData)
     console.log('📤 Enviando dados de pagamento:', JSON.stringify(paymentData, null, 2))
+    console.log('📊 Status resposta:', paymentResponse.status)
 
     if (!paymentResponse.ok) {
       const errorText = await paymentResponse.text()
+      console.error('❌ Erro resposta:', errorText)
       console.error('❌ Erro ao criar pagamento:', paymentResponse.status, paymentResponse.statusText)
       console.error('❌ Detalhes do erro:', errorText)
+      console.error('❌ Headers da resposta:', Object.fromEntries(paymentResponse.headers.entries()))
       return new Response(
         JSON.stringify({ 
           error: 'Erro ao criar pagamento', 
