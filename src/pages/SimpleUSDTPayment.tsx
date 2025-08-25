@@ -138,7 +138,7 @@ export default function SimpleUSDTPayment() {
           pay_amount: data.payment.pay_amount,
           qr_code_base64: data.payment.qr_code,
           status: data.payment.payment_status || 'waiting',
-          expires_at: data.payment.valid_until
+          expires_at: data.payment.expires_at
         });
         
         // Set timer for 15 minutes

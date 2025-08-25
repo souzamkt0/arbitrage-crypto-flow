@@ -36,15 +36,23 @@ interface NOWPaymentsResponse {
 }
 
 serve(async (req) => {
+  console.log('🔥 Edge Function iniciada - nowpayments-create-payment');
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ OPTIONS request - returning CORS headers');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('🚀 Starting payment creation process...');
+    
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    console.log('📊 Supabase URL exists:', !!supabaseUrl);
+    console.log('📊 Supabase Anon Key exists:', !!supabaseAnonKey);
+    
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: false,
@@ -53,10 +61,13 @@ serve(async (req) => {
 
     // Get user from JWT token
     const authHeader = req.headers.get('Authorization');
+    console.log('🔐 Auth header exists:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('❌ No authorization header found');
       return new Response(
         JSON.stringify({ success: false, error: 'Authorization header required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -64,14 +75,20 @@ serve(async (req) => {
       authHeader.replace('Bearer ', '')
     );
 
+    console.log('👤 User authentication result:', { user: !!user, authError: !!authError });
+
     if (authError || !user) {
+      console.error('❌ Authentication failed:', authError);
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid or expired token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Parse request body
+    const requestBody = await req.json();
+    console.log('📥 Input recebido:', JSON.stringify(requestBody, null, 2));
+    
     const {
       price_amount,
       price_currency,
@@ -81,100 +98,133 @@ serve(async (req) => {
       ipn_callback_url,
       success_url,
       cancel_url
-    }: CreatePaymentRequest = await req.json();
+    }: CreatePaymentRequest = requestBody;
 
     // Validate required fields
+    console.log('🔍 Validating required fields...');
     if (!price_amount || !price_currency || !pay_currency || !order_id) {
+      console.error('❌ Missing required fields');
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Missing required fields: price_amount, price_currency, pay_currency, order_id'
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Validate amount
+    console.log('💰 Validating amount:', price_amount);
     if (price_amount < 10 || price_amount > 10000) {
+      console.error('❌ Invalid amount');
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Amount must be between $10.00 and $10,000.00'
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Get NOWPayments API key
     const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
-    if (!nowpaymentsApiKey) {
-      console.error('NOWPayments API key not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Payment service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('🔑 API Key exists:', !!nowpaymentsApiKey);
+    console.log('🔑 API Key length:', nowpaymentsApiKey?.length || 0);
+    
+    const apiUrl = 'https://api.nowpayments.io/v1/payment';
+    console.log('🌐 URL chamada:', apiUrl);
 
-    console.log('🚀 Creating NOWPayments payment:', {
-      price_amount,
-      price_currency,
-      pay_currency,
-      order_id,
-      user_id: user.id
-    });
+    console.log('🔄 Usando dados MOCKADOS para debug...');
 
-    // Create payment with NOWPayments API
-    const nowpaymentsResponse = await fetch('https://api.nowpayments.io/v1/payment', {
-      method: 'POST',
-      headers: {
-        'x-api-key': nowpaymentsApiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        price_amount,
-        price_currency,
-        pay_currency,
-        order_id,
-        order_description: order_description || `USDT Payment - ${order_id}`,
-        ipn_callback_url,
-        success_url,
-        cancel_url,
-      }),
-    });
+    // ======= MOCK DATA - TEMPORARY FOR DEBUGGING =======
+    const nowpaymentsData: NOWPaymentsResponse = {
+      payment_id: 'FAKE_' + Date.now(),
+      payment_status: 'waiting',
+      pay_address: '0x742d35Cc6644C068532A5C4B3b5c3C4d6C6c7A7c',
+      pay_amount: price_amount, // 1:1 conversion for testing
+      pay_currency: pay_currency,
+      price_amount: price_amount,
+      price_currency: price_currency,
+      order_id: order_id,
+      order_description: order_description || `USDT Payment - ${order_id}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+      ipn_callback_url,
+      success_url,
+      cancel_url
+    };
+    console.log('✅ Mock NOWPayments response:', JSON.stringify(nowpaymentsData, null, 2));
 
-    if (!nowpaymentsResponse.ok) {
-      const errorData = await nowpaymentsResponse.text();
-      console.error('❌ NOWPayments API error:', errorData);
-      
+    console.log('🎨 Testando salvamento no Supabase ANTES da API externa...');
+    
+    // Test Supabase connection first
+    const testPaymentData = {
+      user_id: user.id,
+      payment_id: 'TEST_' + Date.now(),
+      amount: price_amount,
+      currency_from: price_currency.toUpperCase(),
+      currency_to: pay_currency.toUpperCase(),
+      status: 'testing',
+      payment_address: 'test_address_123',
+      actually_paid: 0,
+      price_amount: price_amount,
+      order_description: 'Test payment - will be deleted',
+      webhook_data: {
+        test: true,
+        created_at: new Date().toISOString()
+      }
+    };
+
+    console.log('💾 Attempting to save test payment to Supabase...');
+    const { data: testSave, error: testDbError } = await supabase
+      .from('payments')
+      .insert(testPaymentData)
+      .select()
+      .single();
+
+    if (testDbError) {
+      console.error('❌ ERRO NO SUPABASE:', JSON.stringify(testDbError, null, 2));
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Failed to create payment with NOWPayments',
-          details: errorData
+          error: 'Supabase connection failed',
+          details: testDbError.message,
+          code: testDbError.code,
+          hint: testDbError.hint
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const nowpaymentsData: NOWPaymentsResponse = await nowpaymentsResponse.json();
-    console.log('✅ NOWPayments response:', nowpaymentsData);
+    console.log('✅ Supabase test save successful:', testSave);
+
+    // Delete test record
+    await supabase.from('payments').delete().eq('id', testSave.id);
+    console.log('🗑️ Test record deleted');
 
     // Generate QR code data URL for the payment address
+    console.log('🎨 Generating QR code...');
     let qr_code_base64 = '';
     try {
-      const qrResponse = await fetch(
-        `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(nowpaymentsData.pay_address)}&format=png`
-      );
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(nowpaymentsData.pay_address)}&format=png`;
+      console.log('🔗 QR Code URL:', qrUrl);
+      
+      const qrResponse = await fetch(qrUrl);
+      console.log('🎨 QR Response status:', qrResponse.status);
+      
       if (qrResponse.ok) {
         const qrBuffer = await qrResponse.arrayBuffer();
         const qrBase64 = btoa(String.fromCharCode(...new Uint8Array(qrBuffer)));
         qr_code_base64 = qrBase64;
+        console.log('✅ QR Code generated successfully, length:', qr_code_base64.length);
       }
     } catch (error) {
       console.warn('⚠️ Failed to generate QR code:', error);
     }
 
-    // Save payment to database
+    // Save real payment to database
+    console.log('💾 Saving real payment data...');
     const paymentData = {
       user_id: user.id,
       payment_id: nowpaymentsData.payment_id,
@@ -189,9 +239,12 @@ serve(async (req) => {
       webhook_data: {
         nowpayments_response: nowpaymentsData,
         created_at: new Date().toISOString(),
-        qr_code_generated: qr_code_base64 ? true : false
+        qr_code_generated: qr_code_base64 ? true : false,
+        mock_data: true // Flag indicating this is mock data
       }
     };
+
+    console.log('📤 Payment data to save:', JSON.stringify(paymentData, null, 2));
 
     const { data: savedPayment, error: dbError } = await supabase
       .from('payments')
@@ -200,36 +253,48 @@ serve(async (req) => {
       .single();
 
     if (dbError) {
-      console.error('❌ Database error:', dbError);
+      console.error('❌ Database error on real save:', JSON.stringify(dbError, null, 2));
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Failed to save payment to database',
-          details: dbError.message
+          details: dbError.message,
+          code: dbError.code,
+          hint: dbError.hint
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Payment saved to database:', savedPayment);
+    console.log('✅ Payment saved to database successfully:', savedPayment);
 
     // Return success response
     const response = {
       success: true,
-      payment_id: nowpaymentsData.payment_id,
-      pay_address: nowpaymentsData.pay_address,
-      pay_amount: nowpaymentsData.pay_amount,
-      pay_currency: nowpaymentsData.pay_currency,
-      price_amount: nowpaymentsData.price_amount,
-      price_currency: nowpaymentsData.price_currency,
-      payment_status: nowpaymentsData.payment_status,
-      order_id: nowpaymentsData.order_id,
-      order_description: nowpaymentsData.order_description,
-      created_at: nowpaymentsData.created_at,
-      expires_at: nowpaymentsData.expires_at,
-      qr_code_base64: qr_code_base64 || null,
-      database_id: savedPayment.id
+      payment: {
+        payment_id: nowpaymentsData.payment_id,
+        pay_address: nowpaymentsData.pay_address,
+        pay_amount: nowpaymentsData.pay_amount,
+        pay_currency: nowpaymentsData.pay_currency,
+        price_amount: nowpaymentsData.price_amount,
+        price_currency: nowpaymentsData.price_currency,
+        payment_status: nowpaymentsData.payment_status,
+        order_id: nowpaymentsData.order_id,
+        order_description: nowpaymentsData.order_description,
+        created_at: nowpaymentsData.created_at,
+        expires_at: nowpaymentsData.expires_at,
+        qr_code: qr_code_base64 || null,
+        database_id: savedPayment.id
+      },
+      debug_info: {
+        mock_data: true,
+        supabase_connected: true,
+        qr_generated: !!qr_code_base64,
+        user_id: user.id
+      }
     };
+
+    console.log('🎉 Returning success response:', JSON.stringify(response, null, 2));
 
     return new Response(
       JSON.stringify(response),
@@ -241,13 +306,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('💥 Unexpected error:', error);
+    console.error('💥 Error stack:', error.stack);
+    console.error('💥 Error details:', JSON.stringify(error, null, 2));
+    
     return new Response(
       JSON.stringify({
         success: false,
         error: 'Internal server error',
-        details: error.message
+        details: error.message,
+        stack: error.stack,
+        debug_step: 'catch_block'
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
