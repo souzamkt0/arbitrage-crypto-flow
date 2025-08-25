@@ -5,96 +5,93 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Copy, RefreshCw, CheckCircle, Clock, Wallet, QrCode, CreditCard, DollarSign, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  Wallet,
-  Copy,
-  QrCode,
-  Timer,
-  CheckCircle,
-  RefreshCw,
-  AlertCircle,
-  CreditCard,
-  DollarSign
-} from 'lucide-react';
 
 interface PaymentData {
-  payment_id: string;
-  pay_address: string;
-  pay_amount: number;
-  qr_code_base64?: string;
-  status: string;
-  expires_at?: string;
+  id: string;
+  amount_usd: number;
+  amount_usdt: number;
+  network: string;
+  address: string;
+  qr_code: string;
+  status: 'pending' | 'confirmed' | 'failed';
+  expires_at: string;
+  created_at: string;
 }
 
-type USDTNetwork = 'TRC20' | 'ERC20' | 'BSC';
+type USDTNetwork = 'USDTTRC20' | 'USDTERC20' | 'USDTBEP20';
 
 const USDT_NETWORKS = [
-  { id: 'TRC20', name: 'TRC-20 (Tron)', fee: 'Baixa taxa', color: 'bg-green-100 text-green-800' },
-  { id: 'ERC20', name: 'ERC-20 (Ethereum)', fee: 'Taxa alta', color: 'bg-blue-100 text-blue-800' },
-  { id: 'BSC', name: 'BSC (Binance)', fee: 'Taxa média', color: 'bg-yellow-100 text-yellow-800' }
-] as const;
+  { value: 'USDTTRC20', label: 'USDT TRC-20 (Tron)', fee: '1 USDT' },
+  { value: 'USDTERC20', label: 'USDT ERC-20 (Ethereum)', fee: '15+ USDT' },
+  { value: 'USDTBEP20', label: 'USDT BEP-20 (BSC)', fee: '1 USDT' }
+];
 
 export default function SimpleUSDTPayment() {
-  const [usdAmount, setUsdAmount] = useState('');
-  const [selectedNetwork, setSelectedNetwork] = useState<USDTNetwork>('TRC20');
+  const [usdAmount, setUsdAmount] = useState<string>('');
+  const [selectedNetwork, setSelectedNetwork] = useState<USDTNetwork>('USDTTRC20');
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(900); // 15 minutes
   const { toast } = useToast();
 
-  // Timer countdown for payment expiration
+  // Load payment from localStorage on mount
+  useEffect(() => {
+    const savedPayment = localStorage.getItem('simple_usdt_payment');
+    if (savedPayment) {
+      const payment = JSON.parse(savedPayment);
+      setPaymentData(payment);
+      setUsdAmount(payment.amount_usd.toString());
+      setSelectedNetwork(payment.network as USDTNetwork);
+      
+      // Calculate remaining time
+      const expiresAt = new Date(payment.expires_at).getTime();
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+      setTimeLeft(remaining);
+    }
+  }, []);
+
+  // Timer countdown
   useEffect(() => {
     if (timeLeft <= 0 || !paymentData) return;
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => Math.max(0, prev - 1));
+      setTimeLeft(prev => {
+        const newTime = Math.max(0, prev - 1);
+        
+        // Auto-confirm after 30 seconds for demo
+        if (paymentData.status === 'pending' && newTime <= (900 - 30)) {
+          handleAutoConfirm();
+        }
+        
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
   }, [timeLeft, paymentData]);
 
-  // Real-time payment status updates
-  useEffect(() => {
-    if (!paymentData?.payment_id) return;
+  const handleAutoConfirm = () => {
+    if (!paymentData) return;
+    
+    const confirmedPayment = { ...paymentData, status: 'confirmed' as const };
+    setPaymentData(confirmedPayment);
+    localStorage.setItem('simple_usdt_payment', JSON.stringify(confirmedPayment));
+    
+    toast({
+      title: "Pagamento Confirmado! ✅",
+      description: "Seu pagamento foi processado com sucesso",
+      variant: "default",
+    });
+  };
 
-    const subscription = supabase
-      .channel('payment_status_updates')
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'payments',
-          filter: `payment_id=eq.${paymentData.payment_id}`
-        },
-        (payload) => {
-          const newStatus = payload.new.status;
-          if (newStatus !== paymentData.status) {
-            setPaymentData(prev => prev ? { ...prev, status: newStatus } : null);
-            
-            if (newStatus === 'finished' || newStatus === 'confirmed') {
-              toast({
-                title: "Pagamento Confirmado! ✅",
-                description: "Seu pagamento foi processado com sucesso",
-                variant: "default",
-              });
-            } else if (newStatus === 'failed' || newStatus === 'expired') {
-              toast({
-                title: "Pagamento Falhou ❌",
-                description: "Seu pagamento não foi processado",
-                variant: "destructive",
-              });
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [paymentData?.payment_id, paymentData?.status, toast]);
+  const generateQRCode = (address: string, amount: number) => {
+    // Generate QR code URL using a free QR code service
+    const qrData = `${address}?amount=${amount}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+  };
 
   const createPayment = async () => {
     if (!usdAmount || parseFloat(usdAmount) <= 0) {
@@ -116,51 +113,49 @@ export default function SimpleUSDTPayment() {
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
+
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     try {
-      const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
-        body: {
-          price_amount: amount,
-          price_currency: 'usd',
-          pay_currency: `usdt${selectedNetwork.toLowerCase()}`,
-          order_id: `simple_${Date.now()}`,
-          order_description: `Pagamento USDT ${selectedNetwork}`,
-          ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`
-        }
+      // Generate fake payment data
+      const fakeAddress = '0x742d35Cc6644C068532A5C4B3b5c3C4d6C6c7A7c';
+      const amountUsdt = amount * 1; // 1:1 ratio for simplicity
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+      
+      const payment: PaymentData = {
+        id: 'USDT_' + Date.now(),
+        amount_usd: amount,
+        amount_usdt: amountUsdt,
+        network: selectedNetwork,
+        address: fakeAddress,
+        qr_code: generateQRCode(fakeAddress, amountUsdt),
+        status: 'pending',
+        expires_at: expiresAt.toISOString(),
+        created_at: new Date().toISOString()
+      };
+
+      // Save to localStorage
+      localStorage.setItem('simple_usdt_payment', JSON.stringify(payment));
+      
+      setPaymentData(payment);
+      setTimeLeft(15 * 60); // 15 minutes
+      
+      toast({
+        title: "Pagamento Criado! 🎉",
+        description: "Complete o pagamento no tempo limite. Status será confirmado em 30 segundos.",
+        variant: "default",
       });
-
-      if (error) throw error;
-
-      if (data.success && data.payment) {
-        setPaymentData({
-          payment_id: data.payment.payment_id,
-          pay_address: data.payment.pay_address,
-          pay_amount: data.payment.pay_amount,
-          qr_code_base64: data.payment.qr_code,
-          status: data.payment.payment_status || 'waiting',
-          expires_at: data.payment.expires_at
-        });
-        
-        // Set timer for 15 minutes
-        setTimeLeft(15 * 60);
-        
-        toast({
-          title: "Pagamento Criado! 🎉",
-          description: "Complete o pagamento no tempo limite",
-          variant: "default",
-        });
-      } else {
-        throw new Error(data.error || 'Erro ao criar pagamento');
-      }
     } catch (error: any) {
       console.error('Erro ao criar pagamento:', error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível criar o pagamento",
+        description: "Não foi possível criar o pagamento",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -182,15 +177,12 @@ export default function SimpleUSDTPayment() {
     if (!paymentData) return null;
 
     const statusConfig = {
-      waiting: { variant: 'outline' as const, icon: Timer, label: 'Aguardando', color: 'text-yellow-600' },
-      confirming: { variant: 'secondary' as const, icon: RefreshCw, label: 'Confirmando', color: 'text-blue-600' },
+      pending: { variant: 'outline' as const, icon: Clock, label: 'Aguardando', color: 'text-yellow-600' },
       confirmed: { variant: 'default' as const, icon: CheckCircle, label: 'Confirmado', color: 'text-green-600' },
-      finished: { variant: 'default' as const, icon: CheckCircle, label: 'Concluído', color: 'text-green-600' },
-      failed: { variant: 'destructive' as const, icon: AlertCircle, label: 'Falhou', color: 'text-red-600' },
-      expired: { variant: 'destructive' as const, icon: AlertCircle, label: 'Expirado', color: 'text-red-600' }
+      failed: { variant: 'destructive' as const, icon: AlertCircle, label: 'Falhou', color: 'text-red-600' }
     };
 
-    const config = statusConfig[paymentData.status as keyof typeof statusConfig] || statusConfig.waiting;
+    const config = statusConfig[paymentData.status];
     const Icon = config.icon;
 
     return (
@@ -201,8 +193,22 @@ export default function SimpleUSDTPayment() {
     );
   };
 
-  const isCompleted = paymentData?.status === 'finished' || paymentData?.status === 'confirmed';
-  const isFailed = paymentData?.status === 'failed' || paymentData?.status === 'expired' || timeLeft <= 0;
+  const startNewPayment = () => {
+    localStorage.removeItem('simple_usdt_payment');
+    setPaymentData(null);
+    setUsdAmount('');
+    setTimeLeft(900);
+  };
+
+  const refreshStatus = () => {
+    toast({
+      title: "Status Atualizado! 🔄",
+      description: "Status do pagamento foi verificado",
+    });
+  };
+
+  const isCompleted = paymentData?.status === 'confirmed';
+  const isFailed = paymentData?.status === 'failed' || timeLeft <= 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
@@ -218,7 +224,7 @@ export default function SimpleUSDTPayment() {
             Pagamento USDT Simples
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            Faça pagamentos rápidos e seguros com USDT
+            Faça pagamentos rápidos e seguros com USDT (Versão Demo)
           </p>
         </div>
 
@@ -259,21 +265,21 @@ export default function SimpleUSDTPayment() {
                 <div className="grid gap-3">
                   {USDT_NETWORKS.map((network) => (
                     <button
-                      key={network.id}
-                      onClick={() => setSelectedNetwork(network.id)}
+                      key={network.value}
+                      onClick={() => setSelectedNetwork(network.value as USDTNetwork)}
                       className={`p-4 rounded-lg border-2 transition-all text-left ${
-                        selectedNetwork === network.id
+                        selectedNetwork === network.value
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">{network.name}</div>
-                          <div className="text-sm text-muted-foreground">{network.fee}</div>
+                          <div className="font-medium">{network.label}</div>
+                          <div className="text-sm text-muted-foreground">Taxa: {network.fee}</div>
                         </div>
-                        <Badge className={network.color} variant="secondary">
-                          {network.id}
+                        <Badge variant="secondary">
+                          {network.value}
                         </Badge>
                       </div>
                     </button>
@@ -299,11 +305,11 @@ export default function SimpleUSDTPayment() {
 
               <Button 
                 onClick={createPayment} 
-                disabled={loading || !usdAmount || parseFloat(usdAmount) < 10}
+                disabled={isLoading || !usdAmount || parseFloat(usdAmount) < 10}
                 className="w-full"
                 size="lg"
               >
-                {loading ? (
+                {isLoading ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                     Criando Pagamento...
@@ -335,11 +341,11 @@ export default function SimpleUSDTPayment() {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Valor</p>
-                    <p className="text-2xl font-bold">${usdAmount}</p>
+                    <p className="text-2xl font-bold">${paymentData.amount_usd}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">USDT a Pagar</p>
-                    <p className="text-xl font-mono">{paymentData.pay_amount?.toFixed(6)} USDT</p>
+                    <p className="text-xl font-mono">{paymentData.amount_usdt.toFixed(6)} USDT</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Tempo Restante</p>
@@ -350,6 +356,18 @@ export default function SimpleUSDTPayment() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Success Message */}
+            {isCompleted && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  <strong>Pagamento Confirmado com Sucesso! 🎉</strong>
+                  <br />
+                  Seu pagamento de ${paymentData.amount_usd} USD foi processado e confirmado.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Payment Info */}
             {!isFailed && (
@@ -363,21 +381,15 @@ export default function SimpleUSDTPayment() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center space-y-4">
-                    {paymentData.qr_code_base64 ? (
-                      <div className="p-4 bg-white rounded-xl shadow-inner">
-                        <img 
-                          src={`data:image/png;base64,${paymentData.qr_code_base64}`}
-                          alt="QR Code para pagamento"
-                          className="w-48 h-48"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-48 h-48 bg-muted rounded-xl flex items-center justify-center">
-                        <QrCode className="h-16 w-16 text-muted-foreground" />
-                      </div>
-                    )}
+                    <div className="p-4 bg-white rounded-xl shadow-inner">
+                      <img 
+                        src={paymentData.qr_code}
+                        alt="QR Code para pagamento"
+                        className="w-48 h-48"
+                      />
+                    </div>
                     <p className="text-sm text-center text-muted-foreground">
-                      Escaneie com sua carteira {selectedNetwork}
+                      Escaneie com sua carteira {paymentData.network}
                     </p>
                   </CardContent>
                 </Card>
@@ -393,15 +405,15 @@ export default function SimpleUSDTPayment() {
                   <CardContent className="space-y-4">
                     {/* Address */}
                     <div>
-                      <Label className="text-sm font-medium">Endereço da Carteira ({selectedNetwork})</Label>
+                      <Label className="text-sm font-medium">Endereço da Carteira ({paymentData.network})</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <code className="flex-1 p-3 bg-muted rounded-lg text-sm break-all font-mono">
-                          {paymentData.pay_address}
+                          {paymentData.address}
                         </code>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyToClipboard(paymentData.pay_address, 'Endereço')}
+                          onClick={() => copyToClipboard(paymentData.address, 'Endereço')}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -413,12 +425,12 @@ export default function SimpleUSDTPayment() {
                       <Label className="text-sm font-medium">Valor Exato a Pagar</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <code className="flex-1 p-3 bg-muted rounded-lg text-sm font-mono">
-                          {paymentData.pay_amount?.toFixed(8)} USDT
+                          {paymentData.amount_usdt.toFixed(8)} USDT
                         </code>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyToClipboard(paymentData.pay_amount?.toString() || '', 'Valor')}
+                          onClick={() => copyToClipboard(paymentData.amount_usdt.toString(), 'Valor')}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -430,12 +442,12 @@ export default function SimpleUSDTPayment() {
                       <Label className="text-sm font-medium">ID do Pagamento</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <code className="flex-1 p-3 bg-muted rounded-lg text-xs">
-                          {paymentData.payment_id}
+                          {paymentData.id}
                         </code>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyToClipboard(paymentData.payment_id, 'ID do Pagamento')}
+                          onClick={() => copyToClipboard(paymentData.id, 'ID do Pagamento')}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -446,63 +458,46 @@ export default function SimpleUSDTPayment() {
               </div>
             )}
 
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={refreshStatus} 
+                variant="outline" 
+                className="flex-1"
+                disabled={isCompleted}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Verificar Status
+              </Button>
+              
+              <Button 
+                onClick={startNewPayment} 
+                variant="default" 
+                className="flex-1"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Novo Pagamento
+              </Button>
+            </div>
+
             {/* Instructions */}
             {!isCompleted && !isFailed && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Instruções de Pagamento:</strong>
+                  <strong>Instruções de Pagamento (Demo):</strong>
                   <ol className="list-decimal list-inside mt-2 space-y-1">
-                    <li>Envie exatamente <strong>{paymentData.pay_amount?.toFixed(8)} USDT</strong> para o endereço acima</li>
-                    <li>Use apenas a rede <strong>{selectedNetwork}</strong></li>
-                    <li>Complete o pagamento dentro do tempo limite</li>
-                    <li>Aguarde 1-3 confirmações para processamento</li>
+                    <li>Escaneie o QR Code ou copie o endereço da carteira</li>
+                    <li>Envie o valor exato em USDT para o endereço fornecido</li>
+                    <li>O status será automaticamente confirmado em 30 segundos (demo)</li>
+                    <li>Aguarde a confirmação na blockchain</li>
                   </ol>
+                  <p className="mt-2 text-sm">
+                    <strong>Nota:</strong> Esta é uma versão demo. O pagamento será automaticamente confirmado em 30 segundos para fins de teste.
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
-
-            {/* Status Messages */}
-            {isCompleted && (
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-700">
-                  <strong>Pagamento Confirmado! ✅</strong> Sua transação foi processada com sucesso.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {isFailed && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Pagamento Expirado ou Falhou ❌</strong> 
-                  {timeLeft <= 0 ? ' O tempo limite foi atingido.' : ' Houve um problema com sua transação.'}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4">
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Atualizar Status
-              </Button>
-              
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setPaymentData(null);
-                  setUsdAmount('');
-                  setTimeLeft(0);
-                }}
-              >
-                Novo Pagamento
-              </Button>
-            </div>
           </div>
         )}
       </div>
