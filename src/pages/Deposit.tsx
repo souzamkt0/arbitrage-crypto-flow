@@ -1,91 +1,35 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
-import { TradingChart } from "@/components/TradingChart";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CreditCard, 
   Smartphone, 
-  DollarSign,
   Wallet,
   AlertTriangle,
   Zap,
-  Bell,
+  Activity,
   TrendingUp,
-  TrendingDown,
-  Activity
+  ArrowUpRight
 } from "lucide-react";
 
-// Generate massive order book data with thousands of orders
-const generateMassiveOrderBook = (count: number, type: 'buy' | 'sell') => {
-  const orders = [];
-  const basePrice = 42500;
-  const spreadPercent = 0.002; // 0.2% spread
-  
-  // Popular exchanges/brokers
-  const exchanges = [
-    'Binance', 'Coinbase', 'Kraken', 'Bitfinex', 'Huobi', 'KuCoin', 
-    'OKX', 'Bybit', 'Gate.io', 'Crypto.com', 'Gemini', 'FTX',
-    'Bitstamp', 'Bittrex', 'Poloniex', 'HitBTC', 'MEXC', 'Bitget',
-    'Uniswap', 'PancakeSwap', 'SushiSwap', 'Curve', '1inch', 'dYdX'
-  ];
-
-  const cryptoPairs = [
-    'BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'XRP/USDT',
-    'SOL/USDT', 'DOT/USDT', 'DOGE/USDT', 'AVAX/USDT', 'MATIC/USDT',
-    'SHIB/USDT', 'LTC/USDT', 'UNI/USDT', 'LINK/USDT', 'ATOM/USDT'
-  ];
-  
-  for (let i = 0; i < count; i++) {
-    const priceOffset = type === 'sell' 
-      ? spreadPercent + (i * 0.0001) // Sell orders above market price
-      : -spreadPercent - (i * 0.0001); // Buy orders below market price
-    
-    const price = basePrice * (1 + priceOffset + (Math.random() - 0.5) * 0.01);
-    const amount = (Math.random() * 50 + 0.1).toFixed(3);
-    const total = (price * parseFloat(amount)).toFixed(0);
-    const bid = (price * 0.999).toFixed(0);
-    const exchange = exchanges[Math.floor(Math.random() * exchanges.length)];
-    const pair = cryptoPairs[Math.floor(Math.random() * cryptoPairs.length)];
-    const orderId = Math.floor(Math.random() * 100000) + 10000;
-    
-    orders.push({
-      id: orderId,
-      pair: pair,
-      value: `$${price.toFixed(2)}`,
-      amount: amount,
-      bid: `$${bid}`,
-      total: `$${total}`,
-      exchange: exchange,
-      timestamp: Date.now() + i * 10,
-      status: Math.random() > 0.3 ? 'EXECUTANDO' : Math.random() > 0.5 ? 'EXECUTADA' : 'PENDENTE'
-    });
-  }
-  
-  return orders;
-};
-
 const Deposit = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   
   const [activeTab, setActiveTab] = useState("digitopay");
-  const [isLoading, setIsLoading] = useState(false);
-  const [sellOrders, setSellOrders] = useState(() => generateMassiveOrderBook(5000, 'sell'));
-  const [buyOrders, setBuyOrders] = useState(() => generateMassiveOrderBook(5000, 'buy'));
-  const [sideBuyOrders, setSideBuyOrders] = useState(() => generateMassiveOrderBook(3000, 'buy'));
   const [depositBalance, setDepositBalance] = useState(0);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [pendingDeposits, setPendingDeposits] = useState(0);
 
-  // Load deposit data from DigiToPay
+  // Load deposit data
   const loadDepositData = async () => {
     if (!user) return;
 
@@ -101,7 +45,6 @@ const Deposit = () => {
         const pending = deposits.filter(d => d.status === 'pending');
         
         const totalUSD = completed.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
-        const pendingUSD = pending.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
         
         setDepositBalance(totalUSD);
         setTotalDeposits(completed.length);
@@ -112,317 +55,165 @@ const Deposit = () => {
     }
   };
 
-  // Load deposit data when user changes
   useEffect(() => {
     loadDepositData();
   }, [user]);
 
-  // Simulate real-time order book updates from CoinMarketCap - Thousands of orders
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Generate fresh massive orders instead of accumulating - More frequent updates
-      setSellOrders(generateMassiveOrderBook(5000, 'sell'));
-      setBuyOrders(generateMassiveOrderBook(5000, 'buy'));
-      setSideBuyOrders(generateMassiveOrderBook(3000, 'buy'));
-    }, 150); // Update every 150ms for ultra-fast activity
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // BNB Form State
-  const [bnbForm, setBnbForm] = useState({
-    amount: "",
-    senderName: ""
-  });
-
-  const handleBnbSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!bnbForm.amount || !bnbForm.senderName) {
-      toast({
-        title: "Campos obrigatórios", 
-        description: "Preencha todos os campos para o depósito USDT BNB20",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    setTimeout(() => {
-      toast({
-        title: "Informações enviadas!",
-        description: "Envie o USDT para o endereço fornecido. O depósito será processado em até 15 minutos.",
-      });
-      
-      setIsLoading(false);
-    }, 1500);
+  const handleBNB20Navigate = () => {
+    navigate('/bnb20');
   };
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-900 text-white">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 px-4 py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-500 rounded-lg p-2">
+        <div className="bg-card border-b border-border px-6 py-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-green-500 rounded-lg p-3">
                 <Wallet className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Terminal de Depósitos</h1>
-                <p className="text-sm text-slate-300">• Sistema Ativo • Depósitos em Tempo Real</p>
+                <h1 className="text-2xl font-bold text-foreground">Sistema de Depósitos</h1>
+                <p className="text-muted-foreground">Gerencie seus depósitos de forma segura</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-400">${depositBalance.toFixed(2)}</div>
-                <div className="text-sm text-slate-300">Saldo Atual</div>
-              </div>
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex">
-          {/* Left Panel - 25% */}
-          <div className="w-1/4 bg-slate-800/50 border-r border-slate-700 h-screen overflow-y-auto">
-            <div className="p-4 space-y-4">
-              {/* Stats Cards */}
-              <div className="space-y-3">
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-4 w-4 text-emerald-400" />
-                    <span className="text-sm font-semibold text-white">Depósitos Hoje</span>
-                  </div>
-                  <div className="text-xl font-bold text-emerald-400">{totalDeposits}</div>
-                  <div className="text-xs text-slate-400">Transações confirmadas</div>
-                </div>
-
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-4 w-4 text-yellow-400 animate-pulse" />
-                    <span className="text-sm font-semibold text-white">Pendentes</span>
-                  </div>
-                  <div className="text-xl font-bold text-yellow-400">{pendingDeposits}</div>
-                  <div className="text-xs text-slate-400">Aguardando confirmação</div>
-                </div>
-              </div>
-
-              {/* MASSIVE Sell Orders Box */}
-              <div className="bg-slate-800 border border-red-500/30 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingDown className="h-4 w-4 text-red-400" />
-                  <span className="text-sm font-semibold text-white">SELL ORDERS</span>
-                  <div className="bg-red-500/20 px-2 py-1 rounded text-xs text-red-400">MILHARES</div>
-                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse ml-auto"></div>
-                </div>
-                
-                <div className="text-xs text-slate-400 mb-2">
-                  {sellOrders.length.toLocaleString()} ordens ativas
-                </div>
-                
-                <div className="space-y-1 max-h-96 overflow-y-auto">
-                  {sellOrders.slice(0, 100).map((order, index) => (
-                    <div 
-                      key={`sell-${order.id}-${index}`}
-                      className="grid grid-cols-4 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-red-500/50 hover:bg-red-900/20 transition-colors"
-                    >
-                      <div className="text-yellow-400 font-medium truncate">
-                        {order.exchange.slice(0, 6)}
-                      </div>
-                      <div className="text-red-400 font-medium">
-                        {order.value}
-                      </div>
-                      <div className="text-white text-xs">
-                        {order.amount}
-                      </div>
-                      <div className={`text-xs px-1 rounded ${
-                        order.status === 'EXECUTADA' ? 'text-green-400 bg-green-500/20' :
-                        order.status === 'EXECUTANDO' ? 'text-blue-400 bg-blue-500/20' :
-                        'text-yellow-400 bg-yellow-500/20'
-                      }`}>
-                        {order.status}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <div className="text-2xl font-bold text-green-500">${depositBalance.toFixed(2)}</div>
+                <div className="text-sm text-muted-foreground">Total Depositado</div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Center Panel - 50% */}
-          <div className="flex-1 w-1/2 p-6">
-            <div className="space-y-6">
-              {/* Trading Chart */}
-              <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">BTC/USDT - Gráfico em Tempo Real</h3>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-emerald-400">LIVE</span>
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Stats Cards */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 dark:bg-green-900 rounded-lg p-2">
+                    <Activity className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Depósitos Concluídos</p>
+                    <p className="text-2xl font-bold text-foreground">{totalDeposits}</p>
                   </div>
                 </div>
-                <div className="h-80">
-                  <TradingChart />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-yellow-100 dark:bg-yellow-900 rounded-lg p-2">
+                    <Activity className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pendentes</p>
+                    <p className="text-2xl font-bold text-foreground">{pendingDeposits}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 dark:bg-blue-900 rounded-lg p-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total em USD</p>
+                    <p className="text-2xl font-bold text-foreground">${depositBalance.toFixed(2)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Deposit Interface */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-br from-green-500 to-blue-600 rounded-lg p-2">
+                    <Wallet className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Interface de Depósito</CardTitle>
+                    <p className="text-muted-foreground">Escolha seu método preferido</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-500 text-sm font-medium">ONLINE</span>
                 </div>
               </div>
+            </CardHeader>
 
-              {/* Deposit Interface */}
-              <Card className="bg-slate-800/50 border-slate-600">
-                <CardHeader className="border-b border-slate-600 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-lg">
-                        <Wallet className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg font-bold text-white">Interface de Depósito</CardTitle>
-                        <p className="text-sm text-slate-300">Sistema online e operacional</p>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="digitopay" className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    PIX Instantâneo
+                  </TabsTrigger>
+                  <TabsTrigger value="bnb20" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    BNB20 Automático
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="digitopay" className="space-y-4">
+                  {user ? (
+                    <DigitoPayDeposit 
+                      onSuccess={() => {
+                        toast({
+                          title: "🎉 Depósito Enviado!",
+                          description: "Seu depósito foi processado com sucesso",
+                        });
+                        loadDepositData();
+                      }} 
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-xl inline-block">
+                        <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-3" />
+                        <p className="text-destructive font-medium mb-1">Autenticação Necessária</p>
+                        <p className="text-muted-foreground text-sm">Faça login para acessar os depósitos</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                      <span className="text-emerald-400 text-sm font-medium">ONLINE</span>
-                    </div>
-                  </div>
-                </CardHeader>
+                  )}
+                </TabsContent>
 
-                <CardContent className="p-4">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-700 border border-slate-600 p-1">
-                      <TabsTrigger 
-                        value="digitopay" 
-                        className="flex items-center justify-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white py-2 px-3 text-sm font-medium"
+                <TabsContent value="bnb20" className="space-y-4">
+                  <div className="text-center py-8">
+                    <div className="p-6 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl inline-block mx-auto">
+                      <Wallet className="h-12 w-12 text-blue-600 mx-auto mb-3" />
+                      <h3 className="text-xl font-bold text-foreground mb-2">Depósito Automático BNB20</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Sistema automatizado via Binance Smart Chain (BSC)
+                      </p>
+                      <Button 
+                        onClick={handleBNB20Navigate}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold px-8 py-3"
                       >
-                        <Smartphone className="h-4 w-4" />
-                        PIX Instant
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="usdt" 
-                        className="flex items-center justify-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white py-2 px-3 text-sm font-medium"
-                      >
-                        <CreditCard className="h-4 w-4" />
-                        BNB20 Automático
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="digitopay" className="space-y-4">
-                      {user ? (
-                        <DigitoPayDeposit onSuccess={() => {
-                          toast({
-                            title: "🎉 PARABÉNS!",
-                            description: "Depósito processado com sucesso",
-                          });
-                          loadDepositData();
-                        }} />
-                      ) : (
-                        <div className="text-center py-12">
-                          <div className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl inline-block mx-auto">
-                            <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-                            <p className="text-red-400 font-medium mb-1">Authentication Required</p>
-                            <p className="text-slate-400 text-sm">Please login to access deposits</p>
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="usdt" className="space-y-4">
-                      <div className="text-center py-8">
-                        <div className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl inline-block mx-auto">
-                          <Wallet className="h-12 w-12 text-blue-400 mx-auto mb-3" />
-                          <h3 className="text-xl font-bold text-white mb-2">Depósito Automático BNB20</h3>
-                          <p className="text-slate-300 mb-4">
-                            Sistema de depósito automatizado via Binance Smart Chain (BSC)
-                          </p>
-                          <Button 
-                            onClick={() => window.location.href = '/bnb20'}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold px-8 py-3"
-                          >
-                            <Zap className="h-4 w-4 mr-2" />
-                            Acessar BNB20 Gateway
-                          </Button>
-                          <div className="mt-4 text-sm text-slate-400">
-                            • Processamento automático via NOWPayments<br/>
-                            • Confirmação instantânea na blockchain<br/>
-                            • Suporte 24/7 para transações
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Right Panel - 25% */}
-          <div className="w-1/4 bg-slate-800/50 border-l border-slate-700 h-screen overflow-y-auto">
-            <div className="p-4 space-y-4">
-              {/* MASSIVE Buy Orders Box */}
-              <div className="bg-slate-800 border border-emerald-500/30 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm font-semibold text-white">BUY ORDERS</span>
-                  <div className="bg-emerald-500/20 px-2 py-1 rounded text-xs text-emerald-400">MILHARES</div>
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse ml-auto"></div>
-                </div>
-                
-                <div className="text-xs text-slate-400 mb-2">
-                  {buyOrders.length.toLocaleString()} ordens ativas
-                </div>
-                
-                <div className="space-y-1 max-h-96 overflow-y-auto">
-                  {buyOrders.slice(0, 100).map((order, index) => (
-                    <div 
-                      key={`buy-${order.id}-${index}`}
-                      className="grid grid-cols-4 gap-1 text-xs p-1 bg-slate-700/30 rounded border-l-2 border-emerald-500/50 hover:bg-emerald-900/20 transition-colors"
-                    >
-                      <div className="text-yellow-400 font-medium truncate">
-                        {order.exchange.slice(0, 6)}
-                      </div>
-                      <div className="text-emerald-400 font-medium">
-                        {order.value}
-                      </div>
-                      <div className="text-white text-xs">
-                        {order.amount}
-                      </div>
-                      <div className={`text-xs px-1 rounded ${
-                        order.status === 'EXECUTADA' ? 'text-green-400 bg-green-500/20' :
-                        order.status === 'EXECUTANDO' ? 'text-blue-400 bg-blue-500/20' :
-                        'text-yellow-400 bg-yellow-500/20'
-                      }`}>
-                        {order.status}
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                        Acessar BNB20 Gateway
+                      </Button>
+                      <div className="mt-4 text-sm text-muted-foreground space-y-1">
+                        <p>• Processamento automático via NOWPayments</p>
+                        <p>• Confirmação instantânea na blockchain</p>
+                        <p>• Suporte 24/7 para transações</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Market Activity */}
-              <div className="bg-slate-800 border border-slate-600 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Activity className="h-4 w-4 text-purple-400" />
-                  <span className="text-sm font-semibold text-white">Atividade do Mercado</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Volume 24h:</span>
-                    <span className="text-emerald-400 font-semibold">$2.8B</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Variação:</span>
-                    <span className="text-emerald-400 font-semibold">+2.4%</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Exchanges Ativas:</span>
-                    <span className="text-white font-semibold">18</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </ErrorBoundary>
