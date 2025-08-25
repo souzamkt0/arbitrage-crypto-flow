@@ -59,30 +59,39 @@ serve(async (req) => {
       },
     });
 
-    // Get user from JWT token
+    // Get user from JWT token or allow public payments
     const authHeader = req.headers.get('Authorization');
     console.log('🔐 Auth header exists:', !!authHeader);
     
+    let user = null;
+    let isPublicPayment = false;
+    
     if (!authHeader) {
-      console.error('❌ No authorization header found');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Authorization header required' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      console.log('⚠️ No authorization header - allowing public payment');
+      isPublicPayment = true;
+      // Create a temporary user for public payments
+      user = { 
+        id: `public_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        email: 'public@payments.temp'
+      };
+    } else {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
       );
-    }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+      console.log('👤 User authentication result:', { user: !!authUser, authError: !!authError });
 
-    console.log('👤 User authentication result:', { user: !!user, authError: !!authError });
-
-    if (authError || !user) {
-      console.error('❌ Authentication failed:', authError);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid or expired token' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (authError || !authUser) {
+        console.log('⚠️ Auth failed, allowing as public payment');
+        isPublicPayment = true;
+        user = { 
+          id: `public_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          email: 'public@payments.temp'
+        };
+      } else {
+        user = authUser;
+        console.log('✅ Authenticated user:', user.id);
+      }
     }
 
     // Parse request body

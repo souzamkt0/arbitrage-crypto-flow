@@ -162,22 +162,36 @@ export default function SimpleUSDTPayment() {
     setIsLoading(true);
 
     try {
-      // 🔑 FORÇAR AUTENTICAÇÃO SE NECESSÁRIO
+      // 🔑 VERIFICAR AUTENTICAÇÃO (bypass session ou usuário logado)
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('🔑 Usuário não autenticado, fazendo login anônimo...');
-        const { error: authError } = await supabase.auth.signInAnonymously();
-        if (authError) {
-          console.error('❌ Erro no login anônimo:', authError);
-          toast({
-            title: "Erro de Autenticação",
-            description: "Falha ao fazer login automático. Tente novamente.",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
+      
+      // Verificar se existe sessão bypass
+      const bypassSession = localStorage.getItem('bypass_session');
+      let sessionToken = null;
+      
+      if (user) {
+        console.log('✅ Usuário autenticado encontrado:', user.id);
+        sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
+      } else if (bypassSession) {
+        try {
+          const sessionData = JSON.parse(bypassSession);
+          if (sessionData.expiresAt > Date.now()) {
+            console.log('✅ Sessão bypass válida encontrada');
+            sessionToken = sessionData.token;
+          } else {
+            console.log('🕐 Sessão bypass expirada');
+            localStorage.removeItem('bypass_session');
+          }
+        } catch (error) {
+          console.error('Erro ao carregar sessão bypass:', error);
+          localStorage.removeItem('bypass_session');
         }
-        console.log('✅ Login anônimo realizado com sucesso');
+      }
+      
+      if (!sessionToken) {
+        console.log('⚠️ Nenhuma autenticação encontrada, usando modo público');
+        // Para pagamentos públicos, permitir sem autenticação específica
+        // A edge function vai usar um token especial ou permitir acesso público
       }
 
       // Map network to NOWPayments format
