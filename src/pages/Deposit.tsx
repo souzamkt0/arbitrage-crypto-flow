@@ -20,7 +20,11 @@ import {
   TrendingUp,
   ArrowUpRight,
   QrCode,
-  Copy
+  Copy,
+  TestTube,
+  CheckCircle,
+  XCircle,
+  Info
 } from "lucide-react";
 
 const Deposit = () => {
@@ -42,6 +46,8 @@ const Deposit = () => {
   // Test states
   const [testResult, setTestResult] = useState<any>(null);
   const [testLoading, setTestLoading] = useState(false);
+  const [detailedTestResult, setDetailedTestResult] = useState<any>(null);
+  const [detailedTestLoading, setDetailedTestLoading] = useState(false);
 
   // Load deposit data
   const loadDepositData = async () => {
@@ -176,6 +182,63 @@ const Deposit = () => {
       });
     } finally {
       setTestLoading(false);
+    }
+  };
+
+  const testDetailedIntegration = async () => {
+    setDetailedTestLoading(true);
+    setDetailedTestResult(null);
+    
+    try {
+      console.log('🧪 Iniciando teste detalhado da integração NOWPayments...');
+      
+      const { data, error } = await supabase.functions.invoke('test-nowpayments-integration');
+      
+      if (error) {
+        console.error('❌ Erro na edge function:', error);
+        toast({
+          title: "Erro no teste detalhado",
+          description: "Falha ao executar teste da integração",
+          variant: "destructive",
+        });
+        setDetailedTestResult({
+          success: false,
+          error: error.message,
+          summary: { overall_status: 'CRITICAL_ERROR' }
+        });
+        return;
+      }
+
+      console.log('📋 Resultado do teste detalhado:', data);
+      setDetailedTestResult(data);
+      
+      if (data.success) {
+        toast({
+          title: "✅ Teste detalhado concluído",
+          description: "Integração NOWPayments funcionando corretamente!",
+        });
+      } else {
+        toast({
+          title: "⚠️ Teste detalhado falhou",
+          description: "Foram encontrados problemas na integração",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('💥 Erro crítico no teste detalhado:', error);
+      toast({
+        title: "Erro crítico",
+        description: "Falha inesperada durante o teste",
+        variant: "destructive",
+      });
+      setDetailedTestResult({
+        success: false,
+        error: error.message,
+        summary: { overall_status: 'EXCEPTION' }
+      });
+    } finally {
+      setDetailedTestLoading(false);
     }
   };
 
@@ -345,6 +408,103 @@ const Deposit = () => {
                 <TabsContent value="bnb20" className="space-y-4">
                   {user ? (
                     <div className="max-w-md mx-auto space-y-6">
+                      {/* Diagnóstico Detalhado */}
+                      <Card className="border-2 border-dashed border-blue-300 bg-blue-50/50 dark:bg-blue-950/50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <TestTube className="h-5 w-5 text-blue-600" />
+                            Diagnóstico Completo da Integração
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            Teste detalhado com 6 verificações: autenticação, API key, conectividade, moedas, cotação e criação de pagamento.
+                          </p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <Button 
+                            onClick={testDetailedIntegration}
+                            disabled={detailedTestLoading}
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                          >
+                            {detailedTestLoading ? (
+                              <>
+                                <TestTube className="h-4 w-4 mr-2 animate-bounce" />
+                                Executando diagnóstico...
+                              </>
+                            ) : (
+                              <>
+                                <TestTube className="h-4 w-4 mr-2" />
+                                Executar Diagnóstico Completo
+                              </>
+                            )}
+                          </Button>
+                          
+                          {detailedTestResult && (
+                            <div className={`border rounded-lg p-4 ${detailedTestResult.success ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}>
+                              <div className="flex items-center gap-2 mb-3">
+                                {detailedTestResult.success ? (
+                                  <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                  <XCircle className="h-5 w-5 text-red-600" />
+                                )}
+                                <h4 className={`font-bold ${detailedTestResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                                  {detailedTestResult.success ? '✅ Integração Funcionando' : '❌ Problemas Detectados'}
+                                </h4>
+                              </div>
+                              
+                              {detailedTestResult.summary && (
+                                <div className="text-sm space-y-1 mb-3">
+                                  <p><strong>Status:</strong> {detailedTestResult.summary.overall_status}</p>
+                                  <p><strong>Passos executados:</strong> {detailedTestResult.summary.total_steps}</p>
+                                  <p><strong>Sucessos:</strong> {detailedTestResult.summary.successful_steps}</p>
+                                  <p><strong>Falhas:</strong> {detailedTestResult.summary.failed_steps}</p>
+                                </div>
+                              )}
+                              
+                              {detailedTestResult.test_results && detailedTestResult.test_results.length > 0 && (
+                                <div className="text-xs space-y-1 mb-3">
+                                  <p className="font-semibold mb-2">Verificações por passo:</p>
+                                  {detailedTestResult.test_results.map((result: any, idx: number) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      {result.success ? (
+                                        <CheckCircle className="h-3 w-3 text-green-600" />
+                                      ) : (
+                                        <XCircle className="h-3 w-3 text-red-600" />
+                                      )}
+                                      <span>
+                                        {result.step.replace(/_/g, ' ').toUpperCase()}: {result.success ? 'OK' : 'FALHOU'}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {detailedTestResult.recommendations && detailedTestResult.recommendations.length > 0 && (
+                                <div className="text-xs">
+                                  <p className="font-semibold mb-1 flex items-center gap-1">
+                                    <Info className="h-3 w-3" />
+                                    Recomendações:
+                                  </p>
+                                  <ul className="space-y-1">
+                                    {detailedTestResult.recommendations.map((rec: string, idx: number) => (
+                                      <li key={idx}>• {rec}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {detailedTestResult.test_results && (
+                                <details className="mt-3">
+                                  <summary className="cursor-pointer text-xs font-medium">Ver logs detalhados</summary>
+                                  <pre className="mt-2 text-xs bg-background p-2 rounded border overflow-auto max-h-32">
+                                    {JSON.stringify(detailedTestResult.test_results, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
                       <div className="text-center">
                         <QrCode className="h-12 w-12 text-orange-600 mx-auto mb-3" />
                         <h3 className="text-xl font-bold text-foreground mb-2">Depósito BNB20</h3>
