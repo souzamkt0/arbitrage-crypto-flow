@@ -344,18 +344,14 @@ const Deposit = () => {
 
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="digitopay" className="flex items-center gap-2">
                     <Smartphone className="h-4 w-4" />
-                    PIX Instantâneo
+                    PIX Depósito
                   </TabsTrigger>
                   <TabsTrigger value="usdt" className="flex items-center gap-2">
                     <QrCode className="h-4 w-4" />
-                    USDT Automático
-                  </TabsTrigger>
-                  <TabsTrigger value="bnb20" className="flex items-center gap-2">
-                    <QrCode className="h-4 w-4" />
-                    BNB20 QR Code
+                    USDT Depósito
                   </TabsTrigger>
                 </TabsList>
 
@@ -382,281 +378,79 @@ const Deposit = () => {
                 </TabsContent>
 
                 <TabsContent value="usdt" className="space-y-4">
-                  <div className="text-center py-8">
-                    <div className="p-6 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl inline-block mx-auto">
-                      <Wallet className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                      <h3 className="text-xl font-bold text-foreground mb-2">Depósito Automático USDT</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Sistema automatizado via NOWPayments - USDT TRC20
-                      </p>
-                      <Button 
-                        onClick={handleBNB20Navigate}
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3"
-                      >
-                        <ArrowUpRight className="h-4 w-4 mr-2" />
-                        Acessar USDT Gateway
-                      </Button>
-                      <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                        <p>• Processamento automático via NOWPayments</p>
-                        <p>• Rede TRC20 (Tron) - taxas baixas</p>
-                        <p>• Confirmação automática</p>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="bnb20" className="space-y-4">
                   {user ? (
-                    <div className="max-w-md mx-auto space-y-6">
-                      {/* Diagnóstico Detalhado */}
-                      <Card className="border-2 border-dashed border-blue-300 bg-blue-50/50 dark:bg-blue-950/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <TestTube className="h-5 w-5 text-blue-600" />
-                            Diagnóstico Completo da Integração
+                    <div className="max-w-lg mx-auto space-y-6">
+                      {/* USDT Deposit Form */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <QrCode className="h-5 w-5" />
+                            Depósito USDT
                           </CardTitle>
                           <p className="text-sm text-muted-foreground">
-                            Teste detalhado com 6 verificações: autenticação, API key, conectividade, moedas, cotação e criação de pagamento.
+                            Depósito automático via NOWPayments - Multiple redes USDT
                           </p>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <Button 
-                            onClick={testDetailedIntegration}
-                            disabled={detailedTestLoading}
-                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                          >
-                            {detailedTestLoading ? (
-                              <>
-                                <TestTube className="h-4 w-4 mr-2 animate-bounce" />
-                                Executando diagnóstico...
-                              </>
-                            ) : (
-                              <>
-                                <TestTube className="h-4 w-4 mr-2" />
-                                Executar Diagnóstico Completo
-                              </>
-                            )}
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="usdt-amount">Valor em USD</Label>
+                              <Input
+                                id="usdt-amount"
+                                type="number"
+                                placeholder="10.00"
+                                min="10"
+                                step="0.01"
+                                className="text-lg font-mono"
+                              />
+                              <p className="text-sm text-muted-foreground">
+                                Valor mínimo: $10 USD
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <Label>Rede USDT</Label>
+                              <div className="grid gap-2">
+                                <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="font-medium">USDT TRC-20 (Tron)</div>
+                                      <div className="text-sm text-muted-foreground">Taxa: ~1 USDT</div>
+                                    </div>
+                                    <div className="text-green-600 font-medium">Recomendado</div>
+                                  </div>
+                                </div>
+                                <div className="p-3 border border-border rounded-lg opacity-75">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="font-medium">USDT ERC-20 (Ethereum)</div>
+                                      <div className="text-sm text-muted-foreground">Taxa: ~15+ USDT</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button className="w-full" size="lg">
+                            <Wallet className="h-4 w-4 mr-2" />
+                            Gerar QR Code USDT
                           </Button>
                           
-                          {detailedTestResult && (
-                            <div className={`border rounded-lg p-4 ${detailedTestResult.success ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}>
-                              <div className="flex items-center gap-2 mb-3">
-                                {detailedTestResult.success ? (
-                                  <CheckCircle className="h-5 w-5 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-5 w-5 text-red-600" />
-                                )}
-                                <h4 className={`font-bold ${detailedTestResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                                  {detailedTestResult.success ? '✅ Integração Funcionando' : '❌ Problemas Detectados'}
-                                </h4>
-                              </div>
-                              
-                              {detailedTestResult.summary && (
-                                <div className="text-sm space-y-1 mb-3">
-                                  <p><strong>Status:</strong> {detailedTestResult.summary.overall_status}</p>
-                                  <p><strong>Passos executados:</strong> {detailedTestResult.summary.total_steps}</p>
-                                  <p><strong>Sucessos:</strong> {detailedTestResult.summary.successful_steps}</p>
-                                  <p><strong>Falhas:</strong> {detailedTestResult.summary.failed_steps}</p>
-                                </div>
-                              )}
-                              
-                              {detailedTestResult.test_results && detailedTestResult.test_results.length > 0 && (
-                                <div className="text-xs space-y-1 mb-3">
-                                  <p className="font-semibold mb-2">Verificações por passo:</p>
-                                  {detailedTestResult.test_results.map((result: any, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-2">
-                                      {result.success ? (
-                                        <CheckCircle className="h-3 w-3 text-green-600" />
-                                      ) : (
-                                        <XCircle className="h-3 w-3 text-red-600" />
-                                      )}
-                                      <span>
-                                        {result.step.replace(/_/g, ' ').toUpperCase()}: {result.success ? 'OK' : 'FALHOU'}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {detailedTestResult.recommendations && detailedTestResult.recommendations.length > 0 && (
-                                <div className="text-xs">
-                                  <p className="font-semibold mb-1 flex items-center gap-1">
-                                    <Info className="h-3 w-3" />
-                                    Recomendações:
-                                  </p>
-                                  <ul className="space-y-1">
-                                    {detailedTestResult.recommendations.map((rec: string, idx: number) => (
-                                      <li key={idx}>• {rec}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                              
-                              {detailedTestResult.test_results && (
-                                <details className="mt-3">
-                                  <summary className="cursor-pointer text-xs font-medium">Ver logs detalhados</summary>
-                                  <pre className="mt-2 text-xs bg-background p-2 rounded border overflow-auto max-h-32">
-                                    {JSON.stringify(detailedTestResult.test_results, null, 2)}
-                                  </pre>
-                                </details>
-                              )}
-                            </div>
-                          )}
+                          <div className="text-center text-sm text-muted-foreground space-y-1">
+                            <p>• Processamento automático via NOWPayments</p>
+                            <p>• Confirmação automática na blockchain</p>
+                            <p>• Suporte múltiplas redes USDT</p>
+                          </div>
                         </CardContent>
                       </Card>
-
-                      <div className="text-center">
-                        <QrCode className="h-12 w-12 text-orange-600 mx-auto mb-3" />
-                        <h3 className="text-xl font-bold text-foreground mb-2">Depósito BNB20</h3>
-                        <p className="text-muted-foreground">Digite o valor e gere o QR code para pagamento</p>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="bnb-amount">Valor em USD</Label>
-                          <Input
-                            id="bnb-amount"
-                            type="number"
-                            placeholder="Digite o valor em USD"
-                            value={bnbAmount}
-                            onChange={(e) => setBnbAmount(e.target.value)}
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={testNowPayments}
-                            disabled={testLoading}
-                            variant="outline"
-                            className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                          >
-                            {testLoading ? (
-                              <>
-                                <Zap className="h-4 w-4 mr-2 animate-spin" />
-                                Testando...
-                              </>
-                            ) : (
-                              <>
-                                <Activity className="h-4 w-4 mr-2" />
-                                Testar API
-                              </>
-                            )}
-                          </Button>
-
-                          <Button 
-                            onClick={handleBnbDeposit}
-                            disabled={bnbLoading || !bnbAmount}
-                            className="bg-orange-600 hover:bg-orange-700"
-                          >
-                            {bnbLoading ? (
-                              <>
-                                <Zap className="h-4 w-4 mr-2 animate-spin" />
-                                Gerando...
-                              </>
-                            ) : (
-                              <>
-                                <QrCode className="h-4 w-4 mr-2" />
-                                Gerar QR Code
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {testResult && (
-                        <div className={`border rounded-lg p-4 ${testResult.success ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}>
-                          <h4 className={`font-bold mb-2 ${testResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                            {testResult.success ? '✅ Diagnóstico Completo' : '❌ Problemas Detectados'}
-                          </h4>
-                          
-                          {testResult.diagnostics && (
-                            <div className="text-xs space-y-1 mb-3">
-                              <p>• Usuário autenticado: {testResult.diagnostics.user_authenticated ? '✅' : '❌'}</p>
-                              <p>• API Key configurada: {testResult.diagnostics.api_key_configured ? '✅' : '❌'}</p>
-                              <p>• Conectividade NOWPayments: {testResult.diagnostics.api_connectivity ? '✅' : '❌'}</p>
-                              <p>• API Key válida: {testResult.diagnostics.api_key_valid ? '✅' : '❌ (não testada)'}</p>
-                              <p>• Acesso ao banco: {testResult.diagnostics.database_access ? '✅' : '❌'}</p>
-                            </div>
-                          )}
-
-                          {testResult.recommendations && testResult.recommendations.length > 0 && (
-                            <div className="text-xs">
-                              <p className="font-semibold mb-1">Recomendações:</p>
-                              {testResult.recommendations.map((rec: string, idx: number) => (
-                                <p key={idx}>• {rec}</p>
-                              ))}
-                            </div>
-                          )}
-
-                          {testResult.error && (
-                            <div className="text-xs mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
-                              <p className="font-semibold">Erro:</p>
-                              <p>{testResult.error}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {showBnbQR && bnbPaymentData && (
-                        <div className="border border-border rounded-lg p-6 space-y-4">
-                          <div className="text-center">
-                            <div className="bg-white p-4 rounded-lg inline-block">
-                              {bnbPaymentData.qr_code_url ? (
-                                <img 
-                                  src={bnbPaymentData.qr_code_url} 
-                                  alt="QR Code para pagamento BNB"
-                                  className="w-48 h-48 mx-auto"
-                                />
-                              ) : (
-                                <div className="w-48 h-48 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-lg flex items-center justify-center mx-auto">
-                                  <QrCode className="h-24 w-24 text-orange-600" />
-                                </div>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              QR Code para {bnbPaymentData.pay_amount} BNB (${bnbAmount} USD)
-                            </p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Endereço BNB (BSC Network)</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                value={bnbPaymentData.pay_address || ''} 
-                                readOnly 
-                                className="font-mono text-xs"
-                              />
-                              <Button 
-                                onClick={copyBnbAddress}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg">
-                            <div className="text-center text-sm space-y-1">
-                              <p className="font-medium text-yellow-800 dark:text-yellow-200">
-                                Envie exatamente {bnbPaymentData.pay_amount} BNB
-                              </p>
-                              <p className="text-yellow-700 dark:text-yellow-300">• Use apenas rede BSC (Binance Smart Chain)</p>
-                              <p className="text-yellow-700 dark:text-yellow-300">• Confirmação automática via NOWPayments</p>
-                              <p className="text-yellow-700 dark:text-yellow-300">• ID do Pagamento: {bnbPaymentData.payment_id}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12">
                       <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-xl inline-block">
                         <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-3" />
                         <p className="text-destructive font-medium mb-1">Autenticação Necessária</p>
-                        <p className="text-muted-foreground text-sm">Faça login para acessar os depósitos</p>
+                        <p className="text-muted-foreground text-sm">Faça login para acessar depósitos USDT</p>
                       </div>
                     </div>
                   )}
