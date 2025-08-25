@@ -13,12 +13,14 @@ serve(async (req) => {
   }
 
   try {
+    // CORRIGIDO: Verificação de autenticação mais robusta
+    const authHeader = req.headers.get('Authorization')
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: authHeader ? { Authorization: authHeader } : {},
         },
       }
     )
@@ -26,8 +28,12 @@ serve(async (req) => {
     // Verificar se o usuário está autenticado
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) {
+      console.error('❌ Erro de autenticação:', authError?.message || 'Usuário não encontrado')
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ 
+          error: 'Login necessário',
+          details: authError?.message || 'Token de autenticação inválido ou ausente'
+        }),
         { status: 401, headers: corsHeaders }
       )
     }
