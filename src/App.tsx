@@ -31,6 +31,7 @@ import UserProfilePage from "./pages/UserProfile";
 import FacebookProfile from "./pages/FacebookProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
+import BNB20Page from "./pages/BNB20";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -157,6 +158,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Withdrawal />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bnb20"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <BNB20Page />
                 </Layout>
               </ProtectedRoute>
             }
