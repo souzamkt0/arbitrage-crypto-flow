@@ -85,14 +85,14 @@ const Deposit = () => {
 
     setBnbLoading(true);
     try {
-      // Call NOWPayments create payment endpoint
+      // Call NOWPayments create payment endpoint with correct parameters
       const { data, error } = await supabase.functions.invoke('nowpayments-create-payment', {
         body: {
           price_amount: parseFloat(bnbAmount),
           price_currency: 'usd',
           pay_currency: 'bnbbsc', // BNB on BSC network
-          order_id: `order_${Date.now()}`,
-          order_description: `Depósito BNB20 - ${bnbAmount} USD`,
+          order_id: `bnbbsc_${Date.now()}`,
+          order_description: `Depósito BNB20 (BSC) - ${bnbAmount} USD`,
           ipn_callback_url: `${window.location.origin}/api/nowpayments-webhook`,
           success_url: `${window.location.origin}/deposit?success=true`,
           cancel_url: `${window.location.origin}/deposit?cancelled=true`
@@ -100,38 +100,26 @@ const Deposit = () => {
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge Function Error:', error);
+        throw new Error(error.message || 'Erro na função');
       }
 
-      if (data && data.pay_address) {
+      if (data && data.success && data.pay_address) {
         setBnbPaymentData(data);
         setShowBnbQR(true);
-        
-        // Create transaction record
-        if (user) {
-          await supabase.from('bnb20_transactions').insert({
-            user_id: user.id,
-            type: 'deposit',
-            amount_usd: parseFloat(bnbAmount),
-            amount_bnb: data.pay_amount,
-            pay_address: data.pay_address,
-            payment_id: data.payment_id,
-            status: 'pending',
-            pay_currency: 'bnbbsc',
-            nowpayments_response: data
-          });
-        }
 
         toast({
           title: "QR Code Gerado!",
-          description: "Escaneie o QR code para fazer o pagamento em BNB (BSC)"
+          description: `Escaneie o QR code para fazer o pagamento de ${data.pay_amount} BNB`
         });
+      } else {
+        throw new Error(data?.error || 'Dados de pagamento inválidos');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating BNB deposit:', error);
       toast({
         title: "Erro",
-        description: "Erro ao gerar QR code. Tente novamente.",
+        description: error.message || "Erro ao gerar QR code. Tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -344,13 +332,21 @@ const Deposit = () => {
                         </Button>
                       </div>
 
-                      {showBnbQR && bnbPaymentData && (
+                       {showBnbQR && bnbPaymentData && (
                         <div className="border border-border rounded-lg p-6 space-y-4">
                           <div className="text-center">
                             <div className="bg-white p-4 rounded-lg inline-block">
-                              <div className="w-48 h-48 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-lg flex items-center justify-center mx-auto">
-                                <QrCode className="h-24 w-24 text-orange-600" />
-                              </div>
+                              {bnbPaymentData.qr_code_url ? (
+                                <img 
+                                  src={bnbPaymentData.qr_code_url} 
+                                  alt="QR Code para pagamento BNB"
+                                  className="w-48 h-48 mx-auto"
+                                />
+                              ) : (
+                                <div className="w-48 h-48 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-lg flex items-center justify-center mx-auto">
+                                  <QrCode className="h-24 w-24 text-orange-600" />
+                                </div>
+                              )}
                             </div>
                             <p className="text-sm text-muted-foreground mt-2">
                               QR Code para {bnbPaymentData.pay_amount} BNB (${bnbAmount} USD)

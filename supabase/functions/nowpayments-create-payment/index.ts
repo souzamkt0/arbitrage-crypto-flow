@@ -32,9 +32,18 @@ serve(async (req) => {
       )
     }
 
-    const { amount, currency = 'usd' } = await req.json()
+    const { 
+      price_amount, 
+      price_currency = 'usd', 
+      pay_currency = 'bnbbsc',
+      order_id,
+      order_description,
+      ipn_callback_url,
+      success_url,
+      cancel_url
+    } = await req.json()
 
-    if (!amount || amount <= 0) {
+    if (!price_amount || price_amount <= 0) {
       return new Response(
         JSON.stringify({ error: 'Valor inválido' }),
         { status: 400, headers: corsHeaders }
@@ -50,11 +59,11 @@ serve(async (req) => {
       )
     }
 
-    console.log('🚀 Criando pagamento NOWPayments para:', { user_id: user.id, amount, currency })
+    console.log('🚀 Criando pagamento NOWPayments para:', { user_id: user.id, price_amount, price_currency, pay_currency })
 
-    // Buscar cotação BNB/USD na NOWPayments
+    // Buscar cotação na NOWPayments
     const estimateResponse = await fetch(
-      `https://api.nowpayments.io/v1/estimate?amount=${amount}&currency_from=${currency}&currency_to=bnb`,
+      `https://api.nowpayments.io/v1/estimate?amount=${price_amount}&currency_from=${price_currency}&currency_to=${pay_currency}`,
       {
         headers: {
           'x-api-key': nowpaymentsApiKey,
@@ -73,16 +82,16 @@ serve(async (req) => {
     const estimate = await estimateResponse.json()
     console.log('💰 Cotação obtida:', estimate)
 
-    // Criar pagamento na NOWPayments
+    // Criar pagamento na NOWPayments seguindo a documentação oficial
     const paymentData = {
-      price_amount: amount,
-      price_currency: currency,
-      pay_currency: 'bnb',
-      order_id: `bnb_${user.id}_${Date.now()}`,
-      order_description: `Depósito BNB20 - ${amount} ${currency.toUpperCase()}`,
-      ipn_callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/nowpayments-webhook`,
-      success_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/nowpayments-success`,
-      cancel_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/nowpayments-cancel`,
+      price_amount,
+      price_currency,
+      pay_currency,
+      order_id: order_id || `bnbbsc_${user.id}_${Date.now()}`,
+      order_description: order_description || `Depósito ${pay_currency.toUpperCase()} - ${price_amount} ${price_currency.toUpperCase()}`,
+      ipn_callback_url: ipn_callback_url || `${Deno.env.get('SUPABASE_URL')}/functions/v1/nowpayments-webhook`,
+      success_url: success_url || `${Deno.env.get('PUBLIC_URL') || 'https://0b849d20-bf2f-4ce2-949b-d3328f7ae1d9.sandbox.lovable.dev'}/deposit?success=true`,
+      cancel_url: cancel_url || `${Deno.env.get('PUBLIC_URL') || 'https://0b849d20-bf2f-4ce2-949b-d3328f7ae1d9.sandbox.lovable.dev'}/deposit?cancelled=true`,
     }
 
     const paymentResponse = await fetch('https://api.nowpayments.io/v1/payment', {
@@ -117,14 +126,14 @@ serve(async (req) => {
         user_id: user.id,
         payment_id: paymentResult.payment_id,
         type: 'deposit',
-        amount_usd: amount,
-        amount_bnb: estimate.estimated_amount,
+        amount_usd: price_amount,
+        amount_bnb: paymentResult.pay_amount,
         status: 'waiting',
         pay_address: paymentResult.pay_address,
         payin_extra_id: paymentResult.payin_extra_id,
         pay_amount: paymentResult.pay_amount,
         pay_currency: paymentResult.pay_currency,
-        price_currency: currency,
+        price_currency: price_currency,
         qr_code_base64: qrCodeUrl,
         nowpayments_response: paymentResult,
         expires_at: paymentResult.expiration_estimate_date ? new Date(paymentResult.expiration_estimate_date) : null,
@@ -151,8 +160,8 @@ serve(async (req) => {
         qr_code_url: qrCodeUrl,
         expires_at: paymentResult.expiration_estimate_date,
         status: 'waiting',
-        amount_usd: amount,
-        amount_bnb: estimate.estimated_amount,
+        amount_usd: price_amount,
+        amount_bnb: paymentResult.pay_amount,
       }),
       { status: 200, headers: corsHeaders }
     )
