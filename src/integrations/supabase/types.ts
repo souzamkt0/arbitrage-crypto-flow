@@ -223,6 +223,30 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          nowpayments_api_key: string
+          sandbox_mode: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nowpayments_api_key: string
+          sandbox_mode?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nowpayments_api_key?: string
+          sandbox_mode?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       bnb20_admin_approvals: {
         Row: {
           action: string
@@ -1061,6 +1085,57 @@ export type Database = {
           total_transactions?: number | null
           total_volume?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          actually_paid: number | null
+          amount: number
+          created_at: string
+          currency_from: string
+          currency_to: string
+          id: string
+          order_description: string | null
+          payment_address: string | null
+          payment_id: string
+          price_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+          webhook_data: Json | null
+        }
+        Insert: {
+          actually_paid?: number | null
+          amount: number
+          created_at?: string
+          currency_from?: string
+          currency_to: string
+          id?: string
+          order_description?: string | null
+          payment_address?: string | null
+          payment_id: string
+          price_amount: number
+          status?: string
+          updated_at?: string
+          user_id: string
+          webhook_data?: Json | null
+        }
+        Update: {
+          actually_paid?: number | null
+          amount?: number
+          created_at?: string
+          currency_from?: string
+          currency_to?: string
+          id?: string
+          order_description?: string | null
+          payment_address?: string | null
+          payment_id?: string
+          price_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+          webhook_data?: Json | null
         }
         Relationships: []
       }
