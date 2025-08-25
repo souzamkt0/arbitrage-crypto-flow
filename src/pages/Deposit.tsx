@@ -399,24 +399,34 @@ const Deposit = () => {
                       {testResult && (
                         <div className={`border rounded-lg p-4 ${testResult.success ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-red-500 bg-red-50 dark:bg-red-950'}`}>
                           <h4 className={`font-bold mb-2 ${testResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                            {testResult.success ? '✅ Teste da API' : '❌ Falha no Teste'}
+                            {testResult.success ? '✅ Diagnóstico Completo' : '❌ Problemas Detectados'}
                           </h4>
-                          <div className="text-xs space-y-1">
-                            {testResult.success ? (
-                              <>
-                                <p>• API NOWPayments: ✅ Online</p>
-                                <p>• Moedas disponíveis: {testResult.currencies_available}</p>
-                                <p>• BNB BSC suportado: {testResult.bnbbsc_supported ? '✅ Sim' : '❌ Não'}</p>
-                                <p>• Status: {JSON.stringify(testResult.api_status?.message || 'OK')}</p>
-                              </>
-                            ) : (
-                              <>
-                                <p>• Erro: {testResult.error}</p>
-                                <p>• Detalhes: {testResult.details}</p>
-                                {testResult.status && <p>• Status Code: {testResult.status}</p>}
-                              </>
-                            )}
-                          </div>
+                          
+                          {testResult.diagnostics && (
+                            <div className="text-xs space-y-1 mb-3">
+                              <p>• Usuário autenticado: {testResult.diagnostics.user_authenticated ? '✅' : '❌'}</p>
+                              <p>• API Key configurada: {testResult.diagnostics.api_key_configured ? '✅' : '❌'}</p>
+                              <p>• Conectividade NOWPayments: {testResult.diagnostics.api_connectivity ? '✅' : '❌'}</p>
+                              <p>• API Key válida: {testResult.diagnostics.api_key_valid ? '✅' : '❌ (não testada)'}</p>
+                              <p>• Acesso ao banco: {testResult.diagnostics.database_access ? '✅' : '❌'}</p>
+                            </div>
+                          )}
+
+                          {testResult.recommendations && testResult.recommendations.length > 0 && (
+                            <div className="text-xs">
+                              <p className="font-semibold mb-1">Recomendações:</p>
+                              {testResult.recommendations.map((rec: string, idx: number) => (
+                                <p key={idx}>• {rec}</p>
+                              ))}
+                            </div>
+                          )}
+
+                          {testResult.error && (
+                            <div className="text-xs mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
+                              <p className="font-semibold">Erro:</p>
+                              <p>{testResult.error}</p>
+                            </div>
+                          )}
                         </div>
                       )}
 
