@@ -61,15 +61,63 @@ export default function SimpleUSDTPayment() {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         const newTime = Math.max(0, prev - 1);
-        
-        // Check payment status periodically (removed auto-confirm for real payments)
-        
         return newTime;
       });
     }, 1000);
 
     return () => clearInterval(timer);
   }, [timeLeft, paymentData]);
+
+  // Poll payment status every 30 seconds
+  useEffect(() => {
+    if (!paymentData || paymentData.status === 'confirmed') return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        console.log('🔄 Polling payment status...');
+        const { data, error } = await supabase
+          .from('payments')
+          .select('status, actually_paid, webhook_data')
+          .eq('payment_id', paymentData.id)
+          .single();
+
+        if (error) {
+          console.error('Error polling payment status:', error);
+          return;
+        }
+
+        if (data && data.status !== paymentData.status) {
+          console.log('🔄 Payment status updated:', paymentData.status, '->', data.status);
+          
+          const updatedPayment = { 
+            ...paymentData, 
+            status: data.status as 'pending' | 'confirmed' | 'failed'
+          };
+          
+          setPaymentData(updatedPayment);
+          localStorage.setItem('simple_usdt_payment', JSON.stringify(updatedPayment));
+
+          if (data.status === 'finished' || data.status === 'confirmed') {
+            toast({
+              title: "Pagamento Confirmado! ✅",
+              description: "Seu pagamento USDT foi confirmado na blockchain",
+              variant: "default",
+            });
+          } else if (data.status === 'failed' || data.status === 'expired') {
+            toast({
+              title: "Pagamento Falhou ❌", 
+              description: "Seu pagamento não foi confirmado",
+              variant: "destructive",
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error polling payment:', error);
+      }
+    }, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [paymentData, toast, supabase]);
 
   const handleAutoConfirm = () => {
     if (!paymentData) return;
@@ -219,11 +267,49 @@ export default function SimpleUSDTPayment() {
     setTimeLeft(900);
   };
 
-  const refreshStatus = () => {
-    toast({
-      title: "Status Atualizado! 🔄",
-      description: "Status do pagamento foi verificado",
-    });
+  const refreshStatus = async () => {
+    if (!paymentData) return;
+    
+    try {
+      console.log('🔄 Manually refreshing payment status...');
+      const { data, error } = await supabase
+        .from('payments')
+        .select('status, actually_paid, webhook_data')
+        .eq('payment_id', paymentData.id)
+        .single();
+
+      if (error) {
+        console.error('Error refreshing payment status:', error);
+        toast({
+          title: "Erro ao Verificar Status",
+          description: "Não foi possível verificar o status do pagamento",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        const updatedPayment = { 
+          ...paymentData, 
+          status: data.status as 'pending' | 'confirmed' | 'failed'
+        };
+        
+        setPaymentData(updatedPayment);
+        localStorage.setItem('simple_usdt_payment', JSON.stringify(updatedPayment));
+
+        toast({
+          title: "Status Atualizado! 🔄",
+          description: `Status: ${data.status}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing status:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao verificar status do pagamento",
+        variant: "destructive",
+      });
+    }
   };
 
   const isCompleted = paymentData?.status === 'confirmed';
