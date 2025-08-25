@@ -48,7 +48,72 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { payment_id, transaction_id }: StatusRequest = await req.json();
+    const requestBody = await req.json().catch(() => ({}));
+    const { payment_id, transaction_id, test }: StatusRequest & { test?: boolean } = requestBody;
+
+    // If it's a test request, just check API connectivity
+    if (test) {
+      try {
+        const nowpaymentsApiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
+        if (!nowpaymentsApiKey) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'NOWPayments API key not configured'
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Test API connection by getting available currencies
+        console.log('🔗 Testing NOWPayments API connection...');
+        const testResponse = await fetch('https://api.nowpayments.io/v1/currencies', {
+          method: 'GET',
+          headers: {
+            'x-api-key': nowpaymentsApiKey,
+          },
+        });
+
+        if (testResponse.ok) {
+          const currencies = await testResponse.json();
+          console.log('✅ NOWPayments API connection successful');
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: 'NOWPayments API connection successful',
+              environment: 'production',
+              currencies_count: currencies.currencies?.length || 0,
+              test_result: 'API responded successfully'
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          const errorText = await testResponse.text();
+          console.error('❌ NOWPayments API test failed:', errorText);
+          
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'NOWPayments API connection failed',
+              details: errorText,
+              status_code: testResponse.status
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (error) {
+        console.error('❌ NOWPayments connection test error:', error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Failed to test NOWPayments connection',
+            details: error.message
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     if (!payment_id && !transaction_id) {
       return new Response(

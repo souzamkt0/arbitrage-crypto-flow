@@ -312,6 +312,49 @@ export default function SimpleUSDTPayment() {
     }
   };
 
+  const testNOWPaymentsConnection = async () => {
+    setIsLoading(true);
+    try {
+      console.log('🔗 Testing NOWPayments connection...');
+      
+      const { data, error } = await supabase.functions.invoke('nowpayments-status', {
+        body: { test: true }
+      });
+
+      if (error) {
+        console.error('NOWPayments test error:', error);
+        toast({
+          title: "❌ Erro de Conexão",
+          description: "Falha ao conectar com NOWPayments",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.success) {
+        toast({
+          title: "✅ Conexão OK!",
+          description: `NOWPayments funcionando. API: ${data.environment || 'production'}`,
+        });
+      } else {
+        toast({
+          title: "⚠️ Problema na API",
+          description: data?.error || "Resposta inesperada da NOWPayments",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      toast({
+        title: "❌ Teste Falhou",
+        description: "Erro ao testar conexão com NOWPayments",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const isCompleted = paymentData?.status === 'confirmed';
   const isFailed = paymentData?.status === 'failed' || timeLeft <= 0;
 
@@ -426,6 +469,32 @@ export default function SimpleUSDTPayment() {
                   </>
                 )}
               </Button>
+
+              {/* Test Connection Button */}
+              <div className="pt-4 border-t">
+                <Button 
+                  onClick={testNOWPaymentsConnection}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Testando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Testar Conexão NOWPayments
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Verificar se a API NOWPayments está funcionando
+                </p>
+              </div>
             </CardContent>
           </Card>
         ) : (
