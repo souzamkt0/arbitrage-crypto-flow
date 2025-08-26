@@ -34,7 +34,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/deposit", label: "Depósito", icon: Wallet },
     { path: "/withdrawal", label: "Saque", icon: ArrowDown },
-    { path: "/simple-usdt-payment", label: "USDT Simples", icon: Coins },
+    { path: "/simple-usdt-payment", label: "USDT", icon: Coins },
     { path: "/referrals", label: "Indicações", icon: TrendingUp },
     { path: "/investments", label: "Investimentos", icon: PiggyBank },
     { path: "/history", label: "Histórico", icon: History },
