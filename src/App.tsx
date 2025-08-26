@@ -176,6 +176,36 @@ const App = () => (
             }
           />
           <Route
+            path="/usdt-payments"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <USDTPayments />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usdt-checkout"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <USDTCheckout />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/simple-usdt-payment"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SimpleUSDTPayment />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/history"
             element={
               <ProtectedRoute>

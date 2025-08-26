@@ -15,8 +15,7 @@ import {
   TrendingDown,
   Eye,
   EyeOff,
-  ArrowUpRight,
-  QrCode
+  ArrowUpRight
 } from "lucide-react";
 
 const Withdrawal = () => {
@@ -218,45 +217,23 @@ const Withdrawal = () => {
                     }} 
                   />
 
-                  {/* Additional Withdrawal Options */}
+                  {/* BNB20 Withdrawal Option */}
                   <div className="border-t border-border pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* USDT Withdrawal */}
-                      <div className="text-center">
-                        <div className="p-6 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl">
-                          <QrCode className="h-10 w-10 text-green-600 mx-auto mb-3" />
-                          <h3 className="text-lg font-bold text-foreground mb-2">Saque USDT</h3>
-                          <p className="text-muted-foreground mb-4 text-sm">
-                            Saque direto para carteira USDT (TRC20/ERC20)
-                          </p>
-                          <Button 
-                            onClick={handleBNB20Navigate}
-                            variant="outline"
-                            className="border-green-200 dark:border-green-800 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
-                          >
-                            <ArrowUpRight className="h-4 w-4 mr-2" />
-                            Saque USDT
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* BNB20 Withdrawal */}
-                      <div className="text-center">
-                        <div className="p-6 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-xl">
-                          <Wallet className="h-10 w-10 text-orange-600 mx-auto mb-3" />
-                          <h3 className="text-lg font-bold text-foreground mb-2">Saque BNB20</h3>
-                          <p className="text-muted-foreground mb-4 text-sm">
-                            Realize saques para carteiras BNB20 via BSC
-                          </p>
-                          <Button 
-                            onClick={handleBNB20Navigate}
-                            variant="outline"
-                            className="border-orange-200 dark:border-orange-800 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-                          >
-                            <ArrowUpRight className="h-4 w-4 mr-2" />
-                            Saque BNB20
-                          </Button>
-                        </div>
+                    <div className="text-center">
+                      <div className="p-6 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-xl inline-block mx-auto">
+                        <Wallet className="h-10 w-10 text-orange-600 mx-auto mb-3" />
+                        <h3 className="text-lg font-bold text-foreground mb-2">Saque BNB20</h3>
+                        <p className="text-muted-foreground mb-4 text-sm">
+                          Realize saques para carteiras BNB20 via BSC
+                        </p>
+                        <Button 
+                          onClick={handleBNB20Navigate}
+                          variant="outline"
+                          className="border-orange-200 dark:border-orange-800 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                        >
+                          <ArrowUpRight className="h-4 w-4 mr-2" />
+                          Saque BNB20
+                        </Button>
                       </div>
                     </div>
                   </div>

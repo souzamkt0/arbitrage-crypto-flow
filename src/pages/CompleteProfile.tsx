@@ -210,12 +210,12 @@ const CompleteProfile = () => {
 
   if (isCompleted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-gray-900 border-gray-700">
           <CardContent className="p-8 text-center">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Perfil Completado!</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Perfil Completado!</h2>
+            <p className="text-gray-300 mb-6">
               Suas informações foram salvas com sucesso. Redirecionando para o dashboard...
             </p>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
@@ -226,14 +226,14 @@ const CompleteProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-gray-900 border-gray-700">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
-            <User className="h-6 w-6 text-primary" />
+          <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+            <User className="h-6 w-6 text-yellow-400" />
             Complete seu Perfil
           </CardTitle>
-          <p className="text-muted-foreground">
+          <p className="text-gray-400">
             Passo {currentStep} de 3 - Configure suas informações pessoais
           </p>
         </CardHeader>
@@ -242,12 +242,12 @@ const CompleteProfile = () => {
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Progresso</span>
-              <span className="text-sm text-primary">{Math.round((currentStep / 3) * 100)}%</span>
+              <span className="text-sm text-gray-400">Progresso</span>
+              <span className="text-sm text-yellow-400">{Math.round((currentStep / 3) * 100)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="w-full bg-gray-700 rounded-full h-2">
               <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(currentStep / 3) * 100}%` }}
               ></div>
             </div>
@@ -258,45 +258,45 @@ const CompleteProfile = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName" className="text-foreground">Nome</Label>
+                  <Label htmlFor="firstName" className="text-gray-300">Nome</Label>
                   <Input
                     id="firstName"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className={`mt-1 ${errors.firstName ? 'border-destructive' : ''}`}
+                    className={`mt-1 ${errors.firstName ? 'border-red-500' : 'border-gray-600'}`}
                     placeholder="Seu nome"
                   />
                   {errors.firstName && (
-                    <p className="text-destructive text-sm mt-1">{errors.firstName}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="lastName" className="text-foreground">Sobrenome</Label>
+                  <Label htmlFor="lastName" className="text-gray-300">Sobrenome</Label>
                   <Input
                     id="lastName"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className={`mt-1 ${errors.lastName ? 'border-destructive' : ''}`}
+                    className={`mt-1 ${errors.lastName ? 'border-red-500' : 'border-gray-600'}`}
                     placeholder="Seu sobrenome"
                   />
                   {errors.lastName && (
-                    <p className="text-destructive text-sm mt-1">{errors.lastName}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="username" className="text-foreground">Nome de Usuário</Label>
+                <Label htmlFor="username" className="text-gray-300">Nome de Usuário</Label>
                 <Input
                   id="username"
                   value={formData.username}
                   onChange={(e) => handleInputChange('username', e.target.value)}
-                  className={`mt-1 ${errors.username ? 'border-destructive' : ''}`}
+                  className={`mt-1 ${errors.username ? 'border-red-500' : 'border-gray-600'}`}
                   placeholder="nome_usuario"
                 />
                 {errors.username && (
-                  <p className="text-destructive text-sm mt-1">{errors.username}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.username}</p>
                 )}
               </div>
             </div>
@@ -306,40 +306,40 @@ const CompleteProfile = () => {
           {currentStep === 2 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="cpf" className="text-foreground">CPF</Label>
+                <Label htmlFor="cpf" className="text-gray-300">CPF</Label>
                 <Input
                   id="cpf"
                   value={formData.cpf}
                   onChange={(e) => handleInputChange('cpf', e.target.value)}
-                  className={`mt-1 ${errors.cpf ? 'border-destructive' : ''}`}
+                  className={`mt-1 ${errors.cpf ? 'border-red-500' : 'border-gray-600'}`}
                   placeholder="000.000.000-00"
                 />
                 {errors.cpf && (
-                  <p className="text-destructive text-sm mt-1">{errors.cpf}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="whatsapp" className="text-foreground">WhatsApp</Label>
+                <Label htmlFor="whatsapp" className="text-gray-300">WhatsApp</Label>
                 <Input
                   id="whatsapp"
                   value={formData.whatsapp}
                   onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                  className={`mt-1 ${errors.whatsapp ? 'border-destructive' : ''}`}
+                  className={`mt-1 ${errors.whatsapp ? 'border-red-500' : 'border-gray-600'}`}
                   placeholder="(11) 99999-9999"
                 />
                 {errors.whatsapp && (
-                  <p className="text-destructive text-sm mt-1">{errors.whatsapp}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="referredBy" className="text-foreground">Quem te Indicou? (Opcional)</Label>
+                <Label htmlFor="referredBy" className="text-gray-300">Quem te Indicou? (Opcional)</Label>
                 <Input
                   id="referredBy"
                   value={formData.referredBy}
                   onChange={(e) => handleInputChange('referredBy', e.target.value)}
-                  className="mt-1"
+                  className="mt-1 border-gray-600"
                   placeholder="Código de indicação ou nome"
                 />
               </div>
@@ -350,32 +350,32 @@ const CompleteProfile = () => {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <Label className="text-foreground">Escolha seu Avatar</Label>
+                <Label className="text-gray-300">Escolha seu Avatar</Label>
                 <div className="grid grid-cols-3 gap-4 mt-2">
                   {avatars.map((avatar) => (
                     <div
                       key={avatar.id}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         formData.avatar === avatar.id
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-border/80'
+                          ? 'border-yellow-500 bg-yellow-500/10'
+                          : 'border-gray-600 hover:border-gray-500'
                       }`}
                       onClick={() => handleInputChange('avatar', avatar.id)}
                     >
-                      <div className="w-12 h-12 bg-primary rounded-full mx-auto mb-2"></div>
-                      <p className="text-sm text-center text-foreground">{avatar.name}</p>
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full mx-auto mb-2"></div>
+                      <p className="text-sm text-center text-gray-300">{avatar.name}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="bio" className="text-foreground">Bio (Opcional)</Label>
+                <Label htmlFor="bio" className="text-gray-300">Bio (Opcional)</Label>
                 <textarea
                   id="bio"
                   value={formData.bio}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className="mt-1 w-full p-3 bg-background border border-border rounded-md text-foreground resize-none"
+                  className="mt-1 w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white resize-none"
                   rows={3}
                   placeholder="Conte um pouco sobre você..."
                 />
@@ -389,6 +389,7 @@ const CompleteProfile = () => {
               onClick={handlePreviousStep}
               disabled={currentStep === 1}
               variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
             >
               Anterior
             </Button>
@@ -396,6 +397,7 @@ const CompleteProfile = () => {
             {currentStep < 3 ? (
               <Button
                 onClick={handleNextStep}
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
               >
                 Próximo
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -404,7 +406,7 @@ const CompleteProfile = () => {
               <Button
                 onClick={handleCompleteProfile}
                 disabled={isLoading}
-                variant="default"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
               >
                 {isLoading ? (
                   <>
