@@ -372,11 +372,7 @@ export const ActivePlansTable = () => {
       console.log('📊 Usando dados de fallback dos planos ativos:', mockData);
       setActivePlans(mockData);
       
-      toast({
-        title: "Aviso", 
-        description: "Usando dados simulados. Os ganhos podem não refletir valores reais.",
-        variant: "default"
-      });
+      // Removed simulation warning toast
     } finally {
       setLoading(false);
     }
