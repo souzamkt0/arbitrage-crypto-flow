@@ -8,12 +8,12 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Binance Authentic Dark Theme */
-    --background: 0 0% 7%;           /* #121212 - Preto profundo Binance */
-    --foreground: 0 0% 98%;          /* #FAFAFA - Branco puro */
+    /* Navy Blue Background Theme */
+    --background: 215 28% 17%;           /* #1e293b - Azul escuro navy */
+    --foreground: 0 0% 98%;              /* #FAFAFA - Branco puro */
 
-    --card: 0 0% 11%;                /* #1C1C1C - Cards preto escuro */
-    --card-foreground: 0 0% 98%;     /* #FAFAFA - Texto branco */
+    --card: 215 25% 27%;                 /* #334155 - Cards azul navy mais claro */
+    --card-foreground: 0 0% 98%;         /* #FAFAFA - Texto branco */
 
     --popover: 0 0% 11%;             /* #1C1C1C */
     --popover-foreground: 0 0% 98%;  /* #FAFAFA */
@@ -107,12 +107,12 @@ All colors MUST be HSL.
 }
 
   .dark {
-    /* Mantém o mesmo tema Binance para modo dark */
-    --background: 0 0% 7%;           /* #121212 - Preto profundo Binance */
-    --foreground: 0 0% 98%;          /* #FAFAFA - Branco puro */
+    /* Mantém o mesmo tema Navy Blue para modo dark */
+    --background: 215 28% 17%;           /* #1e293b - Azul escuro navy */
+    --foreground: 0 0% 98%;              /* #FAFAFA - Branco puro */
 
-    --card: 0 0% 11%;                /* #1C1C1C - Cards preto escuro */
-    --card-foreground: 0 0% 98%;     /* #FAFAFA - Texto branco */
+    --card: 215 25% 27%;                 /* #334155 - Cards azul navy mais claro */
+    --card-foreground: 0 0% 98%;         /* #FAFAFA - Texto branco */
 
     --popover: 0 0% 11%;             /* #1C1C1C */
     --popover-foreground: 0 0% 98%;  /* #FAFAFA */
