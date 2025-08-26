@@ -793,11 +793,11 @@ const Dashboard = () => {
                       </span>
                     )}
                    </div>
-                  <p className="text-xs text-gray-500 mb-2">Saldo disponível para investimentos</p>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold animate-[number-tick_2s_ease-in-out_infinite]">
-                      R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
+                   <p className="text-xs text-gray-500 mb-2">Saldo disponível para investimentos</p>
+                   <div className="flex items-center space-x-2">
+                     <span className="text-2xl font-bold animate-[number-tick_2s_ease-in-out_infinite]">
+                       $ {balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                     </span>
                     <span className="text-xs text-green-400 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
                       +{dailyProfit.toFixed(2)}%
