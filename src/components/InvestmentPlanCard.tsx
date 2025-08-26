@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Bot, TrendingUp, Clock, Users, Calculator, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvestmentPlan {
   id: string;
@@ -28,6 +29,7 @@ interface InvestmentPlanCardProps {
 
 export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCardProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const canInvest = userReferrals >= plan.minimum_indicators;
   const [simulatorValue, setSimulatorValue] = useState<number>(plan.minimum_amount);
 
@@ -85,70 +87,70 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
   const simulation = calculateSimulation(simulatorValue);
 
   return (
-    <Card className="bg-[#1a1f2e] border-gray-700 hover:border-teal-500/50 transition-all duration-300">
-      {/* Header com lucro diário potencial */}
+    <Card className="bg-[#1a1f2e] border-gray-700 hover:border-teal-500/50 transition-all duration-300 h-full flex flex-col">
+      {/* Header com lucro diário potencial - Responsivo */}
       {canInvest && (
-        <div className="bg-gradient-to-r from-teal-600 to-teal-500 p-4 rounded-t-lg">
-          <div className="flex justify-between items-center text-white">
+        <div className="bg-gradient-to-r from-teal-600 to-teal-500 p-3 sm:p-4 rounded-t-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-white gap-2">
             <div>
               <div className="flex items-center gap-1 text-sm opacity-90">
-                <DollarSign className="w-4 h-4" />
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
                 Lucro Diário Potencial
               </div>
-              <div className="text-lg font-bold">Até 2% ao dia</div>
+              <div className="text-base sm:text-lg font-bold">Até 2% ao dia</div>
             </div>
-            <div className="text-right">
-              <div className="text-sm opacity-90">Simulação com ${simulatorValue.toFixed(0)}</div>
-              <div className="text-lg font-bold">Até ${(simulatorValue * plan.daily_rate).toFixed(2)}/dia</div>
+            <div className="text-left sm:text-right">
+              <div className="text-xs sm:text-sm opacity-90">Simulação com ${simulatorValue.toFixed(0)}</div>
+              <div className="text-base sm:text-lg font-bold">Até ${(simulatorValue * plan.daily_rate).toFixed(2)}/dia</div>
             </div>
           </div>
-          <div className="mt-2 text-sm text-white/80">
+          <div className="mt-2 text-xs sm:text-sm text-white/80">
             🎯 Participe e veja seus lucros crescerem diariamente com arbitragem automática!
           </div>
         </div>
       )}
 
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-            <Bot className="w-5 h-5 text-teal-400" />
+      <CardHeader className="pb-3 sm:pb-4 p-3 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <CardTitle className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
             {plan.name}
           </CardTitle>
-          <Badge variant={canInvest ? "default" : "secondary"} className="bg-teal-500/20 text-teal-400">
+          <Badge variant={canInvest ? "default" : "secondary"} className="bg-teal-500/20 text-teal-400 w-fit">
             {(plan.daily_rate * 100).toFixed(2)}% / dia
           </Badge>
         </div>
-        <p className="text-gray-400 text-sm">{plan.description}</p>
+        <p className="text-gray-400 text-xs sm:text-sm">{plan.description}</p>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 flex-grow">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-1 text-gray-400 text-sm">
-              <DollarSign className="w-4 h-4" />
+            <div className="flex items-center gap-1 text-gray-400 text-xs sm:text-sm">
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
               Valor Mínimo
             </div>
-            <div className="text-white font-semibold">${plan.minimum_amount}</div>
+            <div className="text-white font-semibold text-sm sm:text-base">${plan.minimum_amount}</div>
           </div>
           
           <div className="space-y-1">
-            <div className="flex items-center gap-1 text-gray-400 text-sm">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center gap-1 text-gray-400 text-xs sm:text-sm">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
               Duração
             </div>
-            <div className="text-white font-semibold">{plan.duration_days} dias</div>
+            <div className="text-white font-semibold text-sm sm:text-base">{plan.duration_days} dias</div>
           </div>
         </div>
 
         {plan.minimum_indicators > 0 && (
           <div className="space-y-1">
-            <div className="flex items-center gap-1 text-gray-400 text-sm">
-              <Users className="w-4 h-4" />
+            <div className="flex items-center gap-1 text-gray-400 text-xs sm:text-sm">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4" />
               Indicações Necessárias
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-white font-semibold">{plan.minimum_indicators}</div>
-              <Badge variant={canInvest ? "default" : "destructive"} className="text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="text-white font-semibold text-sm sm:text-base">{plan.minimum_indicators}</div>
+              <Badge variant={canInvest ? "default" : "destructive"} className="text-xs w-fit">
                 Você tem: {userReferrals}
               </Badge>
             </div>
@@ -156,25 +158,25 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
         )}
 
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-300">Recursos:</h4>
+          <h4 className="text-xs sm:text-sm font-medium text-gray-300">Recursos:</h4>
           <div className="space-y-1">
             {plan.features?.slice(0, 3).map((feature, index) => (
               <div key={index} className="text-xs text-gray-400 flex items-center gap-1">
-                <div className="w-1 h-1 bg-teal-400 rounded-full"></div>
-                {feature}
+                <div className="w-1 h-1 bg-teal-400 rounded-full flex-shrink-0"></div>
+                <span className="break-words">{feature}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Gráfico de Trading - apenas para planos disponíveis */}
+        {/* Gráfico de Trading - Responsivo */}
         {canInvest && (
           <div className="space-y-3 border-t border-gray-700 pt-4">
-            <h4 className="text-sm font-medium text-gray-300 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4 text-teal-400" />
+            <h4 className="text-xs sm:text-sm font-medium text-gray-300 flex items-center gap-1">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-teal-400" />
               Trading ao Vivo (BTC/USDT)
             </h4>
-            <div className="h-40 bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+            <div className="h-32 sm:h-40 bg-gray-800/50 rounded-lg p-2 sm:p-3 border border-gray-700">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={tradingData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -182,14 +184,14 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                     dataKey="time" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 11, fill: '#9CA3AF' }}
-                    interval={3}
+                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    interval={isMobile ? 5 : 3}
                   />
                   <YAxis 
-                    hide={false}
+                    hide={isMobile}
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    tick={{ fontSize: 9, fill: '#9CA3AF' }}
                     domain={['dataMin - 500', 'dataMax + 500']}
                   />
                   <Tooltip 
@@ -197,7 +199,7 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                       backgroundColor: '#1f2937', 
                       border: '1px solid #14b8a6',
                       borderRadius: '8px',
-                      fontSize: '12px',
+                      fontSize: '11px',
                       color: '#fff'
                     }}
                     formatter={(value: any, name: string) => [
@@ -210,41 +212,44 @@ export function InvestmentPlanCard({ plan, userReferrals = 0 }: InvestmentPlanCa
                     type="monotone" 
                     dataKey="price" 
                     stroke="#14b8a6" 
-                    strokeWidth={2.5}
-                    dot={{ fill: '#14b8a6', strokeWidth: 2, r: 3 }}
-                    activeDot={{ r: 5, stroke: '#14b8a6', strokeWidth: 2 }}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 3, stroke: '#14b8a6', strokeWidth: 2 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs gap-1 sm:gap-0">
               <span className="text-gray-400">Últimas 24h</span>
-              <div className="flex gap-4">
+              <div className="flex gap-2 sm:gap-4">
                 <span className="text-teal-400">📈 +1.8% média</span>
                 <span className="text-green-400">🟢 Ativo</span>
               </div>
             </div>
           </div>
         )}
+      </CardContent>
 
+      {/* Footer com botão - Sempre no final */}
+      <div className="p-3 sm:p-6 pt-0 mt-auto">
         <Button 
           onClick={handleInvest}
           disabled={!canInvest}
-          className="w-full bg-teal-500 hover:bg-teal-600 text-white disabled:bg-gray-600 disabled:text-gray-400"
+          className="w-full bg-teal-500 hover:bg-teal-600 text-white disabled:bg-gray-600 disabled:text-gray-400 text-sm sm:text-base py-2 sm:py-3"
         >
           {canInvest ? 'Investir Agora' : `Precisa de ${plan.minimum_indicators} indicações ativas`}
         </Button>
 
         {plan.max_investment_amount && (
-          <div className="text-xs text-gray-500 text-center">
+          <div className="text-xs text-gray-500 text-center mt-2">
             Máximo: ${plan.max_investment_amount}
           </div>
         )}
         
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs text-gray-500 text-center mt-1">
           * Ganhos variáveis através de arbitragem, não garantidos
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
