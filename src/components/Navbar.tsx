@@ -2,71 +2,77 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp,
-  Users,
-  BarChart3, 
-  History, 
-  Settings, 
-  Image, 
-  LogOut,
-  Menu,
-  X,
-  Shield,
-  PiggyBank,
-  MessageSquare,
-  Crown,
-  Wallet,
-  ArrowDown,
-  Gift,
-  Coins,
-  CreditCard
-} from "lucide-react";
+import { TrendingUp, Users, BarChart3, History, Settings, Image, LogOut, Menu, X, Shield, PiggyBank, MessageSquare, Crown, Wallet, ArrowDown, Gift, Coins, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, isAdmin, profile } = useAuth();
-
-  const baseNavItems = [
-    { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { path: "/deposit", label: "Depósito", icon: Wallet },
-    { path: "/withdrawal", label: "Saque", icon: ArrowDown },
-    { path: "/simple-usdt-payment", label: "USDT", icon: Coins },
-    { path: "/referrals", label: "Indicações", icon: TrendingUp },
-    { path: "/investments", label: "Investimentos", icon: PiggyBank },
-    { path: "/history", label: "Histórico", icon: History },
-    { path: "/settings", label: "Configurações", icon: Settings },
-  ];
+  const {
+    signOut,
+    isAdmin,
+    profile
+  } = useAuth();
+  const baseNavItems = [{
+    path: "/dashboard",
+    label: "Dashboard",
+    icon: BarChart3
+  }, {
+    path: "/deposit",
+    label: "Depósito",
+    icon: Wallet
+  }, {
+    path: "/withdrawal",
+    label: "Saque",
+    icon: ArrowDown
+  }, {
+    path: "/simple-usdt-payment",
+    label: "USDT",
+    icon: Coins
+  }, {
+    path: "/referrals",
+    label: "Indicações",
+    icon: TrendingUp
+  }, {
+    path: "/investments",
+    label: "Investimentos",
+    icon: PiggyBank
+  }, {
+    path: "/history",
+    label: "Histórico",
+    icon: History
+  }, {
+    path: "/settings",
+    label: "Configurações",
+    icon: Settings
+  }];
 
   // Adicionar item de sócio se o usuário for sócio
-  const navItemsWithPartner = profile?.role === 'partner' 
-    ? [...baseNavItems.slice(0, -1), { path: "/partners", label: "Sócio", icon: Crown }, baseNavItems[baseNavItems.length - 1]]
-    : baseNavItems;
+  const navItemsWithPartner = profile?.role === 'partner' ? [...baseNavItems.slice(0, -1), {
+    path: "/partners",
+    label: "Sócio",
+    icon: Crown
+  }, baseNavItems[baseNavItems.length - 1]] : baseNavItems;
 
   // Add admin item only for administrators
-  const navItems = isAdmin 
-    ? [...navItemsWithPartner.slice(0, -1), { path: "/admin", label: "Admin", icon: Shield }, navItemsWithPartner[navItemsWithPartner.length - 1]]
-    : navItemsWithPartner;
-
+  const navItems = isAdmin ? [...navItemsWithPartner.slice(0, -1), {
+    path: "/admin",
+    label: "Admin",
+    icon: Shield
+  }, navItemsWithPartner[navItemsWithPartner.length - 1]] : navItemsWithPartner;
   const handleLogout = async () => {
     await signOut();
     navigate("/login");
   };
-
   const isActive = (path: string) => location.pathname === path;
-
-  return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+  return <nav className="bg-card border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 bg-slate-950">
         <div className="flex justify-between h-14 sm:h-16">
           <div className="flex items-center">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-yellow-500" />
-              <span className="text-base sm:text-lg lg:text-2xl font-bold text-yellow-500">Alphabit</span>
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
+              <span className="text-base sm:text-lg lg:text-2xl font-bold text-primary">Alphabit</span>
               <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs">
                 v1.0
               </Badge>
@@ -75,33 +81,18 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(item.path)
-                      ? "text-yellow-600 bg-yellow-50 border border-yellow-200"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  }`}
-                >
+            {navItems.map(item => {
+            const Icon = item.icon;
+            return <Link key={item.path} to={item.path} className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.path) ? "text-primary bg-primary/10 border border-primary/20" : "text-muted-foreground hover:text-card-foreground hover:bg-secondary/50"}`}>
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                </Link>
-              );
-            })}
+                </Link>;
+          })}
           </div>
 
           {/* Right Side */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="sm"
-              className="text-gray-600 hover:text-red-600"
-            >
+            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden xl:inline">Sair</span>
             </Button>
@@ -109,12 +100,7 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="text-card-foreground">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
@@ -122,45 +108,26 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="lg:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200 max-h-screen overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${
-                    isActive(item.path)
-                      ? "text-yellow-600 bg-yellow-50"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  }`}
-                >
+      {isOpen && <div className="lg:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border max-h-screen overflow-y-auto">
+            {navItems.map(item => {
+          const Icon = item.icon;
+          return <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${isActive(item.path) ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-card-foreground hover:bg-secondary"}`}>
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
-                </Link>
-              );
-            })}
-            <div className="border-t border-gray-200 pt-3 mt-3">
-              <Button
-                onClick={() => {
-                  handleLogout();
-                  setIsOpen(false);
-                }}
-                variant="ghost"
-                className="w-full justify-start text-gray-600 hover:text-red-600 px-3 py-3"
-              >
+                </Link>;
+        })}
+            <div className="border-t border-border pt-3 mt-3">
+              <Button onClick={() => {
+            handleLogout();
+            setIsOpen(false);
+          }} variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive px-3 py-3">
                 <LogOut className="h-5 w-5 mr-3" />
                 Sair
               </Button>
             </div>
           </div>
-        </div>
-      )}
-    </nav>
-  );
+        </div>}
+    </nav>;
 };
-
 export default Navbar;
