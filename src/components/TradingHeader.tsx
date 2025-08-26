@@ -40,7 +40,7 @@ export const TradingHeader = () => {
             <h1 className="text-xl font-bold text-white">Trading Dashboard</h1>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Dados Reais Sincronizados</span>
+              <span>Sistema Online</span>
             </div>
             </div>
           </div>
@@ -99,7 +99,7 @@ export const TradingHeader = () => {
           {/* Live Indicator */}
           <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full border border-green-500/30">
             <Zap className="h-4 w-4 text-green-400" />
-            <span className="text-green-400 text-sm font-medium">DADOS REAIS</span>
+            <span className="text-green-400 text-sm font-medium">AO VIVO</span>
           </div>
         </div>
       </div>

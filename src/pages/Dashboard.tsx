@@ -984,10 +984,10 @@ const Dashboard = () => {
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     <span className="text-green-400 font-mono">Market Open</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span className="text-blue-400 font-mono">Live Data</span>
-                  </div>
+                   <div className="flex items-center space-x-1">
+                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                     <span className="text-blue-400 font-mono">Trading Ativo</span>
+                   </div>
                 </div>
                 
                 {/* Real-time Price Tag */}
