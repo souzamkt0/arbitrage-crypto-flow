@@ -68,7 +68,7 @@ const Navbar = () => {
   return <nav className="bg-card border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 bg-slate-950">
         <div className="flex justify-between h-14 sm:h-16">
-          <div className="flex items-center">
+          <div className="flex items-center text-yellow-400">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
