@@ -59,14 +59,14 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-card border-b border-border sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex justify-between h-14 sm:h-16">
           <div className="flex items-center">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
-              <span className="text-base sm:text-lg lg:text-2xl font-bold text-primary">Alphabit</span>
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-yellow-500" />
+              <span className="text-base sm:text-lg lg:text-2xl font-bold text-yellow-500">Alphabit</span>
               <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs">
                 v1.0
               </Badge>
@@ -83,8 +83,8 @@ const Navbar = () => {
                   to={item.path}
                   className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive(item.path)
-                      ? "text-primary bg-primary/10 border border-primary/20"
-                      : "text-muted-foreground hover:text-card-foreground hover:bg-secondary/50"
+                      ? "text-yellow-600 bg-yellow-50 border border-yellow-200"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -100,7 +100,7 @@ const Navbar = () => {
               onClick={handleLogout}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-destructive"
+              className="text-gray-600 hover:text-red-600"
             >
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden xl:inline">Sair</span>
@@ -113,7 +113,7 @@ const Navbar = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
-              className="text-card-foreground"
+              className="text-gray-700"
             >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -124,7 +124,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       {isOpen && (
         <div className="lg:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border max-h-screen overflow-y-auto">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200 max-h-screen overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -134,8 +134,8 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${
                     isActive(item.path)
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-card-foreground hover:bg-secondary"
+                      ? "text-yellow-600 bg-yellow-50"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -143,14 +143,14 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <div className="border-t border-border pt-3 mt-3">
+            <div className="border-t border-gray-200 pt-3 mt-3">
               <Button
                 onClick={() => {
                   handleLogout();
                   setIsOpen(false);
                 }}
                 variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-destructive px-3 py-3"
+                className="w-full justify-start text-gray-600 hover:text-red-600 px-3 py-3"
               >
                 <LogOut className="h-5 w-5 mr-3" />
                 Sair
