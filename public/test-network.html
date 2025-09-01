@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conectividade - AlphaBit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #FCD535;
+            text-align: center;
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FCD535;
+            margin-bottom: 20px;
+        }
+        .status {
+            background: rgba(2, 192, 118, 0.2);
+            border: 1px solid #02C076;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3B82F6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .warning {
+            background: rgba(252, 213, 53, 0.2);
+            border: 1px solid #FCD535;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">α AlphaBit</div>
+        
+        <div class="status">
+            ✅ <strong>Conectividade de Rede Funcionando!</strong>
+        </div>
+        
+        <div class="info">
+            <h3>📱 Informações de Acesso:</h3>
+            <p><strong>Local:</strong> http://localhost:8082/</p>
+            <p><strong>Rede:</strong> http://10.0.3.57:8082/</p>
+            <p><strong>Porta:</strong> 8082</p>
+            <p><strong>Status:</strong> Online</p>
+        </div>
+        
+        <div class="warning">
+            <h3>🔧 Se ainda não conseguir acessar:</h3>
+            <ol style="text-align: left;">
+                <li>Verifique se está na mesma rede WiFi</li>
+                <li>Tente acessar pelo IP: 10.0.3.57:8082</li>
+                <li>Desative temporariamente o firewall</li>
+                <li>Reinicie o roteador se necessário</li>
+            </ol>
+        </div>
+        
+        <div class="info">
+            <h3>📊 Teste de Conectividade:</h3>
+            <p>Este arquivo está sendo servido pelo Vite</p>
+            <p>Se você consegue ver esta página, a rede está funcionando!</p>
+        </div>
+    </div>
+    
+    <script>
+        // Teste de JavaScript
+        console.log('✅ JavaScript funcionando!');
+        console.log('🌐 Conectividade de rede OK');
+        console.log('📱 IP da rede: 10.0.3.57:8082');
+        
+        // Mostrar informações do navegador
+        document.addEventListener('DOMContentLoaded', function() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            const language = navigator.language;
+            
+            console.log('📱 User Agent:', userAgent);
+            console.log('💻 Platform:', platform);
+            console.log('🌍 Language:', language);
+        });
+    </script>
+</body>
+</html>
