@@ -65,15 +65,16 @@ const Navbar = () => {
     navigate("/login");
   };
   const isActive = (path: string) => location.pathname === path;
-  return <nav className="bg-card border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 bg-slate-950">
+  return (
+    <nav className="bg-menu-black border-b border-menu-yellow/20 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex justify-between h-14 sm:h-16">
-          <div className="flex items-center text-yellow-400">
+          <div className="flex items-center text-menu-yellow">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-primary" />
-              <span className="text-base sm:text-lg lg:text-2xl font-bold text-primary">Alphabit</span>
-              <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs">
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-menu-yellow" />
+              <span className="text-base sm:text-lg lg:text-2xl font-bold text-menu-yellow">Alphabit</span>
+              <Badge variant="secondary" className="hidden sm:inline-flex ml-2 text-xs bg-menu-yellow/20 text-menu-yellow border-menu-yellow/30">
                 v1.0
               </Badge>
             </Link>
@@ -82,17 +83,32 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2">
             {navItems.map(item => {
-            const Icon = item.icon;
-            return <Link key={item.path} to={item.path} className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.path) ? "text-primary bg-primary/10 border border-primary/20" : "text-muted-foreground hover:text-card-foreground hover:bg-secondary/50"}`}>
+              const Icon = item.icon;
+              return (
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(item.path) 
+                      ? "text-menu-yellow bg-menu-yellow/10 border border-menu-yellow/20" 
+                      : "text-menu-gray-light hover:text-menu-yellow hover:bg-menu-yellow/10"
+                  }`}
+                >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                </Link>;
-          })}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right Side */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+            <Button 
+              onClick={handleLogout} 
+              variant="ghost" 
+              size="sm" 
+              className="text-menu-gray-light hover:text-menu-yellow hover:bg-menu-yellow/10"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden xl:inline">Sair</span>
             </Button>
@@ -100,7 +116,12 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center">
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="text-card-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsOpen(!isOpen)} 
+              className="text-menu-yellow hover:bg-menu-yellow/10"
+            >
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
@@ -108,26 +129,44 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      {isOpen && <div className="lg:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border max-h-screen overflow-y-auto">
+      {isOpen && (
+        <div className="lg:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-menu-black border-t border-menu-yellow/20 max-h-screen overflow-y-auto">
             {navItems.map(item => {
-          const Icon = item.icon;
-          return <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${isActive(item.path) ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-card-foreground hover:bg-secondary"}`}>
+              const Icon = item.icon;
+              return (
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  onClick={() => setIsOpen(false)} 
+                  className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium transition-colors ${
+                    isActive(item.path) 
+                      ? "text-menu-yellow bg-menu-yellow/10" 
+                      : "text-menu-gray-light hover:text-menu-yellow hover:bg-menu-yellow/10"
+                  }`}
+                >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
-                </Link>;
-        })}
-            <div className="border-t border-border pt-3 mt-3">
-              <Button onClick={() => {
-            handleLogout();
-            setIsOpen(false);
-          }} variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive px-3 py-3">
+                </Link>
+              );
+            })}
+            <div className="border-t border-menu-yellow/20 pt-3 mt-3">
+              <Button 
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }} 
+                variant="ghost" 
+                className="w-full justify-start text-menu-gray-light hover:text-menu-yellow hover:bg-menu-yellow/10 px-3 py-3"
+              >
                 <LogOut className="h-5 w-5 mr-3" />
                 Sair
               </Button>
             </div>
           </div>
-        </div>}
-    </nav>;
+        </div>
+      )}
+    </nav>
+  );
 };
 export default Navbar;

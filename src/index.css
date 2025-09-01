@@ -82,7 +82,15 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
     --sidebar-border: 0 0% 25%;        /* #404040 */
     --sidebar-ring: 220 100% 50%;      /* #007BFF */
-}
+
+    /* Menu Theme - Black with Yellow accents */
+    --menu-yellow: 43 100% 50%;        /* #FCD535 - Amarelo principal do menu */
+    --menu-yellow-light: 43 100% 60%;  /* #FCD535 - Amarelo mais claro */
+    --menu-yellow-dark: 43 100% 40%;  /* #FCD535 - Amarelo mais escuro */
+    --menu-black: 0 0% 0%;             /* #000000 - Preto do menu */
+    --menu-gray: 0 0% 20%;             /* #333333 - Cinza do menu */
+    --menu-gray-light: 0 0% 30%;       /* #4D4D4D - Cinza mais claro */
+  }
 
 /* Trading Chart Animations - Binance Style */
 @keyframes drawLine {

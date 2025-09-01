@@ -76,6 +76,13 @@ export default {
 				'binance-black': 'hsl(var(--binance-black))',
 				'binance-dark-gray': 'hsl(var(--binance-dark-gray))',
 				'binance-gray': 'hsl(var(--binance-gray))',
+				// Menu Theme Colors
+				'menu-yellow': 'hsl(var(--menu-yellow))',
+				'menu-yellow-light': 'hsl(var(--menu-yellow-light))',
+				'menu-yellow-dark': 'hsl(var(--menu-yellow-dark))',
+				'menu-black': 'hsl(var(--menu-black))',
+				'menu-gray': 'hsl(var(--menu-gray))',
+				'menu-gray-light': 'hsl(var(--menu-gray-light))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
