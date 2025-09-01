@@ -78,6 +78,12 @@ const TwitterPost = ({
   canEdit = false,
   canDelete = false
 }: TwitterPostProps) => {
+  // Hooks devem vir ANTES de qualquer lógica condicional
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyContent, setReplyContent] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+
   // Validação de segurança para o post
   if (!post || !post.id || !post.author) {
     return (
@@ -99,12 +105,12 @@ const TwitterPost = ({
     avatar: post.author.avatar || '',
     verified: post.author.verified || false,
     level: post.author.level || 1,
-    badge: post.author.badge || 'Iniciante'
+    badge: post.author.badge || ''
   };
 
-  // Garantir que os dados numéricos sejam válidos
+  // Garantir que o post tenha dados válidos
   const safePost = {
-    ...post,
+    id: post.id,
     author: safeAuthor,
     content: post.content || '',
     timestamp: post.timestamp || 'agora',
@@ -115,10 +121,11 @@ const TwitterPost = ({
     liked: post.liked || false,
     retweeted: post.retweeted || false
   };
-  const [showReplyBox, setShowReplyBox] = useState(false);
-  const [replyContent, setReplyContent] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(safePost.content);
+
+  // Atualizar editContent quando safePost.content mudar
+  if (editContent !== safePost.content && !isEditing) {
+    setEditContent(safePost.content);
+  }
 
   const handleLike = () => {
     onLike(safePost.id);

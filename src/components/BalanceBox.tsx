@@ -84,7 +84,7 @@ export const BalanceBox: React.FC<BalanceBoxProps> = ({ onRefresh }) => {
     const interval = setInterval(loadBalanceData, 30000);
     
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, loadBalanceData]);
 
   const handleRefresh = async () => {
     await loadBalanceData();

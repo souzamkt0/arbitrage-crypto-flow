@@ -44,7 +44,7 @@ serve(async (req) => {
     )
 
     // Buscar ou criar o usuário admin diretamente na tabela profiles
-    let { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .eq('email', email)

@@ -3,17 +3,57 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 // import { useToast } from '@/hooks/use-toast'; // Temporarily disabled for debugging
 
+// Tipos específicos para o perfil do usuário
+interface UserProfile {
+  id: string;
+  user_id: string;
+  email: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  cpf?: string;
+  whatsapp?: string;
+  profile_completed: boolean;
+  referral_code?: string;
+  referred_by?: string;
+  role: 'user' | 'admin' | 'partner';
+  balance: number;
+  total_profit: number;
+  status: 'active' | 'inactive' | 'suspended';
+  created_at: string;
+  updated_at: string;
+}
+
+// Tipos para dados de usuário no cadastro
+interface UserData {
+  email: string;
+  password: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  cpf?: string;
+  whatsapp?: string;
+  referral_code?: string;
+}
+
+// Tipos para erros
+interface AuthError {
+  message: string;
+  status?: number;
+  details?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  profile: any | null;
+  profile: UserProfile | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: any }>;
-  signUp: (email: string, password: string, userData: any) => Promise<{ error?: any }>;
+  signIn: (email: string, password: string) => Promise<{ error?: AuthError }>;
+  signUp: (email: string, password: string, userData: UserData) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isImpersonating: boolean;
-  impersonatedUser: any | null;
+  impersonatedUser: UserProfile | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,10 +61,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isImpersonating, setIsImpersonating] = useState(false);
-  const [impersonatedUser, setImpersonatedUser] = useState<any | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<UserProfile | null>(null);
 
   const isAdmin = user?.email === 'admin@clean.com' || user?.email === 'souzamkt0@gmail.com' || profile?.role === 'admin';
 
@@ -106,9 +146,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.warn('⚠️ Erro ao buscar perfil completo:', profileError);
                 // Fallback para perfil básico
                 setProfile({ 
+                  id: session.user.id,
+                  user_id: session.user.id,
+                  email: session.user.email || '',
+                  profile_completed: false,
                   role: (session.user.email === 'admin@clean.com' || session.user.email === 'souzamkt0@gmail.com') ? 'admin' : 'user', 
-                  email: session.user.email,
-                  user_id: session.user.id
+                  balance: 0,
+                  total_profit: 0,
+                  status: 'active',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
                 });
               } else {
                 console.log('✅ Perfil completo carregado:', profileData);
@@ -144,9 +191,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               console.warn('⚠️ Erro ao buscar perfil completo na sessão existente:', profileError);
               // Fallback para perfil básico
               setProfile({ 
+                id: session.user.id,
+                user_id: session.user.id,
+                email: session.user.email || '',
+                profile_completed: false,
                 role: (session.user.email === 'admin@clean.com' || session.user.email === 'souzamkt0@gmail.com') ? 'admin' : 'user', 
-                email: session.user.email,
-                user_id: session.user.id
+                balance: 0,
+                total_profit: 0,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
               });
             } else {
               console.log('✅ Perfil completo carregado na sessão existente:', profileData);
@@ -264,7 +318,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, userData: any) => {
+  const signUp = async (email: string, password: string, userData: UserData) => {
     try {
       console.log('🔄 Iniciando cadastro...', { email, userData });
       
@@ -274,12 +328,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
         options: {
           data: {
-            first_name: userData.firstName,
-            last_name: userData.lastName,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
             username: userData.username,
             cpf: userData.cpf,
             whatsapp: userData.whatsapp,
-            referral_code: userData.referralCode || null
+            referral_code: userData.referral_code || null
           },
           emailRedirectTo: `${window.location.origin}/dashboard`
         }
@@ -311,12 +365,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const { data: profileResult, error: profileError } = await supabase.rpc('create_user_profile_manual', {
             user_id_param: data.user.id,
             email_param: data.user.email,
-            first_name_param: userData.firstName,
-            last_name_param: userData.lastName,
+            first_name_param: userData.first_name,
+            last_name_param: userData.last_name,
             username_param: userData.username,
             cpf_param: userData.cpf,
             whatsapp_param: userData.whatsapp,
-            referral_code_param: userData.referralCode || null
+            referral_code_param: userData.referral_code || null
           });
 
           if (profileError) {

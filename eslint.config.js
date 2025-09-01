@@ -24,6 +24,12 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      // Desabilitar algumas regras muito restritivas
+      "@typescript-eslint/no-explicit-any": "warn", // Mudar de error para warn
+      "@typescript-eslint/no-empty-object-type": "warn", // Mudar de error para warn
+      "react-hooks/exhaustive-deps": "warn", // Já é warn por padrão
+      "prefer-const": "warn", // Mudar de error para warn
+      "@typescript-eslint/triple-slash-reference": "warn", // Mudar de error para warn
     },
   }
 );

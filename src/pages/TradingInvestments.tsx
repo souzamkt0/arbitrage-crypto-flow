@@ -49,30 +49,57 @@ interface UserInvestment {
 const TradingInvestments = () => {
   console.log('🔍 TradingInvestments: Componente iniciando...');
 
+  // Hooks devem vir ANTES de qualquer lógica condicional
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  // State Management
+  const [plans, setPlans] = useState<InvestmentPlan[]>([]);
+  const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
+  const [selectedAmount, setSelectedAmount] = useState<string>("");
+  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
+  const [userReferrals, setUserReferrals] = useState<number>(0);
+  const [showInvestDialog, setShowInvestDialog] = useState(false);
+  const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
+  const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
+  const [showArbitrageModal, setShowArbitrageModal] = useState(false);
+  const [currentArbitrage, setCurrentArbitrage] = useState<{
+    investment: UserInvestment | null;
+    progress: number;
+    currentProfit: number;
+    finalProfit: number;
+    stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
+    pair: string;
+    exchanges: string[];
+    buyPrice: number;
+    sellPrice: number;
+    chartData: Array<{
+      time: string;
+      price: number;
+      exchange: string;
+      volume: number;
+    }>;
+    operationStartTime: number;
+  }>({
+    investment: null,
+    progress: 0,
+    currentProfit: 0,
+    finalProfit: 0,
+    stage: 'analyzing',
+    pair: '',
+    exchanges: [],
+    buyPrice: 0,
+    sellPrice: 0,
+    chartData: [],
+    operationStartTime: 0
+  });
+
   // Error boundary básico
   try {
-    const {
-      user
-    } = useAuth();
-    const {
-      toast
-    } = useToast();
-    const navigate = useNavigate();
-    const isMobile = useIsMobile();
-
-    // State Management
-    const [plans, setPlans] = useState<InvestmentPlan[]>([]);
-    const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
-    const [selectedAmount, setSelectedAmount] = useState<string>("");
-    const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
-    const [userReferrals, setUserReferrals] = useState<number>(0);
-    const [showInvestDialog, setShowInvestDialog] = useState(false);
-    const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
-    const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
-    const [showArbitrageModal, setShowArbitrageModal] = useState(false);
-
     // Função para verificar requisitos de cada plano
     const getRequirementMessage = (planName: string) => {
       if (planName.includes('4.0.0')) {
@@ -86,70 +113,6 @@ const TradingInvestments = () => {
       }
     };
 
-    // Função para verificar se pode acessar o plano
-    const checkPlanRequirements = async (planId: string, userId: string) => {
-      switch (planId) {
-        case '1':
-          // Robô 4.0 - sempre pode acessar
-          return true;
-        case '2':
-          // Robô 4.0.5 - precisa de 10 pessoas ativas no plano 1
-          return await checkActiveReferralsInPlan(userId, '1', 10);
-        case '3':
-          // Robô 4.1.0 - precisa de 40 pessoas ativas no plano 2
-          return await checkActiveReferralsInPlan(userId, '2', 40);
-        default:
-          return true;
-      }
-    };
-
-    // Função para verificar indicações ativas em um plano específico
-    const checkActiveReferralsInPlan = async (userId: string, planId: string, requiredCount: number) => {
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('referrals').select(`
-          referred_id,
-          user_investments!inner(*)
-        `).eq('referrer_id', userId).eq('status', 'active').eq('user_investments.investment_plan_id', planId).eq('user_investments.status', 'active');
-        if (error) throw error;
-        return (data?.length || 0) >= requiredCount;
-      } catch (error) {
-        console.error('Erro ao verificar indicações ativas:', error);
-        return false;
-      }
-    };
-    const [currentArbitrage, setCurrentArbitrage] = useState<{
-      investment: UserInvestment | null;
-      progress: number;
-      currentProfit: number;
-      finalProfit: number;
-      stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
-      pair: string;
-      exchanges: string[];
-      buyPrice: number;
-      sellPrice: number;
-      chartData: Array<{
-        time: string;
-        price: number;
-        exchange: string;
-        volume: number;
-      }>;
-      operationStartTime: number;
-    }>({
-      investment: null,
-      progress: 0,
-      currentProfit: 0,
-      finalProfit: 0,
-      stage: 'analyzing',
-      pair: '',
-      exchanges: [],
-      buyPrice: 0,
-      sellPrice: 0,
-      chartData: [],
-      operationStartTime: 0
-    });
     useEffect(() => {
       console.log('🔍 TradingInvestments useEffect: user =', user);
       if (user) {
