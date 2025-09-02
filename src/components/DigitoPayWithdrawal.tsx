@@ -276,29 +276,29 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-6 text-center">
-        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 px-6 py-3 rounded-xl backdrop-blur-sm animate-fade-in">
-          <div className="p-2 bg-blue-500 rounded-lg animate-pulse">
-            <ArrowUpRight className="h-5 w-5 text-white" />
+    <div className="w-full">
+      {/* Header - Tema amarelo/preto */}
+      <div className="mb-4 sm:mb-6 text-center">
+        <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 px-4 sm:px-6 py-2 sm:py-3 rounded-xl backdrop-blur-sm">
+          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg animate-pulse">
+            <ArrowUpRight className="h-4 w-4 sm:h-5 sm:w-5 text-black" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-blue-400">Sistema de Saque Especializado</h2>
-            <p className="text-sm text-blue-300">Escolha o tipo de saque desejado</p>
+            <h2 className="text-base sm:text-lg font-bold text-yellow-400">Sistema de Saque Especializado</h2>
+            <p className="text-xs sm:text-sm text-yellow-300/70">Escolha o tipo de saque desejado</p>
           </div>
         </div>
       </div>
 
-      {/* Aviso de limite diário */}
+      {/* Aviso de limite diário - Tema amarelo/preto */}
       {!canWithdraw && (
-        <Card className="mb-6 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0" />
+        <Card className="mb-4 sm:mb-6 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 flex-shrink-0" />
               <div>
-                <p className="text-orange-300 font-medium">Limite Diário Atingido</p>
-                <p className="text-orange-200 text-sm">
+                <p className="text-yellow-400 font-medium text-sm sm:text-base">Limite Diário Atingido</p>
+                <p className="text-yellow-300/70 text-xs sm:text-sm">
                   Você já realizou um saque hoje. Próximo saque disponível em 24 horas.
                 </p>
               </div>
@@ -307,78 +307,78 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
         </Card>
       )}
 
-      {/* Seleção do Tipo de Saque */}
+      {/* Seleção do Tipo de Saque - Tema amarelo/preto */}
       {!selectedType && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {/* Saque Residual */}
-          <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 cursor-pointer group"
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 cursor-pointer group"
                 onClick={() => !canWithdraw ? null : setSelectedType('residual')}>
-            <CardContent className="p-6 text-center">
-              <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg mx-auto mb-4 w-fit group-hover:scale-110 transition-transform">
-                <PiggyBank className="h-8 w-8 text-white" />
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="p-3 sm:p-4 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg mx-auto mb-3 sm:mb-4 w-fit group-hover:scale-110 transition-transform">
+                <PiggyBank className="h-6 w-6 sm:h-8 sm:w-8 text-black" />
               </div>
-              <h3 className="text-lg font-bold text-purple-300 mb-2">Saldo Residual</h3>
-              <p className="text-purple-200 text-sm mb-4">Ganhos acumulados do sistema</p>
-              <div className="text-2xl font-bold text-purple-100">
+              <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-1 sm:mb-2">Saldo Residual</h3>
+              <p className="text-yellow-300/70 text-xs sm:text-sm mb-2 sm:mb-4">Ganhos acumulados do sistema</p>
+              <div className="text-lg sm:text-2xl font-bold text-yellow-200">
                 ${residualBalance.toFixed(2)}
               </div>
-              <p className="text-purple-400 text-xs mt-2">USD disponível</p>
-              {!canWithdraw && <div className="mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
+              <p className="text-yellow-300/50 text-xs mt-1 sm:mt-2">USD disponível</p>
+              {!canWithdraw && <div className="mt-2 sm:mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
             </CardContent>
           </Card>
 
           {/* Saque de Indicação */}
-          <Card className="bg-gradient-to-br from-green-500/5 to-emerald-500/5 border border-green-500/20 hover:border-green-400/40 transition-all duration-300 cursor-pointer group"
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 cursor-pointer group"
                 onClick={() => !canWithdraw ? null : setSelectedType('referral')}>
-            <CardContent className="p-6 text-center">
-              <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg mx-auto mb-4 w-fit group-hover:scale-110 transition-transform">
-                <Users className="h-8 w-8 text-white" />
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="p-3 sm:p-4 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg mx-auto mb-3 sm:mb-4 w-fit group-hover:scale-110 transition-transform">
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-black" />
               </div>
-              <h3 className="text-lg font-bold text-green-300 mb-2">Saldo de Indicação</h3>
-              <p className="text-green-200 text-sm mb-4">Comissões por referrals</p>
-              <div className="text-2xl font-bold text-green-100">
+              <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-1 sm:mb-2">Saldo de Indicação</h3>
+              <p className="text-yellow-300/70 text-xs sm:text-sm mb-2 sm:mb-4">Comissões por referrals</p>
+              <div className="text-lg sm:text-2xl font-bold text-yellow-200">
                 ${referralBalance.toFixed(2)}
               </div>
-              <p className="text-green-400 text-xs mt-2">USD disponível</p>
-              {!canWithdraw && <div className="mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
+              <p className="text-yellow-300/50 text-xs mt-1 sm:mt-2">USD disponível</p>
+              {!canWithdraw && <div className="mt-2 sm:mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
             </CardContent>
           </Card>
 
           {/* Saque de Rentabilidade */}
-          <Card className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 cursor-pointer group"
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 cursor-pointer group"
                 onClick={() => !canWithdraw ? null : setSelectedType('profit')}>
-            <CardContent className="p-6 text-center">
-              <div className="p-4 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg mx-auto mb-4 w-fit group-hover:scale-110 transition-transform">
-                <Target className="h-8 w-8 text-white" />
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="p-3 sm:p-4 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg mx-auto mb-3 sm:mb-4 w-fit group-hover:scale-110 transition-transform">
+                <Target className="h-6 w-6 sm:h-8 sm:w-8 text-black" />
               </div>
-              <h3 className="text-lg font-bold text-blue-300 mb-2">Saldo de Rentabilidade</h3>
-              <p className="text-blue-200 text-sm mb-4">Lucros dos investimentos</p>
-              <div className="text-2xl font-bold text-blue-100">
+              <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-1 sm:mb-2">Saldo de Rentabilidade</h3>
+              <p className="text-yellow-300/70 text-xs sm:text-sm mb-2 sm:mb-4">Lucros dos investimentos</p>
+              <div className="text-lg sm:text-2xl font-bold text-yellow-200">
                 ${profitBalance.toFixed(2)}
               </div>
-              <p className="text-blue-400 text-xs mt-2">USD disponível</p>
-              {!canWithdraw && <div className="mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
+              <p className="text-yellow-300/50 text-xs mt-1 sm:mt-2">USD disponível</p>
+              {!canWithdraw && <div className="mt-2 sm:mt-3 text-xs text-orange-400 font-medium">Bloqueado por 24h</div>}
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Formulário de Saque */}
+      {/* Formulário de Saque - Tema amarelo/preto */}
       {selectedType && canWithdraw && (
-        <Card className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/20 backdrop-blur-sm animate-fade-in">
-          <CardHeader className="border-b border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+        <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 backdrop-blur-sm">
+          <CardHeader className="border-b border-yellow-500/20 bg-gradient-to-r from-yellow-500/10 to-amber-500/10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg">
                   {React.createElement(getWithdrawalTypeIcon(selectedType), {
-                    className: "h-5 w-5 text-white"
+                    className: "h-4 w-4 sm:h-5 sm:w-5 text-black"
                   })}
                 </div>
                 <div>
-                  <CardTitle className="text-blue-100">
+                  <CardTitle className="text-yellow-400 text-base sm:text-lg">
                     Saque: {getWithdrawalTypeLabel(selectedType)}
                   </CardTitle>
-                  <CardDescription className="text-blue-300">
+                  <CardDescription className="text-yellow-300/70 text-xs sm:text-sm">
                     Conversão automática USD → BRL
                   </CardDescription>
                 </div>
@@ -388,13 +388,13 @@ export const DigitoPayWithdrawal: React.FC<DigitoPayWithdrawalProps> = ({ onSucc
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setSelectedType(null)}
-                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                  className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20"
                 >
                   Voltar
                 </Button>
                 <div className="text-right">
-                  <div className="text-xs text-blue-400">Saldo Disponível</div>
-                  <div className="text-lg font-bold text-blue-100">
+                  <div className="text-xs text-yellow-300/70">Saldo Disponível</div>
+                  <div className="text-base sm:text-lg font-bold text-yellow-400">
                     ${getAvailableBalance().toFixed(2)} USD
                   </div>
                 </div>

@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ReferralSystem from "@/components/ReferralSystem";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  Settings as SettingsIcon, 
-  Save, 
   User,
   Lock,
   Users,
@@ -22,7 +19,17 @@ import {
   MapPin,
   Shield,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  Award,
+  Info,
+  HelpCircle,
+  BookOpen,
+  FileText,
+  CheckCircle,
+  Edit
 } from "lucide-react";
 import {
   AlertDialog,
@@ -45,13 +52,45 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [referralCount, setReferralCount] = useState(0);
+  const [activeInvestments, setActiveInvestments] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
 
-  const handleSave = () => {
-    toast({
-      title: "Configurações salvas!",
-      description: "Suas preferências foram atualizadas com sucesso.",
-    });
-  };
+  // Carregar estatísticas do usuário
+  useEffect(() => {
+    const loadUserStats = async () => {
+      if (!user) return;
+
+      try {
+        // Contar indicações
+        const { count: refCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('referred_by', profile?.referral_code);
+        
+        setReferralCount(refCount || 0);
+
+        // Contar investimentos ativos
+        const { data: investments } = await supabase
+          .from('user_investments')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active');
+        
+        setActiveInvestments(investments?.length || 0);
+
+        // Calcular ganhos totais
+        const total = (profile?.balance || 0) + (profile?.total_profit || 0) + (profile?.referral_balance || 0);
+        setTotalEarnings(total);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      }
+    };
+
+    loadUserStats();
+  }, [user, profile]);
+
+  const isAdmin = profile?.role === 'admin';
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -178,217 +217,320 @@ const Settings = () => {
 
   // Usar dados reais do usuário autenticado
   const userInfo = {
-    name: profile?.display_name || profile?.first_name || "Usuário",
+    name: profile?.display_name || profile?.first_name || profile?.username || "Usuário",
     email: user?.email || profile?.email || "email@exemplo.com",
     phone: profile?.whatsapp || "Não informado",
+    cpf: profile?.cpf || "Não informado",
     joinDate: profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-BR') : "Não informado",
-    location: profile?.location || "Não informado",
-    referrals: 0, // Implementar contagem de indicações
-    activePlans: 0, // Implementar contagem de planos ativos
-    communityRank: profile?.role === 'admin' ? 'Admin' : profile?.role === 'partner' ? 'Partner' : 'User',
-    totalEarnings: profile?.total_profit || 0
+    referralCode: profile?.referral_code || "Não disponível",
+    referrals: referralCount,
+    activePlans: activeInvestments,
+    communityRank: profile?.role === 'admin' ? 'Administrador' : profile?.role === 'partner' ? 'Sócio' : 'Membro',
+    totalEarnings: totalEarnings,
+    balance: profile?.balance || 0,
+    profitBalance: profile?.total_profit || 0,
+    referralBalance: profile?.referral_balance || 0,
+    status: profile?.status || 'active'
   };
 
   return (
-    <div className="min-h-screen bg-background p-3 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center">
-              <SettingsIcon className="h-6 w-6 md:h-8 md:w-8 mr-3 text-primary" />
-              Configurações do Bot
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground">Configure os parâmetros de arbitragem</p>
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black p-2 sm:p-4">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header - Tema amarelo/preto */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 px-6 py-3 rounded-xl backdrop-blur-sm">
+            <User className="h-6 w-6 text-yellow-400" />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Meu Perfil</h1>
+              <p className="text-xs sm:text-sm text-yellow-300/70">Informações da conta e configurações</p>
+            </div>
           </div>
-          
-          <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
-            <Save className="h-4 w-4 mr-2" />
-            Salvar Configurações
-          </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
-          {/* Referral System */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-card-foreground">Sistema de Indicações</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ReferralSystem />
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Profile Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Perfil
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+        {/* Profile Overview Card - Tema amarelo/preto */}
+        <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center">
+                  <User className="h-8 w-8 sm:h-10 sm:w-10 text-black" />
+                </div>
                 <div>
-                  <p className="font-medium">Editar Perfil</p>
-                  <p className="text-sm text-muted-foreground">
-                    Altere suas informações pessoais, foto e biografia
-                  </p>
+                  <CardTitle className="text-xl sm:text-2xl text-yellow-400">{userInfo.name}</CardTitle>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                      {userInfo.communityRank}
+                    </Badge>
+                    <Badge className={`${userInfo.status === 'active' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                      {userInfo.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
                 </div>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate('/edit-profile')}
-                >
-                  Editar
-                </Button>
               </div>
-            </CardContent>
-          </Card>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/edit-profile')}
+                className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Perfil
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Saldo Total */}
+              <div className="bg-zinc-900/60 rounded-lg p-3 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-yellow-400" />
+                  <p className="text-xs text-yellow-300/70">Saldo Total</p>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-yellow-400">
+                  ${userInfo.totalEarnings.toFixed(2)}
+                </p>
+              </div>
 
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              {/* Indicações */}
+              <div className="bg-zinc-900/60 rounded-lg p-3 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-4 w-4 text-yellow-400" />
+                  <p className="text-xs text-yellow-300/70">Indicações</p>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-yellow-400">
+                  {userInfo.referrals}
+                </p>
+              </div>
+
+              {/* Investimentos */}
+              <div className="bg-zinc-900/60 rounded-lg p-3 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-yellow-400" />
+                  <p className="text-xs text-yellow-300/70">Investimentos</p>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-yellow-400">
+                  {userInfo.activePlans}
+                </p>
+              </div>
+
+              {/* Membro Desde */}
+              <div className="bg-zinc-900/60 rounded-lg p-3 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-yellow-400" />
+                  <p className="text-xs text-yellow-300/70">Membro Desde</p>
+                </div>
+                <p className="text-sm sm:text-base font-medium text-yellow-400">
+                  {userInfo.joinDate}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Informações Pessoais */}
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
+            <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+              <CardTitle className="flex items-center gap-2 text-yellow-400">
                 <Shield className="h-5 w-5" />
-                Informações da Conta
+                Informações Pessoais
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{userInfo.email}</p>
-                    <p className="text-xs text-muted-foreground">Email</p>
+                  <Mail className="h-4 w-4 text-yellow-400" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-yellow-200">{userInfo.email}</p>
+                    <p className="text-xs text-yellow-300/50">Email</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{userInfo.phone}</p>
-                    <p className="text-xs text-muted-foreground">Telefone</p>
+                  <Phone className="h-4 w-4 text-yellow-400" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-yellow-200">{userInfo.phone}</p>
+                    <p className="text-xs text-yellow-300/50">WhatsApp</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{userInfo.joinDate}</p>
-                    <p className="text-xs text-muted-foreground">Membro desde</p>
+                  <FileText className="h-4 w-4 text-yellow-400" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-yellow-200">{userInfo.cpf}</p>
+                    <p className="text-xs text-yellow-300/50">CPF</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{userInfo.location}</p>
-                    <p className="text-xs text-muted-foreground">Localização</p>
+                  <Award className="h-4 w-4 text-yellow-400" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-yellow-200">{userInfo.referralCode}</p>
+                    <p className="text-xs text-yellow-300/50">Código de Indicação</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Referral Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Estatísticas de Indicações
+          {/* Detalhes de Saldos */}
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
+            <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+              <CardTitle className="flex items-center gap-2 text-yellow-400">
+                <DollarSign className="h-5 w-5" />
+                Detalhes Financeiros
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-primary/10 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">{userInfo.referrals}</p>
-                  <p className="text-sm text-muted-foreground">Indicados</p>
-                </div>
-                <div className="text-center p-3 bg-green-500/10 rounded-lg">
-                  <p className="text-2xl font-bold text-green-500">R$ {userInfo.totalEarnings.toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Ganhos Totais</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Plans */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                Planos Ativos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-4">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Planos Ativos</p>
-                    <p className="text-sm text-muted-foreground">
-                      {userInfo.activePlans} planos ativos
-                    </p>
+                <div className="p-3 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-yellow-300/70">Saldo Principal</span>
+                    <Activity className="h-3 w-3 text-yellow-400" />
                   </div>
-                  <Badge variant="secondary">{userInfo.communityRank}</Badge>
+                  <p className="text-lg font-bold text-yellow-400">${userInfo.balance.toFixed(2)}</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Plano Premium</span>
-                    <Badge variant="outline">Ativo</Badge>
+                <div className="p-3 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-yellow-300/70">Lucros Acumulados</span>
+                    <TrendingUp className="h-3 w-3 text-green-400" />
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Plano VIP</span>
-                    <Badge variant="outline">Ativo</Badge>
+                  <p className="text-lg font-bold text-green-400">${userInfo.profitBalance.toFixed(2)}</p>
+                </div>
+                
+                <div className="p-3 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-yellow-300/70">Saldo de Indicações</span>
+                    <Users className="h-3 w-3 text-blue-400" />
                   </div>
+                  <p className="text-lg font-bold text-blue-400">${userInfo.referralBalance.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Password Change */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Trocar Senha
+        {/* Como Funciona o Sistema */}
+        <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
+          <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+            <CardTitle className="flex items-center gap-2 text-yellow-400">
+              <Info className="h-5 w-5" />
+              Como Funciona o Sistema
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Passo 1 */}
+              <div className="bg-zinc-900/60 rounded-lg p-4 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <span className="text-black font-bold">1</span>
+                  </div>
+                  <h4 className="font-semibold text-yellow-400">Faça um Depósito</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  Deposite via PIX e seu saldo será creditado automaticamente para começar a investir.
+                </p>
+              </div>
+
+              {/* Passo 2 */}
+              <div className="bg-zinc-900/60 rounded-lg p-4 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <span className="text-black font-bold">2</span>
+                  </div>
+                  <h4 className="font-semibold text-yellow-400">Escolha um Plano</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  Selecione entre nossos planos de investimento com diferentes rentabilidades.
+                </p>
+              </div>
+
+              {/* Passo 3 */}
+              <div className="bg-zinc-900/60 rounded-lg p-4 border border-yellow-500/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <span className="text-black font-bold">3</span>
+                  </div>
+                  <h4 className="font-semibold text-yellow-400">Receba Lucros</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  Acompanhe seus rendimentos diários e faça saques quando desejar.
+                </p>
+              </div>
+            </div>
+
+            {/* Benefícios */}
+            <div className="mt-6 p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/25">
+              <h4 className="font-semibold text-yellow-400 mb-3 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Benefícios do Sistema
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-yellow-300/70">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <span>Rendimentos diários automáticos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <span>Sistema de indicações com bônus</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <span>Saques rápidos via PIX</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <span>Suporte 24/7</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Alterar Senha */}
+        <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
+          <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+            <CardTitle className="flex items-center gap-2 text-yellow-400">
+              <Lock className="h-5 w-5" />
+              Segurança da Conta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Senha Atual</Label>
+                <Label htmlFor="current-password" className="text-yellow-400 text-sm">Senha Atual</Label>
                 <Input
                   id="current-password"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Digite sua senha atual"
+                  className="bg-zinc-900/70 border-yellow-500/30 text-yellow-100 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="new-password">Nova Senha</Label>
+                <Label htmlFor="new-password" className="text-yellow-400 text-sm">Nova Senha</Label>
                 <Input
                   id="new-password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Digite a nova senha"
+                  className="bg-zinc-900/70 border-yellow-500/30 text-yellow-100 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                <Label htmlFor="confirm-password" className="text-yellow-400 text-sm">Confirmar Senha</Label>
                 <Input
                   id="confirm-password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirme a nova senha"
+                  className="bg-zinc-900/70 border-yellow-500/30 text-yellow-100 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
                 />
               </div>
             </div>
@@ -397,7 +539,7 @@ const Settings = () => {
               <Button 
                 onClick={handlePasswordChange} 
                 disabled={isChangingPassword}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-semibold border border-yellow-500/30"
               >
                 <Lock className="h-4 w-4 mr-2" />
                 {isChangingPassword ? "Alterando..." : "Alterar Senha"}
@@ -406,68 +548,93 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Danger Zone */}
-        <Card className="border-red-200 bg-red-50/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
-              <AlertTriangle className="h-5 w-5" />
-              Zona de Perigo
+        {/* Zona de Perigo - Apenas para Admin */}
+        {isAdmin && (
+          <Card className="bg-gradient-to-br from-red-900/20 to-black/90 border-red-500/30">
+            <CardHeader className="bg-gradient-to-r from-red-500/10 to-red-600/10 border-b border-red-500/20">
+              <CardTitle className="flex items-center gap-2 text-red-400">
+                <AlertTriangle className="h-5 w-5" />
+                Zona de Perigo (Admin)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="font-medium text-red-400">Excluir Conta</p>
+                  <p className="text-sm text-red-300/70">
+                    Esta ação é irreversível. Todos os dados serão permanentemente removidos.
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      disabled={isDeletingAccount}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {isDeletingAccount ? "Excluindo..." : "Excluir Conta"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-zinc-900 border-red-500/30">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-red-400">Tem certeza absoluta?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-red-300/70">
+                        Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
+                        e removerá todos os seus dados de nossos servidores.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="border-red-500/30 text-red-400 hover:bg-red-500/20">
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Sim, excluir permanentemente
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* FAQ */}
+        <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
+          <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
+            <CardTitle className="flex items-center gap-2 text-yellow-400">
+              <HelpCircle className="h-5 w-5" />
+              Perguntas Frequentes
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-red-700">Excluir Conta</p>
-                <p className="text-sm text-red-600">
-                  Esta ação é irreversível. Todos os seus dados serão permanentemente removidos.
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-4">
+              <div className="p-4 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                <h4 className="font-semibold text-yellow-400 mb-2">Como faço para sacar meus lucros?</h4>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  Acesse a página de Saques, escolha entre PIX ou USDT e solicite seu saque. O processamento é feito em até 24h úteis.
                 </p>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={isDeletingAccount}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {isDeletingAccount ? "Excluindo..." : "Excluir Conta"}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
-                      e removerá todos os seus dados de nossos servidores, incluindo:
-                      <br /><br />
-                      • Perfil e informações pessoais<br />
-                      • Histórico de investimentos<br />
-                      • Depósitos e saques<br />
-                      • Posts na comunidade<br />
-                      • Sistema de indicações
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Sim, excluir permanentemente
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              
+              <div className="p-4 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                <h4 className="font-semibold text-yellow-400 mb-2">Qual o valor mínimo para investir?</h4>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  O valor mínimo varia de acordo com o plano escolhido. Verifique na página de Investimentos os valores de cada plano.
+                </p>
+              </div>
+              
+              <div className="p-4 bg-zinc-900/60 rounded-lg border border-yellow-500/20">
+                <h4 className="font-semibold text-yellow-400 mb-2">Como funciona o sistema de indicações?</h4>
+                <p className="text-xs sm:text-sm text-yellow-300/70">
+                  Compartilhe seu código de indicação e ganhe bônus quando seus indicados realizarem investimentos.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
-          <Button variant="outline" className="border-border text-card-foreground">
-            Restaurar Padrões
-          </Button>
-          <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
-            <Save className="h-4 w-4 mr-2" />
-            Salvar e Aplicar
-          </Button>
-        </div>
       </div>
     </div>
   );
