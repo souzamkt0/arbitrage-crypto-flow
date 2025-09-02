@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   // Arbitrage super chart data
   const [arbSeries, setArbSeries] = useState<{ t: number; price: number; spread: number; buy: number; sell: number }[]>([]);
-  const [arbRunning, setArbRunning] = useState(false);
+  const [arbRunning, setArbRunning] = useState(true);
 
   useEffect(() => {
     // Initialize with seed data
@@ -975,8 +975,11 @@ const Dashboard = () => {
                 <div className="absolute top-2 left-3 z-20 flex items-center gap-2 text-xs">
                   <span className="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">Arbitragem</span>
                   <span className="text-zinc-400">BTC/USDT</span>
-                  <button className="ml-2 text-yellow-400 hover:text-yellow-300" onClick={() => setArbRunning(v => !v)}>{arbRunning ? 'Pausar' : 'Iniciar'}</button>
-                    </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-green-400 text-xs">Live</span>
+                  </div>
+                </div>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={arbSeries} margin={{ top: 16, right: 12, left: 12, bottom: 8 }}>
                   <defs>
