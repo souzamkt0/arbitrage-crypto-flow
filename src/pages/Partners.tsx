@@ -21,6 +21,7 @@ import {
   Star,
   Zap
 } from "lucide-react";
+import { SuperPartnerBox } from "@/components/SuperPartnerBox";
 import { 
   Table,
   TableBody,
@@ -368,131 +369,15 @@ const Partners = () => {
           </Badge>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Saldo Disponível
-              </CardTitle>
-              <Crown className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">
-                {formatCurrency(partnerData.partner_balance || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                1% dos depósitos totais
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Comissão Total
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-trading-green" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-trading-green">
-                {formatCurrency(partnerData.total_commission || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Acumulado desde o início
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Próximo Saque
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">
-                {nextWithdrawalDate ? formatDate(nextWithdrawalDate.toISOString()) : 'N/A'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {canWithdraw ? 'Disponível hoje!' : 'Apenas às sextas-feiras'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">
-                Status do Saque
-              </CardTitle>
-              {canWithdraw ? (
-                <CheckCircle className="h-4 w-4 text-trading-green" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-warning" />
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {canWithdraw ? 'Disponível' : 'Indisponível'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {canWithdraw ? 'Pode sacar agora' : 'Aguarde sexta-feira'}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Withdrawal Section */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-card-foreground flex items-center">
-              <Wallet className="h-5 w-5 mr-2 text-primary" />
-              Solicitar Saque
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-secondary/50 rounded-lg">
-              <div>
-                <h3 className="font-semibold text-foreground">
-                  Saldo Disponível para Saque
-                </h3>
-                <p className="text-2xl font-bold text-yellow-500">
-                  {formatCurrency(partnerData.partner_balance || 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Saques disponíveis apenas às sextas-feiras
-                </p>
-              </div>
-              <Button
-                onClick={handleWithdrawal}
-                disabled={!canWithdraw || isWithdrawing}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
-              >
-                {isWithdrawing ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4 mr-2" />
-                )}
-                {isWithdrawing ? 'Processando...' : 'Solicitar Saque'}
-              </Button>
-            </div>
-            
-            {!canWithdraw && (
-              <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                <p className="text-sm text-warning flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Saques estão disponíveis apenas às sextas-feiras. 
-                  {nextWithdrawalDate && (
-                    <span className="ml-1">
-                      Próximo saque disponível em: {formatDate(nextWithdrawalDate.toISOString())}
-                    </span>
-                  )}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Super Partner Box */}
+        <SuperPartnerBox
+          partnerBalance={partnerData.partner_balance || 0}
+          totalCommission={partnerData.total_commission || 0}
+          canWithdraw={canWithdraw}
+          nextWithdrawalDate={nextWithdrawalDate}
+          isWithdrawing={isWithdrawing}
+          onWithdraw={handleWithdrawal}
+        />
 
         {/* Recent Deposits */}
         <Card className="bg-card border-border">

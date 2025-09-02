@@ -351,40 +351,35 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-2 sm:p-4">
-      {/* Trading Header - Responsive */}
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black p-2 sm:p-4">
+      {/* Header simplificado amarelo/preto */}
       <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">DEPÓSITO TRADING</h1>
-            <div className="px-2 sm:px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs sm:text-sm font-medium">
-              AO VIVO
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Depósito PIX</h1>
         </div>
-        <p className="text-sm sm:text-base text-gray-400">Depósitos PIX instantâneos • Confirmação em tempo real • Pronto para trading</p>
+        <p className="text-xs sm:text-sm text-yellow-300/70 mt-1">Confirmação automática • Saldo liberado imediatamente</p>
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-blue-500/20 shadow-2xl shadow-blue-500/10">
-        <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b border-blue-500/20">
+      <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-sm border border-yellow-500/20 shadow-2xl shadow-yellow-500/10">
+        <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg border border-yellow-500/30">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
               </div>
               <div>
-                <CardTitle className="text-lg sm:text-xl font-bold text-white">
+                <CardTitle className="text-lg sm:text-xl font-bold text-yellow-400">
                   Depósito PIX Instantâneo
                 </CardTitle>
-                <CardDescription className="text-gray-400 text-xs sm:text-sm">
+                <CardDescription className="text-yellow-300/70 text-xs sm:text-sm">
                   Confirmação automática • Sem atrasos
                 </CardDescription>
               </div>
             </div>
             <div className="text-left sm:text-right">
-              <div className="text-xs text-gray-500">Taxa de Câmbio</div>
-              <div className="text-base sm:text-lg font-bold text-green-400">
+              <div className="text-xs text-yellow-300/70">Taxa de Câmbio</div>
+              <div className="text-base sm:text-lg font-bold text-yellow-400">
                 1 USD = {formatBRL(exchangeRate || 5.5)}
               </div>
             </div>
@@ -393,16 +388,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-8">
         {!depositData ? (
           <>
-            {/* Trading Form - Responsive */}
-            <div className="bg-gradient-to-br from-slate-700/20 to-slate-800/20 rounded-xl p-4 sm:p-6 border border-slate-600/30">
+            {/* Formulário */}
+            <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-xl p-4 sm:p-6 border border-yellow-500/25">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <h3 className="text-base sm:text-lg font-semibold text-white">Formulário de Depósito</h3>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                <h3 className="text-base sm:text-lg font-semibold text-yellow-400">Formulário de Depósito</h3>
               </div>
-              
               <div className="grid grid-cols-1 gap-4 sm:gap-6">
                 <div className="space-y-3">
-                  <Label htmlFor="amount" className="text-blue-400 font-medium flex items-center gap-2 text-sm sm:text-base">
+                  <Label htmlFor="amount" className="text-yellow-400 font-medium flex items-center gap-2 text-sm sm:text-base">
                     <DollarSign className="h-4 w-4 flex-shrink-0" />
                     Valor do Depósito (USD)
                   </Label>
@@ -412,25 +406,24 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="bg-slate-800/60 border-blue-500/30 text-white text-base sm:text-lg font-medium pl-10 sm:pl-12 h-10 sm:h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="bg-zinc-900/70 border-yellow-500/30 text-yellow-100 text-base sm:text-lg font-medium pl-10 sm:pl-12 h-10 sm:h-12 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
                       placeholder="0.00"
                       min="1"
                       step="0.01"
                     />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 font-bold">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-yellow-400 font-bold">
                       $
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs">
-                    <span className="text-gray-400">Min: $1.00 USD</span>
-                    <span className="text-green-400">✓ Confirmação instantânea</span>
+                    <span className="text-yellow-300/70">Min: $1.00 USD</span>
+                    <span className="text-yellow-400">✓ Confirmação instantânea</span>
                   </div>
                 </div>
-                
                 <div className="space-y-3">
-                  <Label htmlFor="cpf" className="text-blue-400 font-medium flex items-center gap-2 text-sm sm:text-base">
-                    <div className="w-4 h-4 border border-blue-400 rounded flex items-center justify-center flex-shrink-0">
-                      <div className="w-2 h-2 bg-blue-400 rounded-sm"></div>
+                  <Label htmlFor="cpf" className="text-yellow-400 font-medium flex items-center gap-2 text-sm sm:text-base">
+                    <div className="w-4 h-4 border border-yellow-500 rounded flex items-center justify-center flex-shrink-0">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-sm"></div>
                     </div>
                     Documento CPF
                   </Label>
@@ -438,93 +431,87 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                     id="cpf"
                     value={cpf}
                     onChange={(e) => setCpf(e.target.value)}
-                    className="bg-slate-800/60 border-blue-500/30 text-white text-base sm:text-lg font-medium h-10 sm:h-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    className="bg-zinc-900/70 border-yellow-500/30 text-yellow-100 text-base sm:text-lg font-medium h-10 sm:h-12 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
                     placeholder="000.000.000-00"
                   />
-                  <p className="text-xs text-gray-400">Obrigatório para pagamento PIX</p>
+                  <p className="text-xs text-yellow-300/70">Obrigatório para pagamento PIX</p>
                 </div>
               </div>
             </div>
-
-            {/* Trading Calculator - Responsive */}
+            {/* Calculadora */}
             {amount && (
-              <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-xl p-4 sm:p-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+              <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-xl p-4 sm:p-6 border border-yellow-500/25">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-xs sm:text-sm">₮</span>
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-lg flex items-center justify-center border border-yellow-500/40">
+                      <DollarSign className="h-4 w-4 text-black" />
                     </div>
-                    <h4 className="text-emerald-400 font-bold text-base sm:text-lg">Calculadora de Trading</h4>
+                    <h4 className="text-yellow-400 font-bold text-base sm:text-lg">Calculadora de Depósito</h4>
                   </div>
-                  <div className="sm:ml-auto px-2 sm:px-3 py-1 bg-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium">
+                  <div className="sm:ml-auto px-2 sm:px-3 py-1 bg-yellow-500/20 rounded-full text-yellow-400 text-xs font-medium">
                     TEMPO REAL
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30">
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+                  <div className="bg-zinc-900/60 rounded-lg p-3 sm:p-4 border border-yellow-500/25">
+                    <div className="text-xs text-yellow-300/70 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                       Você Paga (PIX)
                     </div>
-                    <div className="text-lg sm:text-2xl font-bold text-white mb-1">
+                    <div className="text-lg sm:text-2xl font-bold text-yellow-200 mb-1">
                       {formatBRL(parseFloat(amount) * (exchangeRate || 5.5))}
                     </div>
-                    <div className="text-xs text-gray-400">Real Brasileiro</div>
+                    <div className="text-xs text-yellow-300/70">Real Brasileiro</div>
                   </div>
-                  
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30 relative">
-                    <div className="hidden sm:block absolute -top-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-blue-500 rounded-full">
-                      <div className="text-xs text-white font-bold">→</div>
+                  <div className="bg-zinc-900/60 rounded-lg p-3 sm:p-4 border border-yellow-500/25 relative">
+                    <div className="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-yellow-500 rounded-full">
+                      <div className="text-xs text-black font-bold">→</div>
                     </div>
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                    <div className="text-xs text-yellow-300/70 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                       Taxa de Câmbio
                     </div>
-                    <div className="text-base sm:text-lg font-bold text-blue-400 mb-1">
+                    <div className="text-base sm:text-lg font-bold text-yellow-400 mb-1">
                       {(exchangeRate || 5.5).toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-400">BRL/USD</div>
+                    <div className="text-xs text-yellow-300/70">BRL/USD</div>
                   </div>
-                  
-                  <div className="bg-slate-800/40 rounded-lg p-3 sm:p-4 border border-slate-600/30">
-                    <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <div className="bg-zinc-900/60 rounded-lg p-3 sm:p-4 border border-yellow-500/25">
+                    <div className="text-xs text-yellow-300/70 mb-1 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                       Você Recebe (Saldo Trading)
                     </div>
-                    <div className="text-lg sm:text-2xl font-bold text-green-400 mb-1">
+                    <div className="text-lg sm:text-2xl font-bold text-yellow-200 mb-1">
                       ${parseFloat(amount).toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-400">Dólar Americano</div>
+                    <div className="text-xs text-yellow-300/70">Dólar Americano</div>
                   </div>
                 </div>
-                
-                <div className="mt-3 sm:mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-green-400">
-                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <div className="mt-3 sm:mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-lg border border-yellow-500/25">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-yellow-300">
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 text-yellow-400" />
                     <span className="font-medium">Pronto para trading imediatamente após confirmação</span>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Minimalist PIX Button */}
+            {/* Botão Gerar PIX */}
             <div className="flex justify-center">
               <Button
                 onClick={handleCreateDeposit}
                 disabled={loading}
-                className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-base shadow-lg shadow-emerald-500/20 border-0 rounded-lg transition-all duration-300 hover:scale-105"
+                className="h-12 px-8 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-semibold text-base shadow-lg shadow-yellow-500/20 border border-yellow-500/30 rounded-lg transition-all duration-300 hover:scale-105"
               >
                 <div className="flex items-center justify-center gap-3">
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                       <span>Gerando PIX...</span>
                     </>
                   ) : (
                     <>
-                      <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
-                        <span className="text-xs font-bold">PIX</span>
+                      <div className="w-5 h-5 bg-black/20 rounded flex items-center justify-center">
+                        <DollarSign className="h-3 w-3 text-black" />
                       </div>
                       <span>Gerar PIX</span>
                     </>
@@ -532,7 +519,6 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                 </div>
               </Button>
             </div>
-
           </>
         ) : (
           <div className="space-y-8">

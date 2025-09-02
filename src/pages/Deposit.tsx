@@ -254,98 +254,53 @@ const Deposit = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
         {/* Header */}
-        <div className="bg-card border-b border-border px-6 py-6">
+        <div className="border-b border-yellow-500/20 px-4 sm:px-6 py-6 bg-gradient-to-r from-yellow-500/10 to-amber-500/10">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="bg-green-500 rounded-lg p-3">
-                <Wallet className="h-6 w-6 text-white" />
+              <div className="rounded-xl p-3 bg-gradient-to-br from-yellow-500 to-amber-600 border border-yellow-500/40 shadow-[0_8px_30px_rgba(240,185,11,0.25)]">
+                <Wallet className="h-6 w-6 text-black" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Sistema de Depósitos</h1>
-                <p className="text-muted-foreground">Gerencie seus depósitos de forma segura</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">Sistema de Depósitos</h1>
+                <p className="text-yellow-300/70">Gerencie seus depósitos de forma segura</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4">
               <div className="text-right">
-                <div className="text-2xl font-bold text-green-500">${depositBalance.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">Total Depositado</div>
+                <div className="text-2xl font-bold text-yellow-400">${depositBalance.toFixed(2)}</div>
+                <div className="text-sm text-yellow-300/70">Total Depositado</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Stats Cards */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-100 dark:bg-green-900 rounded-lg p-2">
-                    <Activity className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Depósitos Concluídos</p>
-                    <p className="text-2xl font-bold text-foreground">{totalDeposits}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-yellow-100 dark:bg-yellow-900 rounded-lg p-2">
-                    <Activity className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pendentes</p>
-                    <p className="text-2xl font-bold text-foreground">{pendingDeposits}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 dark:bg-blue-900 rounded-lg p-2">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total em USD</p>
-                    <p className="text-2xl font-bold text-foreground">${depositBalance.toFixed(2)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Deposit Interface */}
-          <Card>
-            <CardHeader>
+        <div className="max-w-7xl mx-auto p-4 sm:p-6">
+          {/* Box de Depósito no Topo */}
+          <Card className="overflow-hidden bg-gradient-to-br from-yellow-500/15 via-zinc-900/85 to-black/90 border border-yellow-500/25 mb-4 rounded-xl">
+            <CardHeader className="border-b border-yellow-500/20 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-green-500 to-blue-600 rounded-lg p-2">
-                    <Wallet className="h-5 w-5 text-white" />
+                  <div className="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg p-2 border border-yellow-500/30">
+                    <Wallet className="h-5 w-5 text-black" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl">Interface de Depósito</CardTitle>
-                    <p className="text-muted-foreground">Escolha seu método preferido</p>
+                    <CardTitle className="text-lg sm:text-xl text-yellow-400">Interface de Depósito</CardTitle>
+                    <p className="text-xs sm:text-sm text-yellow-300/70">Escolha seu método preferido</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-500 text-sm font-medium">ONLINE</span>
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <span className="text-yellow-400 text-xs sm:text-sm font-medium">ONLINE</span>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-1 mb-6">
-                  <TabsTrigger value="digitopay" className="flex items-center gap-2">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-2 mb-4 sm:mb-6 bg-transparent">
+                  <TabsTrigger value="digitopay" className="h-11 sm:h-10 flex items-center justify-center gap-2 bg-zinc-900/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-600 data-[state=active]:text-black border border-yellow-500/25 rounded-lg">
                     <Smartphone className="h-4 w-4" />
                     PIX Automático
                   </TabsTrigger>
@@ -363,11 +318,11 @@ const Deposit = () => {
                       }} 
                     />
                   ) : (
-                    <div className="text-center py-12">
-                      <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-xl inline-block">
-                        <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-3" />
-                        <p className="text-destructive font-medium mb-1">Autenticação Necessária</p>
-                        <p className="text-muted-foreground text-sm">Faça login para acessar os depósitos</p>
+                    <div className="text-center py-10 sm:py-12">
+                      <div className="p-5 sm:p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl inline-block">
+                        <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-3" />
+                        <p className="text-yellow-300 font-medium mb-1">Autenticação Necessária</p>
+                        <p className="text-yellow-300/70 text-sm">Faça login para acessar os depósitos</p>
                       </div>
                     </div>
                   )}
@@ -376,6 +331,53 @@ const Deposit = () => {
               </Tabs>
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+            {/* Stats Cards */}
+            <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg p-2 bg-yellow-500/15 border border-yellow-500/30">
+                    <Activity className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-yellow-300/80">Depósitos Concluídos</p>
+                    <p className="text-2xl font-bold text-yellow-400">{totalDeposits}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg p-2 bg-yellow-500/15 border border-yellow-500/30">
+                    <Activity className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-yellow-300/80">Pendentes</p>
+                    <p className="text-2xl font-bold text-yellow-400">{pendingDeposits}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg p-2 bg-yellow-500/15 border border-yellow-500/30">
+                    <TrendingUp className="h-5 w-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-yellow-300/80">Total em USD</p>
+                    <p className="text-2xl font-bold text-yellow-400">${depositBalance.toFixed(2)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* (Box de depósito já está no topo) */}
         </div>
       </div>
     </ErrorBoundary>

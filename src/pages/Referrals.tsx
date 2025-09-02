@@ -46,7 +46,8 @@ import {
   WifiOff,
   Shield,
   Calendar,
-  FileCheck
+  FileCheck,
+  Coins
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -628,21 +629,21 @@ Atenciosamente,
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
           {/* Referral Link Card */}
-          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-sm border border-yellow-500/20">
+            <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                    <Network className="h-5 w-5 text-white" />
+                  <div className="p-2 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg">
+                    <Network className="h-5 w-5 text-black" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-bold text-white">
+                    <CardTitle className="text-lg font-bold text-yellow-400">
                       Sistema de Indicações
                     </CardTitle>
-                    <p className="text-sm text-gray-400">Compartilhe seu link de indicação e ganhe comissões</p>
+                    <p className="text-sm text-yellow-300/70">Compartilhe seu link de indicação e ganhe comissões</p>
                   </div>
                 </div>
               </div>
@@ -650,22 +651,22 @@ Atenciosamente,
             <CardContent className="p-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Network className="h-5 w-5 text-purple-400" />
+                  <Network className="h-5 w-5 text-yellow-400" />
                   Seu Link de Indicação
                 </h3>
                 
-                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+                <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-xl p-4">
                   <div className="space-y-3">
                     <div className="relative">
                       <Input
                         value={referralLink}
                         readOnly
-                        className="pr-12 bg-slate-800/60 border-purple-500/30 text-white font-mono text-sm"
+                        className="pr-12 bg-zinc-900/60 border-yellow-500/30 text-yellow-100 font-mono text-sm"
                       />
                       <Button
                         size="sm"
                         onClick={copyToClipboard}
-                        className="absolute right-1 top-1 h-8 bg-purple-600 hover:bg-purple-700 text-white"
+                        className="absolute right-1 top-1 h-8 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black"
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -678,7 +679,7 @@ Atenciosamente,
                           const encodedMessage = encodeURIComponent(message);
                           window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 hover:scale-105"
+                        className="bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 text-black font-semibold transition-all duration-300 hover:scale-105"
                       >
                         <Phone className="h-4 w-4 mr-2" />
                         WhatsApp
@@ -689,7 +690,7 @@ Atenciosamente,
                           const tweetText = `🚀 Descubra a Alphabit: O futuro do trading automatizado!\n\n${referralLink}\n\n#Trading #Crypto #Lucro #Arbitragem`;
                           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105"
+                        className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-semibold transition-all duration-300 hover:scale-105"
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Compartilhar
@@ -702,23 +703,23 @@ Atenciosamente,
           </Card>
 
           {/* Team Performance Dashboard */}
-          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-purple-500/20">
-            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-b border-purple-500/20">
+          <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-sm border border-yellow-500/20">
+            <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-                    <BarChart3 className="h-5 w-5 text-white" />
+                  <div className="p-2 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-black" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-bold text-white">
+                    <CardTitle className="text-lg font-bold text-yellow-400">
                       Dashboard de Performance da Equipe
                     </CardTitle>
-                    <p className="text-sm text-gray-400">Detalhes completos dos usuários e análises</p>
+                    <p className="text-sm text-yellow-300/70">Detalhes completos dos usuários e análises</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Badge className="bg-yellow-500/15 text-yellow-400 border-yellow-500/30">
                     <Wifi className="h-3 w-3 mr-1" />
                     LIVE
                   </Badge>
@@ -735,17 +736,17 @@ Atenciosamente,
                     placeholder="Buscar membros da equipe..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-slate-800/60 border-purple-500/30 text-white w-80"
+                    className="pl-10 bg-zinc-900/60 border-yellow-500/30 text-yellow-100 w-80"
                   />
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-gray-400" />
                   <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                    <SelectTrigger className="w-36 bg-zinc-900/60 border-yellow-500/30 text-yellow-100">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                    <SelectContent className="bg-zinc-900 border-yellow-500/30">
                       <SelectItem value="all">Todos Status</SelectItem>
                       <SelectItem value="active">Ativo</SelectItem>
                       <SelectItem value="inactive">Inativo</SelectItem>
@@ -753,10 +754,10 @@ Atenciosamente,
                   </Select>
                   
                   <Select value={whatsappFilter} onValueChange={(value: any) => setWhatsappFilter(value)}>
-                    <SelectTrigger className="w-36 bg-slate-800/60 border-purple-500/30 text-white">
+                    <SelectTrigger className="w-36 bg-zinc-900/60 border-yellow-500/30 text-yellow-100">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
+                    <SelectContent className="bg-zinc-900 border-yellow-500/30">
                       <SelectItem value="all">Todos Contatos</SelectItem>
                       <SelectItem value="with">Com WhatsApp</SelectItem>
                       <SelectItem value="without">Sem WhatsApp</SelectItem>
@@ -767,7 +768,7 @@ Atenciosamente,
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="border-purple-500/30 text-purple-400 ml-auto"
+                  className="border-yellow-500/40 text-yellow-400 ml-auto hover:bg-yellow-500/10"
                   onClick={async () => {
                     setIsRefreshing(true);
                     window.location.reload();
@@ -781,39 +782,39 @@ Atenciosamente,
 
               {/* Performance Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/25">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Total de Indicações</p>
-                        <p className="text-2xl font-bold text-blue-400">
+                        <p className="text-sm text-yellow-300/80">Total de Indicações</p>
+                        <p className="text-2xl font-bold text-yellow-400">
                           {stats.totalReferrals}
                         </p>
                       </div>
-                      <Users className="h-8 w-8 text-blue-400" />
+                      <Users className="h-8 w-8 text-yellow-400" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/25">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Usuários Ativos</p>
-                        <p className="text-2xl font-bold text-green-400">
+                        <p className="text-sm text-yellow-300/80">Usuários Ativos</p>
+                        <p className="text-2xl font-bold text-yellow-400">
                           {stats.activeReferrals}
                         </p>
                       </div>
-                      <UserCheck className="h-8 w-8 text-green-400" />
+                      <UserCheck className="h-8 w-8 text-yellow-400" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/25">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Total de Comissões</p>
+                        <p className="text-sm text-yellow-300/80">Total de Comissões</p>
                         <p className="text-2xl font-bold text-yellow-400">
                           {formatCurrency(stats.totalCommission)}
                         </p>
@@ -838,20 +839,22 @@ Atenciosamente,
                 </Card>
               </div>
 
-              {/* Detailed Users Table */}
+              {/* Users Display - Responsive */}
               {filteredUsers.length > 0 ? (
-                <div className="overflow-x-auto">
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden lg:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-slate-600/50 hover:bg-slate-800/30">
-                        <TableHead className="text-purple-400 font-medium">Usuário</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Status</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Localização</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Investimentos</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Lucro</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Comissão</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Data de Entrada</TableHead>
-                        <TableHead className="text-purple-400 font-medium">Ações</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Usuário</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Status</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Localização</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Investimentos</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Lucro</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Comissão</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Data de Entrada</TableHead>
+                          <TableHead className="text-yellow-400 font-medium">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -860,7 +863,7 @@ Atenciosamente,
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white font-bold">
+                                  <AvatarFallback className="bg-gradient-to-br from-yellow-500 to-orange-600 text-white font-bold">
                                   {user.name.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
@@ -895,7 +898,7 @@ Atenciosamente,
 
                           <TableCell>
                             <div className="flex items-center gap-1 text-sm text-gray-300">
-                              <MapPin className="h-3 w-3 text-gray-400" />
+                                <MapPin className="h-3 w-3 text-yellow-400" />
                               {user.city && user.state ? (
                                 <span>{user.city}, {user.state}</span>
                               ) : (
@@ -964,7 +967,7 @@ Atenciosamente,
                                 size="sm"
                                 variant="outline"
                                 onClick={() => openUserDetailsModal(user)}
-                                className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 h-8 w-8 p-0"
+                                  className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 h-8 w-8 p-0"
                                 title="Ver detalhes"
                               >
                                 <Eye className="h-4 w-4" />
@@ -976,15 +979,123 @@ Atenciosamente,
                     </TableBody>
                   </Table>
                 </div>
+
+                  {/* Mobile Cards */}
+                  <div className="lg:hidden space-y-4">
+                    {filteredUsers.map((user) => (
+                      <Card key={user.id} className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-yellow-500/20 backdrop-blur-sm">
+                        <CardContent className="p-4">
+                          {/* User Header */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-12 w-12">
+                                <AvatarFallback className="bg-gradient-to-br from-yellow-500 to-orange-600 text-white font-bold text-lg">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <h3 className="font-semibold text-white text-lg">{user.name}</h3>
+                                <p className="text-sm text-gray-400">{user.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {user.status === 'active' ? (
+                                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Ativo
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">
+                                  <UserX className="h-3 w-3 mr-1" /> Inativo
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* User Info Grid */}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="bg-slate-700/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <MapPin className="h-4 w-4 text-yellow-400" />
+                                <span className="text-xs text-gray-400">Localização</span>
+                              </div>
+                              <p className="text-sm text-white">
+                                {user.city && user.state ? `${user.city}, ${user.state}` : 'Não informado'}
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-700/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <DollarSign className="h-4 w-4 text-yellow-400" />
+                                <span className="text-xs text-gray-400">Investimento</span>
+                              </div>
+                              <p className="text-sm text-white">{formatCurrency(user.investmentAmount)}</p>
+                              <p className="text-xs text-gray-400">{user.activeInvestments || 0} ativo(s)</p>
+                            </div>
+
+                            {/* Lucro e Comissão ocultos para não-admin */}
+                          </div>
+
+                          {/* Date Info */}
+                          <div className="bg-slate-700/30 rounded-lg p-3 mb-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Calendar className="h-4 w-4 text-yellow-400" />
+                              <span className="text-xs text-gray-400">Informações de Data</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="text-gray-400">Entrada: </span>
+                                <span className="text-white">{formatDate(user.joinDate)}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Atividade: </span>
+                                <span className="text-white">{formatDate(user.lastActivity)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2">
+                            {user.whatsapp ? (
+                              <Button
+                                onClick={() => openMessageModal(user)}
+                                className="flex-1 h-11 rounded-lg bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 text-black font-semibold active:scale-95 transition-transform"
+                              >
+                                <MessageCircle className="h-5 w-5 mr-2" />
+                                WhatsApp
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                disabled
+                                className="flex-1 h-11 rounded-lg border-gray-600 text-gray-500"
+                              >
+                                <WifiOff className="h-5 w-5 mr-2" />
+                                Sem WhatsApp
+                              </Button>
+                            )}
+                            
+                            <Button
+                              variant="outline"
+                              onClick={() => openUserDetailsModal(user)}
+                              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-12">
                   <div className="p-8 bg-gradient-to-br from-gray-500/10 to-slate-500/10 border border-gray-500/20 rounded-xl inline-block">
-                    <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <Users className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
                     <p className="text-gray-400 text-xl font-medium mb-2">Nenhum membro da equipe encontrado</p>
                     <p className="text-gray-500 mb-4">Comece compartilhando seu link de indicação para construir sua rede</p>
                     <Button 
                       onClick={copyToClipboard}
-                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                      className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-black font-semibold"
                     >
                       <Copy className="h-4 w-4 mr-2" />
                       Copiar Link de Indicação
@@ -1223,11 +1334,11 @@ Atenciosamente,
 
         {/* WhatsApp Message Modal */}
         <Dialog open={showMessageModal} onOpenChange={setShowMessageModal}>
-          <DialogContent className="max-w-2xl bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-purple-500/20 text-white">
+          <DialogContent className="w-[92vw] sm:w-[560px] max-w-[92vw] bg-gradient-to-br from-black/95 to-zinc-900/95 border border-yellow-500/20 text-white p-4 sm:p-6 rounded-xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-                <MessageCircle className="h-6 w-6 text-green-400" />
-                Enviar Mensagem para {selectedUser?.name}
+                <MessageCircle className="h-6 w-6 text-yellow-400" />
+                Boas-vindas para {selectedUser?.name}
               </DialogTitle>
               <p className="text-gray-400">
                 {selectedUser?.whatsapp} • {selectedUser?.email}
@@ -1237,24 +1348,22 @@ Atenciosamente,
             <div className="space-y-6">
               {/* Message Type Selection */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Tipo de Mensagem</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <h3 className="text-lg font-semibold text-white mb-4">Escolha rápida</h3>
+                <Select value={selectedMessageType} onValueChange={(v:any)=>setSelectedMessageType(v)}>
+                  <SelectTrigger className="w-full bg-zinc-900/70 border-yellow-500/30 text-yellow-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-yellow-500/30">
                   {Object.entries(messageTemplates).map(([key, template]) => (
-                    <Button
-                      key={key}
-                      variant={selectedMessageType === key ? "default" : "outline"}
-                      onClick={() => setSelectedMessageType(key)}
-                      className={`h-auto p-4 flex flex-col items-start text-left ${
-                        selectedMessageType === key 
-                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500' 
-                          : 'bg-slate-700/50 border-slate-600/50 text-gray-300 hover:border-green-500/50 hover:bg-green-500/10'
-                      }`}
-                    >
-                      <div className="font-semibold mb-1">{template.title}</div>
-                      <div className="text-xs opacity-80">{template.description}</div>
-                    </Button>
-                  ))}
-                </div>
+                      <SelectItem key={key} value={key}>
+                        <div className="flex flex-col text-left">
+                          <span className="font-semibold text-yellow-300">{template.title}</span>
+                          <span className="text-xs text-zinc-400">{template.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Message Preview */}
@@ -1279,19 +1388,19 @@ Atenciosamente,
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <Button
                   onClick={() => sendWhatsAppMessage(selectedMessageType)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 h-12 rounded-lg bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 text-black font-semibold active:scale-95 transition-transform"
                 >
-                  <Phone className="h-4 w-4 mr-2" />
+                  <Phone className="h-5 w-5 mr-2" />
                   Enviar WhatsApp
                 </Button>
                 
                 <Button
                   variant="outline"
                   onClick={() => setShowMessageModal(false)}
-                  className="border-slate-600 text-gray-300 hover:bg-slate-700"
+                  className="h-12 rounded-lg border-zinc-700 text-gray-300 hover:bg-zinc-800"
                 >
                   Cancelar
                 </Button>

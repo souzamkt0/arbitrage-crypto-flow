@@ -52,51 +52,51 @@ const TradingInvestments = () => {
   // Hooks devem vir ANTES de qualquer lógica condicional
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
+    const navigate = useNavigate();
+    const isMobile = useIsMobile();
 
-  // State Management
-  const [plans, setPlans] = useState<InvestmentPlan[]>([]);
-  const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
-  const [selectedAmount, setSelectedAmount] = useState<string>("");
-  const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
-  const [userReferrals, setUserReferrals] = useState<number>(0);
-  const [showInvestDialog, setShowInvestDialog] = useState(false);
-  const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
-  const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
-  const [showArbitrageModal, setShowArbitrageModal] = useState(false);
-  const [currentArbitrage, setCurrentArbitrage] = useState<{
-    investment: UserInvestment | null;
-    progress: number;
-    currentProfit: number;
-    finalProfit: number;
-    stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
-    pair: string;
-    exchanges: string[];
-    buyPrice: number;
-    sellPrice: number;
-    chartData: Array<{
-      time: string;
-      price: number;
-      exchange: string;
-      volume: number;
-    }>;
-    operationStartTime: number;
-  }>({
-    investment: null,
-    progress: 0,
-    currentProfit: 0,
-    finalProfit: 0,
-    stage: 'analyzing',
-    pair: '',
-    exchanges: [],
-    buyPrice: 0,
-    sellPrice: 0,
-    chartData: [],
-    operationStartTime: 0
-  });
+    // State Management
+    const [plans, setPlans] = useState<InvestmentPlan[]>([]);
+    const [userInvestments, setUserInvestments] = useState<UserInvestment[]>([]);
+    const [selectedAmount, setSelectedAmount] = useState<string>("");
+    const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<'plans' | 'active' | 'history'>('plans');
+    const [userReferrals, setUserReferrals] = useState<number>(0);
+    const [showInvestDialog, setShowInvestDialog] = useState(false);
+    const [processingOperations, setProcessingOperations] = useState<Set<string>>(new Set());
+    const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
+    const [showArbitrageModal, setShowArbitrageModal] = useState(false);
+    const [currentArbitrage, setCurrentArbitrage] = useState<{
+      investment: UserInvestment | null;
+      progress: number;
+      currentProfit: number;
+      finalProfit: number;
+      stage: 'analyzing' | 'opportunity' | 'calculating' | 'buying' | 'transferring' | 'selling' | 'finalizing' | 'completed';
+      pair: string;
+      exchanges: string[];
+      buyPrice: number;
+      sellPrice: number;
+      chartData: Array<{
+        time: string;
+        price: number;
+        exchange: string;
+        volume: number;
+      }>;
+      operationStartTime: number;
+    }>({
+      investment: null,
+      progress: 0,
+      currentProfit: 0,
+      finalProfit: 0,
+      stage: 'analyzing',
+      pair: '',
+      exchanges: [],
+      buyPrice: 0,
+      sellPrice: 0,
+      chartData: [],
+      operationStartTime: 0
+    });
 
   // Error boundary básico
   try {
@@ -663,38 +663,44 @@ const TradingInvestments = () => {
     return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Trading Style */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700/50">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-0">
+          <div className="flex items-center gap-3 lg:gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/dashboard')} 
+              className="flex items-center gap-2 bg-slate-800/50 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-400 transition-all duration-300"
+            >
               <ArrowLeft className="h-4 w-4" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </Button>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 bg-clip-text text-transparent">
                 Trading Investments
               </h1>
-              <p className="text-slate-300 text-lg">
+              <p className="text-slate-300 text-base lg:text-lg">
                 Robôs de arbitragem automatizados
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 text-sm font-bold border-0">
-              <Users className="h-4 w-4 mr-2" />
-              {userReferrals} Indicações
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 text-xs sm:text-sm font-bold border-0 shadow-lg">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{userReferrals} Indicações</span>
+                <span className="sm:hidden">{userReferrals}</span>
             </Badge>
-            <Badge className="bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 text-sm font-bold border-0">
-              <Activity className="h-4 w-4 mr-2" />
-              {activeInvestments.length} Ativos
+              <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 text-xs sm:text-sm font-bold border-0 shadow-lg">
+                <Activity className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{activeInvestments.length} Ativos</span>
+                <span className="sm:hidden">{activeInvestments.length}</span>
             </Badge>
-            <Button variant="outline" size="sm" onClick={populateTestData} className="bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-600/50 text-xs">
-              🧪 Popular Dados
-            </Button>
+            </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex gap-1 p-1 bg-slate-800/50 rounded-xl border border-slate-600/30">
+        <div className="flex flex-col sm:flex-row gap-1 p-1 bg-slate-800/50 rounded-xl border border-slate-600/30">
           {[{
             key: 'plans',
             label: 'Planos Disponíveis',
@@ -711,9 +717,10 @@ const TradingInvestments = () => {
             key,
             label,
             icon: Icon
-          }) => <Button key={key} variant={activeTab === key ? 'default' : 'ghost'} onClick={() => setActiveTab(key as any)} className={`flex-1 flex items-center gap-2 ${activeTab === key ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold' : 'text-slate-300 hover:text-white hover:bg-slate-700/50'}`}>
-              <Icon className="h-4 w-4" />
-              {label}
+          }) => <Button key={key} variant={activeTab === key ? 'default' : 'ghost'} onClick={() => setActiveTab(key as any)} className={`flex-1 flex items-center justify-center gap-2 ${activeTab === key ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold' : 'text-slate-300 hover:text-white hover:bg-slate-700/50'}`}>
+              <Icon className={`h-4 w-4 ${key === 'active' && activeTab === 'active' ? 'animate-pulse text-yellow-400' : ''}`} />
+              <span className="hidden sm:inline">{label}</span>
+              <span className="sm:hidden">{label.split(' ')[0]}</span>
             </Button>)}
         </div>
 
@@ -726,7 +733,7 @@ const TradingInvestments = () => {
                     <p className="text-slate-400 text-sm">Total Investido</p>
                     <p className="text-2xl font-bold text-white">${totalInvested.toFixed(2)}</p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-emerald-400" />
+                  <DollarSign className="h-8 w-8 text-yellow-400" />
                 </div>
               </CardContent>
             </Card>
@@ -736,9 +743,9 @@ const TradingInvestments = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-emerald-200 text-sm">Total Ganhos</p>
-                    <p className="text-2xl font-bold text-emerald-400">+${totalEarnings.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-yellow-400">+${totalEarnings.toFixed(2)}</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-emerald-400" />
+                  <TrendingUp className="h-8 w-8 text-yellow-400" />
                 </div>
               </CardContent>
             </Card>
@@ -777,15 +784,15 @@ const TradingInvestments = () => {
               const isLocked = !canInvest;
               return <div key={plan.id} className="space-y-6">
                     {/* Plan Card */}
-                    <Card className="relative overflow-hidden transition-all duration-300 bg-gradient-to-br from-slate-900/95 via-blue-900/20 to-slate-900/95 border-cyan-500/30 shadow-lg shadow-cyan-500/10 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10">
+                    <Card className="relative overflow-hidden transition-all duration-300 bg-gradient-to-br from-slate-900/95 via-yellow-900/20 to-slate-900/95 border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:border-yellow-500/50 hover:shadow-lg hover:shadow-yellow-500/10">
                       {/* Profit Information Box */}
-                      <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-b border-emerald-500/30 p-4">
+                      <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-b border-yellow-500/30 p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-emerald-300 text-sm font-medium">
+                            <p className="text-yellow-300 text-sm font-medium">
                               💰 Lucro Diário Potencial (Variável)
                             </p>
-                            <p className="text-emerald-400 text-lg font-bold">
+                            <p className="text-yellow-400 text-lg font-bold">
                               Até 2% ao dia*
                             </p>
                             {plan.id === '1' && <p className="text-yellow-300 text-xs mt-1">
@@ -796,7 +803,7 @@ const TradingInvestments = () => {
                             <p className="text-slate-300 text-xs">
                               Simulação com $1,000
                             </p>
-                            <p className="text-emerald-400 text-xl font-bold">
+                            <p className="text-yellow-400 text-xl font-bold">
                               {plan.id === '1' ? 'Até $20/dia' : plan.id === '2' ? 'Até $30/dia' : plan.id === '3' ? 'Até $40/dia' : 'Até $20/dia'}
                             </p>
                           </div>
@@ -845,10 +852,10 @@ const TradingInvestments = () => {
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-xl font-bold flex items-center gap-2 text-white">
-                            <Bot className="h-5 w-5 text-emerald-400" />
+                            <Bot className="h-5 w-5 text-yellow-400" />
                             {plan.id === '1' ? 'Robo 4.0' : plan.id === '2' ? 'Robô 4.0.5' : plan.id === '3' ? 'Robô 4.1.0' : plan.name}
                           </CardTitle>
-          <Badge variant="default" className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
+          <Badge variant="default" className="bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold">
                             até 2%
                           </Badge>
                         </div>
@@ -1274,7 +1281,7 @@ const TradingInvestments = () => {
                         setSelectedPlan(plan);
                         setShowInvestDialog(true);
                       }
-                    }} disabled={isLocked} className={`w-full flex items-center justify-center gap-2 ${isLocked ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-bold hover-scale'}`}>
+                    }} disabled={isLocked} className={`w-full flex items-center justify-center gap-2 ${isLocked ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-slate-900 font-bold hover-scale'}`}>
                           {isLocked && <Lock className="w-4 h-4" />}
                           {canInvest ? 'Investir Agora' : plan.id === '2' ? 'Precisa de 10 indicações ativas' : plan.id === '3' ? 'Precisa de 40 indicações ativas' : `Precisa de ${plan.minimum_indicators} indicações`}
                         </Button>
@@ -1303,7 +1310,7 @@ const TradingInvestments = () => {
         {activeTab === 'active' && <div className="space-y-6">
             {activeInvestments.length === 0 ? <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
                 <CardContent className="p-12 text-center">
-                  <Bot className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
+                  <Bot className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
                   <h3 className="text-2xl font-bold text-white mb-2">
                     Nenhum Investimento Ativo
                   </h3>
@@ -1324,14 +1331,14 @@ const TradingInvestments = () => {
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Bot className="h-5 w-5 text-emerald-400" />
+                            <Bot className="h-5 w-5 text-yellow-400" />
                             <CardTitle className="text-white">{planName}</CardTitle>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm" onClick={() => toggleHideAmount(investment.id)} className="h-8 w-8 p-0 text-slate-400 hover:text-white">
                               {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
-                            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                            <Badge className="bg-emerald-500/20 text-yellow-400 border-emerald-500/30">
                               {((plans.find(p => p.id === investment.investment_plan_id)?.daily_rate || 0.0033) * 100).toFixed(2)}% / dia
                             </Badge>
                           </div>
@@ -1348,7 +1355,7 @@ const TradingInvestments = () => {
                           </div>
                           <div className="space-y-1">
                             <p className="text-slate-400 text-sm">Total Ganhos</p>
-                            <p className="text-xl font-bold text-emerald-400">
+                            <p className="text-xl font-bold text-yellow-400">
                               {isHidden ? '•••••' : `+$${investment.total_earned.toFixed(2)}`}
                             </p>
                           </div>
@@ -1375,7 +1382,7 @@ const TradingInvestments = () => {
                           </div>
                           <div className="space-y-1">
                             <p className="text-slate-400 text-xs">Hoje</p>
-                            <p className="text-emerald-400 font-bold">
+                            <p className="text-yellow-400 font-bold">
                               {isHidden ? '•••' : `$${investment.today_earnings.toFixed(2)}`}
                             </p>
                           </div>
@@ -1403,7 +1410,7 @@ const TradingInvestments = () => {
 
         {activeTab === 'history' && <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
             <CardContent className="p-12 text-center">
-              <BarChart3 className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
+              <BarChart3 className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-white mb-2">
                 Histórico de Operações
               </h3>
@@ -1425,14 +1432,14 @@ const TradingInvestments = () => {
           
           <div className="space-y-6">
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
-              <h4 className="font-bold text-emerald-400 flex items-center gap-2">
+              <h4 className="font-bold text-yellow-400 flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
                 Detalhes do Plano:
               </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  Taxa Diária: <span className="text-emerald-400 font-bold">até 2%</span>
+                  <TrendingUp className="h-4 w-4 text-yellow-400" />
+                  Taxa Diária: <span className="text-yellow-400 font-bold">até 2%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-blue-400" />
@@ -1450,22 +1457,22 @@ const TradingInvestments = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-emerald-400 font-bold">
+              <Label htmlFor="amount" className="text-yellow-400 font-bold">
                 Valor do Investimento
               </Label>
               <Input id="amount" type="number" placeholder="Digite o valor" value={selectedAmount} onChange={e => setSelectedAmount(e.target.value)} className="bg-slate-700 border-slate-600 text-white placeholder-slate-400" min={selectedPlan?.minimum_amount} max={selectedPlan?.max_investment_amount} />
             </div>
             
             {selectedAmount && selectedPlan && <div className="space-y-2 p-4 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
-                <h4 className="font-bold text-emerald-400">Projeção de Ganhos:</h4>
+                <h4 className="font-bold text-yellow-400">Projeção de Ganhos:</h4>
                 <div className="text-sm space-y-1">
-                  <div>Ganho Diário: <span className="text-emerald-400 font-bold">
+                  <div>Ganho Diário: <span className="text-yellow-400 font-bold">
                     Até ${(parseFloat(selectedAmount) * (selectedPlan.id === '1' ? 2 : selectedPlan.id === '2' ? 3 : selectedPlan.id === '3' ? 4 : 2) / 100).toFixed(2)}
                   </span></div>
-                  <div>Ganho Total: <span className="text-emerald-400 font-bold">
+                  <div>Ganho Total: <span className="text-yellow-400 font-bold">
                     Até ${(parseFloat(selectedAmount) * (selectedPlan.daily_rate * 100) * selectedPlan.duration_days / 100).toFixed(2)}
                   </span></div>
-                  <div>ROI: <span className="text-emerald-400 font-bold">
+                  <div>ROI: <span className="text-yellow-400 font-bold">
                     Até {(selectedPlan.daily_rate * 100 * selectedPlan.duration_days).toFixed(1)}%
                   </span></div>
                 </div>
@@ -1499,7 +1506,7 @@ const TradingInvestments = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-400">+${currentArbitrage.currentProfit.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-yellow-400">+${currentArbitrage.currentProfit.toFixed(2)}</div>
                 <div className="text-sm text-slate-300">Lucro Atual</div>
               </div>
             </div>
@@ -1516,7 +1523,7 @@ const TradingInvestments = () => {
               <Progress value={currentArbitrage.progress} className="h-3 bg-slate-700" />
               
               <div className="flex justify-between">
-                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'text-yellow-400' : 'text-slate-500'}`}>
                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
                     ✓
                   </div>
@@ -1534,7 +1541,7 @@ const TradingInvestments = () => {
                   </div>
                   <span className="text-xs">Aguardo</span>
                 </div>
-                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'completed' ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'completed' ? 'text-yellow-400' : 'text-slate-500'}`}>
                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'completed' ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
                     ✓
                   </div>
@@ -1552,7 +1559,7 @@ const TradingInvestments = () => {
                     <h3 className="text-lg font-bold text-white">{currentArbitrage.pair} - Gráfico em Tempo Real</h3>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-emerald-400">LIVE</span>
+                      <span className="text-sm text-yellow-400">LIVE</span>
                     </div>
                   </div>
                   
@@ -1782,7 +1789,7 @@ const TradingInvestments = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Meta Venda:</span>
-                      <span className="text-emerald-400 font-semibold">${currentArbitrage.sellPrice.toFixed(2)}</span>
+                      <span className="text-yellow-400 font-semibold">${currentArbitrage.sellPrice.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -1791,9 +1798,9 @@ const TradingInvestments = () => {
                 <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="text-lg font-bold text-white">Lucro em Tempo Real</h4>
-                    <TrendingUp className="h-4 w-4 text-emerald-400" />
+                    <TrendingUp className="h-4 w-4 text-yellow-400" />
                   </div>
-                  <div className="text-3xl font-bold text-emerald-400 mb-1">
+                  <div className="text-3xl font-bold text-yellow-400 mb-1">
                     +${currentArbitrage.currentProfit.toFixed(2)}
                   </div>
                   <div className="text-sm text-emerald-300">

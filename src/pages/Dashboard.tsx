@@ -33,7 +33,8 @@ import {
   X,
   Crown,
   CheckCircle,
-  Calendar
+  Calendar,
+  AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,7 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
 import { realCoinMarketCapService, AlphaBotUpdate } from "@/services/realCoinMarketCapService";
 import { executeSupabaseOperation, connectionMonitor } from "@/services/connectionMonitor";
-import { PartnerStatusBanner } from "@/components/PartnerStatusBanner";
+
 import ResidualBalanceBox from "@/components/ResidualBalanceBox";
 import { TradingHeader } from "@/components/TradingHeader";
 import { TradingStats } from "@/components/TradingStats";
@@ -58,6 +59,8 @@ import { TradingBot } from "@/components/TradingBot";
 import { PartnerStats } from "@/components/PartnerStats";
 import BalanceBox from "@/components/BalanceBox";
 import { ActivePlansTable } from "@/components/ActivePlansTable";
+import { SimplePartnerBox } from "@/components/SimplePartnerBox";
+import { PremiumPartnerBanner } from "@/components/PremiumPartnerBanner";
 
 
 const Dashboard = () => {
@@ -101,6 +104,13 @@ const Dashboard = () => {
   const [userInvestments, setUserInvestments] = useState<any[]>([]);
   const [investmentPlans, setInvestmentPlans] = useState<any[]>([]);
   const [referralStats, setReferralStats] = useState({ active_referrals: 0 });
+  const [partnerBoxData, setPartnerBoxData] = useState({
+    partnerBalance: 0,
+    totalCommission: 0,
+    canWithdraw: false,
+    nextWithdrawalDate: null as Date | null,
+    isWithdrawing: false
+  });
 
   // ... keep existing code (all utility functions and effects)
 
@@ -688,9 +698,106 @@ const Dashboard = () => {
             monthlyEarnings: monthlyTotal
           });
         }
+
+        // Configurar dados para o SuperPartnerBox
+        await loadPartnerBoxData(partner);
       }
     } catch (error) {
       console.error('Erro ao carregar dados de parceiro:', error);
+    }
+  };
+
+  // Carregar dados específicos para o SuperPartnerBox
+  const loadPartnerBoxData = async (partner: any) => {
+    try {
+      // Calcular saldo do sócio (1% dos depósitos)
+      const { data: digitopayDeposits } = await supabase
+        .from('digitopay_transactions')
+        .select('amount_brl')
+        .eq('type', 'deposit')
+        .eq('status', 'completed');
+
+      const { data: usdtDeposits } = await supabase
+        .from('deposits')
+        .select('amount_brl')
+        .eq('status', 'completed');
+
+      const digitopayTotal = digitopayDeposits?.reduce((sum, deposit) => sum + (deposit.amount_brl || 0), 0) || 0;
+      const usdtTotal = usdtDeposits?.reduce((sum, deposit) => sum + (deposit.amount_brl || 0), 0) || 0;
+      const totalDeposits = digitopayTotal + usdtTotal;
+      const commission = totalDeposits * 0.01;
+
+      // Buscar saques já realizados
+      const { data: withdrawals } = await supabase
+        .from('partner_withdrawals')
+        .select('amount')
+        .eq('partner_id', user.id);
+
+      const totalWithdrawn = withdrawals?.reduce((sum, w) => sum + (w.amount || 0), 0) || 0;
+      const availableBalance = Math.max(0, commission - totalWithdrawn);
+
+      // Verificar se é sexta-feira
+      const today = new Date();
+      const isFriday = today.getDay() === 5;
+      const canWithdraw = isFriday && availableBalance > 0;
+
+      // Calcular próxima sexta-feira
+      const daysUntilFriday = (5 - today.getDay() + 7) % 7;
+      const nextFriday = new Date(today);
+      nextFriday.setDate(today.getDate() + daysUntilFriday);
+      nextFriday.setHours(0, 0, 0, 0);
+
+      setPartnerBoxData({
+        partnerBalance: availableBalance,
+        totalCommission: commission,
+        canWithdraw,
+        nextWithdrawalDate: nextFriday,
+        isWithdrawing: false
+      });
+
+    } catch (error) {
+      console.error('Erro ao carregar dados do SuperPartnerBox:', error);
+    }
+  };
+
+  // Função para lidar com saque do sócio
+  const handlePartnerWithdrawal = async () => {
+    if (!partnerBoxData.canWithdraw || !user) return;
+
+    try {
+      setPartnerBoxData(prev => ({ ...prev, isWithdrawing: true }));
+
+      // Registrar saque
+      const { error: withdrawalError } = await supabase
+        .from('partner_withdrawals')
+        .insert({
+          partner_id: user.id,
+          amount: partnerBoxData.partnerBalance,
+          status: 'pending',
+          withdrawal_date: new Date().toISOString()
+        });
+
+      if (withdrawalError) {
+        throw withdrawalError;
+      }
+
+      toast({
+        title: "✅ Saque solicitado!",
+        description: `Saque de R$ ${partnerBoxData.partnerBalance.toFixed(2)} solicitado com sucesso.`,
+      });
+
+      // Recarregar dados
+      await loadPartnerData();
+
+    } catch (error) {
+      console.error('❌ Erro ao solicitar saque:', error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao solicitar saque. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setPartnerBoxData(prev => ({ ...prev, isWithdrawing: false }));
     }
   };
 
@@ -768,11 +875,32 @@ const Dashboard = () => {
     );
   }
 
+  // Debug logs
+  const isPartnerUser = profile?.role === 'partner' || !!partnerData;
+  console.log('🔍 Dashboard Debug:', {
+    profileRole: profile?.role,
+    hasPartnerData: !!partnerData,
+    partnerBoxData,
+    shouldShowBanner: isPartnerUser
+  });
+
   return (
     <div className="min-h-screen bg-[#0f1419] text-white">
-      {/* Header */}
-
-      {partnerData && <PartnerStatusBanner />}
+      {/* 🏆 BANNER PREMIUM SÓCIO - TOPO DO SITE */}
+      {isPartnerUser && (
+        <div className="px-4 pt-4">
+          <PremiumPartnerBanner
+            partnerBalance={partnerBoxData.partnerBalance}
+            totalCommission={partnerBoxData.totalCommission}
+            canWithdraw={partnerBoxData.canWithdraw}
+            nextWithdrawalDate={partnerBoxData.nextWithdrawalDate}
+            isWithdrawing={partnerBoxData.isWithdrawing}
+            onWithdraw={handlePartnerWithdrawal}
+            partnerEmail={profile?.email}
+            commissionRate={(partnerData as any)?.commission_percentage || 1.0}
+          />
+        </div>
+      )}
 
       <div className="px-4 py-4">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">

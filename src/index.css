@@ -88,8 +88,8 @@ All colors MUST be HSL.
     --menu-yellow-light: 43 100% 60%;  /* #FCD535 - Amarelo mais claro */
     --menu-yellow-dark: 43 100% 40%;  /* #FCD535 - Amarelo mais escuro */
     --menu-black: 0 0% 0%;             /* #000000 - Preto do menu */
-    --menu-gray: 0 0% 20%;             /* #333333 - Cinza do menu */
-    --menu-gray-light: 0 0% 30%;       /* #4D4D4D - Cinza mais claro */
+    --menu-gray: 43 100% 50%;          /* #FCD535 - Cinza do menu (agora amarelo) */
+    --menu-gray-light: 43 100% 50%;    /* #FCD535 - Cinza mais claro (agora amarelo) */
   }
 
 /* Trading Chart Animations - Binance Style */

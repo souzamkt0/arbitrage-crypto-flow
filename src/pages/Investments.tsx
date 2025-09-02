@@ -285,7 +285,7 @@ const Investments = () => {
         {/* Header responsivo */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Investimentos</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Investimentos Ativos</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               Gerencie seus planos de investimento e operações de trading
             </p>
@@ -305,8 +305,8 @@ const Investments = () => {
               variant={activeTab === 'investments' ? 'default' : 'outline'}  
               className="flex-1 sm:flex-none"
             >
-              <PiggyBank className="w-4 h-4 mr-2" />
-              Investimentos
+              <Activity className="w-4 h-4 mr-2" />
+              Investimentos Ativos
             </Button>
           </div>
         </div>
@@ -314,77 +314,9 @@ const Investments = () => {
         {/* Content based on active tab */}
         {activeTab === 'investments' ? (
           <div className="space-y-4 sm:space-y-6">
-            {/* Planos de Investimento - Grid responsivo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {investments.map((investment) => (
-                <Card key={investment.id} className="bg-card border-border hover:border-primary/50 transition-all duration-300 h-full flex flex-col">
-                  <CardHeader className="pb-3 sm:pb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
-                        <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                        {investment.name}
-                      </CardTitle>
-                      <Badge variant="default" className="w-fit">
-                        {investment.dailyRate}% / dia
-                      </Badge>
-                    </div>
-                    <p className="text-muted-foreground text-xs sm:text-sm">{investment.description}</p>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-3 sm:space-y-4 flex-grow">
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
-                          <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
-                          Valor Mínimo
-                        </div>
-                        <div className="font-semibold text-sm sm:text-base">${investment.minimumAmount}</div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
-                          <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                          Duração
-                        </div>
-                        <div className="font-semibold text-sm sm:text-base">{investment.duration} dias</div>
-                      </div>
-                    </div>
-
-                    {investment.requiredReferrals && investment.requiredReferrals > 0 && (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
-                          <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                          Indicações Necessárias
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <div className="font-semibold text-sm sm:text-base">{investment.requiredReferrals}</div>
-                          <Badge variant={userReferrals >= investment.requiredReferrals ? "default" : "destructive"} className="text-xs w-fit">
-                            Você tem: {userReferrals}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-
-                  <div className="p-3 sm:p-6 pt-0 mt-auto">
-                    <Button 
-                      className="w-full text-sm sm:text-base py-2 sm:py-3"
-                      disabled={investment.requiredReferrals ? userReferrals < investment.requiredReferrals : false}
-                    >
-                      {investment.requiredReferrals && userReferrals < investment.requiredReferrals 
-                        ? `Precisa de ${investment.requiredReferrals} indicações` 
-                        : 'Investir Agora'
-                      }
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Investimentos Ativos - Se houver */}
-            {userInvestments.length > 0 && (
+            {/* Investimentos Ativos - Mostrar apenas os planos ativos */}
+            {userInvestments.length > 0 ? (
               <div className="space-y-4">
-                <h2 className="text-lg sm:text-xl font-bold">Meus Investimentos Ativos</h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {userInvestments.map((investment) => (
                     <Card key={investment.id} className="bg-card border-border">
@@ -428,6 +360,17 @@ const Investments = () => {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="p-8 bg-muted/50 border border-border rounded-xl inline-block">
+                  <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground text-xl font-medium mb-2">Nenhum investimento ativo encontrado</p>
+                  <p className="text-muted-foreground mb-4">Você ainda não possui investimentos ativos</p>
+                  <Button onClick={() => navigate('/investments')} className="bg-primary text-primary-foreground font-semibold">
+                    <PiggyBank className="h-4 w-4 mr-2" /> Ver Planos de Investimento
+                  </Button>
                 </div>
               </div>
             )}
