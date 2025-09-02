@@ -84,18 +84,18 @@ const Withdrawal = () => {
               <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
               <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Saque PIX</h1>
             </div>
-            <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
               <div className="text-base sm:text-lg font-bold text-yellow-400">
-                {showBalance ? `$${totalBalance.toFixed(2)}` : '••••••'}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowBalance(!showBalance)}
+                    {showBalance ? `$${totalBalance.toFixed(2)}` : '••••••'}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBalance(!showBalance)}
                 className="text-yellow-400 hover:text-yellow-300"
-              >
-                {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+                  >
+                    {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-yellow-300/70 mt-1">Saques instantâneos • Processamento rápido</p>
@@ -108,61 +108,61 @@ const Withdrawal = () => {
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
                   <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-black" />
-                </div>
+                  </div>
                 <div className="flex-1">
                   <p className="text-xs text-yellow-300/70">Principal</p>
                   <p className="text-sm sm:text-lg font-bold text-yellow-400">
                     {showBalance ? `$${userBalance.toFixed(2)}` : '••••'}
-                  </p>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20 backdrop-blur-sm">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
                   <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-black" />
-                </div>
+                  </div>
                 <div className="flex-1">
                   <p className="text-xs text-yellow-300/70">Referral</p>
                   <p className="text-sm sm:text-lg font-bold text-yellow-400">
                     {showBalance ? `$${referralBalance.toFixed(2)}` : '••••'}
-                  </p>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20 backdrop-blur-sm">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
                   <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-black" />
-                </div>
+                  </div>
                 <div className="flex-1">
                   <p className="text-xs text-yellow-300/70">Concluídos</p>
                   <p className="text-sm sm:text-lg font-bold text-yellow-400">{totalWithdrawals}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
 
           <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20 backdrop-blur-sm">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
                   <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-black" />
-                </div>
+                  </div>
                 <div className="flex-1">
                   <p className="text-xs text-yellow-300/70">Pendentes</p>
                   <p className="text-sm sm:text-lg font-bold text-yellow-400">{pendingWithdrawals}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
         {/* Main Withdrawal Card - Tema amarelo/preto */}
         <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-sm border border-yellow-500/20 shadow-2xl shadow-yellow-500/10">
@@ -184,9 +184,9 @@ const Withdrawal = () => {
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
                 <span className="text-yellow-400 text-xs sm:text-sm font-medium">ATIVO</span>
+                </div>
               </div>
-            </div>
-          </CardHeader>
+            </CardHeader>
 
           <CardContent className="p-4 sm:p-6 space-y-6">
             <div className="text-center">
@@ -194,7 +194,7 @@ const Withdrawal = () => {
                 <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />
                 <span className="text-yellow-400 font-medium">Limite: 1 saque por dia</span>
               </div>
-            </div>
+              </div>
 
               {user ? (
                 <div className="space-y-4 sm:space-y-6">
@@ -261,15 +261,15 @@ const Withdrawal = () => {
                       >
                         ← Voltar
                       </Button>
-                      <DigitoPayWithdrawal 
-                        userBalance={userBalance}
-                        referralBalance={referralBalance}
-                        onSuccess={() => {
-                          toast({
+                  <DigitoPayWithdrawal 
+                    userBalance={userBalance}
+                    referralBalance={referralBalance}
+                    onSuccess={() => {
+                      toast({
                             title: "✅ SAQUE PIX ENVIADO!",
-                            description: "Seu saque foi processado com sucesso",
-                          });
-                          loadWithdrawalData();
+                        description: "Seu saque foi processado com sucesso",
+                      });
+                      loadWithdrawalData();
                           setSelectedMethod(null);
                         }} 
                       />
@@ -279,14 +279,14 @@ const Withdrawal = () => {
                   {/* Formulário de Saque USDT */}
                   {selectedMethod === 'usdt' && (
                     <div className="space-y-4">
-                      <Button
+                        <Button 
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedMethod(null)}
                         className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20"
                       >
                         ← Voltar
-                      </Button>
+                        </Button>
                       <Card className="bg-gradient-to-br from-zinc-900/90 to-black/90 border-yellow-500/20">
                         <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20">
                           <div className="flex items-center gap-2 sm:gap-3">
@@ -311,7 +311,7 @@ const Withdrawal = () => {
                             <p className="text-yellow-300/50 text-xs mt-2">
                               Por enquanto, utilize o saque via PIX.
                             </p>
-                          </div>
+                      </div>
                         </CardContent>
                       </Card>
                     </div>
@@ -326,8 +326,8 @@ const Withdrawal = () => {
                   </div>
                 </div>
               )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
       </div>
     </ErrorBoundary>
   );

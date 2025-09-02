@@ -240,7 +240,7 @@ const Settings = () => {
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 px-6 py-3 rounded-xl backdrop-blur-sm">
             <User className="h-6 w-6 text-yellow-400" />
-            <div>
+          <div>
               <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Meu Perfil</h1>
               <p className="text-xs sm:text-sm text-yellow-300/70">Informações da conta e configurações</p>
             </div>
@@ -254,7 +254,7 @@ const Settings = () => {
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center">
                   <User className="h-8 w-8 sm:h-10 sm:w-10 text-black" />
-                </div>
+        </div>
                 <div>
                   <CardTitle className="text-xl sm:text-2xl text-yellow-400">{userInfo.name}</CardTitle>
                   <div className="flex items-center gap-2 mt-1">
@@ -266,16 +266,16 @@ const Settings = () => {
                     </Badge>
                   </div>
                 </div>
-              </div>
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/edit-profile')}
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/edit-profile')}
                 className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20"
-              >
+                >
                 <Edit className="h-4 w-4 mr-2" />
                 Editar Perfil
-              </Button>
-            </div>
+                </Button>
+              </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -323,8 +323,8 @@ const Settings = () => {
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Informações Pessoais */}
@@ -553,53 +553,53 @@ const Settings = () => {
           <Card className="bg-gradient-to-br from-red-900/20 to-black/90 border-red-500/30">
             <CardHeader className="bg-gradient-to-r from-red-500/10 to-red-600/10 border-b border-red-500/20">
               <CardTitle className="flex items-center gap-2 text-red-400">
-                <AlertTriangle className="h-5 w-5" />
+              <AlertTriangle className="h-5 w-5" />
                 Zona de Perigo (Admin)
-              </CardTitle>
-            </CardHeader>
+            </CardTitle>
+          </CardHeader>
             <CardContent className="p-4 sm:p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
+              <div>
                   <p className="font-medium text-red-400">Excluir Conta</p>
                   <p className="text-sm text-red-300/70">
                     Esta ação é irreversível. Todos os dados serão permanentemente removidos.
-                  </p>
-                </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
                     <Button 
                       variant="destructive" 
                       disabled={isDeletingAccount}
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {isDeletingAccount ? "Excluindo..." : "Excluir Conta"}
-                    </Button>
-                  </AlertDialogTrigger>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {isDeletingAccount ? "Excluindo..." : "Excluir Conta"}
+                  </Button>
+                </AlertDialogTrigger>
                   <AlertDialogContent className="bg-zinc-900 border-red-500/30">
-                    <AlertDialogHeader>
+                  <AlertDialogHeader>
                       <AlertDialogTitle className="text-red-400">Tem certeza absoluta?</AlertDialogTitle>
                       <AlertDialogDescription className="text-red-300/70">
-                        Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
+                      Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
                         e removerá todos os seus dados de nossos servidores.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
                       <AlertDialogCancel className="border-red-500/30 text-red-400 hover:bg-red-500/20">
                         Cancelar
                       </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Sim, excluir permanentemente
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardContent>
-          </Card>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Sim, excluir permanentemente
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
         )}
 
         {/* FAQ */}
@@ -632,7 +632,7 @@ const Settings = () => {
                   Compartilhe seu código de indicação e ganhe bônus quando seus indicados realizarem investimentos.
                 </p>
               </div>
-            </div>
+        </div>
           </CardContent>
         </Card>
       </div>

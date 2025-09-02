@@ -46,6 +46,23 @@ interface UserInvestment {
   created_at: string;
   updated_at: string;
 }
+interface Order {
+  id: string;
+  side: 'buy' | 'sell';
+  price: number;
+  qty: number;
+  exchange: string;
+  status: 'open' | 'filled' | 'partial';
+  time: string;
+}
+interface Trade {
+  id: string;
+  side: 'buy' | 'sell';
+  price: number;
+  qty: number;
+  exchange: string;
+  time: string;
+}
 const TradingInvestments = () => {
   console.log('🔍 TradingInvestments: Componente iniciando...');
 
@@ -97,6 +114,14 @@ const TradingInvestments = () => {
       chartData: [],
       operationStartTime: 0
     });
+    // Real-time market visual states
+    const [orderBook, setOrderBook] = useState<{ buys: Order[]; sells: Order[] }>({ buys: [], sells: [] });
+    const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
+    const [tickerPrice, setTickerPrice] = useState<number>(0);
+    const [unrealizedPnl, setUnrealizedPnl] = useState<number>(0);
+    const [feesAccum, setFeesAccum] = useState<number>(0);
+    // Mobile bottom sheet for operations
+    const [isOpsSheetOpen, setIsOpsSheetOpen] = useState(false);
 
   // Error boundary básico
   try {
@@ -389,6 +414,30 @@ const TradingInvestments = () => {
         chartData: initialChartData,
         operationStartTime: Date.now()
       });
+      // Seed initial order book and trades
+      const seedBuys: Order[] = Array.from({ length: 10 }, (_, i) => ({
+        id: `b${Date.now()}_${i}`,
+        side: 'buy',
+        price: parseFloat((buyPrice * (1 - 0.0005 * i)).toFixed(6)),
+        qty: parseFloat(((Math.random() * 0.8 + 0.2)).toFixed(4)),
+        exchange: selectedExchanges[0],
+        status: 'open',
+        time: new Date().toLocaleTimeString()
+      }));
+      const seedSells: Order[] = Array.from({ length: 10 }, (_, i) => ({
+        id: `s${Date.now()}_${i}`,
+        side: 'sell',
+        price: parseFloat((sellPrice * (1 + 0.0005 * i)).toFixed(6)),
+        qty: parseFloat(((Math.random() * 0.8 + 0.2)).toFixed(4)),
+        exchange: selectedExchanges[1] || selectedExchanges[0],
+        status: 'open',
+        time: new Date().toLocaleTimeString()
+      }));
+      setOrderBook({ buys: seedBuys, sells: seedSells });
+      setRecentTrades([]);
+      setTickerPrice(buyPrice);
+      setUnrealizedPnl(0);
+      setFeesAccum(0);
       setShowArbitrageModal(true);
       setProcessingOperations(prev => new Set(prev).add(investment.id));
 
@@ -483,6 +532,21 @@ const TradingInvestments = () => {
               }]
             };
           });
+          // Update real-time ticker and order book (buying phase)
+          setTickerPrice(prev => prev + (Math.random() - 0.4) * 2);
+          setOrderBook((ob) => {
+            const updatedBuys: Order[] = ob.buys.map((o, idx) => (idx < 2 ? { ...o, status: 'filled' } as Order : o)).slice(0).sort((a,b) => b.price - a.price);
+            return { buys: updatedBuys, sells: ob.sells };
+          });
+          setRecentTrades((trades) => ([{
+            id: `t${Date.now()}_${i}`,
+            side: 'buy',
+            price: tickerPrice || (currentArbitrage.buyPrice + Math.random()),
+            qty: parseFloat((Math.random() * 0.5 + 0.05).toFixed(4)),
+            exchange: currentArbitrage.exchanges[0],
+            time: new Date().toLocaleTimeString()
+          } as Trade, ...trades]).slice(0, 25));
+          setFeesAccum(f => f + 0.02);
         }
 
         // Etapa 5: Transferindo entre exchanges (8 segundos)
@@ -508,6 +572,8 @@ const TradingInvestments = () => {
               }]
             };
           });
+          // Transfer phase - drift ticker slightly
+          setTickerPrice(prev => prev + (Math.random() - 0.5));
         }
 
         // Etapa 6: Executando ordem de venda (8 segundos)
@@ -533,6 +599,21 @@ const TradingInvestments = () => {
               }]
             };
           });
+          // Selling phase - fill sell orders, push trades
+          setTickerPrice(prev => prev + (Math.random() - 0.3) * 2.5);
+          setOrderBook((ob) => {
+            const updatedSells: Order[] = ob.sells.map((o, idx) => (idx < 2 ? { ...o, status: 'filled' } as Order : o)).slice(0).sort((a,b) => a.price - b.price);
+            return { buys: ob.buys, sells: updatedSells };
+          });
+          setRecentTrades((trades) => ([{
+            id: `t${Date.now()}_${i}`,
+            side: 'sell',
+            price: tickerPrice || (currentArbitrage.sellPrice - Math.random()),
+            qty: parseFloat((Math.random() * 0.6 + 0.05).toFixed(4)),
+            exchange: currentArbitrage.exchanges[1],
+            time: new Date().toLocaleTimeString()
+          } as Trade, ...trades]).slice(0, 25));
+          setFeesAccum(f => f + 0.02);
         }
 
         // Etapa 7: Finalizando e confirmando lucros (2 segundos)
@@ -724,8 +805,8 @@ const TradingInvestments = () => {
             </Button>)}
         </div>
 
-        {/* Stats Cards */}
-        {activeInvestments.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Stats Cards - Apenas na aba Investimentos Ativos */}
+        {activeTab === 'active' && activeInvestments.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-slate-600/30">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -1317,7 +1398,7 @@ const TradingInvestments = () => {
                   <p className="text-slate-300 mb-6">
                     Comece a investir em nossos robôs de arbitragem!
                   </p>
-                  <Button onClick={() => setActiveTab('plans')} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold">
+                  <Button onClick={() => setActiveTab('plans')} className="bg-gradient-to-r from-yellow-500 to-orange-500 text-slate-900 font-bold">
                     Ver Planos Disponíveis
                   </Button>
                 </CardContent>
@@ -1492,272 +1573,181 @@ const TradingInvestments = () => {
 
       {/* Modal de Simulação de Arbitragem */}
       <Dialog open={showArbitrageModal} onOpenChange={setShowArbitrageModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-7xl max-h-[95vh] overflow-y-auto">
-          <DialogHeader>
-            {/* Header com Lucro Atual */}
-            <div className="flex items-center justify-between bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-500/30 rounded-lg p-4 mb-4">
+        <DialogContent className="p-0 w-screen h-[100dvh] max-w-none max-h-none bg-gradient-to-br from-black via-zinc-900 to-black text-white border border-yellow-500/20 rounded-none">
+          <div className="h-full flex flex-col">
+            {/* Super Header - sticky */}
+            <div className="sticky top-0 z-20 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/20 px-4 sm:px-6 py-3">
+              <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="bg-emerald-500 rounded-lg p-2">
-                  <TrendingUp className="h-6 w-6 text-white" />
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 border border-yellow-500/40">
+                    <TrendingUp className="h-5 w-5 text-black" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">ARBITRAGEM EM TEMPO REAL</h3>
-                  <p className="text-sm text-slate-300">• Executando operação • {currentArbitrage.pair}</p>
+                    <h3 className="text-base sm:text-lg font-bold text-yellow-400">Arbitragem em Tempo Real</h3>
+                    <p className="text-xs sm:text-sm text-yellow-300/70">Operando • {currentArbitrage.pair || '---'}</p>
                 </div>
               </div>
+                <div className="flex items-end gap-3">
               <div className="text-right">
-                <div className="text-2xl font-bold text-yellow-400">+${currentArbitrage.currentProfit.toFixed(2)}</div>
-                <div className="text-sm text-slate-300">Lucro Atual</div>
+                    <div className="text-xl sm:text-2xl font-extrabold text-yellow-400">+${currentArbitrage.currentProfit.toFixed(2)}</div>
+                    <div className="text-[11px] sm:text-xs text-yellow-300/70">Lucro Atual</div>
+              </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowArbitrageModal(false)}
+                    className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/15"
+                  >
+                    Fechar
+                  </Button>
+            </div>
               </div>
             </div>
-          </DialogHeader>
           
-          <div className="space-y-6">
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-28 sm:pb-6 touch-pan-y overscroll-y-contain">
+              {/* Primary Action - Above Progress */}
+              {currentArbitrage.progress === 0 && (
+                <div className="flex gap-3">
+                  <Button
+                    onClick={runArbitrageSimulation}
+                    className="w-full h-12 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-base sm:text-lg shadow-[0_8px_25px_rgba(240,185,11,0.35)]"
+                  >
+                    <Play className="h-5 w-5 mr-2" /> Executar Operação de Arbitragem
+                  </Button>
+                </div>
+              )}
             {/* Progress Bar com Ícones */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-white">Progresso da Operação</span>
                 <span className="text-xl font-bold text-white">{currentArbitrage.progress}%</span>
               </div>
-              
               <Progress value={currentArbitrage.progress} className="h-3 bg-slate-700" />
-              
               <div className="flex justify-between">
-                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
-                    ✓
-                  </div>
+                   <div className={`flex flex-col items-center ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'analyzing' || currentArbitrage.progress > 0 ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>✓</div>
                   <span className="text-xs">Análise</span>
                 </div>
                 <div className={`flex flex-col items-center ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-blue-400' : 'text-slate-500'}`}>
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-blue-400 bg-blue-400/20' : 'border-slate-500'}`}>
-                    💰
-                  </div>
+                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-blue-400 bg-blue-400/20' : 'border-slate-500'}`}>💰</div>
                   <span className="text-xs">Compra</span>
                 </div>
                 <div className={`flex flex-col items-center ${['selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-yellow-400 bg-yellow-400/20' : 'border-slate-500'}`}>
-                    ⏳
-                  </div>
+                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${['selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'border-yellow-400 bg-yellow-400/20' : 'border-slate-500'}`}>⏳</div>
                   <span className="text-xs">Aguardo</span>
                 </div>
-                <div className={`flex flex-col items-center ${currentArbitrage.stage === 'completed' ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'completed' ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>
-                    ✓
-                  </div>
+                   <div className={`flex flex-col items-center ${currentArbitrage.stage === 'completed' ? 'text-yellow-400' : 'text-slate-500'}`}>
+                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 ${currentArbitrage.stage === 'completed' ? 'border-emerald-400 bg-emerald-400/20' : 'border-slate-500'}`}>✓</div>
                   <span className="text-xs">Venda</span>
                 </div>
               </div>
             </div>
 
             {/* Main Section - Chart + Right Panel */}
-            <div className="flex gap-6">
+               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Chart Section - 60% */}
-              <div className="flex-1 w-[60%]">
+                 <div className="lg:col-span-6">
                 <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white">{currentArbitrage.pair} - Gráfico em Tempo Real</h3>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-yellow-400">LIVE</span>
+                         <span className="text-sm text-yellow-400">LIVE</span>
                     </div>
                   </div>
-                  
-                  <div className="h-80">
+                     <div className="h-64 sm:h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={currentArbitrage.chartData}>
-                        <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{
-                          fill: '#94a3b8',
-                          fontSize: 10
-                        }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{
-                          fill: '#94a3b8',
-                          fontSize: 10
-                        }} domain={['dataMin - 50', 'dataMax + 50']} tickFormatter={value => `$${value.toFixed(2)}`} />
-                        <Tooltip contentStyle={{
-                          backgroundColor: '#1e293b',
-                          border: '1px solid #475569',
-                          borderRadius: '8px',
-                          color: '#f1f5f9'
-                        }} />
-                        <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{
-                          r: 4,
-                          fill: '#10b981'
-                        }} />
+                           <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                           <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} domain={['dataMin - 50', 'dataMax + 50']} tickFormatter={(v) => `$${v.toFixed(2)}`} />
+                           <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9' }} />
+                           <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#10b981' }} isAnimationActive animationDuration={800} animationEasing="linear" />
                       </LineChart>
                     </ResponsiveContainer>
                    </div>
-                   
-                   {/* Multiple Orders Execution */}
-                   <div className="mt-4">
-                     <h5 className="text-white font-bold text-sm mb-3">Ordens em Execução</h5>
-                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                       {/* Buy Order 1 */}
-                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
-                           <span className={`text-xs px-2 py-1 rounded ${['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                             {['buying', 'transferring', 'selling', 'finalizing', 'completed'].includes(currentArbitrage.stage) ? 'EXECUTADA' : 'PENDENTE'}
-                           </span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">{currentArbitrage.pair}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">{currentArbitrage.exchanges[0]}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-green-400 ml-1">${currentArbitrage.buyPrice.toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
-                           </div>
+                     {/* Existing orders list remains unchanged below */}
+                     // ... existing code ...
                          </div>
                        </div>
 
-                       {/* Buy Order 2 */}
-                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
-                           <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400">EXECUTANDO</span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">BTC/USDT</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">Kraken</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 1.25).toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{(Math.random() * 0.5 + 0.1).toFixed(4)}</span>
-                           </div>
-                         </div>
-                       </div>
+                                 {/* Order Book + Trades - Desktop */}
+                <div className="hidden md:block lg:col-span-3 space-y-4">
+                  {/* Order Book Box */}
+                  <div className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-yellow-400 font-bold flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Order Book
+                      </h4>
+                      <span className="text-xs text-yellow-300/70">{currentArbitrage.exchanges.join(' ⚡ ')}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <div className="text-emerald-400 font-bold mb-2 flex items-center gap-1">
+                          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                          Compras (Bids)
+                        </div>
+                        <div className="space-y-1 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-emerald-500/50 scrollbar-track-transparent">
+                          {orderBook.buys.map((o, idx) => (
+                            <div key={o.id} className={`flex justify-between p-1.5 rounded transition-all duration-300 ${o.status === 'filled' ? 'bg-emerald-500/20 ring-1 ring-emerald-500/40 text-emerald-200' : 'text-emerald-300/90 hover:bg-emerald-500/10'} ${idx < 2 ? 'animate-pulse' : ''}`}>
+                              <span className="font-mono">${o.price.toFixed(4)}</span>
+                              <span className="font-mono">{o.qty.toFixed(4)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-red-400 font-bold mb-2 flex items-center gap-1">
+                          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                          Vendas (Asks)
+                        </div>
+                        <div className="space-y-1 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-red-500/50 scrollbar-track-transparent">
+                          {orderBook.sells.map((o, idx) => (
+                            <div key={o.id} className={`flex justify-between p-1.5 rounded transition-all duration-300 ${o.status === 'filled' ? 'bg-red-500/20 ring-1 ring-red-500/40 text-red-200' : 'text-red-300/90 hover:bg-red-500/10'} ${idx < 2 ? 'animate-pulse' : ''}`}>
+                              <span className="font-mono">${o.price.toFixed(4)}</span>
+                              <span className="font-mono">{o.qty.toFixed(4)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                       {/* Sell Order 1 */}
-                       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-red-400 font-bold text-xs">SELL #{Math.floor(Math.random() * 10000)}</span>
-                           <span className={`text-xs px-2 py-1 rounded ${currentArbitrage.stage === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                             {currentArbitrage.stage === 'completed' ? 'EXECUTADA' : 'AGUARDANDO'}
-                           </span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">{currentArbitrage.pair}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">{currentArbitrage.exchanges[1]}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-red-400 ml-1">${currentArbitrage.sellPrice.toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{((currentArbitrage.investment?.amount || 1000) / currentArbitrage.buyPrice).toFixed(4)}</span>
-                           </div>
-                         </div>
-                       </div>
+                                     {/* Trades Recentes Box */}
+                  <div className="bg-gradient-to-br from-zinc-900/90 to-black/90 border border-yellow-500/20 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-yellow-400 font-bold flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Trades Recentes
+                      </h4>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-yellow-300/70">${tickerPrice.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-yellow-500/50 scrollbar-track-transparent">
+                      <div className="grid grid-cols-5 gap-2 text-xs text-yellow-300/70 font-bold mb-2 pb-1 border-b border-yellow-500/20">
+                        <span>Lado</span>
+                        <span>Preço</span>
+                        <span>Qtd</span>
+                        <span>Exchange</span>
+                        <span>Hora</span>
+                      </div>
+                      {recentTrades.map((t, idx) => (
+                        <div key={t.id} className={`grid grid-cols-5 gap-2 p-1.5 rounded transition-all duration-300 ${idx < 3 ? 'animate-pulse bg-yellow-500/10' : 'hover:bg-yellow-500/5'}`}>
+                          <span className={`${t.side === 'buy' ? 'text-emerald-400' : 'text-red-400'} font-bold font-mono`}>{t.side.toUpperCase()}</span>
+                          <span className="text-white font-mono">${t.price.toFixed(4)}</span>
+                          <span className="text-slate-300 font-mono">{t.qty.toFixed(4)}</span>
+                          <span className="text-slate-400 text-xs">{t.exchange}</span>
+                          <span className="text-slate-500 text-xs">{t.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                       {/* Buy Order 3 */}
-                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
-                           <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400">PENDENTE</span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">ADA/USDT</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">Binance</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 0.15).toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{(Math.random() * 1000 + 500).toFixed(0)}</span>
-                           </div>
-                         </div>
-                       </div>
-
-                       {/* Sell Order 2 */}
-                       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-red-400 font-bold text-xs">SELL #{Math.floor(Math.random() * 10000)}</span>
-                           <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400">EXECUTANDO</span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">DOT/USDT</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">Coinbase</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-red-400 ml-1">${(currentArbitrage.sellPrice * 0.85).toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{(Math.random() * 100 + 50).toFixed(2)}</span>
-                           </div>
-                         </div>
-                       </div>
-
-                       {/* Buy Order 4 */}
-                       <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
-                         <div className="flex justify-between items-center mb-2">
-                           <span className="text-green-400 font-bold text-xs">BUY #{Math.floor(Math.random() * 10000)}</span>
-                           <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">EXECUTADA</span>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-xs">
-                           <div>
-                             <span className="text-slate-400">Par:</span>
-                             <span className="text-white ml-1">MATIC/USDT</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Exchange:</span>
-                             <span className="text-white ml-1">Bybit</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Preço:</span>
-                             <span className="text-green-400 ml-1">${(currentArbitrage.buyPrice * 0.45).toFixed(6)}</span>
-                           </div>
-                           <div>
-                             <span className="text-slate-400">Qtd:</span>
-                             <span className="text-white ml-1">{(Math.random() * 2000 + 1000).toFixed(0)}</span>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-              {/* Right Panel - 40% */}
-              <div className="w-[40%] space-y-4">
+                 {/* Right KPIs */}
+                 <div className="lg:col-span-3 space-y-4">
                 {/* Operação Atual */}
                 <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-4">
@@ -1789,7 +1779,7 @@ const TradingInvestments = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Meta Venda:</span>
-                      <span className="text-yellow-400 font-semibold">${currentArbitrage.sellPrice.toFixed(2)}</span>
+                         <span className="text-yellow-400 font-semibold">${currentArbitrage.sellPrice.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -1798,14 +1788,12 @@ const TradingInvestments = () => {
                 <div className="bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-500/30 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="text-lg font-bold text-white">Lucro em Tempo Real</h4>
-                    <TrendingUp className="h-4 w-4 text-yellow-400" />
+                       <TrendingUp className="h-4 w-4 text-yellow-400" />
                   </div>
-                  <div className="text-3xl font-bold text-yellow-400 mb-1">
+                     <div className="text-3xl font-bold text-yellow-400 mb-1">
                     +${currentArbitrage.currentProfit.toFixed(2)}
                   </div>
-                  <div className="text-sm text-emerald-300">
-                    +{((currentArbitrage.investment?.daily_rate * 100) || 0.33).toFixed(2)}%
-                  </div>
+                     <div className="text-xs text-yellow-300/70">Taxas: ${feesAccum.toFixed(2)} • PnL não-realizado: ${unrealizedPnl.toFixed(2)}</div>
                 </div>
 
                 {/* Informações do Investimento */}
@@ -1830,20 +1818,132 @@ const TradingInvestments = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              {currentArbitrage.stage !== 'completed' ? <Button onClick={runArbitrageSimulation} className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3" disabled={currentArbitrage.progress > 0}>
-                  {currentArbitrage.progress === 0 ? <>
-                      <Play className="h-5 w-5 mr-2" />
-                      Iniciar Operação de Arbitragem
-                    </> : <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900 mr-2"></div>
-                      Operação em Andamento...
-                    </>}
-                </Button> : <Button onClick={() => setShowArbitrageModal(false)} className="flex-1 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-900 font-bold text-lg py-3">
+            {/* Spacer to avoid content under mobile fixed bar */}
+            <div className="md:hidden h-6" />
+
+            {/* Action Buttons - Desktop */}
+            <div className="hidden md:flex gap-3">
+              {currentArbitrage.stage !== 'completed' ? (
+                <Button onClick={runArbitrageSimulation} className="flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-lg py-3" disabled={currentArbitrage.progress > 0}>
+                  {currentArbitrage.progress === 0 ? (<><Play className="h-5 w-5 mr-2" />Iniciar Operação de Arbitragem</>) : (<><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>Operação em Andamento...</>)}
+                </Button>
+              ) : (
+                <Button onClick={() => setShowArbitrageModal(false)} className="flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-lg py-3">
                   <CheckCircle className="h-5 w-5 mr-2" />
                   Finalizar Operação
-                </Button>}
+                </Button>
+              )}
+            </div>
+
+                          {/* Mobile Trading Panel - Bottom Sheet */}
+              <div className={`md:hidden fixed left-0 right-0 bottom-0 z-[11000] transition-transform duration-500 ease-out ${isOpsSheetOpen ? 'translate-y-0' : 'translate-y-[75%]'} bg-gradient-to-t from-black/98 via-zinc-900/95 to-zinc-900/90 border-t border-yellow-500/30 rounded-t-2xl shadow-[0_-20px_50px_rgba(240,185,11,0.15)]`}>
+                {/* Drag Handle */}
+                <div className="flex items-center justify-center px-4 pt-3 pb-2">
+                  <div 
+                    className="h-1.5 w-16 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 cursor-pointer hover:scale-110 transition-transform" 
+                    onClick={() => setIsOpsSheetOpen(!isOpsSheetOpen)}
+                  />
+                </div>
+                
+                <div className="px-4 pb-[calc(env(safe-area-inset-bottom,0)+80px)] max-h-[80vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-yellow-400 font-bold flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Operações em Tempo Real
+                    </h4>
+                    <button 
+                      onClick={() => setIsOpsSheetOpen(false)} 
+                      className="text-xs text-yellow-300/70 hover:text-yellow-400 transition-colors"
+                    >
+                      Minimizar
+                    </button>
+                  </div>
+                  
+                  {/* Mobile Order Book */}
+                  <div className="bg-zinc-900/60 rounded-lg p-3 mb-4 border border-yellow-500/20">
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <div className="text-emerald-400 font-bold mb-2 flex items-center gap-1">
+                          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                          Bids
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-500/50 scrollbar-track-transparent">
+                          {orderBook.buys.slice(0, 8).map((o, idx) => (
+                            <div key={o.id} className={`flex justify-between p-1 rounded transition-all ${o.status === 'filled' ? 'bg-emerald-500/20 text-emerald-200' : 'text-emerald-300/90'} ${idx < 2 ? 'animate-pulse' : ''}`}>
+                              <span className="font-mono text-xs">${o.price.toFixed(4)}</span>
+                              <span className="font-mono text-xs">{o.qty.toFixed(3)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-red-400 font-bold mb-2 flex items-center gap-1">
+                          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                          Asks
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-red-500/50 scrollbar-track-transparent">
+                          {orderBook.sells.slice(0, 8).map((o, idx) => (
+                            <div key={o.id} className={`flex justify-between p-1 rounded transition-all ${o.status === 'filled' ? 'bg-red-500/20 text-red-200' : 'text-red-300/90'} ${idx < 2 ? 'animate-pulse' : ''}`}>
+                              <span className="font-mono text-xs">${o.price.toFixed(4)}</span>
+                              <span className="font-mono text-xs">{o.qty.toFixed(3)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Trades */}
+                  <div className="bg-zinc-900/60 rounded-lg p-3 border border-yellow-500/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-yellow-400 font-bold flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Trades
+                      </h5>
+                      <span className="text-xs text-yellow-300/70">${tickerPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="space-y-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-500/50 scrollbar-track-transparent">
+                      <div className="grid grid-cols-4 gap-2 text-xs text-yellow-300/70 font-bold mb-2 pb-1 border-b border-yellow-500/20">
+                        <span>Lado</span>
+                        <span>Preço</span>
+                        <span>Qtd</span>
+                        <span>Exchange</span>
+                      </div>
+                      {recentTrades.slice(0, 10).map((t, idx) => (
+                        <div key={t.id} className={`grid grid-cols-4 gap-2 p-1 rounded transition-all ${idx < 3 ? 'animate-pulse bg-yellow-500/10' : 'hover:bg-yellow-500/5'}`}>
+                          <span className={`${t.side === 'buy' ? 'text-emerald-400' : 'text-red-400'} font-bold font-mono text-xs`}>{t.side.toUpperCase()}</span>
+                          <span className="text-white font-mono text-xs">${t.price.toFixed(4)}</span>
+                          <span className="text-slate-300 font-mono text-xs">{t.qty.toFixed(3)}</span>
+                          <span className="text-slate-400 text-xs">{t.exchange.slice(0, 3)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+                          {/* Fixed Action Bar - Mobile */}
+              <div className="md:hidden fixed left-0 right-0 bottom-0 z-[10000] bg-gradient-to-t from-black/95 via-zinc-900/90 to-transparent border-t border-yellow-500/20 px-3 pb-[calc(env(safe-area-inset-bottom,0)+12px)] pt-3">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsOpsSheetOpen(!isOpsSheetOpen)}
+                    variant="outline"
+                    className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/15"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
+                  {currentArbitrage.stage !== 'completed' ? (
+                    <Button onClick={runArbitrageSimulation} className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-base" disabled={currentArbitrage.progress > 0}>
+                      {currentArbitrage.progress === 0 ? (<><Play className="h-4 w-4 mr-2" />Executar</>) : (<><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>Operando...</>)}
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setShowArbitrageModal(false)} className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-base">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Finalizar
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </DialogContent>
@@ -1863,3 +1963,19 @@ const TradingInvestments = () => {
   }
 };
 export default TradingInvestments;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

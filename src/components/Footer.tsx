@@ -46,7 +46,7 @@ const Footer = () => {
     }, 600);
   };
 
-    return (
+  return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black via-zinc-900/95 to-zinc-900/90 backdrop-blur-lg border-t border-menu-yellow/30 md:hidden shadow-[0_-10px_40px_rgba(240,185,11,0.15)]">
       {/* Glow effect animado */}
       <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-menu-yellow to-transparent animate-pulse" />
@@ -103,11 +103,11 @@ const Footer = () => {
                       </div>
                       
                       {/* Glow effect mais intenso */}
-                      {isActive && (
+                  {isActive && (
                         <div className="absolute inset-0 h-14 w-14 rounded-full bg-gradient-to-br from-menu-yellow/40 to-amber-400/40 blur-2xl animate-pulse" />
-                      )}
-                    </div>
-                    
+                  )}
+                </div>
+                
                     {/* Label Trading com destaque */}
                     <span className={`text-[11px] mt-2 font-black transition-all duration-300 ${isActive ? 'text-menu-yellow scale-115' : 'text-menu-gray'}`}>
                       Trading
@@ -138,12 +138,12 @@ const Footer = () => {
                     </div>
                     
                     <span className={`text-[11px] mt-1 font-medium transition-all duration-300 ${
-                      isActive 
+                  isActive 
                         ? 'text-menu-yellow font-bold' 
                         : 'text-menu-gray hover:text-menu-yellow'
-                    }`}>
-                      {item.label}
-                    </span>
+                }`}>
+                  {item.label}
+                </span>
                   </>
                 )}
               </Link>
