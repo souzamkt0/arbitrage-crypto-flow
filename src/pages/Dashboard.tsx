@@ -885,7 +885,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#0f1419] text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* 🏆 BANNER PREMIUM SÓCIO - TOPO DO SITE */}
       {isPartnerUser && (
         <div className="px-4 pt-4">
@@ -907,7 +907,7 @@ const Dashboard = () => {
           {/* Left Column - Portfolio & Assets */}
           <div className="xl:col-span-3 space-y-4">
             {/* My Portfolio Card */}
-            <div className="bg-[#1a1f2e] rounded-xl p-4 border border-gray-800">
+            <div className="bg-zinc-900 rounded-xl p-4 border border-yellow-500/20">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
@@ -935,7 +935,7 @@ const Dashboard = () => {
               </div>
               
               {/* Animated Trading Chart */}
-              <div className="relative h-40 bg-gradient-to-br from-blue-950/50 via-slate-900/50 to-cyan-950/50 rounded-lg mb-3 overflow-hidden border border-blue-500/20">
+              <div className="relative h-40 bg-gradient-to-br from-blue-950/50 via-slate-900/50 to-cyan-950/50 rounded-lg mb-3 overflow-hidden border border-yellow-500/20">
                 {/* Live Price Display */}
                 <div className="absolute top-3 left-3 z-20">
                   <div className="flex items-center space-x-2 mb-1">
@@ -1103,7 +1103,7 @@ const Dashboard = () => {
                 
                 {/* Scanning Line Effect */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="w-0.5 h-full bg-gradient-to-b from-transparent via-blue-400 to-transparent opacity-60 animate-[slide-wave_3s_linear_infinite]"></div>
+                  <div className="w-0.5 h-full bg-gradient-to-b from-transparent via-yellow-400 to-transparent opacity-60 animate-[slide-wave_3s_linear_infinite]"></div>
                 </div>
                 
                 {/* Trading Session Indicator */}
@@ -1119,7 +1119,7 @@ const Dashboard = () => {
                 </div>
                 
                 {/* Real-time Price Tag */}
-                <div className="absolute top-16 right-8 bg-blue-600/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-mono text-white border border-blue-400/50 animate-[breathe_2s_ease-in-out_infinite]">
+                <div className="absolute top-16 right-8 bg-yellow-600/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-mono text-white border border-yellow-400/50 animate-[breathe_2s_ease-in-out_infinite]">
                   $52.42k
                 </div>
               </div>
@@ -1135,7 +1135,7 @@ const Dashboard = () => {
             {/* Asset Cards Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {/* BTC Card */}
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ₿
@@ -1152,7 +1152,7 @@ const Dashboard = () => {
               </div>
 
               {/* ETH Card */}
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     Ξ
@@ -1169,7 +1169,7 @@ const Dashboard = () => {
               </div>
 
               {/* SOL Card */}
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ◎
@@ -1186,7 +1186,7 @@ const Dashboard = () => {
               </div>
 
               {/* ADA Card */}
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800">
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     A
@@ -1205,15 +1205,15 @@ const Dashboard = () => {
 
             {/* Trading Tools */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/deposit')}>
-                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <ArrowUpDown className="w-5 h-5 text-blue-400" />
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/deposit')}>
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <ArrowUpDown className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div className="text-sm font-medium mb-1">Deposit</div>
                 <div className="text-xs text-gray-500">Add Funds</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/withdrawal')}>
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/withdrawal')}>
                 <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
                   <DollarSign className="w-5 h-5 text-orange-400" />
                 </div>
@@ -1221,17 +1221,17 @@ const Dashboard = () => {
                 <div className="text-xs text-gray-500">Cash Out</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/history')}>
-                <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Clock className="w-5 h-5 text-pink-400" />
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/history')}>
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Clock className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div className="text-sm font-medium mb-1">History</div>
                 <div className="text-xs text-gray-500">Transactions</div>
               </div>
               
-              <div className="bg-[#1a1f2e] rounded-lg p-3 border border-gray-800 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/market')}>
-                <div className="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <BarChart3 className="w-5 h-5 text-teal-400" />
+              <div className="bg-zinc-900 rounded-lg p-3 border border-yellow-500/20 text-center cursor-pointer hover:bg-[#232834] transition-colors" onClick={() => navigate('/market')}>
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <BarChart3 className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div className="text-sm font-medium mb-1">Analysis</div>
                 <div className="text-xs text-gray-500">Markets</div>
@@ -1257,11 +1257,11 @@ const Dashboard = () => {
 
         {/* Crypto Charts Section */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-6 text-white">📊 Market Analysis</h2>
+          <h2 className="text-xl font-semibold mb-6 text-yellow-400">📊 Market Analysis</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Bitcoin Chart */}
-            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
-              <div className="p-4 border-b border-gray-800">
+            <div className="bg-zinc-900 rounded-xl border border-yellow-500/20 overflow-hidden">
+              <div className="p-4 border-b border-yellow-500/20">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ₿
@@ -1275,8 +1275,8 @@ const Dashboard = () => {
             </div>
 
             {/* Ethereum Chart */}
-            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
-              <div className="p-4 border-b border-gray-800">
+            <div className="bg-zinc-900 rounded-xl border border-yellow-500/20 overflow-hidden">
+              <div className="p-4 border-b border-yellow-500/20">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     Ξ
@@ -1290,8 +1290,8 @@ const Dashboard = () => {
             </div>
 
             {/* Solana Chart */}
-            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
-              <div className="p-4 border-b border-gray-800">
+            <div className="bg-zinc-900 rounded-xl border border-yellow-500/20 overflow-hidden">
+              <div className="p-4 border-b border-yellow-500/20">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ◎
@@ -1305,8 +1305,8 @@ const Dashboard = () => {
             </div>
 
             {/* Cardano Chart */}
-            <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden">
-              <div className="p-4 border-b border-gray-800">
+            <div className="bg-zinc-900 rounded-xl border border-yellow-500/20 overflow-hidden">
+              <div className="p-4 border-b border-yellow-500/20">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     A
