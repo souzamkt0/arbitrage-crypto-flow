@@ -168,10 +168,18 @@ const History = () => {
       const deposits = allTransactions.filter(t => t.type === 'deposit' && (t.status === 'completed' || t.status === 'paid'));
       const withdrawals = allTransactions.filter(t => t.type === 'withdrawal' && (t.status === 'completed' || t.status === 'approved'));
       
+      console.log('📊 Stats calculados:', {
+        totalTransactions: allTransactions.length,
+        deposits: deposits.length,
+        withdrawals: withdrawals.length,
+        depositsTotal: deposits.reduce((sum, t) => sum + (t.amount_brl || 0), 0),
+        withdrawalsTotal: withdrawals.reduce((sum, t) => sum + (t.amount_brl || 0), 0)
+      });
+      
       setStats(prev => ({
         ...prev,
-        totalDeposits: deposits.reduce((sum, t) => sum + t.amount_brl, 0),
-        totalWithdrawals: withdrawals.reduce((sum, t) => sum + t.amount_brl, 0)
+        totalDeposits: deposits.reduce((sum, t) => sum + (t.amount_brl || 0), 0),
+        totalWithdrawals: withdrawals.reduce((sum, t) => sum + (t.amount_brl || 0), 0)
       }));
 
     } catch (error) {

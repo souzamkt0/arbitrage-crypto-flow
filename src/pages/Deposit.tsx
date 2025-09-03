@@ -54,21 +54,56 @@ const Deposit = () => {
     if (!user) return;
 
     try {
-      const { data: deposits } = await supabase
+      // Buscar depósitos de ambas as tabelas
+      const [digitopayResult, depositsResult] = await Promise.all([
+        supabase
         .from('digitopay_transactions')
         .select('amount, amount_brl, status')
         .eq('user_id', user.id)
-        .eq('type', 'deposit');
+          .eq('type', 'deposit'),
+        supabase
+          .from('deposits')
+          .select('amount_usd, amount_brl, status')
+          .eq('user_id', user.id)
+      ]);
 
-      if (deposits) {
-        const completed = deposits.filter(d => d.status === 'completed');
-        const pending = deposits.filter(d => d.status === 'pending');
+      const allDeposits = [];
+      
+      // Adicionar transações do DigitoPay
+      if (digitopayResult.data) {
+        digitopayResult.data.forEach(d => {
+          allDeposits.push({
+            amount: d.amount,
+            amount_brl: d.amount_brl,
+            status: d.status
+          });
+        });
+      }
+      
+      // Adicionar depósitos da tabela deposits
+      if (depositsResult.data) {
+        depositsResult.data.forEach(d => {
+          allDeposits.push({
+            amount: d.amount_usd,
+            amount_brl: d.amount_brl,
+            status: d.status === 'paid' ? 'completed' : d.status
+          });
+        });
+      }
+
+      if (allDeposits.length > 0) {
+        const completed = allDeposits.filter(d => d.status === 'completed' || d.status === 'paid');
+        const pending = allDeposits.filter(d => d.status === 'pending');
         
         const totalUSD = completed.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
         
         setDepositBalance(totalUSD);
         setTotalDeposits(completed.length);
         setPendingDeposits(pending.length);
+      } else {
+        setDepositBalance(0);
+        setTotalDeposits(0);
+        setPendingDeposits(0);
       }
     } catch (error) {
       console.error('Error loading deposit data:', error);
