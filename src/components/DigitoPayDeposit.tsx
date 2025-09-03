@@ -177,10 +177,19 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
       
       console.log('📝 1. Criando transação no Supabase com external_id:', external_id);
       
-      const { data: transaction, error: transactionError } = await supabase
+      // Verificar se o usuário está autenticado
+      if (!user?.id) {
+        throw new Error('Usuário não autenticado. Faça login novamente.');
+      }
+
+      let transaction;
+      let transactionError;
+
+      // Tentar inserção direta primeiro
+      const directResult = await supabase
         .from('digitopay_transactions')
         .insert({
-          user_id: user?.id,
+          user_id: user.id,
           type: 'deposit',
           amount: usdAmount,
           amount_brl: brlAmount.brlAmount,
@@ -193,8 +202,37 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         .select()
         .single();
 
-      if (transactionError) {
+      transaction = directResult.data;
+      transactionError = directResult.error;
+
+      // Se falhou por RLS, usar Edge Function como fallback
+      if (transactionError && transactionError.message.includes('row-level security policy')) {
+        console.log('🔄 RLS bloqueou inserção direta, usando Edge Function...');
+        
+        const { data: edgeResult, error: edgeError } = await supabase.functions.invoke('create-digitopay-transaction', {
+          body: {
+            user_id: user.id,
+            type: 'deposit',
+            amount: usdAmount,
+            amount_brl: brlAmount.brlAmount,
+            person_name: profile?.display_name || 'Usuário',
+            person_cpf: cpf,
+            external_id: external_id,
+            trx_id: external_id
+          }
+        });
+
+        if (edgeError || !edgeResult?.success) {
+          throw new Error(`Erro ao criar transação via Edge Function: ${edgeError?.message || 'Erro desconhecido'}`);
+        }
+
+        transaction = edgeResult.transaction;
+        console.log('✅ Transação criada via Edge Function:', transaction);
+      } else if (transactionError) {
+        console.error('❌ Erro detalhado na transação:', transactionError);
         throw new Error(`Erro ao criar transação: ${transactionError.message}`);
+      } else {
+        console.log('✅ Transação criada diretamente:', transaction);
       }
 
       console.log('✅ 1. Transação criada no Supabase:', transaction);
