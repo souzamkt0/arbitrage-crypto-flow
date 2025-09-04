@@ -78,11 +78,15 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
   useEffect(() => {
     if (!depositData?.trxId) return;
 
+    let verificationCount = 0;
+    const maxVerifications = 180; // 30 minutos (180 * 10 segundos)
+
     const interval = setInterval(async () => {
       try {
-        console.log('🔄 Verificação automática de status...');
+        verificationCount++;
+        console.log(`🔄 Verificação automática ${verificationCount}/${maxVerifications}...`);
         
-        // Verificar diretamente no banco se há atualização via webhook
+        // 1. Primeiro verificar no banco se há atualização via webhook
         const { data: transaction, error: dbError } = await supabase
           .from('digitopay_transactions')
           .select('status, amount_brl, user_id')
@@ -90,7 +94,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           .maybeSingle();
 
         if (!dbError && transaction && (transaction.status === 'completed' || transaction.status === 'paid')) {
-          console.log('🎉 Depósito confirmado automaticamente!');
+          console.log('🎉 Depósito confirmado automaticamente via webhook!');
           
           toast({
             title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
@@ -117,7 +121,96 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
           loadDepositHistory();
           
           if (onSuccess) onSuccess();
+          return;
         }
+
+        // 2. Se não foi confirmado via webhook, verificar no DigitoPay a cada 30 segundos
+        if (verificationCount % 3 === 0) { // A cada 3 verificações (30 segundos)
+          console.log('🏦 Verificando status no DigitoPay...');
+          
+          try {
+            const { data: statusResult, error: statusError } = await supabase.functions.invoke('digitopay-status', {
+              body: { trxId: depositData.trxId }
+            });
+
+            if (!statusError && statusResult && (statusResult.isConfirmed || statusResult.data?.status === 'REALIZADO')) {
+              console.log('🚨 Pagamento confirmado no DigitoPay mas webhook não foi enviado! Simulando webhook...');
+              
+              // Simular webhook se foi confirmado no DigitoPay mas não recebemos webhook
+              const webhookPayload = {
+                id: depositData.trxId,
+                status: 'paid',
+                value: depositData.brlAmount || parseFloat(transaction?.amount_brl || '0'),
+                person: {
+                  name: profile?.display_name || 'Usuário',
+                  cpf: '00000000000'
+                },
+                paymentMethod: {
+                  type: 'PIX'
+                },
+                type: 'deposit',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+
+              const webhookResponse = await fetch('https://cbwpghrkfvczjqzefvix.supabase.co/functions/v1/digitopay-deposit-webhook', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(webhookPayload)
+              });
+
+              const webhookResult = await webhookResponse.json();
+              
+              if (webhookResult.success) {
+                console.log('✅ Webhook simulado processado com sucesso!');
+                
+                toast({
+                  title: "🎉 PARABÉNS! DEPÓSITO CONFIRMADO!",
+                  description: `Seu depósito foi confirmado no DigitoPay e o saldo foi creditado automaticamente! ✅ Sistema detectou o pagamento.`,
+                  duration: 15000,
+                });
+
+                // Atualizar status local
+                setDepositHistory(prev => 
+                  prev.map(deposit => 
+                    deposit.trxId === depositData.trxId 
+                      ? { ...deposit, status: 'completed' as const }
+                      : deposit
+                  )
+                );
+
+                // Limpar dados do depósito
+                setDepositData(null);
+                
+                // Parar o polling
+                clearInterval(interval);
+                
+                // Recarregar dados
+                loadDepositHistory();
+                
+                if (onSuccess) onSuccess();
+                return;
+              }
+            }
+          } catch (digitopayError) {
+            console.log('Erro na verificação DigitoPay (silencioso):', digitopayError);
+          }
+        }
+
+        // 3. Parar após tempo limite
+        if (verificationCount >= maxVerifications) {
+          console.log('⏰ Tempo limite de verificação automática atingido (30 minutos)');
+          clearInterval(interval);
+          
+          toast({
+            title: "⏰ Verificação Automática Finalizada",
+            description: "Continuaremos monitorando, mas use o botão 'Verificar Status' se necessário.",
+            duration: 10000,
+          });
+        }
+
       } catch (error) {
         console.log('Verificação automática silenciosa:', error);
       }
@@ -125,7 +218,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
 
     // Limpar quando componente desmontar ou depositData mudar
     return () => clearInterval(interval);
-  }, [depositData?.trxId]);
+  }, [depositData?.trxId, profile]);
 
   // Carregar histórico ao montar o componente
   useEffect(() => {
@@ -395,7 +488,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
           <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Depósito PIX</h1>
-        </div>
+            </div>
         <p className="text-xs sm:text-sm text-yellow-300/70 mt-1">Confirmação automática • Saldo liberado imediatamente</p>
       </div>
 
