@@ -64,19 +64,19 @@ serve(async (req) => {
       throw new Error('Falha na autenticação');
     }
 
-    // 2. Criar depósito com token válido e external_reference
+    // 2. Criar depósito com token válido seguindo padrões da documentação oficial
     const depositData = {
-      dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min
-      paymentOptions: ['PIX'],
+      dueDate: new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 19) + 'Z', // Formato ISO correto
+      paymentOptions: ['PIX'], // Array conforme documentação
       person: {
-        cpf: cpf.replace(/\D/g, ''),
-        name: name
+        cpf: cpf.replace(/\D/g, ''), // CPF apenas números
+        name: name.trim() // Nome limpo
       },
-      value: amount,
-      callbackUrl: callbackUrl,
-      idempotencyKey: `deposit_${Date.now()}_${userId}`,
-      // Adicionar external_reference para vincular com Supabase
-      externalReference: external_reference || `ext_${Date.now()}_${userId.slice(-6)}`
+      value: parseFloat(amount.toFixed(2)), // Valor numérico com 2 decimais
+      callbackUrl: callbackUrl, // URL do webhook
+      idempotencyKey: `deposit_${Date.now()}_${userId.slice(-8)}`, // Chave única mais curta
+      // Campo correto conforme documentação (não externalReference)
+      externalId: external_reference || `ext_${Date.now()}_${userId.slice(-6)}`
     };
 
     console.log('📦 Dados do depósito:', depositData);

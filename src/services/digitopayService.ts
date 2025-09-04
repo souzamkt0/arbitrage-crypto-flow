@@ -15,17 +15,18 @@ export interface DigitoPayAuthResponse {
   message?: string;
 }
 
-// Estrutura de depósito conforme documentação oficial
+// Estrutura de depósito conforme documentação oficial DigitoPay
 export interface DigitoPayDepositRequest {
-  dueDate: string;
-  paymentOptions: string[];
+  dueDate: string; // ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)
+  paymentOptions: string[]; // ['PIX'] - Array de opções de pagamento
   person: {
-    cpf: string;
-    name: string;
+    cpf: string; // CPF apenas números (11 dígitos)
+    name: string; // Nome completo do pagador
   };
-  value: number;
-  callbackUrl?: string;
-  idempotencyKey?: string;
+  value: number; // Valor em formato numérico (ex: 10.50)
+  callbackUrl?: string; // URL do webhook para notificações
+  idempotencyKey?: string; // Chave única para evitar duplicação
+  externalId?: string; // ID externo para vinculação (conforme documentação)
 }
 
 export interface DigitoPayDepositResponse {
@@ -70,22 +71,29 @@ export interface DigitoPayWithdrawalResponse {
   }>;
 }
 
+// Estrutura do webhook conforme documentação oficial DigitoPay
 export interface DigitoPayWebhookData {
-  id: string;
-  externalId?: string;
-  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'FAILED';
-  amount: number;
-  customer: {
+  id: string; // ID da transação no DigitoPay
+  externalId?: string; // ID externo vinculado na criação
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'FAILED'; // Status da transação
+  value: number; // Valor da transação
+  // Suporte para ambos os formatos (person e customer)
+  person?: {
     name: string;
-    document: string;
+    cpf: string;
+  };
+  customer?: {
+    name: string;
+    document: string; // CPF ou CNPJ
   };
   paymentMethod: {
-    type: string;
+    type: string; // 'PIX', 'BOLETO', etc.
     pixKey?: string;
     pixKeyType?: string;
   };
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
+  type?: string; // Tipo da operação ('deposit', 'withdrawal')
 }
 
 // Classe principal do serviço DigitoPay

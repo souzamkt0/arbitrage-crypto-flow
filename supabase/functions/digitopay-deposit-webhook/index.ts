@@ -31,14 +31,21 @@ Deno.serve(async (req) => {
     // Extrair dados do webhook conforme documentação oficial DigitoPay
     const { 
       id: trxId, 
+      externalId,
       status, 
       value, 
       person,
+      customer,
       paymentMethod,
       type,
       createdAt,
       updatedAt
     } = webhookData;
+
+    // Suporte para ambos os formatos: person (antigo) e customer (novo padrão)
+    const customerData = customer || person || {};
+    const customerName = customerData.name || webhookData.person?.name || 'Usuário';
+    const customerCpf = customerData.document || customerData.cpf || webhookData.person?.cpf || '';
 
     if (!trxId) {
       console.error('❌ Webhook sem ID da transação');
@@ -48,11 +55,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Buscar transação no banco - tentar diferentes formatos de ID
+    // Buscar transação no banco - múltiplas estratégias conforme documentação
     let transaction = null;
     let transactionError = null;
 
-    // Tentar buscar pelo trx_id original
+    // Estratégia 1: Buscar pelo trx_id (ID da transação no DigitoPay)
     const { data: trxData, error: trxError } = await supabase
       .from('digitopay_transactions')
       .select('*')
@@ -62,19 +69,38 @@ Deno.serve(async (req) => {
 
     if (trxData) {
       transaction = trxData;
+      console.log('✅ Transação encontrada pelo trx_id:', trxId);
     } else {
-      // Tentar buscar pelo idempotencyKey
-      const { data: idempData, error: idempError } = await supabase
-        .from('digitopay_transactions')
-        .select('*')
-        .eq('idempotency_key', trxId)
-        .eq('type', 'deposit')
-        .single();
+      // Estratégia 2: Buscar pelo externalId se fornecido
+      if (externalId) {
+        const { data: extData, error: extError } = await supabase
+          .from('digitopay_transactions')
+          .select('*')
+          .eq('external_id', externalId)
+          .eq('type', 'deposit')
+          .single();
 
-      if (idempData) {
-        transaction = idempData;
+        if (extData) {
+          transaction = extData;
+          console.log('✅ Transação encontrada pelo external_id:', externalId);
+        } else {
+          // Estratégia 3: Buscar pelo idempotency_key (fallback)
+          const { data: idempData, error: idempError } = await supabase
+            .from('digitopay_transactions')
+            .select('*')
+            .eq('idempotency_key', trxId)
+            .eq('type', 'deposit')
+            .single();
+
+          if (idempData) {
+            transaction = idempData;
+            console.log('✅ Transação encontrada pelo idempotency_key:', trxId);
+          } else {
+            transactionError = trxError || extError || idempError;
+          }
+        }
       } else {
-        transactionError = trxError || idempError;
+        transactionError = trxError;
       }
     }
 
@@ -180,7 +206,7 @@ Deno.serve(async (req) => {
 
       console.log(`✅ Saldo atualizado: +R$ ${transaction.amount_brl}`);
 
-      // Registrar na tabela de depósitos
+      // Registrar na tabela de depósitos com dados corretos do webhook
       const { error: depositError } = await supabase
         .from('deposits')
         .insert({
@@ -189,10 +215,17 @@ Deno.serve(async (req) => {
           amount_brl: transaction.amount_brl,
           type: 'pix',
           status: 'paid',
-          holder_name: transaction.person_name,
-          cpf: transaction.person_cpf,
+          holder_name: customerName || transaction.person_name,
+          cpf: customerCpf || transaction.person_cpf,
           pix_code: transaction.pix_code,
-          exchange_rate: 1.0
+          exchange_rate: parseFloat(transaction.amount_brl) / parseFloat(transaction.amount) || 1.0,
+          // Adicionar dados do webhook para auditoria
+          webhook_data: {
+            digitopay_id: trxId,
+            external_id: externalId,
+            payment_method: paymentMethod,
+            processed_at: new Date().toISOString()
+          }
         });
 
       if (depositError) {
