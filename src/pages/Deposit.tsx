@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { DigitoPayDeposit } from "@/components/DigitoPayDeposit";
+import { USDTDeposit } from "@/components/USDTDeposit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,8 +55,8 @@ const Deposit = () => {
     if (!user) return;
 
     try {
-      // Buscar depósitos de ambas as tabelas
-      const [digitopayResult, depositsResult] = await Promise.all([
+      // Buscar depósitos de todas as tabelas
+      const [digitopayResult, depositsResult, nowpaymentsResult] = await Promise.all([
         supabase
         .from('digitopay_transactions')
         .select('amount, amount_brl, status')
@@ -64,7 +65,12 @@ const Deposit = () => {
         supabase
           .from('deposits')
           .select('amount_usd, amount_brl, status')
+          .eq('user_id', user.id),
+        supabase
+          .from('bnb20_transactions')
+          .select('amount, price_amount, payment_status, pay_currency')
           .eq('user_id', user.id)
+          .in('pay_currency', ['usdttrc20', 'usdterc20', 'usdtbep20'])
       ]);
 
       const allDeposits = [];
@@ -87,6 +93,19 @@ const Deposit = () => {
             amount: d.amount_usd,
             amount_brl: d.amount_brl,
             status: d.status === 'paid' ? 'completed' : d.status
+          });
+        });
+      }
+
+      // Adicionar transações USDT do NowPayments
+      if (nowpaymentsResult.data) {
+        nowpaymentsResult.data.forEach(d => {
+          allDeposits.push({
+            amount: d.price_amount || d.amount,
+            amount_brl: null, // USDT não tem conversão BRL
+            status: d.payment_status === 'finished' || d.payment_status === 'confirmed' ? 'completed' : 
+                   d.payment_status === 'waiting' || d.payment_status === 'confirming' ? 'pending' : 
+                   d.payment_status
           });
         });
       }
@@ -334,10 +353,14 @@ const Deposit = () => {
 
             <CardContent className="p-4 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-2 mb-4 sm:mb-6 bg-transparent">
+                <TabsList className="grid w-full grid-cols-2 gap-2 mb-4 sm:mb-6 bg-transparent">
                   <TabsTrigger value="digitopay" className="h-11 sm:h-10 flex items-center justify-center gap-2 bg-zinc-900/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-600 data-[state=active]:text-black border border-yellow-500/25 rounded-lg">
                     <Smartphone className="h-4 w-4" />
                     PIX Automático
+                  </TabsTrigger>
+                  <TabsTrigger value="usdt" className="h-11 sm:h-10 flex items-center justify-center gap-2 bg-zinc-900/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-600 data-[state=active]:text-black border border-yellow-500/25 rounded-lg">
+                    <Wallet className="h-4 w-4" />
+                    USDT Crypto
                   </TabsTrigger>
                 </TabsList>
 
@@ -358,6 +381,28 @@ const Deposit = () => {
                         <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-3" />
                         <p className="text-yellow-300 font-medium mb-1">Autenticação Necessária</p>
                         <p className="text-yellow-300/70 text-sm">Faça login para acessar os depósitos</p>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="usdt" className="space-y-4">
+                  {user ? (
+                    <USDTDeposit 
+                      onSuccess={() => {
+                        toast({
+                          title: "🎉 Depósito USDT Confirmado!",
+                          description: "Seu depósito USDT foi processado com sucesso",
+                        });
+                        loadDepositData();
+                      }} 
+                    />
+                  ) : (
+                    <div className="text-center py-10 sm:py-12">
+                      <div className="p-5 sm:p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl inline-block">
+                        <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-3" />
+                        <p className="text-yellow-300 font-medium mb-1">Autenticação Necessária</p>
+                        <p className="text-yellow-300/70 text-sm">Faça login para acessar os depósitos USDT</p>
                       </div>
                     </div>
                   )}
