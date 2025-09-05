@@ -23,3 +23,35 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Backup files
+*.tar.gz
+*.zip
+backup-*
+*-backup.*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
