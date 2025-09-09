@@ -231,12 +231,12 @@ const Register = () => {
       console.log('🔄 Iniciando cadastro real...', formData);
       
       const { error } = await signUp(formData.email, formData.password, {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         username: formData.username,
         cpf: formData.cpf,
         whatsapp: formData.whatsapp,
-        referralCode: referralCode
+        referral_code: referralCode
       });
       
       if (error) {

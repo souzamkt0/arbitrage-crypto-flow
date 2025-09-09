@@ -199,8 +199,7 @@ export const DigitoPayDeposit: React.FC<DigitoPayDepositProps> = ({
                 if (onSuccess) onSuccess();
                 return;
               }
-            }
-          } catch (webhookError) {
+            } catch (webhookError) {
             console.log('Erro no webhook simulado (silencioso):', webhookError);
           }
         }

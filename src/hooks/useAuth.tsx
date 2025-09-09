@@ -9,6 +9,7 @@ interface UserProfile {
   user_id: string;
   email: string;
   username?: string;
+  display_name?: string;
   first_name?: string;
   last_name?: string;
   cpf?: string;
@@ -18,7 +19,10 @@ interface UserProfile {
   referred_by?: string;
   role: 'user' | 'admin' | 'partner';
   balance: number;
+  referral_balance?: number;
   total_profit: number;
+  bio?: string;
+  avatar?: string;
   status: 'active' | 'inactive' | 'suspended';
   created_at: string;
   updated_at: string;
@@ -49,7 +53,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: AuthError }>;
-  signUp: (email: string, password: string, userData: UserData) => Promise<{ error?: AuthError }>;
+  signUp: (email: string, password: string, userData: Omit<UserData, 'email' | 'password'>) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isImpersonating: boolean;
@@ -318,7 +322,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, userData: UserData) => {
+  const signUp = async (email: string, password: string, userData: Omit<UserData, 'email' | 'password'>) => {
     try {
       console.log('🔄 Iniciando cadastro...', { email, userData });
       

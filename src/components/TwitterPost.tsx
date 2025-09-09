@@ -119,7 +119,9 @@ const TwitterPost = ({
     replies: Math.max(0, post.replies || 0),
     shares: Math.max(0, post.shares || 0),
     liked: post.liked || false,
-    retweeted: post.retweeted || false
+    retweeted: post.retweeted || false,
+    replyTo: post.replyTo,
+    imageUrl: post.imageUrl
   };
 
   // Atualizar editContent quando safePost.content mudar
