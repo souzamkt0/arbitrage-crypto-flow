@@ -35,6 +35,7 @@ import BNB20Page from "./pages/BNB20";
 import USDTPayments from "./pages/USDTPayments";
 import USDTCheckout from "./pages/USDTCheckout";
 import SimpleUSDTPayment from "./pages/SimpleUSDTPayment";
+import ExplanationPage from "./pages/ExplanationPage";
 
 import Navbar from "./components/Navbar";
 import PriceTicker from "./components/PriceTicker";
@@ -131,6 +132,7 @@ const App = () => (
           <Route path="/create-admin" element={<CreateAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/explanation" element={<ExplanationPage />} />
           <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
           <Route path="/complete-profile" element={<CompleteProfileRoute />} />
           <Route path="/api-connection" element={<ApiConnection />} />
